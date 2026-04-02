@@ -2069,6 +2069,9 @@ public final class GameState implements State {
                 runStartOfBattleActionLoop();
             }
             if (actionCtx == GameActionCtx.BEGIN_BATTLE) {
+                if (properties.enemiesEncounters.size() == 1) {
+                    properties.enemiesEncounters.get(0).startFight(this);
+                }
                 if (properties.randomization != null) {
                     if (properties.isHeartGauntlet && battleRandomizationIdxChosen >= 0) {
                         properties.randomization.randomize(this, battleRandomizationIdxChosen);

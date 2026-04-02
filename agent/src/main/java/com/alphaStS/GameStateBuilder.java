@@ -3,15 +3,14 @@ package com.alphaStS;
 import com.alphaStS.card.Card;
 import com.alphaStS.card.CardSilent;
 import com.alphaStS.enemy.Enemy;
-import com.alphaStS.enemy.EnemyCity;
 import com.alphaStS.enemy.EnemyEncounter;
+import com.alphaStS.enemy.GremlinGangRandomization;
+import com.alphaStS.enemy.GremlinLeaderRandomization2;
 import com.alphaStS.entity.Potion;
 import com.alphaStS.entity.Relic;
 import com.alphaStS.enums.CharacterEnum;
 import com.alphaStS.eventHandler.GameEventHandler;
 import com.alphaStS.player.Player;
-import com.alphaStS.utils.Tuple;
-
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
@@ -26,8 +25,6 @@ public class GameStateBuilder {
     private List<Card> cards = new ArrayList<>();
     private List<Enemy> enemies = new ArrayList<>();
     private List<EnemyEncounter> enemiesEncounters = new ArrayList<>();
-    private List<Integer> gremlinEncounterFightIndexes = new ArrayList<>();
-    private List<Integer> gremlinGangEncounterIndexes = new ArrayList<>();
     private List<Relic> relics = new ArrayList<>();
     private List<Potion> potions = new ArrayList<>();
     private Potion.PotionGenerator potionsGenerator;
@@ -106,29 +103,20 @@ public class GameStateBuilder {
         addEnemyEncounterInternal(EnemyEncounter.EncounterEnum.UNKNOWN, randomization, enemies);
     }
 
-    private void addEnemyEncounterInternal(EnemyEncounter.EncounterEnum encounterEnum, GameStateRandomization randomization, Enemy[] enemies) {
-        var indexes = new ArrayList<Tuple<Integer, Integer>>();
-        boolean isGremlinLeaderFight = false;
-        for (Enemy enemy : enemies) {
-            if (enemy instanceof EnemyCity.GremlinLeader) {
-                isGremlinLeaderFight = true;
-                break;
-            }
-        }
-        if (isGremlinLeaderFight) {
-            indexes.add(new Tuple<>(this.enemies.size(), 0));
-            indexes.add(new Tuple<>(this.enemies.size() + 1, 0));
-            indexes.add(new Tuple<>(this.enemies.size() + 2, 0));
-            indexes.add(new Tuple<>(this.enemies.size() + 3, -1));
-            gremlinEncounterFightIndexes.add(enemiesEncounters.size());
+    public void addEnemyEncounterInternal(EnemyEncounter.EncounterEnum encounterEnum, GameStateRandomization randomization, Enemy... enemies) {
+        var indexes = new ArrayList<EnemyEncounter.EnemyInfo>();
+        if (encounterEnum == EnemyEncounter.EncounterEnum.GREMLIN_LEADER) {
+            indexes.add(new EnemyEncounter.EnemyInfo(this.enemies.size(), true));
+            indexes.add(new EnemyEncounter.EnemyInfo(this.enemies.size() + 1, true));
+            indexes.add(new EnemyEncounter.EnemyInfo(this.enemies.size() + 2, true));
+            indexes.add(new EnemyEncounter.EnemyInfo(this.enemies.size() + 3, false));
         } else if (encounterEnum == EnemyEncounter.EncounterEnum.GREMLIN_GANG) {
             for (int i = 0; i < enemies.length; i++) {
-                indexes.add(new Tuple<>(this.enemies.size() + i, -1));
+                indexes.add(new EnemyEncounter.EnemyInfo(this.enemies.size() + i, false));
             }
-            gremlinGangEncounterIndexes.add(enemiesEncounters.size());
         } else {
             for (int i = 0; i < enemies.length; i++) {
-                indexes.add(new Tuple<>(this.enemies.size() + i, -1));
+                indexes.add(new EnemyEncounter.EnemyInfo(this.enemies.size() + i, false));
             }
         }
         var encounter = new EnemyEncounter(encounterEnum, indexes);
@@ -148,44 +136,49 @@ public class GameStateBuilder {
     public void build(GameState state) {
         if (enemiesEncounters.size() > 1) {
             GameStateRandomization r = new GameStateRandomization.EnemyEncounterRandomization(enemies, enemiesEncounters);
-            for (var gremlinLeaderFightIndex : gremlinEncounterFightIndexes) {
-                var encounter = enemiesEncounters.get(gremlinLeaderFightIndex);
-                r = r.followByIf(gremlinLeaderFightIndex, new EnemyEncounter.GremlinLeaderRandomization2(enemies, encounter.idxes.get(0).v1()).collapse("Random Gremlins"));
+            for (int i = 0; i < enemiesEncounters.size(); i++) {
+                var encounter = enemiesEncounters.get(i);
+                if (encounter.encounterEnum == EnemyEncounter.EncounterEnum.GREMLIN_LEADER) {
+                    r = r.followByIf(i, new GremlinLeaderRandomization2(enemies, encounter.idxes.get(0).index()).collapse("Random Gremlins"));
+                } else if (encounter.encounterEnum == EnemyEncounter.EncounterEnum.GREMLIN_GANG) {
+                    r = r.followByIf(i, new GremlinGangRandomization(enemies, encounter.idxes.get(0).index()));
+                }
             }
-            for (var gremlinGangEncounterIndexes : gremlinGangEncounterIndexes) {
-                var encounter = enemiesEncounters.get(gremlinGangEncounterIndexes);
-                r = r.followByIf(gremlinGangEncounterIndexes, new EnemyEncounter.GremlinGangRandomization(enemies, encounter.idxes.get(0).v1()));
+            if (isBurningElite) {
+                for (Enemy enemy : enemies) {
+                    if (enemy.properties.isElite) {
+                        enemy.markAsBurningElite();
+                    }
+                }
+                r = new GameStateRandomization.BurningEliteRandomization().doAfter(r);
             }
             for (int i = 0; i < enemiesEncounters.size(); i++) {
-                var enc = enemiesEncounters.get(i);
-                if (enc.randomization != null) {
-                    r = r.followByIf(i, enc.randomization);
+                var encounter = enemiesEncounters.get(i);
+                if (encounter.randomization != null) {
+                    r = r.followByIf(i, encounter.randomization);
                 }
             }
             randomization = randomization == null ? r : randomization.doAfter(r);
         } else if (enemiesEncounters.size() == 1) {
-            if (gremlinEncounterFightIndexes.size() > 0) {
-                var encounter = enemiesEncounters.get(gremlinEncounterFightIndexes.get(0));
-                var r = new EnemyEncounter.GremlinLeaderRandomization2(enemies, encounter.idxes.get(0).v1()).collapse("Random Gremlins");
-                randomization = randomization == null ? r : randomization.doAfter(r);
-            } else if (gremlinGangEncounterIndexes.size() > 0) {
-                var encounter = enemiesEncounters.get(gremlinGangEncounterIndexes.get(0));
-                var r = new EnemyEncounter.GremlinGangRandomization(enemies, encounter.idxes.get(0).v1());
-                randomization = randomization == null ? r : randomization.doAfter(r);
+            GameStateRandomization r = null;
+            var encounter = enemiesEncounters.get(0);
+            if (encounter.encounterEnum == EnemyEncounter.EncounterEnum.GREMLIN_LEADER) {
+                r = new GremlinLeaderRandomization2(enemies, encounter.idxes.get(0).index()).collapse("Random Gremlins");
+            } else if (encounter.encounterEnum == EnemyEncounter.EncounterEnum.GREMLIN_GANG) {
+                r = new GremlinGangRandomization(enemies, encounter.idxes.get(0).index());
             }
-            var enc = enemiesEncounters.get(0);
-            if (enc.randomization != null) {
-                randomization = randomization == null ? enc.randomization : randomization.doAfter(enc.randomization);
-            }
-            state.currentEncounter = enemiesEncounters.get(0).encounterEnum;
-        }
-        if (isBurningElite) {
-            for (Enemy enemy : enemies) {
-                if (enemy.properties.isElite) {
-                    enemy.markAsBurningElite();
+            if (isBurningElite) {
+                for (Enemy enemy : enemies) {
+                    if (enemy.properties.isElite) {
+                        enemy.markAsBurningElite();
+                    }
                 }
+                r = new GameStateRandomization.BurningEliteRandomization().doAfter(r);
             }
-            randomization = new GameStateRandomization.BurningEliteRandomization().doAfter(randomization);
+            if (encounter.randomization != null) {
+                r = encounter.randomization.doAfter(r);
+            }
+            randomization = randomization == null ? r : randomization.doAfter(r);
         }
     }
 

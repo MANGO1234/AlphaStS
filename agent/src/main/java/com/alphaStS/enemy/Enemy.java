@@ -274,6 +274,11 @@ public abstract class Enemy extends EnemyReadOnly {
         artifact = n;
     }
 
+    @Override public Enemy startDead() {
+        startDead = true;
+        return this;
+    }
+
     public Enemy markAsBurningElite() {
         properties.applyBurningEliteBuff();
         return this;

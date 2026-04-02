@@ -1,17 +1,14 @@
 package com.alphaStS.enemy;
 
 import com.alphaStS.*;
-import com.alphaStS.card.Card;
 import com.alphaStS.card.CardManager;
 import com.alphaStS.entity.Potion;
 import com.alphaStS.gameAction.GameActionCtx;
 import com.alphaStS.random.RandomGenCtx;
-import com.alphaStS.utils.Tuple;
-
 import java.util.*;
 
 public class EnemyEncounter {
-    public static enum EncounterEnum {
+    public enum EncounterEnum {
         UNKNOWN,
         CORRUPT_HEART,
         SPEAR_AND_SHIELD,
@@ -19,15 +16,45 @@ public class EnemyEncounter {
         BRONZE_AUTOMATON,
         COLLECTOR,
         GREMLIN_GANG,
+        GREMLIN_LEADER,
     }
 
+    public record EnemyInfo(int index, boolean isMergedEnemy) {}
+
     public EncounterEnum encounterEnum;
-    public List<Tuple<Integer, Integer>> idxes;
+    public List<EnemyInfo> idxes;
     public GameStateRandomization randomization;
 
-    public EnemyEncounter(EncounterEnum encounterEnum, ArrayList<Tuple<Integer, Integer>> indexes) {
+    public EnemyEncounter(EncounterEnum encounterEnum, ArrayList<EnemyInfo> indexes) {
         this.encounterEnum = encounterEnum;
         this.idxes = indexes;
+    }
+
+    public void startFight(GameState state) {
+        var enemies = state.getEnemiesForWrite();
+        for (int i = 0; i < enemies.size(); i++) {
+            enemies.getForWrite(i).setHealth(0);
+        }
+        for (var t : idxes) {
+            var enemy = enemies.getForWrite(t.index());
+            if (!enemy.startDead) {
+                if (t.isMergedEnemy()) {
+                    var e = (Enemy.MergedEnemy) enemy;
+                    e.setEnemy(0);
+                    enemy.setHealth(e.getEnemyProperty(0).maxHealth);
+                } else {
+                    enemy.setHealth(enemy.properties.maxHealth);
+                }
+            }
+        }
+        state.currentEncounter = encounterEnum;
+        int k = 0;
+        for (int i = 0; i < state.getEnemiesForRead().size(); i++) {
+            if (state.getEnemiesForRead().get(i).getHealth() > 0) {
+                k++;
+            }
+        }
+        state.enemiesAlive = k;
     }
 
     public static void addDualFungiBeastFight(GameStateBuilder builder) {
@@ -35,217 +62,7 @@ public class EnemyEncounter {
     }
 
     public static void addLargeSpikeSlimeFight(GameStateBuilder builder) {
-        builder.addEnemyEncounter(new EnemyExordium.LargeSpikeSlime(), new EnemyExordium.MediumSpikeSlime(36, true), new EnemyExordium.MediumSpikeSlime(36, true));
-    }
-
-    public static class GremlinGangRandomization implements GameStateRandomization {
-        Map<Integer, Integer> rMap = new HashMap<>();
-        Map<Integer, List<Integer>> enemiesMap = new HashMap<>();
-        Map<Integer, Info> infoMap = new HashMap<>();
-
-        public GremlinGangRandomization(List<Enemy> enemies, int startIdx) {
-            var map = new HashMap<List<Integer>, Integer>();
-            var iMap = new HashMap<Integer, List<Integer>>();
-            for (int a = 0; a < 8; a++) {
-                for (int b = 0; b < 7; b++) {
-                    for (int c = 0; c < 6; c++) {
-                        for (int d = 0; d < 5; d++) {
-                            var i = ((a * 8 + b) * 7 + c) * 6 + d;
-                            var indexes = new ArrayList<Integer>();
-                            indexes.add(startIdx + a);
-                            var k = -1;
-                            for (int j = 0; j < 8; j++) {
-                                if (!indexes.contains(startIdx + j)) {
-                                    if ((++k) == b) {
-                                        indexes.add(startIdx + j);
-                                        break;
-                                    }
-                                }
-                            }
-                            k = -1;
-                            for (int j = 0; j < 8; j++) {
-                                if (!indexes.contains(startIdx + j)) {
-                                    if ((++k) == c) {
-                                        indexes.add(startIdx + j);
-                                        break;
-                                    }
-                                }
-                            }
-                            k = -1;
-                            for (int j = 0; j < 8; j++) {
-                                if (!indexes.contains(startIdx + j)) {
-                                    if ((++k) == d) {
-                                        indexes.add(startIdx + j);
-                                        break;
-                                    }
-                                }
-                            }
-                            Collections.sort(indexes);
-                            for (int j = 1; j < indexes.size(); j++) {
-                                if (indexes.get(j) == 3 && indexes.get(j - 1) != 2) {
-                                    indexes.set(j, 2);
-                                } else if (indexes.get(j) == 5 && indexes.get(j - 1) != 4) {
-                                    indexes.set(j, 4);
-                                }
-                            }
-                            iMap.put(i, indexes);
-                            map.putIfAbsent(indexes, 0);
-                            map.computeIfPresent(indexes, (key, x) -> x + 1);
-                        }
-                    }
-                }
-            }
-            var l = map.entrySet().stream().sorted((a, b) -> {
-                for (int i = 0; i < a.getKey().size(); i++) {
-                    var result = Integer.compare(a.getKey().get(i), b.getKey().get(i));
-                    if (result != 0) {
-                        return result;
-                    }
-                }
-                return 0;
-            }).toList();
-            for (int i = 0; i < l.size(); i++) {
-                enemiesMap.put(i, l.get(i).getKey());
-                var names = l.get(i).getKey().stream().map((idx) -> enemies.get(idx).getName()).toList();
-                infoMap.put(i, new Info(l.get(i).getValue() / 8.0 / 7 / 6 / 5, String.join(", ", names)));
-                map.put(l.get(i).getKey(), i);
-            }
-            for (var entry : iMap.entrySet()) {
-                rMap.put(entry.getKey(), map.get(entry.getValue()));
-            }
-        }
-
-        @Override public int randomize(GameState state) {
-            var a = state.getSearchRandomGen().nextInt(8, RandomGenCtx.BeginningOfGameRandomization, this);
-            var b = state.getSearchRandomGen().nextInt(7, RandomGenCtx.BeginningOfGameRandomization, this);
-            var c = state.getSearchRandomGen().nextInt(6, RandomGenCtx.BeginningOfGameRandomization, this);
-            var d = state.getSearchRandomGen().nextInt(5, RandomGenCtx.BeginningOfGameRandomization, this);
-            var i = ((a * 8 + b) * 7 + c) * 6 + d;
-            var r = rMap.get(i);
-            randomize(state, r);
-            return r;
-        }
-
-        @Override public void randomize(GameState state, int r) {
-            var enemies = enemiesMap.get(r);
-            for (int i = 0; i < state.getEnemiesForWrite().size(); i++) {
-                state.getEnemiesForWrite().getForWrite(i).setHealth(0);
-            }
-            for (int i = 0; i < 4; i++) {
-                var enemy = state.getEnemiesForWrite().getForWrite(enemies.get(i));
-                enemy.setHealth(enemy.properties.maxHealth);
-            }
-            state.enemiesAlive = 4;
-        }
-
-        @Override public Map<Integer, Info> listRandomizations() {
-            return infoMap;
-        }
-
-        @Override public List<Card> getPossibleGeneratedCards() {
-            return List.of();
-        }
-    }
-
-    public static class GremlinLeaderRandomization2 implements GameStateRandomization {
-        Map<Integer, Integer> rMap = new HashMap<>();
-        Map<Integer, List<Integer>> enemiesMap = new HashMap<>();
-        Map<Integer, Info> infoMap = new HashMap<>();
-        int startIdx;
-        private static final int MAD_GREMLIN = 0;
-        private static final int SNEAkY_GREMLIN = 1;
-        private static final int FAT_GREMLIN = 2;
-        private static final int SHIELD_GREMLIN = 3;
-        private static final int GREMLIN_WIZARD = 4;
-
-        public GremlinLeaderRandomization2(List<Enemy> enemies, int startIdx) {
-            var map = new HashMap<List<Integer>, Integer>();
-            var iMap = new HashMap<Integer, List<Integer>>();
-            for (int a = 0; a < 8; a++) {
-                for (int b = 0; b < 8; b++) {
-                    var i = a * 8 + b;
-                    var indexes = new ArrayList<Integer>();
-                    if (a < 2) { // Mad Gremlin
-                        indexes.add(MAD_GREMLIN);
-                    } else if (a < 4) { // Sneaky Gremlin
-                        indexes.add(SNEAkY_GREMLIN);
-                    } else if (a < 6) { // Fat Gremlin
-                        indexes.add(FAT_GREMLIN);
-                    } else if (a < 7) { // Shield Gremlin
-                        indexes.add(SHIELD_GREMLIN);
-                    } else { // Gremlin Wizard
-                        indexes.add(GREMLIN_WIZARD);
-                    }
-                    if (b < 2) { // Mad Gremlin
-                        indexes.add(MAD_GREMLIN);
-                    } else if (b < 4) { // Sneaky Gremlin
-                        indexes.add(SNEAkY_GREMLIN);
-                    } else if (b < 6) { // Fat Gremlin
-                        indexes.add(FAT_GREMLIN);
-                    } else if (b < 7) { // Shield Gremlin
-                        indexes.add(SHIELD_GREMLIN);
-                    } else { // Gremlin Wizard
-                        indexes.add(GREMLIN_WIZARD);
-                    }
-                    Collections.sort(indexes);
-                    iMap.put(i, indexes);
-                    map.putIfAbsent(indexes, 0);
-                    map.computeIfPresent(indexes, (key, x) -> x + 1);
-                }
-            }
-            var l = map.entrySet().stream().sorted((a, b) -> {
-                for (int i = 0; i < a.getKey().size(); i++) {
-                    var result = Integer.compare(a.getKey().get(i), b.getKey().get(i));
-                    if (result != 0) {
-                        return result;
-                    }
-                }
-                return 0;
-            }).toList();
-            for (int i = 0; i < l.size(); i++) {
-                enemiesMap.put(i, l.get(i).getKey());
-                var names = l.get(i).getKey().stream().map((idx) -> {
-                    return ((Enemy.MergedEnemy) enemies.get(startIdx)).possibleEnemies.get(idx).getName();
-                }).toList();
-                infoMap.put(i, new Info(l.get(i).getValue() / 8.0 / 8, String.join(", ", names)));
-                map.put(l.get(i).getKey(), i);
-            }
-            for (var entry : iMap.entrySet()) {
-                rMap.put(entry.getKey(), map.get(entry.getValue()));
-            }
-            this.startIdx = startIdx;
-        }
-
-        @Override public int randomize(GameState state) {
-            var a = state.getSearchRandomGen().nextInt(8, RandomGenCtx.GremlinLeader, this);
-            var b = state.getSearchRandomGen().nextInt(8, RandomGenCtx.GremlinLeader, this);
-            var i = a * 8 + b;
-            var r = rMap.get(i);
-            randomize(state, r);
-            return r;
-        }
-
-        @Override public void randomize(GameState state, int r) {
-            var enemies = enemiesMap.get(r);
-            for (int i = 0; i < state.getEnemiesForWrite().size(); i++) {
-                state.getEnemiesForWrite().getForWrite(i).setHealth(0);
-            }
-            for (int i = 0; i < 2; i++) {
-                var enemy = (Enemy.MergedEnemy) state.getEnemiesForWrite().getForWrite(startIdx + 1 + i);
-                enemy.setEnemy(enemies.get(i));
-                enemy.setHealth(enemy.getEnemyProperty(enemies.get(i)).maxHealth);
-            }
-            state.getEnemiesForWrite().getForWrite(startIdx + 3).setHealth(state.getEnemiesForRead().get(startIdx + 3).properties.maxHealth);
-            state.enemiesAlive = 3;
-        }
-
-        @Override public Map<Integer, Info> listRandomizations() {
-            return infoMap;
-        }
-
-        @Override public List<Card> getPossibleGeneratedCards() {
-            return List.of();
-        }
+        builder.addEnemyEncounter(new EnemyExordium.LargeSpikeSlime(), new EnemyExordium.MediumSpikeSlime(36).startDead(), new EnemyExordium.MediumSpikeSlime(36).startDead());
     }
 
     public static void addGremlinGangFight(GameStateBuilder builder) {
@@ -282,7 +99,7 @@ public class EnemyEncounter {
             gremlin.properties.isMinion = true;
             gremlin.properties.actNumber = 2;
         }
-        builder.addEnemyEncounter(gremlin0, gremlin1, new Enemy.MergedEnemy(gremlinList), new EnemyCity.GremlinLeader());
+        builder.addEnemyEncounter(EnemyEncounter.EncounterEnum.GREMLIN_LEADER, gremlin0, gremlin1, new Enemy.MergedEnemy(gremlinList), new EnemyCity.GremlinLeader());
         builder.addEnemyReordering((state, order) -> {
             var e0 = (Enemy.MergedEnemy) state.getEnemiesForRead().get(start);
             var e1 = (Enemy.MergedEnemy) state.getEnemiesForRead().get(start + 1);
@@ -343,16 +160,16 @@ public class EnemyEncounter {
 
     public static void addSlimeBossFight(GameStateBuilder builder) {
         builder.addEnemyEncounter(EncounterEnum.SLIME_BOSS, new EnemyExordium.SlimeBoss(),
-                new EnemyExordium.LargeSpikeSlime(75, true),
-                new EnemyExordium.MediumSpikeSlime(37, true),
-                new EnemyExordium.MediumSpikeSlime(37, true),
-                new EnemyExordium.LargeAcidSlime(75, true),
-                new EnemyExordium.MediumAcidSlime(37, true),
-                new EnemyExordium.MediumAcidSlime(37, true));
+                new EnemyExordium.LargeSpikeSlime(75).startDead(),
+                new EnemyExordium.MediumSpikeSlime(37).startDead(),
+                new EnemyExordium.MediumSpikeSlime(37).startDead(),
+                new EnemyExordium.LargeAcidSlime(75).startDead(),
+                new EnemyExordium.MediumAcidSlime(37).startDead(),
+                new EnemyExordium.MediumAcidSlime(37).startDead());
     }
 
     public static void addAcidSlimeFight(GameStateBuilder builder) {
-        builder.addEnemyEncounter(new EnemyExordium.LargeAcidSlime(), new EnemyExordium.MediumAcidSlime(36, true), new EnemyExordium.MediumAcidSlime(36, true));
+        builder.addEnemyEncounter(new EnemyExordium.LargeAcidSlime(), new EnemyExordium.MediumAcidSlime(36).startDead(), new EnemyExordium.MediumAcidSlime(36).startDead());
     }
 
     public static void addByrdsFight(GameStateBuilder builder) {
@@ -411,7 +228,7 @@ public class EnemyEncounter {
     }
 
     public static void addCollectorFight(GameStateBuilder builder) {
-        builder.addEnemyEncounter(EncounterEnum.COLLECTOR, new EnemyCity.TorchHead(), new EnemyCity.TorchHead(), new EnemyCity.TheCollector());
+        builder.addEnemyEncounter(EncounterEnum.COLLECTOR, new EnemyCity.TorchHead().startDead(), new EnemyCity.TorchHead().startDead(), new EnemyCity.TheCollector());
     }
 
     public static void addCultistsFight(GameStateBuilder builder) {
@@ -442,7 +259,7 @@ public class EnemyEncounter {
     }
 
     public static void addBronzeAutomatonFight(GameStateBuilder builder) {
-        builder.addEnemyEncounter(EncounterEnum.BRONZE_AUTOMATON, new EnemyCity.BronzeOrb(), new EnemyCity.BronzeAutomaton(), new EnemyCity.BronzeOrb());
+        builder.addEnemyEncounter(EncounterEnum.BRONZE_AUTOMATON, new EnemyCity.BronzeOrb().startDead(), new EnemyCity.BronzeAutomaton(), new EnemyCity.BronzeOrb().startDead());
     }
 
     public static void addDarklingsFight(GameStateBuilder builder) {
@@ -527,6 +344,14 @@ public class EnemyEncounter {
 //        });
     }
 
+    public static void addShieldAndSpearFight(GameStateBuilder builder) {
+        builder.addEnemyEncounter(EncounterEnum.SPEAR_AND_SHIELD, new EnemyEnding.SpireShield(), new EnemyEnding.SpireSpear());
+    }
+
+    public static void addCorruptHeartFight(GameStateBuilder builder) {
+        builder.addEnemyEncounter(EncounterEnum.CORRUPT_HEART, new EnemyEnding.CorruptHeart());
+    }
+
     public enum ACT3_BOSS {
         TIME_EATER_BOSS, AWAKENED_ONE_BOSS, DONU_AND_DECA_BOSS
     } ;
@@ -605,14 +430,6 @@ public class EnemyEncounter {
             newState.battleRandomizationIdxChosen = state.battleRandomizationIdxChosen;
             return newState;
         });
-    }
-
-    public static void addShieldAndSpearFight(GameStateBuilder builder) {
-        builder.addEnemyEncounter(EncounterEnum.SPEAR_AND_SHIELD, new EnemyEnding.SpireShield(), new EnemyEnding.SpireSpear());
-    }
-
-    public static void addCorruptHeartFight(GameStateBuilder builder) {
-        builder.addEnemyEncounter(EncounterEnum.CORRUPT_HEART, new EnemyEnding.CorruptHeart());
     }
 
     public static void addShieldAndSpearFollowByHeartFight(GameStateBuilder builder) {

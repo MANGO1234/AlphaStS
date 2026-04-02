@@ -99,7 +99,6 @@ public class GameProperties implements Cloneable {
     public Function<GameState, GameState> switchBattleHandler;
     public GameState originalGameState;
     public boolean isHeartGauntlet;
-    public int enemiesEncounterChosen;
     public int[] astrolabeCardsTransformed;
     public int[] pandorasBoxCardsTransformed;
 

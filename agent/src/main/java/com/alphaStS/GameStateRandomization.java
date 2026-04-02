@@ -895,10 +895,10 @@ public interface GameStateRandomization {
             for (int i = 0; i < enemyEncounters.size(); i++) {
                 scenarios.add(enemyEncounters.get(i));
                 var names = enemyEncounters.get(i).idxes.stream().map((t) -> {
-                    if (t.v2() >= 0) {
-                        return ((Enemy.MergedEnemy) enemies.get(t.v1())).getDescName();
+                    if (t.isMergedEnemy()) {
+                        return ((Enemy.MergedEnemy) enemies.get(t.index())).getDescName();
                     }
-                    return enemies.get(t.v1()).getName();
+                    return enemies.get(t.index()).getName();
                 }).toList();
                 infoMap.put(i, new Info(1.0 / enemyEncounters.size(), String.join(", ", names)));
             }
@@ -907,57 +907,11 @@ public interface GameStateRandomization {
         @Override public int randomize(GameState state) {
             int r = state.getSearchRandomGen().nextInt(scenarios.size(), RandomGenCtx.BeginningOfGameRandomization, this);
             randomize(state, r);
-            state.properties.enemiesEncounterChosen = r;
             return r;
         }
 
         @Override public void randomize(GameState state, int r) {
-            var enemies = state.getEnemiesForWrite();
-            for (int i = 0; i < enemies.size(); i++) {
-                enemies.getForWrite(i).setHealth(0);
-            }
-            var encounter = scenarios.get(r);
-            if (encounter.encounterEnum == EnemyEncounter.EncounterEnum.SLIME_BOSS) {
-                for (var t : encounter.idxes) {
-                    var enemy = state.getEnemiesForWrite().getForWrite(t.v1());
-                    if (enemy instanceof EnemyExordium.SlimeBoss) {
-                        enemy.setHealth(enemy.properties.maxHealth);
-                    }
-                }
-            } else if (encounter.encounterEnum == EnemyEncounter.EncounterEnum.BRONZE_AUTOMATON) {
-                for (var t : encounter.idxes) {
-                    var enemy = state.getEnemiesForWrite().getForWrite(t.v1());
-                    if (enemy instanceof EnemyCity.BronzeAutomaton) {
-                        enemy.setHealth(enemy.properties.maxHealth);
-                    }
-                }
-            }  else if (encounter.encounterEnum == EnemyEncounter.EncounterEnum.COLLECTOR) {
-                for (var t : encounter.idxes) {
-                    var enemy = state.getEnemiesForWrite().getForWrite(t.v1());
-                    if (enemy instanceof EnemyCity.TheCollector) {
-                        enemy.setHealth(enemy.properties.maxHealth);
-                    }
-                }
-            } else {
-                for (var t : encounter.idxes) {
-                    var enemy = state.getEnemiesForWrite().getForWrite(t.v1());
-                    if (t.v2() >= 0) {
-                        var e = (Enemy.MergedEnemy) enemy;
-                        e.setEnemy(t.v2());
-                        enemy.setHealth(e.getEnemyProperty(t.v2()).maxHealth);
-                    } else {
-                        enemy.setHealth(enemy.properties.maxHealth);
-                    }
-                }
-            }
-            state.currentEncounter = encounter.encounterEnum;
-            int k = 0;
-            for (int i = 0; i < state.getEnemiesForRead().size(); i++) {
-                if (state.getEnemiesForRead().get(i).getHealth() > 0) {
-                    k++;
-                }
-            }
-            state.enemiesAlive = k;
+            scenarios.get(r).startFight(state);
         }
 
         @Override public Map<Integer, Info> listRandomizations() {

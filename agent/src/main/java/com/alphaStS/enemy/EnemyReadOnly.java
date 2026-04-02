@@ -90,6 +90,12 @@ public abstract class EnemyReadOnly implements GameProperties.TrainingTargetRegi
     protected int move = -1;
     protected int lastMove = -1;
     int vExtraIdx = -1;
+    public boolean startDead;
+
+    public EnemyReadOnly startDead() {
+        startDead = true;
+        return this;
+    }
 
     public EnemyReadOnly(int health, int numOfMoves, boolean useLast2MovesForMoveSelection) {
         this.health = health;
@@ -101,6 +107,7 @@ public abstract class EnemyReadOnly implements GameProperties.TrainingTargetRegi
 
     public EnemyReadOnly(EnemyReadOnly other) {
         this.properties = other.properties;
+        this.startDead = other.startDead;
     }
 
     public abstract void doMove(GameState state, EnemyReadOnly self);

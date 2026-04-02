@@ -690,11 +690,6 @@ public class EnemyExordium {
             splitMaxHealth = other.splitMaxHealth;
         }
 
-        public LargeSpikeSlime(int health, boolean startDead) {
-            this(health);
-            if (startDead) this.health = 0;
-        }
-
         @Override public Enemy copy() {
             return new LargeSpikeSlime(this);
         }
@@ -789,11 +784,6 @@ public class EnemyExordium {
         public MediumSpikeSlime(int health) {
             super(health, 2, true);
             properties.entityProperty.changePlayerFrailed = true;
-        }
-
-        public MediumSpikeSlime(int health, boolean startDead) {
-            this(health);
-            if (startDead) this.health = 0;
         }
 
         public MediumSpikeSlime(MediumSpikeSlime other) {
@@ -914,11 +904,6 @@ public class EnemyExordium {
             splitMaxHealth = properties.maxHealth;
         }
 
-        public LargeAcidSlime(int health, boolean startDead) {
-            this(health);
-            if (startDead) this.health = 0;
-        }
-
         public LargeAcidSlime(LargeAcidSlime other) {
             super(other);
             splitMaxHealth = other.splitMaxHealth;
@@ -1030,12 +1015,6 @@ public class EnemyExordium {
             super(health, 3, true);
             properties.entityProperty.changePlayerWeakened = true;
         }
-
-        public MediumAcidSlime(int health, boolean startDead) {
-            this(health);
-            if (startDead) this.health = 0;
-        }
-
 
         public MediumAcidSlime(MediumAcidSlime other) {
             super(other);
