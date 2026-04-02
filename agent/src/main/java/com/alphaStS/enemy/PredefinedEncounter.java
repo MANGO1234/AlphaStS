@@ -27,6 +27,8 @@ public enum PredefinedEncounter {
             new EnemyExordium.Sentry(45, EnemyExordium.Sentry.BEAM),
             new EnemyExordium.Sentry(45, EnemyExordium.Sentry.BOLT)),
             EnemyEncounter.FIRST_AND_LAST_REORDERING),
+    GREMLIN_NOB(1, List.of(new EnemyExordium.GremlinNob())),
+    LAGAVULIN(1, List.of(new EnemyExordium.Lagavulin())),
     GUARDIAN(1, List.of(new EnemyExordium.TheGuardian())),
     HEXAGHOST(1, List.of(new EnemyExordium.Hexaghost())),
     // todo: in some situations, order matters, create a variant where order matters (would require 20 enemies instead of 8)
@@ -63,6 +65,7 @@ public enum PredefinedEncounter {
     GREMLIN_LEADER(2, List.of(), EnemyEncounter::getGremlinLeaderFightEnemies, EnemyEncounter.GREMLIN_LEADER_REORDERING),
     BRONZE_AUTOMATON(2, List.of(new EnemyCity.BronzeOrb().startDead(), new EnemyCity.BronzeAutomaton(), new EnemyCity.BronzeOrb().startDead())),
     COLLECTOR(2, List.of(new EnemyCity.TorchHead().startDead(), new EnemyCity.TorchHead().startDead(), new EnemyCity.TheCollector())),
+    BOOK_OF_STABBING(2, List.of(new EnemyCity.BookOfStabbing())),
     THE_CHAMP(2, List.of(new EnemyCity.TheChamp())),
 
     // Act 3
@@ -82,6 +85,8 @@ public enum PredefinedEncounter {
             new EnemyBeyond.Dagger())),
     DONU_AND_DECA(3, List.of(new EnemyBeyond.Deca(), new EnemyBeyond.Donu())),
     TIME_EATER(3, List.of(new EnemyBeyond.TimeEater())),
+    GIANT_HEAD(3, List.of(new EnemyBeyond.GiantHead())),
+    NEMESIS(3, List.of(new EnemyBeyond.Nemesis())),
     AWAKENED_ONE(3, List.of(new EnemyExordium.Cultist(), new EnemyExordium.Cultist(), new EnemyBeyond.AwakenedOne()),
             EnemyEncounter.AWAKENED_ONE_REORDERING),
 
