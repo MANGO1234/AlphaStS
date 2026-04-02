@@ -1050,7 +1050,7 @@ public class InteractiveMode {
                 }
             }
             if (state.currentEncounter != null) {
-                out.println("  - " + state.currentEncounter.name());
+                out.println("  - " + state.currentEncounter.encounterEnum.name());
             }
             if (state.getPlayerForRead().isEntangled()) {
                 out.println("  - Entangled");

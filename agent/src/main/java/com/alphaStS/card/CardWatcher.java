@@ -2698,7 +2698,7 @@ public class CardWatcher {
                     }
 
                     @Override public void updateQValues(GameState state, VArray v) {
-                        if (state.currentEncounter != PredefinedEncounter.CORRUPT_HEART) {
+                        if (!state.isEncounter(PredefinedEncounter.CORRUPT_HEART)) {
                             v.add(GameState.V_HEALTH_IDX, 10 * v.getVExtra(vExtraIdx) * healthRewardRatio / state.getPlayerForRead().getMaxHealth());
                         }
                     }

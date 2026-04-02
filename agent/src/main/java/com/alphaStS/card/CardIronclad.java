@@ -4,9 +4,7 @@ import com.alphaStS.*;
 import com.alphaStS.action.CardDrawAction;
 import com.alphaStS.action.HavocAction;
 import com.alphaStS.action.HavocExhaustAction;
-import com.alphaStS.enemy.Enemy;
-import com.alphaStS.enemy.EnemyBeyond;
-import com.alphaStS.enemy.EnemyReadOnly;
+import com.alphaStS.enemy.*;
 import com.alphaStS.enums.DebuffType;
 import com.alphaStS.gameAction.GameActionCtx;
 import com.alphaStS.gameAction.GameActionType;
@@ -2471,7 +2469,7 @@ public class CardIronclad {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n, this);
-            if (!state.getEnemiesForRead().get(idx).properties.isMinion && !GameProperties.isHeartFight(state) && state.getEnemiesForRead().get(idx).getHealth() <= 0) {
+            if (!state.getEnemiesForRead().get(idx).properties.isMinion && !state.isEncounter(PredefinedEncounter.CORRUPT_HEART) && state.getEnemiesForRead().get(idx).getHealth() <= 0) {
                 if (state.getEnemiesForRead().get(idx) instanceof EnemyBeyond.Darkling ||
                         state.getEnemiesForRead().get(idx) instanceof EnemyBeyond.AwakenedOne) {
                     if (state.isTerminal() > 0) {
@@ -2570,7 +2568,7 @@ public class CardIronclad {
         }
 
         public static int getMaxPossibleFeedRemaining(GameState state) {
-            if (GameProperties.isHeartFight(state)) {
+            if (state.isEncounter(PredefinedEncounter.CORRUPT_HEART)) {
                 return 0;
             }
             // todo: very very hacky, need to create a generate card dependency graph and use that to get if a card can be generated

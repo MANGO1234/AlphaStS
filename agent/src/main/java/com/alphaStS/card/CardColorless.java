@@ -812,7 +812,7 @@ public class CardColorless {
                         int minHandOfGreed = state.getCounterForRead()[counterIdx];
                         int maxHandOfGreedRemaining = getMaxPossibleHandOfGreedRemaining(state, true);
                         double vHandOfGreed = Math.max(minHandOfGreed / 100.0, Math.min((minHandOfGreed + maxHandOfGreedRemaining) / 100.0, v.getVExtra(vExtraIdx)));
-                        if (state.currentEncounter != PredefinedEncounter.CORRUPT_HEART) {
+                        if (!state.isEncounter(PredefinedEncounter.CORRUPT_HEART)) {
                             v.add(GameState.V_HEALTH_IDX, 100 * vHandOfGreed * healthRewardRatio / 20.0 / state.getPlayerForRead().getMaxHealth());
                         }
                     }
@@ -1472,7 +1472,7 @@ public class CardColorless {
                     }
 
                     @Override public void updateQValues(GameState state, VArray v) {
-                        if (state.currentEncounter != PredefinedEncounter.CORRUPT_HEART) {
+                        if (!state.isEncounter(PredefinedEncounter.CORRUPT_HEART)) {
                             int minValue = state.getCounterForRead()[counterIdx];
                             int maxRemaining = getMaxPossibleRitualDaggerRemaining(state, true);
                             double vDagger = Math.max(minValue / 10.0, Math.min((minValue + maxRemaining) / 10.0, v.getVExtra(vExtraIdx)));

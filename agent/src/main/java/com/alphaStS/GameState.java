@@ -96,7 +96,7 @@ public final class GameState implements State {
     public int battleRandomizationIdxChosen = -1;
     public int startOfBattleActionIdx = 0;
     public boolean skipInteractiveModeSetup;
-    public PredefinedEncounter currentEncounter = null;
+    public EnemyEncounter currentEncounter = null;
 
     // various other buffs/debuffs
     public long buffs;
@@ -365,7 +365,6 @@ public final class GameState implements State {
             }
         }
         properties.potionsScenarios = builder.getPotionsScenarios();
-        properties.enemiesReordering = builder.getEnemyReordering().size() == 0 ? null : builder.getEnemyReordering();
         properties.character = builder.getCharacter();
         properties.generateCardOptions = builder.getGenerateCardOptions();
         properties.relics = builder.getRelics();
@@ -378,7 +377,7 @@ public final class GameState implements State {
             properties.preBattleRandomization = properties.preBattleRandomization == null ? p : properties.preBattleRandomization.doAfter(p);
             properties.addStartOfBattleHandler(new GameEventHandler() {
                 @Override public void handle(GameState state) {
-                    if (state.currentEncounter == PredefinedEncounter.CORRUPT_HEART && properties.switchBattleHandler != null) {
+                    if (state.isEncounter(PredefinedEncounter.CORRUPT_HEART) && properties.switchBattleHandler != null) {
                         for (int i = 0; i < properties.potions.size(); i++) {
                             if (properties.potions.get(i).isGenerated || (state.hadPotion(i) && !state.potionUsable(i))) {
                                 continue;
@@ -763,7 +762,7 @@ public final class GameState implements State {
                     @Override public void updateQValues(GameState state, VArray v) {
                         if (properties.potions.get(_i) instanceof Potion.FairyInABottle pot) {
                             v.add(V_HEALTH_IDX, pot.getHealAmount(state) * v.get(GameState.V_EXTRA_IDX_START + state.properties.potionsVExtraIdx[_i]) / state.getPlayerForRead().getMaxHealth());
-                        } else if (!properties.isHeartFight(state)) {
+                        } else if (!state.isEncounter(PredefinedEncounter.CORRUPT_HEART)) {
                             v.add(V_HEALTH_IDX, 5 * v.get(GameState.V_EXTRA_IDX_START + state.properties.potionsVExtraIdx[_i]) / state.getPlayerForRead().getMaxHealth());
                         }
                     }
@@ -2333,15 +2332,15 @@ public final class GameState implements State {
         var health = v.get(V_HEALTH_IDX);
         var win = v.get(V_WIN_IDX);
         for (int i = 0; i < properties.potions.size(); i++) {
-            if (potionsState[i * 3] == 0 && potionsState[i * 3 + 2] == 1 && properties.potions.get(i) instanceof Potion.BloodPotion pot && !GameProperties.isHeartFight(this)) {
+            if (potionsState[i * 3] == 0 && potionsState[i * 3 + 2] == 1 && properties.potions.get(i) instanceof Potion.BloodPotion pot && !isEncounter(PredefinedEncounter.CORRUPT_HEART)) {
                 v.set(V_HEALTH_IDX, Math.max(v.get(V_HEALTH_IDX) - ((pot.getHealAmount(this) + 1) / (float) player.getMaxHealth()), 0));
                 v.set(V_WIN_IDX, v.get(V_WIN_IDX) * potionsState[i * 3 + 1] / 100.0);
             }
-            if (potionsState[i * 3] == 0 && potionsState[i * 3 + 2] == 1 && potionsState[i * 3 + 1] < 100 && properties.potions.get(i) instanceof Potion.RegenPotion pot && !GameProperties.isHeartFight(this)) {
+            if (potionsState[i * 3] == 0 && potionsState[i * 3 + 2] == 1 && potionsState[i * 3 + 1] < 100 && properties.potions.get(i) instanceof Potion.RegenPotion pot && !isEncounter(PredefinedEncounter.CORRUPT_HEART)) {
                 v.set(V_HEALTH_IDX, Math.max(v.get(V_HEALTH_IDX) - ((pot.getHealAmount(this) + 1) / (float) player.getMaxHealth()), 0));
                 v.set(V_WIN_IDX, v.get(V_WIN_IDX) * potionsState[i * 3 + 1] / 100.0);
             }
-            if (potionsState[i * 3] == 0 && potionsState[i * 3 + 2] == 1 && properties.potions.get(i) instanceof Potion.BlockPotion pot && !GameProperties.isHeartFight(this)) {
+            if (potionsState[i * 3] == 0 && potionsState[i * 3 + 2] == 1 && properties.potions.get(i) instanceof Potion.BlockPotion pot && !isEncounter(PredefinedEncounter.CORRUPT_HEART)) {
                 v.set(V_HEALTH_IDX, Math.max(v.get(V_HEALTH_IDX) - ((pot.getBlockAmount(this) + 1) / (float) player.getMaxHealth()), 0));
                 v.set(V_WIN_IDX, v.get(V_WIN_IDX) * potionsState[i * 3 + 1] / 100.0);
             }
@@ -2357,11 +2356,11 @@ public final class GameState implements State {
                 base *= potionsState[i * 3 + 1] / 100.0 + (100 - potionsState[i * 3 + 1]) / 100.0 * v.get(GameState.V_EXTRA_IDX_START + properties.potionsVExtraIdx[i]);
                 continue;
             }
-            if (potionsState[i * 3] == 0 && potionsState[i * 3 + 2] == 1 && !(properties.potions.get(i) instanceof Potion.BloodPotion) && !(properties.potions.get(i) instanceof Potion.BlockPotion) && !(properties.potions.get(i) instanceof Potion.RegenPotion) && !GameProperties.isHeartFight(this)) {
+            if (potionsState[i * 3] == 0 && potionsState[i * 3 + 2] == 1 && !(properties.potions.get(i) instanceof Potion.BloodPotion) && !(properties.potions.get(i) instanceof Potion.BlockPotion) && !(properties.potions.get(i) instanceof Potion.RegenPotion) && !isEncounter(PredefinedEncounter.CORRUPT_HEART)) {
                 base *= potionsState[i * 3 + 1] / 100.0;
             }
         }
-        if (properties.alchemizeVExtraIdx >= 0 && properties.alchemizeMult > 0 && !GameProperties.isHeartFight(this)) {
+        if (properties.alchemizeVExtraIdx >= 0 && properties.alchemizeMult > 0 && !isEncounter(PredefinedEncounter.CORRUPT_HEART)) {
             var alchemizeMult = 0.0;
             for (int i = 0; i < 5; i++) {
                 alchemizeMult += Math.pow(properties.alchemizeMult, i) * v.getVExtra(properties.alchemizeVExtraIdx + i);
@@ -2693,7 +2692,7 @@ public final class GameState implements State {
                     if (properties.cardDict[properties.healCardsIdxes[i]].cardName.startsWith("Bite")) {
                         maxHealPreBattleEnd += 10000;
                     }
-                    if (!GameProperties.isHeartFight(this) && properties.cardDict[properties.healCardsIdxes[i]].cardName.startsWith("Self Repair")) {
+                    if (!isEncounter(PredefinedEncounter.CORRUPT_HEART) && properties.cardDict[properties.healCardsIdxes[i]].cardName.startsWith("Self Repair")) {
                         int m = getNonExhaustCount(properties.healCardsIdxes[i]);
                         if (m > 0) {
                             if (properties.echoFormCardIdx >= 0 || properties.echoFormPCardIdx >= 0) {
@@ -2743,7 +2742,7 @@ public final class GameState implements State {
             } else {
                 hp = Math.min(maxHealth, maxPossibleHealth + maxHealPreBattleEnd);
             }
-            if (!GameProperties.isHeartFight(this) && properties.selfRepairCounterIdx >= 0) {
+            if (!isEncounter(PredefinedEncounter.CORRUPT_HEART) && properties.selfRepairCounterIdx >= 0) {
                 hp += getCounterForRead()[properties.selfRepairCounterIdx];
             }
             if (properties.burningBlood != null && properties.burningBlood.isRelicEnabledInScenario(this)) {
@@ -2760,7 +2759,7 @@ public final class GameState implements State {
                     hp += 5;
                 }
             }
-            if (!GameProperties.isHeartFight(this) && properties.bloodVial != null && properties.bloodVial.isRelicEnabledInScenario(this)) {
+            if (!isEncounter(PredefinedEncounter.CORRUPT_HEART) && properties.bloodVial != null && properties.bloodVial.isRelicEnabledInScenario(this)) {
                 if (properties.magicFlower != null && properties.magicFlower.isRelicEnabledInScenario(this)) {
                     hp += 3;
                 } else {
@@ -3287,17 +3286,23 @@ public final class GameState implements State {
         properties.nnInputProperties.printNNInput(this, input);
     }
 
+    public boolean isEncounter(PredefinedEncounter encounter) {
+        return currentEncounter != null && currentEncounter.encounterEnum == encounter;
+    }
+
+    public boolean hasEnemyReordering() {
+        return currentEncounter != null && currentEncounter.reordering != null;
+    }
+
     public int[] getEnemyOrder() {
-        if (properties.enemiesReordering == null) {
+        if (currentEncounter == null || currentEncounter.reordering == null) {
             return null;
         }
         int[] order = new int[enemies.size()];
         for (int i = 0; i < order.length; i++) {
             order[i] = i;
         }
-        for (var reordering : properties.enemiesReordering) {
-            reordering.accept(this, order);
-        }
+        currentEncounter.reordering.reorder(this, currentEncounter, order);
         return order;
     }
 

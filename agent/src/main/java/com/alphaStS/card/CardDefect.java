@@ -1590,7 +1590,7 @@ public class CardDefect {
                         int minGA = state.getCounterForRead()[counterIdx];
                         int maxGARemaining = getMaxPossibleGARemaining(state);
                         double vGA = Math.max(minGA / 16.0, Math.min((minGA + maxGARemaining) / 16.0, v.getVExtra(vExtraIdx)));
-                        if (state.currentEncounter != PredefinedEncounter.CORRUPT_HEART) {
+                        if (!state.isEncounter(PredefinedEncounter.CORRUPT_HEART)) {
                             v.add(GameState.V_HEALTH_IDX, 16 * vGA * healthRewardRatio / state.getPlayerForRead().getMaxHealth());
                         }
                     }
@@ -2161,7 +2161,7 @@ public class CardDefect {
             });
             state.properties.addEndOfBattleHandler("SelfRepair", new GameEventHandler() {
                 @Override public void handle(GameState state) {
-                    if (!state.properties.isHeartFight(state)) {
+                    if (!state.isEncounter(PredefinedEncounter.CORRUPT_HEART)) {
                         state.healPlayer(state.getCounterForRead()[counterIdx]);
                     }
                 }

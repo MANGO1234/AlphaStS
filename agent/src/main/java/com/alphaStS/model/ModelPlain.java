@@ -159,7 +159,7 @@ public class ModelPlain implements Model {
         NNOutput o = cache.get(hash);
         if (o != null) {
             if (!Arrays.equals(o.legalActions(), state.getLegalActions()) &&
-                    (state.getActionCtx() != GameActionCtx.SELECT_ENEMY || state.properties.enemiesReordering == null)) {
+                    (state.getActionCtx() != GameActionCtx.SELECT_ENEMY || !state.hasEnemyReordering())) {
                 System.err.println(Arrays.toString(state.getNNInput()));
                 System.err.println(state);
                 System.err.println(Arrays.toString(o.legalActions()));
@@ -249,7 +249,7 @@ public class ModelPlain implements Model {
     }
 
     private static boolean hasEnemyReordering(GameState state) {
-        return state.getActionCtx() == GameActionCtx.SELECT_ENEMY && state.properties.enemiesReordering != null;
+        return state.getActionCtx() == GameActionCtx.SELECT_ENEMY && state.hasEnemyReordering();
     }
 
     private static NNOutput updatePolicyWithReordering(GameState state, NNOutput output) {

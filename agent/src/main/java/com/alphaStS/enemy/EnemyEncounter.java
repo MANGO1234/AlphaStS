@@ -10,13 +10,26 @@ import java.util.*;
 public class EnemyEncounter {
     public record EnemyInfo(int index, boolean isMergedEnemy) {}
 
+    @FunctionalInterface
+    public interface EnemyReordering {
+        void reorder(GameState state, EnemyEncounter encounter, int[] order);
+    }
+
     public PredefinedEncounter encounterEnum;
     public List<EnemyInfo> idxes;
     public GameStateRandomization randomization;
+    public EnemyReordering reordering;
 
     public EnemyEncounter(PredefinedEncounter encounterEnum, ArrayList<EnemyInfo> indexes) {
         this.encounterEnum = encounterEnum;
         this.idxes = indexes;
+    }
+
+    private EnemyEncounter clone(PredefinedEncounter predefinedEncounter) {
+        var other = new EnemyEncounter(predefinedEncounter, new ArrayList<>(idxes));
+        other.randomization = this.randomization;
+        other.reordering = this.reordering;
+        return other;
     }
 
     public void startFight(GameState state) {
@@ -36,7 +49,7 @@ public class EnemyEncounter {
                 }
             }
         }
-        state.currentEncounter = encounterEnum;
+        state.currentEncounter = this;
         int k = 0;
         for (int i = 0; i < state.getEnemiesForRead().size(); i++) {
             if (state.getEnemiesForRead().get(i).getHealth() > 0) {
@@ -55,8 +68,6 @@ public class EnemyEncounter {
     }
 
     public static void addGremlinLeaderFight(GameStateBuilder builder) {
-        // todo: in some situations, order matter
-        var start = builder.getEnemies().size();
         var gremlinList = List.of(new EnemyExordium.MadGremlin(), new EnemyExordium.SneakyGremlin(), new EnemyExordium.FatGremlin(), new EnemyExordium.GremlinWizard(),
                 new EnemyExordium.ShieldGremlin());
         for (var gremlin : gremlinList) {
@@ -81,38 +92,139 @@ public class EnemyEncounter {
             gremlin.properties.actNumber = 2;
         }
         builder.addEnemyEncounter(PredefinedEncounter.GREMLIN_LEADER, gremlin0, gremlin1, new Enemy.MergedEnemy(gremlinList), new EnemyCity.GremlinLeader());
-        builder.addEnemyReordering((state, order) -> {
-            var e0 = (Enemy.MergedEnemy) state.getEnemiesForRead().get(start);
-            var e1 = (Enemy.MergedEnemy) state.getEnemiesForRead().get(start + 1);
-            var e2 = (Enemy.MergedEnemy) state.getEnemiesForRead().get(start + 2);
-            if (mergedGremlinEnemiesCompare(e0, e1) <= 0) {
-                if (mergedGremlinEnemiesCompare(e0, e2) <= 0) {
-                    order[start] = start;
-                    order[start + 1] = mergedGremlinEnemiesCompare(e1, e2) <= 0 ? start + 1 : start + 2;
-                    order[start + 2] = start + 3 - (order[start + 1] - start);
-                } else {
-                    order[start] = start + 2;
-                    order[start + 1] = start;
-                    order[start + 2] = start + 1;
-                }
-            } else {
-                if (mergedGremlinEnemiesCompare(e1, e2) <= 0) {
-                    order[start] = start + 1;
-                    order[start + 1] = mergedGremlinEnemiesCompare(e0, e2) <= 0 ? start : start + 2;
-                    order[start + 2] = start + 2 - (order[start + 1] - start);
-                } else {
-                    order[start] = start + 2;
-                    order[start + 1] = start + 1;
-                    order[start + 2] = start;
-                }
-            }
-        });
     }
 
     private static int mergedGremlinEnemiesCompare(Enemy.MergedEnemy g1, Enemy.MergedEnemy g2) {
         int r = Integer.compare(g1.currentEnemyIdx, g2.currentEnemyIdx);
         return r != 0 ? r : Integer.compare(g1.getHealth(), g2.getHealth());
     }
+
+    public static final EnemyReordering GREMLIN_LEADER_REORDERING = (state, encounter, order) -> {
+        int start = encounter.idxes.get(0).index();
+        var e0 = (Enemy.MergedEnemy) state.getEnemiesForRead().get(start);
+        var e1 = (Enemy.MergedEnemy) state.getEnemiesForRead().get(start + 1);
+        var e2 = (Enemy.MergedEnemy) state.getEnemiesForRead().get(start + 2);
+        if (mergedGremlinEnemiesCompare(e0, e1) <= 0) {
+            if (mergedGremlinEnemiesCompare(e0, e2) <= 0) {
+                order[start] = start;
+                order[start + 1] = mergedGremlinEnemiesCompare(e1, e2) <= 0 ? start + 1 : start + 2;
+                order[start + 2] = start + 3 - (order[start + 1] - start);
+            } else {
+                order[start] = start + 2;
+                order[start + 1] = start;
+                order[start + 2] = start + 1;
+            }
+        } else {
+            if (mergedGremlinEnemiesCompare(e1, e2) <= 0) {
+                order[start] = start + 1;
+                order[start + 1] = mergedGremlinEnemiesCompare(e0, e2) <= 0 ? start : start + 2;
+                order[start + 2] = start + 2 - (order[start + 1] - start);
+            } else {
+                order[start] = start + 2;
+                order[start + 1] = start + 1;
+                order[start + 2] = start;
+            }
+        }
+    };
+
+    public static final EnemyReordering AWAKENED_ONE_REORDERING = (state, encounter, order) -> {
+        int start = encounter.idxes.get(0).index();
+        if (state.getEnemiesForRead().get(start).getHealth() > state.getEnemiesForRead().get(start + 1).getHealth()) {
+            order[start] = start + 1;
+            order[start + 1] = start;
+        }
+    };
+
+    public static final EnemyReordering TRIPLE_BYRDS_REORDERING = (state, encounter, order) -> {
+        int start = encounter.idxes.get(0).index();
+        if (state.getEnemiesForRead().get(start).getHealth() <= state.getEnemiesForRead().get(start + 1).getHealth()) {
+            if (state.getEnemiesForRead().get(start).getHealth() <= state.getEnemiesForRead().get(start + 2).getHealth()) {
+                order[start] = start;
+                order[start + 1] = state.getEnemiesForRead().get(start + 1).getHealth() <= state.getEnemiesForRead().get(start + 2).getHealth() ? start + 1 : start + 2;
+                order[start + 2] = start + 3 - (order[start + 1] - start);
+            } else {
+                order[start] = start + 2;
+                order[start + 1] = start;
+                order[start + 2] = start + 1;
+            }
+        } else {
+            if (state.getEnemiesForRead().get(start + 1).getHealth() <= state.getEnemiesForRead().get(start + 2).getHealth()) {
+                order[start] = start + 1;
+                order[start + 1] = state.getEnemiesForRead().get(start).getHealth() <= state.getEnemiesForRead().get(start + 2).getHealth() ? start : start + 2;
+                order[start + 2] = start + 2 - (order[start + 1] - start);
+            } else {
+                order[start] = start + 2;
+                order[start + 1] = start + 1;
+                order[start + 2] = start;
+            }
+        }
+    };
+
+    public static final EnemyReordering SENTRIES_REORDERING = (state, encounter, order) -> {
+        int start = encounter.idxes.get(0).index();
+        if (state.getEnemiesForRead().get(start).getHealth() > state.getEnemiesForRead().get(start + 2).getHealth()) {
+            order[start] = start + 2;
+            order[start + 2] = start;
+        }
+    };
+
+    public static final EnemyReordering TRIPLE_CULTISTS_REORDERING = (state, encounter, order) -> {
+        int start = encounter.idxes.get(0).index();
+        if (state.getEnemiesForRead().get(start).getHealth() <= state.getEnemiesForRead().get(start + 1).getHealth()) {
+            if (state.getEnemiesForRead().get(start).getHealth() <= state.getEnemiesForRead().get(start + 2).getHealth()) {
+                order[start] = start;
+                order[start + 1] = state.getEnemiesForRead().get(start + 1).getHealth() <= state.getEnemiesForRead().get(start + 2).getHealth() ? start + 1 : start + 2;
+                order[start + 2] = start + 3 - (order[start + 1] - start);
+            } else {
+                order[start] = start + 2;
+                order[start + 1] = start;
+                order[start + 2] = start + 1;
+            }
+        } else {
+            if (state.getEnemiesForRead().get(start + 1).getHealth() <= state.getEnemiesForRead().get(start + 2).getHealth()) {
+                order[start] = start + 1;
+                order[start + 1] = state.getEnemiesForRead().get(start).getHealth() <= state.getEnemiesForRead().get(start + 2).getHealth() ? start : start + 2;
+                order[start + 2] = start + 2 - (order[start + 1] - start);
+            } else {
+                order[start] = start + 2;
+                order[start + 1] = start + 1;
+                order[start + 2] = start;
+            }
+        }
+    };
+
+    public static final EnemyReordering TRIPLE_DARKLINGS_REORDERING = (state, encounter, order) -> {
+        int start = encounter.idxes.get(0).index();
+        if (state.getEnemiesForRead().get(start).getHealth() > state.getEnemiesForRead().get(start + 2).getHealth()) {
+            order[start] = start + 2;
+            order[start + 2] = start;
+        }
+    };
+
+    public static final EnemyReordering TRIPLE_JAW_WORMS_REORDERING = (state, encounter, order) -> {
+        int start = encounter.idxes.get(0).index();
+        if (state.getEnemiesForRead().get(start).getHealth() <= state.getEnemiesForRead().get(start + 1).getHealth()) {
+            if (state.getEnemiesForRead().get(start).getHealth() <= state.getEnemiesForRead().get(start + 2).getHealth()) {
+                order[start] = start;
+                order[start + 1] = state.getEnemiesForRead().get(start + 1).getHealth() <= state.getEnemiesForRead().get(start + 2).getHealth() ? start + 1 : start + 2;
+                order[start + 2] = start + 3 - (order[start + 1] - start);
+            } else {
+                order[start] = start + 2;
+                order[start + 1] = start;
+                order[start + 2] = start + 1;
+            }
+        } else {
+            if (state.getEnemiesForRead().get(start + 1).getHealth() <= state.getEnemiesForRead().get(start + 2).getHealth()) {
+                order[start] = start + 1;
+                order[start + 1] = state.getEnemiesForRead().get(start).getHealth() <= state.getEnemiesForRead().get(start + 2).getHealth() ? start : start + 2;
+                order[start + 2] = start + 2 - (order[start + 1] - start);
+            } else {
+                order[start] = start + 2;
+                order[start + 1] = start + 1;
+                order[start + 2] = start;
+            }
+        }
+    };
 
     public static void addSlaversEliteFight(GameStateBuilder builder) {
         Enemy blueSlaver = new EnemyExordium.BlueSlaver();
@@ -125,14 +237,7 @@ public class EnemyEncounter {
     }
 
     public static void addAwakenedOneFight(GameStateBuilder builder) {
-        var start = builder.getEnemies().size();
         builder.addEnemyEncounter(PredefinedEncounter.AWAKENED_ONE, new EnemyExordium.Cultist(), new EnemyExordium.Cultist(), new EnemyBeyond.AwakenedOne());
-        builder.addEnemyReordering((state, order) -> {
-            if (state.getEnemiesForRead().get(start).getHealth() > state.getEnemiesForRead().get(start + 1).getHealth()) {
-                order[start] = start + 1;
-                order[start + 1] = start;
-            }
-        });
     }
 
     public static void addDonuAndDecaFight(GameStateBuilder builder) {
@@ -144,31 +249,7 @@ public class EnemyEncounter {
     }
 
     public static void addByrdsFight(GameStateBuilder builder) {
-        var start = builder.getEnemies().size();
         builder.addEnemyEncounter(PredefinedEncounter.TRIPLE_BYRDS, new EnemyCity.Byrd(), new EnemyCity.Byrd(), new EnemyCity.Byrd());
-        builder.addEnemyReordering((state, order) -> {
-            if (state.getEnemiesForRead().get(start).getHealth() <= state.getEnemiesForRead().get(start + 1).getHealth()) {
-                if (state.getEnemiesForRead().get(start).getHealth() <= state.getEnemiesForRead().get(start + 2).getHealth()) {
-                    order[start] = start;
-                    order[start + 1] = state.getEnemiesForRead().get(start + 1).getHealth() <= state.getEnemiesForRead().get(start + 2).getHealth() ? start + 1 : start + 2;
-                    order[start + 2] = start + 3 - (order[start + 1] - start);
-                } else {
-                    order[start] = start + 2;
-                    order[start + 1] = start;
-                    order[start + 2] = start + 1;
-                }
-            } else {
-                if (state.getEnemiesForRead().get(start + 1).getHealth() <= state.getEnemiesForRead().get(start + 2).getHealth()) {
-                    order[start] = start + 1;
-                    order[start + 1] = state.getEnemiesForRead().get(start).getHealth() <= state.getEnemiesForRead().get(start + 2).getHealth() ? start : start + 2;
-                    order[start + 2] = start + 2 - (order[start + 1] - start);
-                } else {
-                    order[start] = start + 2;
-                    order[start + 1] = start + 1;
-                    order[start + 2] = start;
-                }
-            }
-        });
     }
 
     public static void addCenturionAndMysticFight(GameStateBuilder builder) {
@@ -182,16 +263,9 @@ public class EnemyEncounter {
     }
 
     public static void addSentriesFight(GameStateBuilder builder) {
-        var start = builder.getEnemies().size();
         builder.addEnemyEncounter(PredefinedEncounter.SENTRIES, new EnemyExordium.Sentry(45, EnemyExordium.Sentry.BOLT),
                 new EnemyExordium.Sentry(45, EnemyExordium.Sentry.BEAM),
                 new EnemyExordium.Sentry(45, EnemyExordium.Sentry.BOLT));
-        builder.addEnemyReordering((state, order) -> {
-            if (state.getEnemiesForRead().get(start).getHealth() > state.getEnemiesForRead().get(start + 2).getHealth()) {
-                order[start] = start + 2;
-                order[start + 2] = start;
-            }
-        });
     }
 
     public static void addRobbersEventFight(GameStateBuilder builder) {
@@ -199,97 +273,19 @@ public class EnemyEncounter {
     }
 
     public static void addCultistsFight(GameStateBuilder builder) {
-        var start = builder.getEnemies().size();
         builder.addEnemyEncounter(PredefinedEncounter.TRIPLE_CULTISTS, new EnemyExordium.Cultist(), new EnemyExordium.Cultist(), new EnemyExordium.Cultist());
-        builder.addEnemyReordering((state, order) -> {
-            if (state.getEnemiesForRead().get(start).getHealth() <= state.getEnemiesForRead().get(start + 1).getHealth()) {
-                if (state.getEnemiesForRead().get(start).getHealth() <= state.getEnemiesForRead().get(start + 2).getHealth()) {
-                    order[start] = start;
-                    order[start + 1] = state.getEnemiesForRead().get(start + 1).getHealth() <= state.getEnemiesForRead().get(start + 2).getHealth() ? start + 1 : start + 2;
-                    order[start + 2] = start + 3 - (order[start + 1] - start);
-                } else {
-                    order[start] = start + 2;
-                    order[start + 1] = start;
-                    order[start + 2] = start + 1;
-                }
-            } else {
-                if (state.getEnemiesForRead().get(start + 1).getHealth() <= state.getEnemiesForRead().get(start + 2).getHealth()) {
-                    order[start] = start + 1;
-                    order[start + 1] = state.getEnemiesForRead().get(start).getHealth() <= state.getEnemiesForRead().get(start + 2).getHealth() ? start : start + 2;
-                    order[start + 2] = start + 2 - (order[start + 1] - start);
-                } else {
-                    order[start] = start + 2;
-                    order[start + 1] = start + 1;
-                    order[start + 2] = start;
-                }
-            }        });
     }
 
     public static void addDarklingsFight(GameStateBuilder builder) {
-        var start = builder.getEnemies().size();
         builder.addEnemyEncounter(PredefinedEncounter.TRIPLE_DARKLINGS, new EnemyBeyond.Darkling(false), new EnemyBeyond.Darkling(true), new EnemyBeyond.Darkling(false));
-        builder.addEnemyReordering((state, order) -> {
-            if (state.getEnemiesForRead().get(start).getHealth() > state.getEnemiesForRead().get(start + 2).getHealth()) {
-                order[start] = start + 2;
-                order[start + 2] = start;
-            }
-        });
     }
 
     public static void addTripleJawWormsFight(GameStateBuilder builder) {
-        var start = builder.getEnemies().size();
         builder.addEnemyEncounter(PredefinedEncounter.TRIPLE_JAW_WORMS, new EnemyExordium.JawWorm(true), new EnemyExordium.JawWorm(true), new EnemyExordium.JawWorm(true));
-        builder.addEnemyReordering((state, order) -> {
-            if (state.getEnemiesForRead().get(start).getHealth() <= state.getEnemiesForRead().get(start + 1).getHealth()) {
-                if (state.getEnemiesForRead().get(start).getHealth() <= state.getEnemiesForRead().get(start + 2).getHealth()) {
-                    order[start] = start;
-                    order[start + 1] = state.getEnemiesForRead().get(start + 1).getHealth() <= state.getEnemiesForRead().get(start + 2).getHealth() ? start + 1 : start + 2;
-                    order[start + 2] = start + 3 - (order[start + 1] - start);
-                } else {
-                    order[start] = start + 2;
-                    order[start + 1] = start;
-                    order[start + 2] = start + 1;
-                }
-            } else {
-                if (state.getEnemiesForRead().get(start + 1).getHealth() <= state.getEnemiesForRead().get(start + 2).getHealth()) {
-                    order[start] = start + 1;
-                    order[start + 1] = state.getEnemiesForRead().get(start).getHealth() <= state.getEnemiesForRead().get(start + 2).getHealth() ? start : start + 2;
-                    order[start + 2] = start + 2 - (order[start + 1] - start);
-                } else {
-                    order[start] = start + 2;
-                    order[start + 1] = start + 1;
-                    order[start + 2] = start;
-                }
-            }
-        });
     }
 
     public static void addTripleCultistsFight(GameStateBuilder builder) {
-        var start = builder.getEnemies().size();
         builder.addEnemyEncounter(PredefinedEncounter.TRIPLE_CULTISTS, new EnemyExordium.Cultist(), new EnemyExordium.Cultist(), new EnemyExordium.Cultist());
-        builder.addEnemyReordering((state, order) -> {
-            if (state.getEnemiesForRead().get(start).getHealth() <= state.getEnemiesForRead().get(start + 1).getHealth()) {
-                if (state.getEnemiesForRead().get(start).getHealth() <= state.getEnemiesForRead().get(start + 2).getHealth()) {
-                    order[start] = start;
-                    order[start + 1] = state.getEnemiesForRead().get(start + 1).getHealth() <= state.getEnemiesForRead().get(start + 2).getHealth() ? start + 1 : start + 2;
-                    order[start + 2] = start + 3 - (order[start + 1] - start);
-                } else {
-                    order[start] = start + 2;
-                    order[start + 1] = start;
-                    order[start + 2] = start + 1;
-                }
-            } else {
-                if (state.getEnemiesForRead().get(start + 1).getHealth() <= state.getEnemiesForRead().get(start + 2).getHealth()) {
-                    order[start] = start + 1;
-                    order[start + 1] = state.getEnemiesForRead().get(start).getHealth() <= state.getEnemiesForRead().get(start + 2).getHealth() ? start : start + 2;
-                    order[start + 2] = start + 2 - (order[start + 1] - start);
-                } else {
-                    order[start] = start + 2;
-                    order[start + 1] = start + 1;
-                    order[start + 2] = start;
-                }
-            }
-        });
     }
 
     public static void addReptomancerFight(GameStateBuilder builder) {
@@ -399,7 +395,7 @@ public class EnemyEncounter {
             }
             var newState = state.properties.originalGameState.clone(false);
             newState.realTurnNum = state.realTurnNum;
-            newState.currentEncounter = PredefinedEncounter.CORRUPT_HEART;
+            newState.currentEncounter = state.currentEncounter.clone(PredefinedEncounter.CORRUPT_HEART);
             if (newState.actionCtx == GameActionCtx.BEGIN_PRE_BATTLE) {
                 newState.doAction(0);
             }

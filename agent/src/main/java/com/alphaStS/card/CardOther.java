@@ -513,7 +513,7 @@ public class CardOther {
                     }
 
                     @Override public void updateQValues(GameState state, VArray v) {
-                        if (state.currentEncounter != PredefinedEncounter.CORRUPT_HEART) {
+                        if (!state.isEncounter(PredefinedEncounter.CORRUPT_HEART)) {
                             double vGold = v.getVExtra(vExtraIdx);
                             v.add(GameState.V_HEALTH_IDX, 100 * vGold * healthRewardRatio / state.getPlayerForRead().getMaxHealth());
                         }

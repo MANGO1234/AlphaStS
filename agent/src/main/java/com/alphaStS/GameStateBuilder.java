@@ -12,7 +12,6 @@ import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -25,7 +24,6 @@ public class GameStateBuilder {
     private List<Relic> relics = new ArrayList<>();
     private List<Potion> potions = new ArrayList<>();
     private Potion.PotionGenerator potionsGenerator;
-    private List<BiConsumer<GameState, int[]>> enemyReorderings = new ArrayList<>();
     private GameStateRandomization randomization = null;
     private GameStateRandomization preBattleRandomization = null;
     private GameStateRandomization preBattleGameScenarios = null;
@@ -127,6 +125,9 @@ public class GameStateBuilder {
         }
         var encounter = new EnemyEncounter(encounterEnum, indexes);
         encounter.randomization = randomization;
+        if (encounterEnum != null) {
+            encounter.reordering = encounterEnum.reordering;
+        }
         enemiesEncounters.add(encounter);
         this.enemies.addAll(List.of(enemies));
     }
@@ -301,14 +302,6 @@ public class GameStateBuilder {
 
     public GameStateRandomization getPreBattleScenarios() {
         return preBattleGameScenarios;
-    }
-
-    public void addEnemyReordering(BiConsumer<GameState, int[]> reordering) {
-        enemyReorderings.add(reordering);
-    }
-
-    public List<BiConsumer<GameState, int[]>> getEnemyReordering() {
-        return enemyReorderings;
     }
 
     public void setCharacter(CharacterEnum character) {

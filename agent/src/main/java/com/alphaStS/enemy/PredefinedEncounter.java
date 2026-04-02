@@ -16,7 +16,7 @@ public enum PredefinedEncounter {
     LARGE_SPIKE_SLIME(1, List.of(), EnemyEncounter::addLargeSpikeSlimeFight),
     ACID_SLIME(1, List.of(), EnemyEncounter::addAcidSlimeFight),
     SLAVERS_ELITE(1, List.of(), EnemyEncounter::addSlaversEliteFight),
-    SENTRIES(1, List.of(), EnemyEncounter::addSentriesFight),
+    SENTRIES(1, List.of(), EnemyEncounter::addSentriesFight, EnemyEncounter.SENTRIES_REORDERING),
     GUARDIAN(1, List.of(new EnemyExordium.TheGuardian())),
     HEXAGHOST(1, List.of(new EnemyExordium.Hexaghost())),
     // todo: in some situations, order matters, create a variant where order matters (would require 20 enemies instead of 8)
@@ -36,7 +36,7 @@ public enum PredefinedEncounter {
     SPHERIC_GUARDIAN(2, List.of(new EnemyCity.SphericGuardian())),
     CHOSEN(2, List.of(new EnemyCity.Chosen())),
     SHELLED_PARASITE(2, List.of(new EnemyCity.ShelledParasite())),
-    TRIPLE_BYRDS(2, List.of(), EnemyEncounter::addByrdsFight),
+    TRIPLE_BYRDS(2, List.of(), EnemyEncounter::addByrdsFight, EnemyEncounter.TRIPLE_BYRDS_REORDERING),
     LOOTER_AND_MUGGER(2, List.of(new EnemyExordium.Looter(), new EnemyExordium.Mugger())),
     CHOSEN_AND_BYRD(2, List.of(new EnemyCity.Chosen(), new EnemyCity.Byrd())),
     CULTIST_AND_CHOSEN(2, List.of(new EnemyExordium.Cultist(), new EnemyCity.Chosen())),
@@ -44,26 +44,26 @@ public enum PredefinedEncounter {
     SNAKE_PLANT(2, List.of(new EnemyCity.SnakePlant())),
     SNECKO(2, List.of(new EnemyCity.Snecko())),
     CENTURION_AND_MYSTIC(2, List.of(), EnemyEncounter::addCenturionAndMysticFight),
-    TRIPLE_CULTISTS(2, List.of(), EnemyEncounter::addTripleCultistsFight),
+    TRIPLE_CULTISTS(2, List.of(), EnemyEncounter::addTripleCultistsFight, EnemyEncounter.TRIPLE_CULTISTS_REORDERING),
     SHELLED_PARASITE_AND_FUNGI_BEAST(2, List.of(new EnemyCity.ShelledParasite(), new EnemyExordium.FungiBeast())),
     ROBBERS_EVENT(2, List.of(), EnemyEncounter::addRobbersEventFight),
-    GREMLIN_LEADER(2, List.of(), EnemyEncounter::addGremlinLeaderFight),
+    GREMLIN_LEADER(2, List.of(), EnemyEncounter::addGremlinLeaderFight, EnemyEncounter.GREMLIN_LEADER_REORDERING),
     BRONZE_AUTOMATON(2, List.of(new EnemyCity.BronzeOrb().startDead(), new EnemyCity.BronzeAutomaton(), new EnemyCity.BronzeOrb().startDead())),
     COLLECTOR(2, List.of(new EnemyCity.TorchHead().startDead(), new EnemyCity.TorchHead().startDead(), new EnemyCity.TheCollector())),
     THE_CHAMP(2, List.of(new EnemyCity.TheChamp())),
 
     // Act 3
-    TRIPLE_DARKLINGS(3, List.of(), EnemyEncounter::addDarklingsFight),
+    TRIPLE_DARKLINGS(3, List.of(), EnemyEncounter::addDarklingsFight, EnemyEncounter.TRIPLE_DARKLINGS_REORDERING),
     ORB_WALKER(3, List.of(new EnemyBeyond.OrbWalker())),
     MAW(3, List.of(new EnemyBeyond.TheMaw())),
     WRITHING_MASS(3, List.of(new EnemyBeyond.WrithingMass(0.8f))),
-    TRIPLE_JAW_WORMS(3, List.of(), EnemyEncounter::addTripleJawWormsFight),
+    TRIPLE_JAW_WORMS(3, List.of(), EnemyEncounter::addTripleJawWormsFight, EnemyEncounter.TRIPLE_JAW_WORMS_REORDERING),
     SPIRE_GROWTH(3, List.of(new EnemyBeyond.SpireGrowth())),
     TRANSIENT(3, List.of(new EnemyBeyond.Transient())),
     REPTOMANCER(3, List.of(), EnemyEncounter::addReptomancerFight),
     DONU_AND_DECA(3, List.of(), EnemyEncounter::addDonuAndDecaFight),
     TIME_EATER(3, List.of(new EnemyBeyond.TimeEater())),
-    AWAKENED_ONE(3, List.of(), EnemyEncounter::addAwakenedOneFight),
+    AWAKENED_ONE(3, List.of(), EnemyEncounter::addAwakenedOneFight, EnemyEncounter.AWAKENED_ONE_REORDERING),
 
     // Act 4
     SPEAR_AND_SHIELD(4, List.of(new EnemyEnding.SpireShield(), new EnemyEnding.SpireSpear())),
@@ -72,6 +72,15 @@ public enum PredefinedEncounter {
     public int act;
     public List<Enemy> enemies;
     public Consumer<GameStateBuilder> encounterExtraLogic;
+    public EnemyEncounter.EnemyReordering reordering;
+
+    PredefinedEncounter(int act, List<Enemy> enemies, Consumer<GameStateBuilder> encounterExtraLogic,
+                        EnemyEncounter.EnemyReordering reordering) {
+        this.act = act;
+        this.enemies = enemies;
+        this.encounterExtraLogic = encounterExtraLogic;
+        this.reordering = reordering;
+    }
 
     PredefinedEncounter(int act, List<Enemy> enemies, Consumer<GameStateBuilder> encounterExtraLogic) {
         this.act = act;

@@ -255,7 +255,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
             state.properties.bloodVial = this;
             state.properties.addEndOfBattleHandler("BloodVial", new GameEventHandler(1) {
                 @Override public void handle(GameState state) {
-                    if (isRelicEnabledInScenario(state) && state.currentEncounter != PredefinedEncounter.CORRUPT_HEART) {
+                    if (isRelicEnabledInScenario(state) && !state.isEncounter(PredefinedEncounter.CORRUPT_HEART)) {
                         state.healPlayer(heal);
                     }
                 }
@@ -362,7 +362,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                     }
 
                     @Override public void updateQValues(GameState state, VArray v) {
-                        if (state.currentEncounter != PredefinedEncounter.CORRUPT_HEART) {
+                        if (!state.isEncounter(PredefinedEncounter.CORRUPT_HEART)) {
                             v.add(GameState.V_HEALTH_IDX, healthReward * v.getVExtra(vExtraIdx) / state.getPlayerForRead().getMaxHealth());
                         }
                     }
@@ -542,7 +542,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                     }
 
                     @Override public void updateQValues(GameState state, VArray v) {
-                        if (state.currentEncounter != PredefinedEncounter.CORRUPT_HEART) {
+                        if (!state.isEncounter(PredefinedEncounter.CORRUPT_HEART)) {
                             v.add(GameState.V_HEALTH_IDX, healthReward * v.getVExtra(vExtraIdx) / state.getPlayerForRead().getMaxHealth());
                         }
                     }
@@ -1353,7 +1353,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
             state.properties.incenseBurnerRewardType = rewardType;
             state.properties.addStartOfBattleHandler(new GameEventHandler() {
                 @Override public void handle(GameState state) {
-                    if (isRelicEnabledInScenario(state) && (!state.properties.isHeartGauntlet || !state.properties.isHeartFight(state))) {
+                    if (isRelicEnabledInScenario(state) && (!state.properties.isHeartGauntlet || !state.isEncounter(PredefinedEncounter.CORRUPT_HEART))) {
                         state.getCounterForWrite()[counterIdx] = n;
                     }
                 }
@@ -1374,9 +1374,9 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                     }
 
                     @Override public void updateQValues(GameState state, VArray v) {
-                        if (state.currentEncounter == PredefinedEncounter.CORRUPT_HEART) {
+                        if (state.isEncounter(PredefinedEncounter.CORRUPT_HEART)) {
                             // final fight, no reward
-                        } else if (state.currentEncounter == PredefinedEncounter.SPEAR_AND_SHIELD) {
+                        } else if (state.isEncounter(PredefinedEncounter.SPEAR_AND_SHIELD)) {
                             // next fight is heart: reward ending on 4 or 5
                             v.add(GameState.V_HEALTH_IDX, 0.05 * v.getVExtra(vExtraIdx));
                             v.add(GameState.V_HEALTH_IDX, 0.05 * v.getVExtra(vExtraIdx + 1));

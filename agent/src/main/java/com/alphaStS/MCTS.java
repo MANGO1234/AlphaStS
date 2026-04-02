@@ -95,7 +95,7 @@ public class MCTS {
             numberOfPossibleActions = state.getLegalActions().length;
             state.varianceM = v.get(GameState.V_COMB_IDX);
             state.varianceS = 0;
-            if (GameProperties.isHeartFight(state) && state.properties.switchBattleHandler != null && state.actionCtx == GameActionCtx.BEGIN_BATTLE) {
+            if (state.isEncounter(PredefinedEncounter.CORRUPT_HEART) && state.properties.switchBattleHandler != null && state.actionCtx == GameActionCtx.BEGIN_BATTLE) {
                 v.correctForSwitchBattle(state.total_n + 1);
             }
             return SEARCH_SUCCESS;
@@ -299,7 +299,7 @@ public class MCTS {
             }
         }
 
-        if (GameProperties.isHeartFight(state) && state.properties.switchBattleHandler != null && state.actionCtx == GameActionCtx.BEGIN_BATTLE) {
+        if (state.isEncounter(PredefinedEncounter.CORRUPT_HEART) && state.properties.switchBattleHandler != null && state.actionCtx == GameActionCtx.BEGIN_BATTLE) {
             v.correctForSwitchBattle(state.total_n + 1);
         }
         state.getChildQArray(action).addVArray(v);
@@ -559,7 +559,7 @@ public class MCTS {
                 state.varianceM = v.get(GameState.V_COMB_IDX);
                 state.varianceS = 0;
                 state.writeUnlock();
-                if (GameProperties.isHeartFight(state) && state.properties.switchBattleHandler != null && state.actionCtx == GameActionCtx.BEGIN_BATTLE) {
+                if (state.isEncounter(PredefinedEncounter.CORRUPT_HEART) && state.properties.switchBattleHandler != null && state.actionCtx == GameActionCtx.BEGIN_BATTLE) {
                     v.correctForSwitchBattle(state.total_n + 1);
                 }
                 return SEARCH_SUCCESS;
@@ -804,7 +804,7 @@ public class MCTS {
             }
         }
 
-        if (GameProperties.isHeartFight(state) && state.properties.switchBattleHandler != null && state.actionCtx == GameActionCtx.BEGIN_BATTLE) {
+        if (state.isEncounter(PredefinedEncounter.CORRUPT_HEART) && state.properties.switchBattleHandler != null && state.actionCtx == GameActionCtx.BEGIN_BATTLE) {
             v.correctForSwitchBattle(state.total_n + 1);
         }
         state.writeLock();
@@ -868,7 +868,7 @@ public class MCTS {
         if (state.playerTurnStartMaxPossibleHealth != state.getPlayerForRead().getHealth()) {
             return false;
         }
-        if (GameProperties.isHeartFight(state)) {
+        if (state.isEncounter(PredefinedEncounter.CORRUPT_HEART)) {
             return true;
         }
         if (state.playerTurnStartPotionCount != state.getPotionCount()) {
@@ -907,7 +907,7 @@ public class MCTS {
                     return false;
                 }
             } else if (state.properties.incenseBurnerRewardType == Relic.IncenseBurner.NEXT_FIGHT_IS_SPEAR_AND_SHIELD_REWARD ||
-                    state.currentEncounter == PredefinedEncounter.SPEAR_AND_SHIELD) {
+                    state.isEncounter(PredefinedEncounter.SPEAR_AND_SHIELD)) {
                 if (state.getCounterForRead()[state.properties.incenseBurnerCounterIdx] != 4) {
                     return false;
                 }
@@ -981,7 +981,7 @@ public class MCTS {
             numberOfPossibleActions = state.getLegalActions().length;
             state.varianceM = v.get(GameState.V_COMB_IDX);
             state.varianceS = 0;
-            if (GameProperties.isHeartFight(state) && state.properties.switchBattleHandler != null && state.actionCtx == GameActionCtx.BEGIN_BATTLE) {
+            if (state.isEncounter(PredefinedEncounter.CORRUPT_HEART) && state.properties.switchBattleHandler != null && state.actionCtx == GameActionCtx.BEGIN_BATTLE) {
                 v.correctForSwitchBattle(state.total_n + 1);
             }
             return;
@@ -1075,7 +1075,7 @@ public class MCTS {
             }
         }
 
-        if (GameProperties.isHeartFight(state) && state.properties.switchBattleHandler != null && state.actionCtx == GameActionCtx.BEGIN_BATTLE) {
+        if (state.isEncounter(PredefinedEncounter.CORRUPT_HEART) && state.properties.switchBattleHandler != null && state.actionCtx == GameActionCtx.BEGIN_BATTLE) {
             v.correctForSwitchBattle(state.total_n + 1);
         }
         for (int i = 0; i < state.properties.v_total_len; i++) {
@@ -1122,7 +1122,7 @@ public class MCTS {
             state.getVArray(v);
             state.getTotalQArray().copyFrom(v);
             numberOfPossibleActions = state.getLegalActions().length;
-            if (GameProperties.isHeartFight(state) && state.properties.switchBattleHandler != null && state.actionCtx == GameActionCtx.BEGIN_BATTLE) {
+            if (state.isEncounter(PredefinedEncounter.CORRUPT_HEART) && state.properties.switchBattleHandler != null && state.actionCtx == GameActionCtx.BEGIN_BATTLE) {
                 v.correctForSwitchBattle(state.total_n + 1);
             }
             return;
@@ -1162,7 +1162,7 @@ public class MCTS {
             }
         }
 
-        if (GameProperties.isHeartFight(state) && state.properties.switchBattleHandler != null && state.actionCtx == GameActionCtx.BEGIN_BATTLE) {
+        if (state.isEncounter(PredefinedEncounter.CORRUPT_HEART) && state.properties.switchBattleHandler != null && state.actionCtx == GameActionCtx.BEGIN_BATTLE) {
             v.correctForSwitchBattle(state.total_n + 1);
         }
         for (int i = 0; i < state.properties.v_total_len; i++) {

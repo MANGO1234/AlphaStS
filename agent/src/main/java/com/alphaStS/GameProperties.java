@@ -25,7 +25,6 @@ import com.alphaStS.utils.Tuple;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.function.BiConsumer;
 import java.util.function.Function;
 
 public class GameProperties implements Cloneable {
@@ -63,7 +62,6 @@ public class GameProperties implements Cloneable {
     public GameStateRandomization randomization;
     public GameStateRandomization.EnemyHealthRandomization enemyHealthRandomization;
     public List<Map.Entry<Integer, GameStateRandomization.Info>> preBattleGameScenariosList;
-    public List<BiConsumer<GameState, int[]>> enemiesReordering;
 
     // Potion related
     public List<Potion> potions;
@@ -83,9 +81,6 @@ public class GameProperties implements Cloneable {
     public int biasedCognitionLimitUsed;
     public double[] biasedCognitionLimitDistribution;
     public int incenseBurnerRewardType = -1;
-    public static boolean isHeartFight(GameState state) {
-        return state.currentEncounter == PredefinedEncounter.CORRUPT_HEART;
-    }
     public int inputLen;
     public NNInputSchema nnInputProperties;
     public int extraOutputLen;
