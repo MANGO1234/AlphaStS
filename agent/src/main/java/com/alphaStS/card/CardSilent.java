@@ -3,8 +3,8 @@ package com.alphaStS.card;
 import com.alphaStS.*;
 import com.alphaStS.action.GameEnvironmentAction;
 import com.alphaStS.enemy.Enemy;
-import com.alphaStS.enemy.EnemyEncounter;
 import com.alphaStS.enemy.EnemyReadOnly;
+import com.alphaStS.enemy.PredefinedEncounter;
 import com.alphaStS.enums.DebuffType;
 import com.alphaStS.gameAction.GameActionCtx;
 import com.alphaStS.eventHandler.GameEventCardHandler;
@@ -2236,7 +2236,7 @@ public class CardSilent {
                 }
 
                 @Override public void updateQValues(GameState state, VArray v) {
-                    if (state.currentEncounter != EnemyEncounter.EncounterEnum.CORRUPT_HEART) {
+                    if (state.currentEncounter != PredefinedEncounter.CORRUPT_HEART) {
                         for (int i = 0; i < 5; i++) {
                             v.add(GameState.V_HEALTH_IDX, i * healthReward * v.getVExtra(vExtraIdx) / state.getPlayerForRead().getMaxHealth());
                         }

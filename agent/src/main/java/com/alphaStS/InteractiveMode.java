@@ -1049,7 +1049,7 @@ public class InteractiveMode {
                     }
                 }
             }
-            if (state.currentEncounter != EnemyEncounter.EncounterEnum.UNKNOWN) {
+            if (state.currentEncounter != null) {
                 out.println("  - " + state.currentEncounter.name());
             }
             if (state.getPlayerForRead().isEntangled()) {

@@ -96,7 +96,7 @@ public final class GameState implements State {
     public int battleRandomizationIdxChosen = -1;
     public int startOfBattleActionIdx = 0;
     public boolean skipInteractiveModeSetup;
-    public EnemyEncounter.EncounterEnum currentEncounter = EnemyEncounter.EncounterEnum.UNKNOWN;
+    public PredefinedEncounter currentEncounter = null;
 
     // various other buffs/debuffs
     public long buffs;
@@ -378,7 +378,7 @@ public final class GameState implements State {
             properties.preBattleRandomization = properties.preBattleRandomization == null ? p : properties.preBattleRandomization.doAfter(p);
             properties.addStartOfBattleHandler(new GameEventHandler() {
                 @Override public void handle(GameState state) {
-                    if (state.currentEncounter == EnemyEncounter.EncounterEnum.CORRUPT_HEART && properties.switchBattleHandler != null) {
+                    if (state.currentEncounter == PredefinedEncounter.CORRUPT_HEART && properties.switchBattleHandler != null) {
                         for (int i = 0; i < properties.potions.size(); i++) {
                             if (properties.potions.get(i).isGenerated || (state.hadPotion(i) && !state.potionUsable(i))) {
                                 continue;
@@ -401,7 +401,7 @@ public final class GameState implements State {
             properties.endOfPreBattleHandler = builder.getEndOfPreBattleSetupHandler();
         }
         for (var encounter : properties.enemiesEncounters) {
-            if (encounter.idxes.size() == 3 && encounter.encounterEnum == EnemyEncounter.EncounterEnum.SPEAR_AND_SHIELD) {
+            if (encounter.idxes.size() == 3 && encounter.encounterEnum == PredefinedEncounter.SPEAR_AND_SHIELD) {
                 properties.maxPossibleRealTurnsLeft = 100.0f;
                 break;
             }
@@ -610,7 +610,7 @@ public final class GameState implements State {
             potions.get(i).gamePropertiesSetup(this);
         }
         if (Configuration.HEART_GAUNTLET_CARD_REWARD) {
-            EnemyEncounter.gamePropertiesSetup(this);
+            EnemyEncounter.heartGauntletSetup(this);
         }
         if (properties.anyEntityProperty.canSummon) {
             properties.registerCounter("OtsyHP", new GameProperties.CounterRegistrant() {

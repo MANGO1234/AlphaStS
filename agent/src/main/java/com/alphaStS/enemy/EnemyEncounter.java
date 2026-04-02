@@ -8,24 +8,13 @@ import com.alphaStS.random.RandomGenCtx;
 import java.util.*;
 
 public class EnemyEncounter {
-    public enum EncounterEnum {
-        UNKNOWN,
-        CORRUPT_HEART,
-        SPEAR_AND_SHIELD,
-        SLIME_BOSS,
-        BRONZE_AUTOMATON,
-        COLLECTOR,
-        GREMLIN_GANG,
-        GREMLIN_LEADER,
-    }
-
     public record EnemyInfo(int index, boolean isMergedEnemy) {}
 
-    public EncounterEnum encounterEnum;
+    public PredefinedEncounter encounterEnum;
     public List<EnemyInfo> idxes;
     public GameStateRandomization randomization;
 
-    public EnemyEncounter(EncounterEnum encounterEnum, ArrayList<EnemyInfo> indexes) {
+    public EnemyEncounter(PredefinedEncounter encounterEnum, ArrayList<EnemyInfo> indexes) {
         this.encounterEnum = encounterEnum;
         this.idxes = indexes;
     }
@@ -65,14 +54,6 @@ public class EnemyEncounter {
         builder.addEnemyEncounter(new EnemyExordium.LargeSpikeSlime(), new EnemyExordium.MediumSpikeSlime(36).startDead(), new EnemyExordium.MediumSpikeSlime(36).startDead());
     }
 
-    public static void addGremlinGangFight(GameStateBuilder builder) {
-        // todo: in some situations, order matter, create a variant where order matters (would require 20 enemies instead of 8)
-        builder.addEnemyEncounter(new EnemyExordium.MadGremlin(), new EnemyExordium.MadGremlin(),
-                new EnemyExordium.SneakyGremlin(), new EnemyExordium.SneakyGremlin(),
-                new EnemyExordium.FatGremlin(), new EnemyExordium.FatGremlin(),
-                new EnemyExordium.ShieldGremlin(), new EnemyExordium.GremlinWizard());
-    }
-
     public static void addGremlinLeaderFight(GameStateBuilder builder) {
         // todo: in some situations, order matter
         var start = builder.getEnemies().size();
@@ -99,7 +80,7 @@ public class EnemyEncounter {
             gremlin.properties.isMinion = true;
             gremlin.properties.actNumber = 2;
         }
-        builder.addEnemyEncounter(EnemyEncounter.EncounterEnum.GREMLIN_LEADER, gremlin0, gremlin1, new Enemy.MergedEnemy(gremlinList), new EnemyCity.GremlinLeader());
+        builder.addEnemyEncounter(PredefinedEncounter.GREMLIN_LEADER, gremlin0, gremlin1, new Enemy.MergedEnemy(gremlinList), new EnemyCity.GremlinLeader());
         builder.addEnemyReordering((state, order) -> {
             var e0 = (Enemy.MergedEnemy) state.getEnemiesForRead().get(start);
             var e1 = (Enemy.MergedEnemy) state.getEnemiesForRead().get(start + 1);
@@ -156,16 +137,6 @@ public class EnemyEncounter {
 
     public static void addDonuAndDecaFight(GameStateBuilder builder) {
         builder.addEnemyEncounter(new EnemyBeyond.Deca(), new EnemyBeyond.Donu());
-    }
-
-    public static void addSlimeBossFight(GameStateBuilder builder) {
-        builder.addEnemyEncounter(EncounterEnum.SLIME_BOSS, new EnemyExordium.SlimeBoss(),
-                new EnemyExordium.LargeSpikeSlime(75).startDead(),
-                new EnemyExordium.MediumSpikeSlime(37).startDead(),
-                new EnemyExordium.MediumSpikeSlime(37).startDead(),
-                new EnemyExordium.LargeAcidSlime(75).startDead(),
-                new EnemyExordium.MediumAcidSlime(37).startDead(),
-                new EnemyExordium.MediumAcidSlime(37).startDead());
     }
 
     public static void addAcidSlimeFight(GameStateBuilder builder) {
@@ -227,10 +198,6 @@ public class EnemyEncounter {
         builder.addEnemyEncounter(new EnemyCity.Pointy(), new EnemyCity.Romeo(), new EnemyCity.Bear());
     }
 
-    public static void addCollectorFight(GameStateBuilder builder) {
-        builder.addEnemyEncounter(EncounterEnum.COLLECTOR, new EnemyCity.TorchHead().startDead(), new EnemyCity.TorchHead().startDead(), new EnemyCity.TheCollector());
-    }
-
     public static void addCultistsFight(GameStateBuilder builder) {
         var start = builder.getEnemies().size();
         builder.addEnemyEncounter(new EnemyExordium.Cultist(), new EnemyExordium.Cultist(), new EnemyExordium.Cultist());
@@ -256,10 +223,6 @@ public class EnemyEncounter {
                     order[start + 2] = start;
                 }
             }        });
-    }
-
-    public static void addBronzeAutomatonFight(GameStateBuilder builder) {
-        builder.addEnemyEncounter(EncounterEnum.BRONZE_AUTOMATON, new EnemyCity.BronzeOrb().startDead(), new EnemyCity.BronzeAutomaton(), new EnemyCity.BronzeOrb().startDead());
     }
 
     public static void addDarklingsFight(GameStateBuilder builder) {
@@ -344,14 +307,6 @@ public class EnemyEncounter {
 //        });
     }
 
-    public static void addShieldAndSpearFight(GameStateBuilder builder) {
-        builder.addEnemyEncounter(EncounterEnum.SPEAR_AND_SHIELD, new EnemyEnding.SpireShield(), new EnemyEnding.SpireSpear());
-    }
-
-    public static void addCorruptHeartFight(GameStateBuilder builder) {
-        builder.addEnemyEncounter(EncounterEnum.CORRUPT_HEART, new EnemyEnding.CorruptHeart());
-    }
-
     public enum ACT3_BOSS {
         TIME_EATER_BOSS, AWAKENED_ONE_BOSS, DONU_AND_DECA_BOSS
     } ;
@@ -433,7 +388,7 @@ public class EnemyEncounter {
     }
 
     public static void addShieldAndSpearFollowByHeartFight(GameStateBuilder builder) {
-        builder.addEnemyEncounter(EncounterEnum.SPEAR_AND_SHIELD, new EnemyEnding.SpireShield(), new EnemyEnding.SpireSpear(), new EnemyEnding.CorruptHeart(800, true));
+        builder.addEnemyEncounter(PredefinedEncounter.SPEAR_AND_SHIELD, new EnemyEnding.SpireShield(), new EnemyEnding.SpireSpear(), new EnemyEnding.CorruptHeart(800, true));
         builder.setSwitchBattleHandler((state) -> {
             for (int i = 0; i < state.getEnemiesForRead().size(); i++) {
                 if (state.getEnemiesForRead().get(i) instanceof EnemyEnding.CorruptHeart heart) {
@@ -444,7 +399,7 @@ public class EnemyEncounter {
             }
             var newState = state.properties.originalGameState.clone(false);
             newState.realTurnNum = state.realTurnNum;
-            newState.currentEncounter = EncounterEnum.CORRUPT_HEART;
+            newState.currentEncounter = PredefinedEncounter.CORRUPT_HEART;
             if (newState.actionCtx == GameActionCtx.BEGIN_PRE_BATTLE) {
                 newState.doAction(0);
             }
@@ -511,7 +466,7 @@ public class EnemyEncounter {
         return false;
     }
 
-    public static void gamePropertiesSetup(GameState state) {
+    public static void heartGauntletSetup(GameState state) {
         var cards = CardManager.getPossibleSelect1OutOf3CardsFromRewardScreen(state.properties.character);
         state.properties.cardRewardIdxes = new int[cards.size()];
         for (int i = 0; i < cards.size(); i++) {

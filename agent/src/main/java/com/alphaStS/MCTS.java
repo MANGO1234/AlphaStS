@@ -4,7 +4,7 @@ import java.util.*;
 
 import cc.mallet.types.Dirichlet;
 import com.alphaStS.card.CardDefect;
-import com.alphaStS.enemy.EnemyEncounter;
+import com.alphaStS.enemy.PredefinedEncounter;
 import com.alphaStS.entity.Relic;
 import com.alphaStS.gameAction.GameActionCtx;
 import com.alphaStS.gameAction.GameActionType;
@@ -907,7 +907,7 @@ public class MCTS {
                     return false;
                 }
             } else if (state.properties.incenseBurnerRewardType == Relic.IncenseBurner.NEXT_FIGHT_IS_SPEAR_AND_SHIELD_REWARD ||
-                    state.currentEncounter == EnemyEncounter.EncounterEnum.SPEAR_AND_SHIELD) {
+                    state.currentEncounter == PredefinedEncounter.SPEAR_AND_SHIELD) {
                 if (state.getCounterForRead()[state.properties.incenseBurnerCounterIdx] != 4) {
                     return false;
                 }

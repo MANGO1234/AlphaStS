@@ -5,8 +5,8 @@ import com.alphaStS.action.CardDrawAction;
 import com.alphaStS.action.GameEnvironmentAction;
 import com.alphaStS.card.*;
 import com.alphaStS.enemy.Enemy;
-import com.alphaStS.enemy.EnemyEncounter;
 import com.alphaStS.enemy.EnemyReadOnly;
+import com.alphaStS.enemy.PredefinedEncounter;
 import com.alphaStS.enums.DebuffType;
 import com.alphaStS.gameAction.GameActionCtx;
 import com.alphaStS.enums.OrbType;
@@ -255,7 +255,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
             state.properties.bloodVial = this;
             state.properties.addEndOfBattleHandler("BloodVial", new GameEventHandler(1) {
                 @Override public void handle(GameState state) {
-                    if (isRelicEnabledInScenario(state) && state.currentEncounter != EnemyEncounter.EncounterEnum.CORRUPT_HEART) {
+                    if (isRelicEnabledInScenario(state) && state.currentEncounter != PredefinedEncounter.CORRUPT_HEART) {
                         state.healPlayer(heal);
                     }
                 }
@@ -362,7 +362,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                     }
 
                     @Override public void updateQValues(GameState state, VArray v) {
-                        if (state.currentEncounter != EnemyEncounter.EncounterEnum.CORRUPT_HEART) {
+                        if (state.currentEncounter != PredefinedEncounter.CORRUPT_HEART) {
                             v.add(GameState.V_HEALTH_IDX, healthReward * v.getVExtra(vExtraIdx) / state.getPlayerForRead().getMaxHealth());
                         }
                     }
@@ -542,7 +542,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                     }
 
                     @Override public void updateQValues(GameState state, VArray v) {
-                        if (state.currentEncounter != EnemyEncounter.EncounterEnum.CORRUPT_HEART) {
+                        if (state.currentEncounter != PredefinedEncounter.CORRUPT_HEART) {
                             v.add(GameState.V_HEALTH_IDX, healthReward * v.getVExtra(vExtraIdx) / state.getPlayerForRead().getMaxHealth());
                         }
                     }
@@ -1347,7 +1347,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                     }
                 }
             });
-            if (state.properties.enemiesEncounters.size() == 1 && state.properties.enemiesEncounters.get(0).encounterEnum == EnemyEncounter.EncounterEnum.CORRUPT_HEART) {
+            if (state.properties.enemiesEncounters.size() == 1 && state.properties.enemiesEncounters.get(0).encounterEnum == PredefinedEncounter.CORRUPT_HEART) {
                 rewardType = NO_REWARD;
             }
             state.properties.incenseBurnerRewardType = rewardType;
@@ -1374,9 +1374,9 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                     }
 
                     @Override public void updateQValues(GameState state, VArray v) {
-                        if (state.currentEncounter == EnemyEncounter.EncounterEnum.CORRUPT_HEART) {
+                        if (state.currentEncounter == PredefinedEncounter.CORRUPT_HEART) {
                             // final fight, no reward
-                        } else if (state.currentEncounter == EnemyEncounter.EncounterEnum.SPEAR_AND_SHIELD) {
+                        } else if (state.currentEncounter == PredefinedEncounter.SPEAR_AND_SHIELD) {
                             // next fight is heart: reward ending on 4 or 5
                             v.add(GameState.V_HEALTH_IDX, 0.05 * v.getVExtra(vExtraIdx));
                             v.add(GameState.V_HEALTH_IDX, 0.05 * v.getVExtra(vExtraIdx + 1));

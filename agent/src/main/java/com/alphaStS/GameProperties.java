@@ -4,6 +4,7 @@ import com.alphaStS.card.Card;
 import com.alphaStS.enemy.EnemyEncounter;
 import com.alphaStS.enemy.EnemyList;
 import com.alphaStS.enemy.EnemyReadOnly;
+import com.alphaStS.enemy.PredefinedEncounter;
 import com.alphaStS.entity.Potion;
 import com.alphaStS.entity.Relic;
 import com.alphaStS.enums.CharacterEnum;
@@ -83,7 +84,7 @@ public class GameProperties implements Cloneable {
     public double[] biasedCognitionLimitDistribution;
     public int incenseBurnerRewardType = -1;
     public static boolean isHeartFight(GameState state) {
-        return state.currentEncounter == EnemyEncounter.EncounterEnum.CORRUPT_HEART;
+        return state.currentEncounter == PredefinedEncounter.CORRUPT_HEART;
     }
     public int inputLen;
     public NNInputSchema nnInputProperties;

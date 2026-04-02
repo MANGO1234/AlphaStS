@@ -1,7 +1,7 @@
 package com.alphaStS.card;
 
 import com.alphaStS.*;
-import com.alphaStS.enemy.EnemyEncounter;
+import com.alphaStS.enemy.PredefinedEncounter;
 import com.alphaStS.enums.DebuffType;
 import com.alphaStS.gameAction.GameActionCtx;
 import com.alphaStS.enums.Stance;
@@ -513,7 +513,7 @@ public class CardOther {
                     }
 
                     @Override public void updateQValues(GameState state, VArray v) {
-                        if (state.currentEncounter != EnemyEncounter.EncounterEnum.CORRUPT_HEART) {
+                        if (state.currentEncounter != PredefinedEncounter.CORRUPT_HEART) {
                             double vGold = v.getVExtra(vExtraIdx);
                             v.add(GameState.V_HEALTH_IDX, 100 * vGold * healthRewardRatio / state.getPlayerForRead().getMaxHealth());
                         }

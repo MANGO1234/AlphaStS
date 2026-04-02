@@ -1,10 +1,7 @@
 package com.alphaStS.card;
 
 import com.alphaStS.*;
-import com.alphaStS.enemy.Enemy;
-import com.alphaStS.enemy.EnemyBeyond;
-import com.alphaStS.enemy.EnemyEncounter;
-import com.alphaStS.enemy.EnemyEnding;
+import com.alphaStS.enemy.*;
 import com.alphaStS.enums.DebuffType;
 import com.alphaStS.gameAction.GameActionCtx;
 import com.alphaStS.eventHandler.GameEventCardHandler;
@@ -815,7 +812,7 @@ public class CardColorless {
                         int minHandOfGreed = state.getCounterForRead()[counterIdx];
                         int maxHandOfGreedRemaining = getMaxPossibleHandOfGreedRemaining(state, true);
                         double vHandOfGreed = Math.max(minHandOfGreed / 100.0, Math.min((minHandOfGreed + maxHandOfGreedRemaining) / 100.0, v.getVExtra(vExtraIdx)));
-                        if (state.currentEncounter != EnemyEncounter.EncounterEnum.CORRUPT_HEART) {
+                        if (state.currentEncounter != PredefinedEncounter.CORRUPT_HEART) {
                             v.add(GameState.V_HEALTH_IDX, 100 * vHandOfGreed * healthRewardRatio / 20.0 / state.getPlayerForRead().getMaxHealth());
                         }
                     }
@@ -1475,7 +1472,7 @@ public class CardColorless {
                     }
 
                     @Override public void updateQValues(GameState state, VArray v) {
-                        if (state.currentEncounter != EnemyEncounter.EncounterEnum.CORRUPT_HEART) {
+                        if (state.currentEncounter != PredefinedEncounter.CORRUPT_HEART) {
                             int minValue = state.getCounterForRead()[counterIdx];
                             int maxRemaining = getMaxPossibleRitualDaggerRemaining(state, true);
                             double vDagger = Math.max(minValue / 10.0, Math.min((minValue + maxRemaining) / 10.0, v.getVExtra(vExtraIdx)));

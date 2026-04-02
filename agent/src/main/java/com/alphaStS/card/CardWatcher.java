@@ -1,5 +1,6 @@
 package com.alphaStS.card;
 
+import com.alphaStS.enemy.PredefinedEncounter;
 import com.alphaStS.enums.DebuffType;
 import com.alphaStS.gameAction.GameActionCtx;
 import com.alphaStS.eventHandler.GameEventCardHandler;
@@ -12,7 +13,6 @@ import com.alphaStS.PlayerBuff;
 import com.alphaStS.random.RandomGenCtx;
 import com.alphaStS.TrainingTarget;
 import com.alphaStS.action.CardDrawAction;
-import com.alphaStS.enemy.EnemyEncounter;
 import com.alphaStS.enums.Stance;
 
 import java.util.ArrayList;
@@ -2698,7 +2698,7 @@ public class CardWatcher {
                     }
 
                     @Override public void updateQValues(GameState state, VArray v) {
-                        if (state.currentEncounter != EnemyEncounter.EncounterEnum.CORRUPT_HEART) {
+                        if (state.currentEncounter != PredefinedEncounter.CORRUPT_HEART) {
                             v.add(GameState.V_HEALTH_IDX, 10 * v.getVExtra(vExtraIdx) * healthRewardRatio / state.getPlayerForRead().getMaxHealth());
                         }
                     }

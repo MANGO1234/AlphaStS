@@ -2,10 +2,7 @@ package com.alphaStS;
 
 import com.alphaStS.card.Card;
 import com.alphaStS.card.CardSilent;
-import com.alphaStS.enemy.Enemy;
-import com.alphaStS.enemy.EnemyEncounter;
-import com.alphaStS.enemy.GremlinGangRandomization;
-import com.alphaStS.enemy.GremlinLeaderRandomization2;
+import com.alphaStS.enemy.*;
 import com.alphaStS.entity.Potion;
 import com.alphaStS.entity.Relic;
 import com.alphaStS.enums.CharacterEnum;
@@ -87,30 +84,39 @@ public class GameStateBuilder {
         return enemies;
     }
 
-    public void addEnemyEncounter(EnemyEncounter.EncounterEnum encounterEnum, Enemy... enemies) {
+    public void addEnemyEncounter(PredefinedEncounter encounterEnum, Enemy... enemies) {
         addEnemyEncounterInternal(encounterEnum, null, enemies);
     }
 
-    public void addEnemyEncounter(EnemyEncounter.EncounterEnum encounterEnum, GameStateRandomization randomization, Enemy... enemies) {
+    public void addEnemyEncounter(PredefinedEncounter encounterEnum, GameStateRandomization randomization, Enemy... enemies) {
         addEnemyEncounterInternal(encounterEnum, randomization, enemies);
     }
 
     public void addEnemyEncounter(Enemy... enemies) {
-        addEnemyEncounterInternal(EnemyEncounter.EncounterEnum.UNKNOWN, null, enemies);
+        addEnemyEncounterInternal(null, null, enemies);
     }
 
     public void addEnemyEncounter(GameStateRandomization randomization, Enemy... enemies) {
-        addEnemyEncounterInternal(EnemyEncounter.EncounterEnum.UNKNOWN, randomization, enemies);
+        addEnemyEncounterInternal(null, randomization, enemies);
     }
 
-    public void addEnemyEncounterInternal(EnemyEncounter.EncounterEnum encounterEnum, GameStateRandomization randomization, Enemy... enemies) {
+    public void add(PredefinedEncounter encounter) {
+        if (!encounter.enemies.isEmpty()) {
+            addEnemyEncounter(encounter, encounter.enemies.toArray(Enemy[]::new));
+        }
+        if (encounter.encounterExtraLogic != null) {
+            encounter.encounterExtraLogic.accept(this);
+        }
+    }
+
+    public void addEnemyEncounterInternal(PredefinedEncounter encounterEnum, GameStateRandomization randomization, Enemy... enemies) {
         var indexes = new ArrayList<EnemyEncounter.EnemyInfo>();
-        if (encounterEnum == EnemyEncounter.EncounterEnum.GREMLIN_LEADER) {
+        if (encounterEnum == PredefinedEncounter.GREMLIN_LEADER) {
             indexes.add(new EnemyEncounter.EnemyInfo(this.enemies.size(), true));
             indexes.add(new EnemyEncounter.EnemyInfo(this.enemies.size() + 1, true));
             indexes.add(new EnemyEncounter.EnemyInfo(this.enemies.size() + 2, true));
             indexes.add(new EnemyEncounter.EnemyInfo(this.enemies.size() + 3, false));
-        } else if (encounterEnum == EnemyEncounter.EncounterEnum.GREMLIN_GANG) {
+        } else if (encounterEnum == PredefinedEncounter.GREMLIN_GANG) {
             for (int i = 0; i < enemies.length; i++) {
                 indexes.add(new EnemyEncounter.EnemyInfo(this.enemies.size() + i, false));
             }
@@ -138,9 +144,9 @@ public class GameStateBuilder {
             GameStateRandomization r = new GameStateRandomization.EnemyEncounterRandomization(enemies, enemiesEncounters);
             for (int i = 0; i < enemiesEncounters.size(); i++) {
                 var encounter = enemiesEncounters.get(i);
-                if (encounter.encounterEnum == EnemyEncounter.EncounterEnum.GREMLIN_LEADER) {
+                if (encounter.encounterEnum == PredefinedEncounter.GREMLIN_LEADER) {
                     r = r.followByIf(i, new GremlinLeaderRandomization2(enemies, encounter.idxes.get(0).index()).collapse("Random Gremlins"));
-                } else if (encounter.encounterEnum == EnemyEncounter.EncounterEnum.GREMLIN_GANG) {
+                } else if (encounter.encounterEnum == PredefinedEncounter.GREMLIN_GANG) {
                     r = r.followByIf(i, new GremlinGangRandomization(enemies, encounter.idxes.get(0).index()));
                 }
             }
@@ -162,9 +168,9 @@ public class GameStateBuilder {
         } else if (enemiesEncounters.size() == 1) {
             GameStateRandomization r = null;
             var encounter = enemiesEncounters.get(0);
-            if (encounter.encounterEnum == EnemyEncounter.EncounterEnum.GREMLIN_LEADER) {
+            if (encounter.encounterEnum == PredefinedEncounter.GREMLIN_LEADER) {
                 r = new GremlinLeaderRandomization2(enemies, encounter.idxes.get(0).index()).collapse("Random Gremlins");
-            } else if (encounter.encounterEnum == EnemyEncounter.EncounterEnum.GREMLIN_GANG) {
+            } else if (encounter.encounterEnum == PredefinedEncounter.GREMLIN_GANG) {
                 r = new GremlinGangRandomization(enemies, encounter.idxes.get(0).index());
             }
             if (isBurningElite) {
