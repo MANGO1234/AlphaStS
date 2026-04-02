@@ -629,4 +629,14 @@ public class CardManager {
         cards.add(new CardWatcher.MasterReality());
         return cards;
     }
+
+    public static List<Card> getPossibleSelect1OutOf3CardsFromRewardScreen(CharacterEnum character) {
+        List<Card> baseCards = getCharacterCards(character, true);
+        List<Card> cards = new ArrayList<>();
+        for (Card card : baseCards) {
+            cards.add(card);
+            cards.add(card.getUpgrade());
+        }
+        return cards;
+    }
 }

@@ -865,7 +865,7 @@ public final class GameState implements State {
         potions.forEach(potion -> potion.getPossibleSelect1OutOf3Cards(properties).forEach((card) -> idxes.add(properties.findCardIndex(card))));
         relics.forEach(relic -> relic.getPossibleSelect1OutOf3Cards(properties).forEach((card) -> idxes.add(properties.findCardIndex(card))));
         if (Configuration.HEART_GAUNTLET_CARD_REWARD) {
-            EnemyEncounter.getPossibleSelect1OutOf3CardsFromRewardScreen(properties).forEach((card) -> idxes.add(properties.findCardIndex(card)));
+            CardManager.getPossibleSelect1OutOf3CardsFromRewardScreen(properties.character).forEach((card) -> idxes.add(properties.findCardIndex(card)));
         }
         return idxes.stream().mapToInt(Integer::intValue).sorted().toArray();
     }
@@ -894,7 +894,7 @@ public final class GameState implements State {
                 addPossibleGeneratedCardsFromListOfCard(enemy.getPossibleGeneratedCards(properties, set.stream().toList()), newSet, discardSet);
             }
             if (Configuration.HEART_GAUNTLET_CARD_REWARD) {
-                addPossibleGeneratedCardsFromListOfCard(EnemyEncounter.getPossibleSelect1OutOf3CardsFromRewardScreen(properties), newSet, discardSet);
+                addPossibleGeneratedCardsFromListOfCard(CardManager.getPossibleSelect1OutOf3CardsFromRewardScreen(properties.character), newSet, discardSet);
             }
             if (set.size() == newSet.size()) {
                 break;
