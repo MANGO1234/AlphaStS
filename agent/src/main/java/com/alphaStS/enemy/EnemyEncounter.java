@@ -47,11 +47,11 @@ public class EnemyEncounter {
     }
 
     public static void addDualFungiBeastFight(GameStateBuilder builder) {
-        builder.addEnemyEncounter(new EnemyExordium.FungiBeast(), new EnemyExordium.FungiBeast());
+        builder.addEnemyEncounter(PredefinedEncounter.DUAL_FUNGI_BEASTS, new EnemyExordium.FungiBeast(), new EnemyExordium.FungiBeast());
     }
 
     public static void addLargeSpikeSlimeFight(GameStateBuilder builder) {
-        builder.addEnemyEncounter(new EnemyExordium.LargeSpikeSlime(), new EnemyExordium.MediumSpikeSlime(36).startDead(), new EnemyExordium.MediumSpikeSlime(36).startDead());
+        builder.addEnemyEncounter(PredefinedEncounter.LARGE_SPIKE_SLIME, new EnemyExordium.LargeSpikeSlime(), new EnemyExordium.MediumSpikeSlime(36).startDead(), new EnemyExordium.MediumSpikeSlime(36).startDead());
     }
 
     public static void addGremlinLeaderFight(GameStateBuilder builder) {
@@ -121,12 +121,12 @@ public class EnemyEncounter {
         blueSlaver.properties.isElite = true;
         redSlaver.properties.isElite = true;
         taskmaster.properties.isElite = true;
-        builder.addEnemyEncounter(blueSlaver, taskmaster, redSlaver);
+        builder.addEnemyEncounter(PredefinedEncounter.SLAVERS_ELITE, blueSlaver, taskmaster, redSlaver);
     }
 
     public static void addAwakenedOneFight(GameStateBuilder builder) {
         var start = builder.getEnemies().size();
-        builder.addEnemyEncounter(new EnemyExordium.Cultist(), new EnemyExordium.Cultist(), new EnemyBeyond.AwakenedOne());
+        builder.addEnemyEncounter(PredefinedEncounter.AWAKENED_ONE, new EnemyExordium.Cultist(), new EnemyExordium.Cultist(), new EnemyBeyond.AwakenedOne());
         builder.addEnemyReordering((state, order) -> {
             if (state.getEnemiesForRead().get(start).getHealth() > state.getEnemiesForRead().get(start + 1).getHealth()) {
                 order[start] = start + 1;
@@ -136,16 +136,16 @@ public class EnemyEncounter {
     }
 
     public static void addDonuAndDecaFight(GameStateBuilder builder) {
-        builder.addEnemyEncounter(new EnemyBeyond.Deca(), new EnemyBeyond.Donu());
+        builder.addEnemyEncounter(PredefinedEncounter.DONU_AND_DECA, new EnemyBeyond.Deca(), new EnemyBeyond.Donu());
     }
 
     public static void addAcidSlimeFight(GameStateBuilder builder) {
-        builder.addEnemyEncounter(new EnemyExordium.LargeAcidSlime(), new EnemyExordium.MediumAcidSlime(36).startDead(), new EnemyExordium.MediumAcidSlime(36).startDead());
+        builder.addEnemyEncounter(PredefinedEncounter.ACID_SLIME, new EnemyExordium.LargeAcidSlime(), new EnemyExordium.MediumAcidSlime(36).startDead(), new EnemyExordium.MediumAcidSlime(36).startDead());
     }
 
     public static void addByrdsFight(GameStateBuilder builder) {
         var start = builder.getEnemies().size();
-        builder.addEnemyEncounter(new EnemyCity.Byrd(), new EnemyCity.Byrd(), new EnemyCity.Byrd());
+        builder.addEnemyEncounter(PredefinedEncounter.TRIPLE_BYRDS, new EnemyCity.Byrd(), new EnemyCity.Byrd(), new EnemyCity.Byrd());
         builder.addEnemyReordering((state, order) -> {
             if (state.getEnemiesForRead().get(start).getHealth() <= state.getEnemiesForRead().get(start + 1).getHealth()) {
                 if (state.getEnemiesForRead().get(start).getHealth() <= state.getEnemiesForRead().get(start + 2).getHealth()) {
@@ -172,18 +172,18 @@ public class EnemyEncounter {
     }
 
     public static void addCenturionAndMysticFight(GameStateBuilder builder) {
-        builder.addEnemyEncounter(new EnemyCity.Centurion(), new EnemyCity.Mystic());
+        builder.addEnemyEncounter(PredefinedEncounter.CENTURION_AND_MYSTIC, new EnemyCity.Centurion(), new EnemyCity.Mystic());
     }
 
     public static void addSentryAndSphericGuardianFight(GameStateBuilder builder) {
         var sentry = new EnemyExordium.Sentry(EnemyExordium.Sentry.BOLT);
         sentry.properties.isElite = false;
-        builder.addEnemyEncounter(sentry, new EnemyCity.SphericGuardian());
+        builder.addEnemyEncounter(PredefinedEncounter.SENTRY_AND_SPHERIC_GUARDIAN, sentry, new EnemyCity.SphericGuardian());
     }
 
     public static void addSentriesFight(GameStateBuilder builder) {
         var start = builder.getEnemies().size();
-        builder.addEnemyEncounter(new EnemyExordium.Sentry(45, EnemyExordium.Sentry.BOLT),
+        builder.addEnemyEncounter(PredefinedEncounter.SENTRIES, new EnemyExordium.Sentry(45, EnemyExordium.Sentry.BOLT),
                 new EnemyExordium.Sentry(45, EnemyExordium.Sentry.BEAM),
                 new EnemyExordium.Sentry(45, EnemyExordium.Sentry.BOLT));
         builder.addEnemyReordering((state, order) -> {
@@ -195,12 +195,12 @@ public class EnemyEncounter {
     }
 
     public static void addRobbersEventFight(GameStateBuilder builder) {
-        builder.addEnemyEncounter(new EnemyCity.Pointy(), new EnemyCity.Romeo(), new EnemyCity.Bear());
+        builder.addEnemyEncounter(PredefinedEncounter.ROBBERS_EVENT, new EnemyCity.Pointy(), new EnemyCity.Romeo(), new EnemyCity.Bear());
     }
 
     public static void addCultistsFight(GameStateBuilder builder) {
         var start = builder.getEnemies().size();
-        builder.addEnemyEncounter(new EnemyExordium.Cultist(), new EnemyExordium.Cultist(), new EnemyExordium.Cultist());
+        builder.addEnemyEncounter(PredefinedEncounter.TRIPLE_CULTISTS, new EnemyExordium.Cultist(), new EnemyExordium.Cultist(), new EnemyExordium.Cultist());
         builder.addEnemyReordering((state, order) -> {
             if (state.getEnemiesForRead().get(start).getHealth() <= state.getEnemiesForRead().get(start + 1).getHealth()) {
                 if (state.getEnemiesForRead().get(start).getHealth() <= state.getEnemiesForRead().get(start + 2).getHealth()) {
@@ -227,7 +227,7 @@ public class EnemyEncounter {
 
     public static void addDarklingsFight(GameStateBuilder builder) {
         var start = builder.getEnemies().size();
-        builder.addEnemyEncounter(new EnemyBeyond.Darkling(false), new EnemyBeyond.Darkling(true), new EnemyBeyond.Darkling(false));
+        builder.addEnemyEncounter(PredefinedEncounter.TRIPLE_DARKLINGS, new EnemyBeyond.Darkling(false), new EnemyBeyond.Darkling(true), new EnemyBeyond.Darkling(false));
         builder.addEnemyReordering((state, order) -> {
             if (state.getEnemiesForRead().get(start).getHealth() > state.getEnemiesForRead().get(start + 2).getHealth()) {
                 order[start] = start + 2;
@@ -238,7 +238,7 @@ public class EnemyEncounter {
 
     public static void addTripleJawWormsFight(GameStateBuilder builder) {
         var start = builder.getEnemies().size();
-        builder.addEnemyEncounter(new EnemyExordium.JawWorm(true), new EnemyExordium.JawWorm(true), new EnemyExordium.JawWorm(true));
+        builder.addEnemyEncounter(PredefinedEncounter.TRIPLE_JAW_WORMS, new EnemyExordium.JawWorm(true), new EnemyExordium.JawWorm(true), new EnemyExordium.JawWorm(true));
         builder.addEnemyReordering((state, order) -> {
             if (state.getEnemiesForRead().get(start).getHealth() <= state.getEnemiesForRead().get(start + 1).getHealth()) {
                 if (state.getEnemiesForRead().get(start).getHealth() <= state.getEnemiesForRead().get(start + 2).getHealth()) {
@@ -266,7 +266,7 @@ public class EnemyEncounter {
 
     public static void addTripleCultistsFight(GameStateBuilder builder) {
         var start = builder.getEnemies().size();
-        builder.addEnemyEncounter(new EnemyExordium.Cultist(), new EnemyExordium.Cultist(), new EnemyExordium.Cultist());
+        builder.addEnemyEncounter(PredefinedEncounter.TRIPLE_CULTISTS, new EnemyExordium.Cultist(), new EnemyExordium.Cultist(), new EnemyExordium.Cultist());
         builder.addEnemyReordering((state, order) -> {
             if (state.getEnemiesForRead().get(start).getHealth() <= state.getEnemiesForRead().get(start + 1).getHealth()) {
                 if (state.getEnemiesForRead().get(start).getHealth() <= state.getEnemiesForRead().get(start + 2).getHealth()) {
@@ -294,7 +294,7 @@ public class EnemyEncounter {
 
     public static void addReptomancerFight(GameStateBuilder builder) {
 //        var start = builder.getEnemies().size();
-        builder.addEnemyEncounter(new EnemyBeyond.Dagger(), // top left
+        builder.addEnemyEncounter(PredefinedEncounter.REPTOMANCER, new EnemyBeyond.Dagger(), // top left
                 new EnemyBeyond.Dagger(), // bottom left
                 new EnemyBeyond.Reptomancer(),
                 new EnemyBeyond.Dagger(), // top right
