@@ -523,108 +523,94 @@ public interface GameStateRandomization {
         }
     }
 
-    class PotionUtilityRandomization implements GameStateRandomization {
-        private final int potionIdx;
-        private final String potionName;
-        private final int steps;
-        private final short startingRatio;
+    class PotionsUtilityRandomization implements GameStateRandomization {
+        private final List<Potion> potions;
+        private final int[][] scenarios;
 
-        public PotionUtilityRandomization(Potion potion, int potionIdx, int steps) {
-            this(potion, potionIdx, steps, (short) 100);
-        }
-
-        public PotionUtilityRandomization(Potion potion, int potionIdx, int steps, short startingRatio) {
-            this.potionIdx = potionIdx;
-            this.potionName = potion.toString();
-            this.steps = steps;
-            this.startingRatio = startingRatio;
-        }
-
-        // todo: think of a better distribution
-        @Override public int randomize(GameState state) {
-            var upto = steps * 10;
-            var div = (upto - 5 * steps) / steps;
-            var r = state.getSearchRandomGen().nextInt(upto, RandomGenCtx.BeginningOfGameRandomization, this);
-            if (r < 5 * steps) {
-                r = 0;
-            } else {
-                r = 1 + (r - 5 * steps) / div;
+        public PotionsUtilityRandomization(List<Potion> potions, int[][] scenarios) {
+            int count = 0;
+            for (Potion p : potions) {
+                if (!p.isGenerated) {
+                    if (p.healPlayer) {
+                        throw new IllegalArgumentException(p + " heals player and cannot be included in penalty scenarios");
+                    }
+                    count++;
+                }
             }
-            randomize(state, r);
+            for (int[] scenario : scenarios) {
+                if (scenario.length != count) {
+                    throw new IllegalArgumentException("Scenario length " + scenario.length + " does not match non-generated potion count " + count);
+                }
+            }
+            this.potions = potions;
+            this.scenarios = scenarios;
+        }
+
+        @Override public int randomize(GameState state) {
+            setGeneratedUnusable(state);
+            int r = state.getSearchRandomGen().nextInt(scenarios.length, RandomGenCtx.BeginningOfGameRandomization, this);
+            applyScenario(state, r);
             return r;
         }
 
         @Override public void randomize(GameState state, int r) {
-            if (r == 0) {
-                state.getPotionsStateForWrite()[potionIdx * 3] = 0;
-                state.getPotionsStateForWrite()[potionIdx * 3 + 1] = startingRatio;
-                state.getPotionsStateForWrite()[potionIdx * 3 + 2] = 0;
-            } else {
-                state.getPotionsStateForWrite()[potionIdx * 3] = 1;
-                state.getPotionsStateForWrite()[potionIdx * 3 + 1] = (short) (startingRatio - 5 * (r - 1));
-                state.getPotionsStateForWrite()[potionIdx * 3 + 2] = 1;
+            setGeneratedUnusable(state);
+            applyScenario(state, r);
+        }
+
+        private void setGeneratedUnusable(GameState state) {
+            for (int i = 0; i < potions.size(); i++) {
+                if (potions.get(i).isGenerated) {
+                    state.setPotionUnusable(i, potions.get(i).basePenaltyRatio);
+                }
+            }
+        }
+
+        private void applyScenario(GameState state, int r) {
+            int idx = 0;
+            for (int i = 0; i < potions.size(); i++) {
+                if (!potions.get(i).isGenerated) {
+                    int penalty = scenarios[r][idx++];
+                    if (penalty == 0) {
+                        state.getPotionsStateForWrite()[i * 3] = 0;
+                        state.getPotionsStateForWrite()[i * 3 + 1] = 100;
+                        state.getPotionsStateForWrite()[i * 3 + 2] = 0;
+                    } else {
+                        state.getPotionsStateForWrite()[i * 3] = 1;
+                        state.getPotionsStateForWrite()[i * 3 + 1] = (short) penalty;
+                        state.getPotionsStateForWrite()[i * 3 + 2] = 1;
+                    }
+                }
             }
         }
 
         @Override public Map<Integer, Info> listRandomizations() {
             Map<Integer, Info> map = new HashMap<>();
-            map.put(0, new Info(0.4,  potionName + " cannot be used"));
-            for (int cur_r = 0; cur_r < steps; cur_r++) {
-                var u = startingRatio - 5 * cur_r;
-                map.put(cur_r + 1, new Info(0.6 / steps, potionName + " " + u));
-            }
-            return map;
-        }
-
-        public int getSteps() {
-            return steps;
-        }
-
-        @Override public List<Card> getPossibleGeneratedCards() {
-            return List.of();
-        }
-    }
-
-    class PotionsUtilityRandomization implements GameStateRandomization {
-        private final GameStateRandomization randomization;
-
-        public PotionsUtilityRandomization(List<Potion> potions) {
-            GameStateRandomization randomization = null;
-            for (int i = 0; i < potions.size(); i++) {
-                if (potions.get(i).isGenerated) {
+            double chance = 1.0 / scenarios.length;
+            for (int i = 0; i < scenarios.length; i++) {
+                boolean allZero = true;
+                for (int v : scenarios[i]) {
+                    if (v != 0) {
+                        allZero = false;
+                        break;
+                    }
+                }
+                if (allZero) {
+                    map.put(i, new Info(chance, "No potions can be used"));
                     continue;
                 }
-                if (potions.get(i) instanceof Potion.BloodPotion || potions.get(i) instanceof Potion.BlockPotion || potions.get(i) instanceof Potion.FairyInABottle) {
-                    randomization = new PotionUtilityRandomization(potions.get(i), i, potions.get(i).getPenaltyRatioSteps(), potions.get(i).getBasePenaltyRatio()).fixR(1).doAfter(randomization);
-                    continue;
+                StringBuilder desc = new StringBuilder();
+                int idx = 0;
+                for (Potion p : potions) {
+                    if (!p.isGenerated) {
+                        int penalty = scenarios[i][idx++];
+                        if (desc.length() > 0) desc.append(" + ");
+                        if (penalty == 0) desc.append(p).append(" cannot be used");
+                        else desc.append(p).append(" ").append(penalty);
+                    }
                 }
-                randomization = new PotionUtilityRandomization(potions.get(i), i, potions.get(i).getPenaltyRatioSteps(), potions.get(i).getBasePenaltyRatio()).doAfter(randomization);
+                map.put(i, new Info(chance, desc.toString()));
             }
-            this.randomization = randomization;
-        }
-
-        // todo: think of a better distribution
-        @Override public int randomize(GameState state) {
-            for (int i = 0; i < state.properties.potions.size(); i++) {
-                if (state.properties.potions.get(i).isGenerated) {
-                    state.setPotionUnusable(i, state.properties.potions.get(i).basePenaltyRatio);
-                }
-            }
-            return randomization.randomize(state);
-        }
-
-        @Override public void randomize(GameState state, int r) {
-            for (int i = 0; i < state.properties.potions.size(); i++) {
-                if (state.properties.potions.get(i).isGenerated) {
-                    state.setPotionUnusable(i, state.properties.potions.get(i).basePenaltyRatio);
-                }
-            }
-            randomization.randomize(state, r);
-        }
-
-        @Override public Map<Integer, Info> listRandomizations() {
-            var map = new HashMap<>(randomization.listRandomizations());
-            map.put(0, new Info(map.get(0).chance, "No potions can be used"));
             return map;
         }
 

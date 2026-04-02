@@ -28,7 +28,7 @@ public class GameStateBuilder {
     private GameStateRandomization preBattleRandomization = null;
     private GameStateRandomization preBattleGameScenarios = null;
     private GameEventHandler endOfPreBattleSetupHandler = null;
-    private int[] potionsScenarios;
+    private int[][] potionsScenarios;
     private boolean isBurningElite;
     private Function<GameState, GameState> switchBattleHandler;
     private int generateCardOptions = 0;
@@ -259,11 +259,11 @@ public class GameStateBuilder {
         return potionsGenerator;
     }
 
-    public void setPotionsScenarios(int... scenarios) {
+    public void setPotionsScenarios(int[]... scenarios) {
         potionsScenarios = scenarios;
     }
 
-    public int[] getPotionsScenarios() {
+    public int[][] getPotionsScenarios() {
         return potionsScenarios;
     }
 

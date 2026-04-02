@@ -1608,11 +1608,7 @@ public class InteractiveMode {
             history.add(line);
             int r = parseInt(line, -1);
             if (info.get(r) != null) {
-                if (randomization instanceof GameStateRandomization.PotionUtilityRandomization pr) {
-                    return r == 0 ? 0 : pr.getSteps() * (4 + r);
-                } else {
-                    return r;
-                }
+                return r;
             }
             out.println("Unknown Command");
         }

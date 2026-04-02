@@ -28,23 +28,9 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
     public int[] generatedCardReverseIdxes; // given a cardIdx, return the index of it in generatedCardIdxes (-1 otherwise)
     int counterIdx = -1;
     public short basePenaltyRatio = 80;
-    private int penaltyRatioSteps = 1;
-
-    public short getBasePenaltyRatio() {
-        return basePenaltyRatio;
-    }
 
     public Potion setBasePenaltyRatio(int basePenaltyRatio) {
         this.basePenaltyRatio = (short) basePenaltyRatio;
-        return this;
-    }
-
-    public int getPenaltyRatioSteps() {
-        return penaltyRatioSteps;
-    }
-
-    public Potion setPenaltyRatioSteps(int penaltyRatioSteps) {
-        this.penaltyRatioSteps = penaltyRatioSteps;
         return this;
     }
 

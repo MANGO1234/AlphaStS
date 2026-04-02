@@ -69,7 +69,7 @@ public class GameProperties implements Cloneable {
     public Potion.PotionGenerator potionsGenerator;
     public List<Integer> alchemizeCardIdxes;
     public int nonGeneratedPotionsLength;
-    public int[] potionsScenarios;
+    public int[][] potionsScenarios;
     public double alchemizeMult = 1.25;
 
     // misc

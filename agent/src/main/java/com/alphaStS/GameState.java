@@ -369,11 +369,8 @@ public final class GameState implements State {
         properties.generateCardOptions = builder.getGenerateCardOptions();
         properties.relics = builder.getRelics();
         properties.enemiesEncounters = builder.getEnemiesEncounters();
-        if (properties.potions.size() > 0) {
-            GameStateRandomization p = new GameStateRandomization.PotionsUtilityRandomization(properties.potions);
-            if (properties.potionsScenarios != null) {
-                p = p.fixR(properties.potionsScenarios, 0);
-            }
+        if (properties.potions.size() > 0 && properties.potionsScenarios != null) {
+            GameStateRandomization p = new GameStateRandomization.PotionsUtilityRandomization(properties.potions, properties.potionsScenarios);
             properties.preBattleRandomization = properties.preBattleRandomization == null ? p : properties.preBattleRandomization.doAfter(p);
             properties.addStartOfBattleHandler(new GameEventHandler() {
                 @Override public void handle(GameState state) {
