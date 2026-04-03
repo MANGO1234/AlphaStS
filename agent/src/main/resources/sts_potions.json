@@ -1,0 +1,297 @@
+[
+  {
+    "name": "Attack Potion",
+    "character": "Colorless",
+    "rarity": "Common",
+    "effect": "Choose 1 of 3 random Attack cards to add ( two copies of it) to your hand. It costs ( They cost) 0 this turn.",
+    "image_path": "potions/AttackPotion.png"
+  },
+  {
+    "name": "Blessing of the Forge",
+    "character": "Colorless",
+    "rarity": "Common",
+    "effect": "Upgrade all cards in your hand for the rest of combat.",
+    "image_path": "potions/BlessingoftheForge.png"
+  },
+  {
+    "name": "Block Potion",
+    "character": "Colorless",
+    "rarity": "Common",
+    "effect": "Gain 12 ( 24) Block.",
+    "image_path": "potions/BlockPotion.png"
+  },
+  {
+    "name": "Colorless Potion",
+    "character": "Colorless",
+    "rarity": "Common",
+    "effect": "Choose 1 of 3 random Colorless cards to add ( 2 copies of) to your hand. It costs ( They cost) 0 this turn.",
+    "image_path": "potions/ColorlessPotion.png"
+  },
+  {
+    "name": "Dexterity Potion",
+    "character": "Colorless",
+    "rarity": "Common",
+    "effect": "Gain 2 ( 4) Dexterity.",
+    "image_path": "potions/DexterityPotion.png"
+  },
+  {
+    "name": "Energy Potion",
+    "character": "Colorless",
+    "rarity": "Common",
+    "effect": "Gain 2 ( 4) Energy.",
+    "image_path": "potions/EnergyPotion.png"
+  },
+  {
+    "name": "Explosive Potion",
+    "character": "Colorless",
+    "rarity": "Common",
+    "effect": "Deal 10 ( 20) damage to all enemies.",
+    "image_path": "potions/ExplosivePotion.png"
+  },
+  {
+    "name": "Fear Potion",
+    "character": "Colorless",
+    "rarity": "Common",
+    "effect": "Apply 3 ( 6) Vulnerable to target enemy.",
+    "image_path": "potions/FearPotion.png"
+  },
+  {
+    "name": "Fire Potion",
+    "character": "Colorless",
+    "rarity": "Common",
+    "effect": "Deal 20 ( 40) damage to target enemy.",
+    "image_path": "potions/FirePotion.png"
+  },
+  {
+    "name": "Flex Potion",
+    "character": "Colorless",
+    "rarity": "Common",
+    "effect": "Gain 5 ( 10) Strength. At the end of your turn, lose 5 ( 10) Strength.",
+    "image_path": "potions/FlexPotion.png"
+  },
+  {
+    "name": "Power Potion",
+    "character": "Colorless",
+    "rarity": "Common",
+    "effect": "Choose 1 of 3 random Power cards to add ( two copies of it) to your hand. It costs ( They cost) 0 this turn.",
+    "image_path": "potions/PowerPotion.png"
+  },
+  {
+    "name": "Skill Potion",
+    "character": "Colorless",
+    "rarity": "Common",
+    "effect": "Choose 1 of 3 random Skill cards to add ( two copies of) to your hand. It costs ( They cost) 0 this turn.",
+    "image_path": "potions/SkillPotion.png"
+  },
+  {
+    "name": "Speed Potion",
+    "character": "Colorless",
+    "rarity": "Common",
+    "effect": "Gain 5 ( 10) Dexterity. At the end of your turn, lose 5 ( 10) Dexterity.",
+    "image_path": "potions/SpeedPotion.png"
+  },
+  {
+    "name": "Strength Potion",
+    "character": "Colorless",
+    "rarity": "Common",
+    "effect": "Gain 2 ( 4) Strength.",
+    "image_path": "potions/StrengthPotion.png"
+  },
+  {
+    "name": "Swift Potion",
+    "character": "Colorless",
+    "rarity": "Common",
+    "effect": "Draw 3 ( 6) cards.",
+    "image_path": "potions/SwiftPotion.png"
+  },
+  {
+    "name": "Weak Potion",
+    "character": "Colorless",
+    "rarity": "Common",
+    "effect": "Apply 3 ( 6) Weak to target enemy.",
+    "image_path": "potions/WeakPotion.png"
+  },
+  {
+    "name": "Blood Potion",
+    "character": "Ironclad",
+    "rarity": "Common",
+    "effect": "Heal for 20% ( 40%) of your Max HP.",
+    "image_path": "potions/BloodPotion.png"
+  },
+  {
+    "name": "Poison Potion",
+    "character": "Silent",
+    "rarity": "Common",
+    "effect": "Apply 6 ( 12) Poison to target enemy.",
+    "image_path": "potions/PoisonPotion.png"
+  },
+  {
+    "name": "Focus Potion",
+    "character": "Defect",
+    "rarity": "Common",
+    "effect": "Gain 2 ( 4) Focus.",
+    "image_path": "potions/FocusPotion.png"
+  },
+  {
+    "name": "Bottled Miracle",
+    "character": "Watcher",
+    "rarity": "Common",
+    "effect": "Add 2 ( 4) Miracles to your hand.",
+    "image_path": "potions/BottledMiracle.png"
+  },
+  {
+    "name": "Ancient Potion",
+    "character": "Colorless",
+    "rarity": "Uncommon",
+    "effect": "Gain 1 ( 2) Artifact.",
+    "image_path": "potions/AncientPotion.png"
+  },
+  {
+    "name": "Distilled Chaos",
+    "character": "Colorless",
+    "rarity": "Uncommon",
+    "effect": "Play the top 3 ( 6) cards of your draw pile.",
+    "image_path": "potions/DistilledChaos.png"
+  },
+  {
+    "name": "Duplication Potion",
+    "character": "Colorless",
+    "rarity": "Uncommon",
+    "effect": "This turn, your next card is ( two cards are) played twice.",
+    "image_path": "potions/DuplicationPotion.png"
+  },
+  {
+    "name": "Essence of Steel",
+    "character": "Colorless",
+    "rarity": "Uncommon",
+    "effect": "Gain 4 ( 8) Plated Armor.",
+    "image_path": "potions/EssenceofSteel.png"
+  },
+  {
+    "name": "Gambler's Brew",
+    "character": "Colorless",
+    "rarity": "Uncommon",
+    "effect": "Discard any number of cards, then draw that many.",
+    "image_path": "potions/GamblersBrew.png"
+  },
+  {
+    "name": "Liquid Bronze",
+    "character": "Colorless",
+    "rarity": "Uncommon",
+    "effect": "Gain 3 ( 6) Thorns.",
+    "image_path": "potions/LiquidBronze.png"
+  },
+  {
+    "name": "Liquid Memories",
+    "character": "Colorless",
+    "rarity": "Uncommon",
+    "effect": "Choose a card ( 2 cards) in your discard pile and return it to your hand. It costs ( They cost) 0 this turn.",
+    "image_path": "potions/LiquidMemories.png"
+  },
+  {
+    "name": "Regen Potion",
+    "character": "Colorless",
+    "rarity": "Uncommon",
+    "effect": "Gain 5 ( 10) Regeneration.",
+    "image_path": "potions/RegenPotion.png"
+  },
+  {
+    "name": "Smoke Bomb",
+    "character": "Colorless",
+    "rarity": "Uncommon",
+    "effect": "Escape from a non-boss combat. Receive no rewards.",
+    "image_path": "potions/SmokeBomb.png"
+  },
+  {
+    "name": "Snecko Oil",
+    "character": "Colorless",
+    "rarity": "Uncommon",
+    "effect": "Draw 5 ( 10) Cards. Randomize the cost of cards in your hand",
+    "image_path": "potions/SneckoOil.png"
+  },
+  {
+    "name": "Elixir",
+    "character": "Ironclad",
+    "rarity": "Uncommon",
+    "effect": "Exhaust any number of cards in your hand.",
+    "image_path": "potions/Elixir.png"
+  },
+  {
+    "name": "Cunning Potion",
+    "character": "Silent",
+    "rarity": "Uncommon",
+    "effect": "Add 3 ( 6) Shivs+ to your hand.",
+    "image_path": "potions/CunningPotion.png"
+  },
+  {
+    "name": "Potion of Capacity",
+    "character": "Defect",
+    "rarity": "Uncommon",
+    "effect": "Gain 2 ( 4) Orb slots.",
+    "image_path": "potions/PotionOfCapacity.png"
+  },
+  {
+    "name": "Stance Potion",
+    "character": "Watcher",
+    "rarity": "Uncommon",
+    "effect": "Enter Calm or Wrath.",
+    "image_path": "potions/StancePotion.png"
+  },
+  {
+    "name": "Cultist Potion",
+    "character": "Colorless",
+    "rarity": "Rare",
+    "effect": "Gain 1 ( 2) Ritual.",
+    "image_path": "potions/CultistPotion.png"
+  },
+  {
+    "name": "Entropic Brew",
+    "character": "Colorless",
+    "rarity": "Rare",
+    "effect": "Fill all your empty potion slots with random potions.",
+    "image_path": "potions/EntropicBrew.png"
+  },
+  {
+    "name": "Fairy in a Bottle",
+    "character": "Colorless",
+    "rarity": "Rare",
+    "effect": "When you would die, heal to 30% ( 60%) of your Max HP instead and discard this potion.",
+    "image_path": "potions/FairyinaBottle.png"
+  },
+  {
+    "name": "Fruit Juice",
+    "character": "Colorless",
+    "rarity": "Rare",
+    "effect": "Gain 5 ( 10) Max HP.",
+    "image_path": "potions/FruitJuice.png",
+    "no_need_to_implement": true
+  },
+  {
+    "name": "Heart of Iron",
+    "character": "Ironclad",
+    "rarity": "Rare",
+    "effect": "Gain 6 ( 12) Metallicize.",
+    "image_path": "potions/HeartofIron.png"
+  },
+  {
+    "name": "Ghost in a Jar",
+    "character": "Silent",
+    "rarity": "Rare",
+    "effect": "Gain 1 ( 2) Intangible.",
+    "image_path": "potions/GhostinaJar.png"
+  },
+  {
+    "name": "Essence of Darkness",
+    "character": "Defect",
+    "rarity": "Rare",
+    "effect": "Channel 1 ( 2) Dark for each orb slot.",
+    "image_path": "potions/EssenceOfDarkness.png"
+  },
+  {
+    "name": "Ambrosia",
+    "character": "Watcher",
+    "rarity": "Rare",
+    "effect": "Enter Divinity.",
+    "image_path": "potions/Ambrosia.png"
+  }
+]
