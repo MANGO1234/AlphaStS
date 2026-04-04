@@ -16,7 +16,7 @@ import com.alphaStS.eventHandler.GameEventEnemyHandler;
 import com.alphaStS.eventHandler.GameEventHandler;
 import com.alphaStS.eventHandler.OnDamageHandler;
 import com.alphaStS.random.RandomGenCtx;
-import com.alphaStS.gui.BattleDefinitionReader;
+import com.alphaStS.gui.BattleBuilderJsonReader;
 import com.alphaStS.utils.CounterStat;
 import com.alphaStS.utils.Tuple;
 import com.alphaStS.utils.Utils;
@@ -119,7 +119,14 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     @Override
     public String toString() {
         if (displayString == null) {
-            displayString = Utils.camelCaseToDisplayString(this.getClass().getSimpleName());
+            Class<?> cls = this.getClass();
+            String name = null;
+            while (cls != null && Relic.class.isAssignableFrom(cls)) {
+                name = BattleBuilderJsonReader.RELIC_CLASS_TO_NAME.get(cls);
+                if (name != null) break;
+                cls = cls.getSuperclass();
+            }
+            displayString = name != null ? name : Utils.camelCaseToDisplayString(this.getClass().getSimpleName());
         }
         return displayString;
     }

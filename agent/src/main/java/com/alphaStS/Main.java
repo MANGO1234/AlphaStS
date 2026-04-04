@@ -3,6 +3,7 @@ package com.alphaStS;
 import com.alphaStS.gameAction.GameActionCtx;
 import com.alphaStS.gui.BattleBuilderGuiServer;
 import com.alphaStS.model.ModelPlain;
+import com.alphaStS.test.RunDataParser;
 import com.alphaStS.utils.ServerRequest;
 import com.alphaStS.utils.Tuple3;
 import com.fasterxml.jackson.core.JsonFactory;
@@ -50,6 +51,11 @@ public class Main {
             InteractiveServer.start(state, args, SAVES_DIR, CUR_ITER_DIRECTORY);
         } else if (args.length > 0 && args[0].equals("--interactive-server-test")) {
             InteractiveServer.test(args);
+        } else if (args.length > 0 && args[0].equals("--test-run-parser")) {
+            // TODO: remove - temporary dev command
+            String path = args.length > 1 ? args[1] : "../b.run";
+            int idx = args.length > 2 ? Integer.parseInt(args[2]) : -1;
+            testRunParser(path, idx);
         } else {
             System.out.println("Invalid arguments");
         }
@@ -74,6 +80,53 @@ public class Main {
     private static String PREV_ITER_DIRECTORY;
     private static int ITERATION = -1;
     private static int WAIT_FOR_ITERATION = -1;
+
+    // TODO: remove - temporary dev method for testing RunDataParser
+    private static void testRunParser(String path, int idx) {
+        System.out.println("Parsing run data from: " + path);
+        RunDataParser parser = new RunDataParser(path);
+        int totalBattles = 0;
+        Iterable<Tuple3<Integer, Integer, GameStateBuilder>> runs;
+        if (idx >= 0) {
+            try {
+                runs = parser.parseRun(idx);
+            } catch (Exception e) {
+                System.err.println("[RunDataParser] Failed to parse run " + idx + ": " + Arrays.toString(e.getStackTrace()));
+                return;
+            }
+        } else {
+            runs = parser;
+        }
+        for (var entry : runs) {
+            int runIdx = entry.v1();
+            int battleIdx = entry.v2();
+            GameStateBuilder builder = entry.v3();
+            var cards = builder.getCards();
+            var relics = builder.getRelics();
+            var potions = builder.getPotions();
+//            System.out.printf("Run %d, Battle %d — %d cards, %d relics, %d potions, HP %d/%d%n",
+//                runIdx,
+//                battleIdx,
+//                cards.size(),
+//                relics.size(),
+//                potions.size(),
+//                builder.getPlayer().getHealth(),
+//                builder.getPlayer().getMaxHealth());
+//            System.out.print("  deck: ");
+//            cards.forEach(c -> System.out.print(c.cardName + " "));
+//            System.out.println();
+//            System.out.print("  relics: ");
+//            relics.forEach(r -> System.out.print(r + " "));
+//            System.out.println();
+            if (!potions.isEmpty()) {
+//                System.out.print("  potions: ");
+//                potions.forEach(p -> System.out.print(p + " "));
+//                System.out.println();
+            }
+            totalBattles++;
+        }
+        System.out.println("Total battles: " + totalBattles);
+    }
 
     private static void printLengths(GameState state) throws IOException {
         ObjectMapper mapper = new ObjectMapper();

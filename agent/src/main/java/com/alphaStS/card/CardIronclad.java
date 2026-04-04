@@ -1873,7 +1873,7 @@ public class CardIronclad {
     }
 
     public static class SearingBlow extends Card {
-        private final static int MAX_UPGRADES = 10;
+        private final static int MAX_UPGRADES = 15;
         private final int n;
         private boolean upgradable = true;
 

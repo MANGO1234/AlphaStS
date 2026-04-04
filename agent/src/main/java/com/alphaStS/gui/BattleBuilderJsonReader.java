@@ -90,6 +90,9 @@ public class BattleBuilderJsonReader {
      * @param displayName exact card name as stored in the registry (e.g. "Bash", "Bash+")
      */
     public static Card lookupCard(String displayName) {
+        if (displayName.equals("Searing Blow+")) {
+            return new CardIronclad.SearingBlow(1);
+        }
         return CARD_REGISTRY.get(displayName);
     }
 

@@ -1,5 +1,6 @@
 package com.alphaStS.entity;
 
+import com.alphaStS.gui.BattleBuilderJsonReader;
 import com.alphaStS.EntityProperty;
 import com.alphaStS.GameProperties;
 import com.alphaStS.GameState;
@@ -70,7 +71,14 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
     @Override
     public String toString() {
         if (displayString == null) {
-            displayString = Utils.camelCaseToDisplayString(this.getClass().getSimpleName());
+            Class<?> cls = this.getClass();
+            String name = null;
+            while (cls != null && Potion.class.isAssignableFrom(cls)) {
+                name = BattleBuilderJsonReader.POTION_CLASS_TO_NAME.get(cls);
+                if (name != null) break;
+                cls = cls.getSuperclass();
+            }
+            displayString = name != null ? name : Utils.camelCaseToDisplayString(this.getClass().getSimpleName());
         }
         return displayString;
     }
