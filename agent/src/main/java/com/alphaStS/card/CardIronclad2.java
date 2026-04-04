@@ -52,7 +52,7 @@ public class CardIronclad2 {
     public static class Armaments extends CardIronclad.Armaments {
     }
 
-    public static class ArmamentsP extends CardIronclad.ArmamentP {
+    public static class ArmamentsP extends CardIronclad.ArmamentsP {
     }
 
     private static abstract class _BloodWallT extends Card {
@@ -945,11 +945,11 @@ public class CardIronclad2 {
     public static class RageP extends CardIronclad.RageP {
     }
 
-    private static abstract class _Rampage2T extends Card {
+    private static abstract class _RampageT extends Card {
         final int dmg;
         final int limit;
 
-        public _Rampage2T(String cardName, int dmg, int limit) {
+        public _RampageT(String cardName, int dmg, int limit) {
             super(cardName, Card.ATTACK, 1, Card.UNCOMMON);
             this.dmg = dmg;
             this.limit = limit;
@@ -963,7 +963,7 @@ public class CardIronclad2 {
         }
     }
 
-    public static class Rampage extends _Rampage2T {
+    public static class Rampage extends _RampageT {
         public Rampage() {
             this(9, 34);
         }
@@ -998,9 +998,13 @@ public class CardIronclad2 {
         @Override public int onPlayTransformCardIdx(GameProperties prop, int cardIdx) {
             return prop.rampage2TransformIndexes[cardIdx];
         }
+
+        @Override public Card getUpgrade() {
+            return new RampageP(dmg, limit);
+        }
     }
 
-    public static class RampageP extends _Rampage2T {
+    public static class RampageP extends _RampageT {
         public RampageP() {
             this(9, 54);
         }

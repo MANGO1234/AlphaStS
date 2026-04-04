@@ -13,7 +13,7 @@ public class CardUpgrade {
 
         map.put(new CardIronclad.Bash(), new CardIronclad.BashP());
         map.put(new CardIronclad.Anger(), new CardIronclad.AngerP());
-        map.put(new CardIronclad.Armaments(), new CardIronclad.ArmamentP());
+        map.put(new CardIronclad.Armaments(), new CardIronclad.ArmamentsP());
         map.put(new CardIronclad.BodySlam(), new CardIronclad.BodySlamP());
         map.put(new CardIronclad.Clash(), new CardIronclad.ClashP());
         map.put(new CardIronclad.Cleave(), new CardIronclad.CleaveP());
@@ -122,7 +122,7 @@ public class CardUpgrade {
         map.put(new CardSilent.Eviscerate(), new CardSilent.EviscerateP());
         map.put(new CardSilent.Expertise(), new CardSilent.ExpertiseP());
         map.put(new CardSilent.Finisher(), new CardSilent.FinisherP());
-        map.put(new CardSilent.Flechettes(), new CardSilent.FlechetteP());
+        map.put(new CardSilent.Flechettes(), new CardSilent.FlechettesP());
         map.put(new CardSilent.Footwork(), new CardSilent.FootworkP());
         map.put(new CardSilent.HeelHook(), new CardSilent.HeelHookP());
         map.put(new CardSilent.InfiniteBlades(), new CardSilent.InfiniteBladesP());

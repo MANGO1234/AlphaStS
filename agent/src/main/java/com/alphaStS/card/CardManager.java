@@ -154,7 +154,7 @@ public class CardManager {
             cards.add(new CardIronclad.Dropkick());
             cards.add(new CardIronclad.Hemokinesis());
             cards.add(new CardIronclad.Pummel());
-            cards.add(new CardIronclad.Rampage());
+            cards.add(new CardIronclad.Rampage(8, 33, false));
             cards.add(new CardIronclad.RecklessCharge());
             cards.add(new CardIronclad.SearingBlow(0));
             cards.add(new CardIronclad.SeverSoul());

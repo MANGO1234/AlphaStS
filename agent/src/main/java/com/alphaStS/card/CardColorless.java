@@ -288,13 +288,13 @@ public class CardColorless {
 
     public static class FlashOfSteel extends _FlashOfSteelT {
         public FlashOfSteel() {
-            super("Flash Of Steel", 3);
+            super("Flash of Steel", 3);
         }
     }
 
     public static class FlashOfSteelP extends _FlashOfSteelT {
         public FlashOfSteelP() {
-            super("Flash Of Steel+", 5);
+            super("Flash of Steel+", 5);
         }
     }
 
@@ -406,13 +406,13 @@ public class CardColorless {
 
     public static class JackOfAllTrades extends _JackOfAllTradesT {
         public JackOfAllTrades() {
-            super("Jack Of All Trades", 1);
+            super("Jack of All Trades", 1);
         }
     }
 
     public static class JackOfAllTradesP extends _JackOfAllTradesT {
         public JackOfAllTradesP() {
-            super("Jack Of All Trades+", 2);
+            super("Jack of All Trades+", 2);
         }
     }
 
@@ -826,7 +826,7 @@ public class CardColorless {
         }
 
         @Override public CounterStat getCounterStat() {
-            return new CounterStat(counterIdx, "Hand Of Greed").setShowFrequency(true);
+            return new CounterStat(counterIdx, "Hand of Greed").setShowFrequency(true);
         }
 
         public static int getMaxPossibleHandOfGreedRemaining(GameState state, boolean checkEndOfGame) {
@@ -836,10 +836,10 @@ public class CardColorless {
             if (checkEndOfGame && state.isTerminal() != 0) {
                 return 0;
             }
-            int nonUpgrade = state.getNonExhaustCount("Hand Of Greed");
+            int nonUpgrade = state.getNonExhaustCount("Hand of Greed");
             boolean canUpgrade = false; // todo
             if (!canUpgrade) {
-                int upgrade = state.getNonExhaustCount("Hand Of Greed+");
+                int upgrade = state.getNonExhaustCount("Hand of Greed+");
                 if (upgrade > 0) {
                     canUpgrade = true;
                 }
@@ -859,8 +859,10 @@ public class CardColorless {
     }
 
     public static class HandOfGreed extends CardColorless._HandOfGreedT {
+        public HandOfGreed() { this(2); }
+
         public HandOfGreed(double healthRewardRatio) {
-            super("Hand Of Greed", 20, healthRewardRatio);
+            super("Hand of Greed", 20, healthRewardRatio);
         }
 
         public Card getUpgrade() {
@@ -869,8 +871,10 @@ public class CardColorless {
     }
 
     public static class HandOfGreedP extends CardColorless._HandOfGreedT {
+        public HandOfGreedP() { this(2); }
+
         public HandOfGreedP(double healthRewardRatio) {
-            super("Hand Of Greed+", 25, healthRewardRatio);
+            super("Hand of Greed+", 25, healthRewardRatio);
         }
     }
 
@@ -941,13 +945,13 @@ public class CardColorless {
 
     public static class MasterOfStrategy extends CardColorless._MasterOfStrategyT {
         public MasterOfStrategy() {
-            super("Master Of Strategy", 3);
+            super("Master of Strategy", 3);
         }
     }
 
     public static class MasterOfStrategyP extends CardColorless._MasterOfStrategyT {
         public MasterOfStrategyP() {
-            super("Master Of Strategy+", 4);
+            super("Master of Strategy+", 4);
         }
     }
 
@@ -1522,6 +1526,8 @@ public class CardColorless {
     }
 
     public static class RitualDagger extends _RitualDaggerT {
+        public RitualDagger() { this(15, 2); }
+
         public RitualDagger(int dmg, int healthReward) {
             super("Ritual Dagger", dmg, 3, healthReward);
         }
@@ -1532,6 +1538,8 @@ public class CardColorless {
     }
 
     public static class RitualDaggerP extends _RitualDaggerT {
+        public RitualDaggerP() { this(15, 2); }
+
         public RitualDaggerP(int dmg, int healthReward) {
             super("Ritual Dagger+", dmg, 5, healthReward);
         }
@@ -1837,6 +1845,8 @@ public class CardColorless {
     }
 
     public static class Expunger extends _ExpungerT {
+        public Expunger() { this(1); }
+
         public Expunger(int xValue) {
             super("Expunger (" + xValue + ")", 9, xValue);
         }
@@ -1847,6 +1857,8 @@ public class CardColorless {
     }
 
     public static class ExpungerP extends _ExpungerT {
+        public ExpungerP() { this(1); }
+
         public ExpungerP(int xValue) {
             super("Expunger+ (" + xValue + ")", 15, xValue);
         }

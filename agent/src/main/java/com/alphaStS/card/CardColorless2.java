@@ -228,13 +228,13 @@ public class CardColorless2 {
 
     public static class FlashOfSteel extends CardColorless._FlashOfSteelT {
         public FlashOfSteel() {
-            super("Flash Of Steel", 5);
+            super("Flash of Steel", 5);
         }
     }
 
     public static class FlashOfSteelP extends CardColorless._FlashOfSteelT {
         public FlashOfSteelP() {
-            super("Flash Of Steel+", 8);
+            super("Flash of Steel+", 8);
         }
     }
 

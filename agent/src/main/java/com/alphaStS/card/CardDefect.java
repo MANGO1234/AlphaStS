@@ -214,7 +214,7 @@ public class CardDefect {
         }
 
         public Claw(int dmg, int limit) {
-            super("Claw (" + dmg + ")", Card.ATTACK, 0, Card.COMMON);
+            super(dmg == 3 ? "Claw" : "Claw (" + dmg + ")", Card.ATTACK, 0, Card.COMMON);
             this.dmg = dmg;
             this.limit = limit;
             entityProperty.selectEnemy = true;
@@ -281,7 +281,7 @@ public class CardDefect {
         }
 
         public ClawP(int dmg, int limit) {
-            super("Claw+ (" + dmg + ")", Card.ATTACK, 0, Card.COMMON);
+            super(dmg == 5 ? "Claw+" : "Claw+ (" + dmg + ")", Card.ATTACK, 0, Card.COMMON);
             this.dmg = dmg;
             this.limit = limit;
             entityProperty.selectEnemy = true;
@@ -449,13 +449,13 @@ public class CardDefect {
 
     public static class GoForTheEyes extends CardDefect._GoForTheEyeT {
         public GoForTheEyes() {
-            super("Go For The Eyes", 3, 1);
+            super("Go for the Eyes", 3, 1);
         }
     }
 
     public static class GoForTheEyesP extends CardDefect._GoForTheEyeT {
         public GoForTheEyesP() {
-            super("Go For The Eyes+", 4, 2);
+            super("Go for the Eyes+", 4, 2);
         }
     }
 
@@ -637,7 +637,7 @@ public class CardDefect {
         }
 
         public SteamBarrier(int n, int limit) {
-            super("Steam Barrier (" + n + ")", Card.SKILL, 0, Card.COMMON);
+            super(n == 6 ? "Steam Barrier" : "Steam Barrier (" + n + ")", Card.SKILL, 0, Card.COMMON);
             this.n = n;
             this.limit = limit;
         }
@@ -691,7 +691,7 @@ public class CardDefect {
         }
 
         public SteamBarrierP(int n, int limit) {
-            super("Steam Barrier+ (" + n + ")", Card.SKILL, 0, Card.COMMON);
+            super(n == 8 ? "Steam Barrier+" : "Steam Barrier+ (" + n + ")", Card.SKILL, 0, Card.COMMON);
             this.n = n;
             this.limit = limit;
         }
@@ -734,7 +734,7 @@ public class CardDefect {
 
     public static class Streamline extends Card {
         public Streamline(int energyCost) {
-            super("Streamline (" + energyCost + ")", Card.ATTACK, energyCost, Card.COMMON);
+            super(energyCost == 2 ? "Streamline" : "Streamline (" + energyCost + ")", Card.ATTACK, energyCost, Card.COMMON);
             entityProperty.selectEnemy = true;
         }
 
@@ -772,7 +772,7 @@ public class CardDefect {
 
     public static class StreamlineP extends Card {
         public StreamlineP(int energyCost) {
-            super("Streamline+ (" + energyCost + ")", Card.ATTACK, energyCost, Card.COMMON);
+            super(energyCost == 2 ? "Streamline+" : "Streamline+ (" + energyCost + ")", Card.ATTACK, energyCost, Card.COMMON);
             entityProperty.selectEnemy = true;
         }
 
@@ -912,13 +912,13 @@ public class CardDefect {
 
     public static class AutoShields extends CardDefect._AutoShieldsT {
         public AutoShields() {
-            super("Auto Shields", 11);
+            super("Auto-Shields", 11);
         }
     }
 
     public static class AutoShieldsP extends CardDefect._AutoShieldsT {
         public AutoShieldsP() {
-            super("Auto Shields+", 15);
+            super("Auto-Shields+", 15);
         }
     }
 
@@ -1253,13 +1253,13 @@ public class CardDefect {
 
     public static class DoomAndGloom extends CardDefect._DoomAndGloomT {
         public DoomAndGloom() {
-            super("Doom And Gloom", 10);
+            super("Doom and Gloom", 10);
         }
     }
 
     public static class DoomAndGloomP extends CardDefect._DoomAndGloomT {
         public DoomAndGloomP() {
-            super("Doom And Gloom+", 14);
+            super("Doom and Gloom+", 14);
         }
     }
 
@@ -1396,7 +1396,7 @@ public class CardDefect {
 
     public static class ForceField extends Card {
         public ForceField(int energyCost) {
-            super("Force Field (" + energyCost + ")", Card.SKILL, energyCost, Card.COMMON);
+            super(energyCost == 4 ? "Force Field" : "Force Field (" + energyCost + ")", Card.SKILL, energyCost, Card.COMMON);
         }
 
         public ForceField() {
@@ -1463,7 +1463,7 @@ public class CardDefect {
 
     public static class ForceFieldP extends Card {
         public ForceFieldP(int energyCost) {
-            super("Force Field+ (" + energyCost + ")", Card.SKILL, energyCost, Card.COMMON);
+            super(energyCost == 4 ? "Force Field+" : "Force Field+ (" + energyCost + ")", Card.SKILL, energyCost, Card.COMMON);
         }
 
         public ForceFieldP() {
@@ -1682,6 +1682,8 @@ public class CardDefect {
     }
 
     public static class GeneticAlgorithm extends CardDefect._GeneticAlgorithmT {
+        public GeneticAlgorithm() { this(1); }
+
         public GeneticAlgorithm(int block) {
             super("Genetic Algorithm (" + block + ")", block, 2, 2);
         }
@@ -1696,6 +1698,8 @@ public class CardDefect {
     }
 
     public static class GeneticAlgorithmP extends CardDefect._GeneticAlgorithmT {
+        public GeneticAlgorithmP() { this(1); }
+
         public GeneticAlgorithmP(int block) {
             super("Genetic Algorithm+ (" + block + ")", block, 3, 2);
         }
@@ -2089,13 +2093,13 @@ public class CardDefect {
 
     public static class RipAndTear extends CardDefect._RipAndTearT {
         public RipAndTear() {
-            super("Rip And Tear", 7);
+            super("Rip and Tear", 7);
         }
     }
 
     public static class RipAndTearP extends CardDefect._RipAndTearT {
         public RipAndTearP() {
-            super("Rip And Tear+", 9);
+            super("Rip and Tear+", 9);
         }
     }
 
@@ -2472,14 +2476,18 @@ public class CardDefect {
     }
 
     public static class AllForOne extends CardDefect._AllForOneT {
+        public AllForOne() { this(0, 0); }
+
         public AllForOne(int discardOrderMaxKeepTrackIn10s, int discardOrder0CardMaxCopies) {
-            super("All For One", 10, discardOrderMaxKeepTrackIn10s, discardOrder0CardMaxCopies);
+            super("All for One", 10, discardOrderMaxKeepTrackIn10s, discardOrder0CardMaxCopies);
         }
     }
 
     public static class AllForOneP extends CardDefect._AllForOneT {
+        public AllForOneP() { this(0, 0); }
+
         public AllForOneP(int discardOrderMaxKeepTrackIn10s, int discardOrder0CardMaxCopies) {
-            super("All For One+", 14, discardOrderMaxKeepTrackIn10s, discardOrder0CardMaxCopies);
+            super("All for One+", 14, discardOrderMaxKeepTrackIn10s, discardOrder0CardMaxCopies);
         }
     }
 

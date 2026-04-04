@@ -433,7 +433,7 @@ public class EnemyEnding {
             state.properties.isHeartGauntlet = state.properties.switchBattleHandler != null;
         }
 
-        public List<Card> getPossibleGeneratedCards(GameProperties prop, List<Card> cards) { return List.of(new CardOther.Dazed(), new CardOther.Burn(), new CardOther.Void(), new CardOther.Slime(), new CardOther.Wound()); }
+        public List<Card> getPossibleGeneratedCards(GameProperties prop, List<Card> cards) { return List.of(new CardOther.Dazed(), new CardOther.Burn(), new CardOther.Void(), new CardOther.Slimed(), new CardOther.Wound()); }
 
         @Override public String toString(GameState state) {
             String s = super.toString(state);

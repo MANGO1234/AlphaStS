@@ -1479,7 +1479,7 @@ public class GameProperties implements Cloneable {
     }
 
     private static boolean cardCanGenerateSneckoEnergyCost(Card card) {
-        return card.cardName.startsWith("Blood For Blood") || card.cardName.startsWith("Force Field") || card.cardName.startsWith("Streamline");
+        return card.cardName.startsWith("Blood for Blood") || card.cardName.startsWith("Force Field") || card.cardName.startsWith("Streamline");
     }
 
     private static String getCanonicalCardName(Card card) {

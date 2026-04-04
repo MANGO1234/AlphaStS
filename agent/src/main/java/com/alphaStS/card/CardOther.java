@@ -44,8 +44,8 @@ public class CardOther {
         }
     }
 
-    public static class Slime extends Card {
-        public Slime() {
+    public static class Slimed extends Card {
+        public Slimed() {
             super("Slimed", Card.STATUS, 1, Card.COMMON);
             exhaustWhenPlayed = true;
         }
@@ -237,7 +237,7 @@ public class CardOther {
 
     public static class CurseOfTheBell extends Card {
         public CurseOfTheBell() {
-            super("Curse of The Bell", Card.CURSE, -1, Card.COMMON);
+            super("Curse of the Bell", Card.CURSE, -1, Card.COMMON);
             exhaustWhenPlayed = true;
         }
     }
@@ -423,10 +423,10 @@ public class CardOther {
     // ********************************************* Wish Effects **********************************************
     // **********************************************************************************************************
 
-    public static abstract class _WishPlatedArmorT extends Card {
+    public static abstract class _LiveForeverT extends Card {
         private final int armor;
 
-        public _WishPlatedArmorT(String cardName, int armor) {
+        public _LiveForeverT(String cardName, int armor) {
             super(cardName, Card.SKILL, 0, Card.COMMON);
             this.armor = armor;
             this.select1OutOf3CardEffectCard = true;
@@ -438,22 +438,22 @@ public class CardOther {
         }
     }
 
-    public static class WishPlatedArmor extends _WishPlatedArmorT {
-        public WishPlatedArmor() {
+    public static class LiveForever extends _LiveForeverT {
+        public LiveForever() {
             super("I Wish For Armor", 6);
         }
     }
 
-    public static class WishPlatedArmorP extends _WishPlatedArmorT {
-        public WishPlatedArmorP() {
+    public static class LiveForeverP extends _LiveForeverT {
+        public LiveForeverP() {
             super("I Wish For Armor+", 8);
         }
     }
 
-    public static abstract class _WishStrengthT extends Card {
+    public static abstract class _BecomeAlmightyT extends Card {
         private final int strength;
 
-        public _WishStrengthT(String cardName, int strength) {
+        public _BecomeAlmightyT(String cardName, int strength) {
             super(cardName, Card.SKILL, 0, Card.COMMON);
             this.strength = strength;
             this.entityProperty.changePlayerStrength = true;
@@ -466,23 +466,23 @@ public class CardOther {
         }
     }
 
-    public static class WishStrength extends _WishStrengthT {
-        public WishStrength() {
+    public static class BecomeAlmighty extends _BecomeAlmightyT {
+        public BecomeAlmighty() {
             super("I Wish For Strength", 3);
         }
     }
 
-    public static class WishStrengthP extends _WishStrengthT {
-        public WishStrengthP() {
+    public static class BecomeAlmightyP extends _BecomeAlmightyT {
+        public BecomeAlmightyP() {
             super("I Wish For Strength+", 4);
         }
     }
 
-    public static abstract class _WishGoldT extends Card {
+    public static abstract class _FameAndFortuneT extends Card {
         private final int gold;
         protected double healthRewardRatio = 0;
 
-        public _WishGoldT(String cardName, int gold, double healthRewardRatio) {
+        public _FameAndFortuneT(String cardName, int gold, double healthRewardRatio) {
             super(cardName, Card.SKILL, 0, Card.COMMON);
             this.gold = gold;
             this.healthRewardRatio = healthRewardRatio;
@@ -527,14 +527,18 @@ public class CardOther {
         }
     }
 
-    public static class WishGold extends _WishGoldT {
-        public WishGold(double healthRewardRatio) {
+    public static class FameAndFortune extends _FameAndFortuneT {
+        public FameAndFortune() { this(2); }
+
+        public FameAndFortune(double healthRewardRatio) {
             super("I Wish For Gold", 25, healthRewardRatio);
         }
     }
 
-    public static class WishGoldP extends _WishGoldT {
-        public WishGoldP(double healthRewardRatio) {
+    public static class FameAndFortuneP extends _FameAndFortuneT {
+        public FameAndFortuneP() { this(2); }
+
+        public FameAndFortuneP(double healthRewardRatio) {
             super("I Wish For Gold+", 30, healthRewardRatio);
         }
     }

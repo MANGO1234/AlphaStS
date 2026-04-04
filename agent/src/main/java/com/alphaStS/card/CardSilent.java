@@ -229,13 +229,13 @@ public class CardSilent {
 
     public static class CloakAndDagger extends _CloakAndDaggerT {
         public CloakAndDagger() {
-            super("Cloak And Dagger", 1);
+            super("Cloak and Dagger", 1);
         }
     }
 
     public static class CloakAndDaggerP extends _CloakAndDaggerT {
         public CloakAndDaggerP() {
-            super("Cloak And Dagger+", 2);
+            super("Cloak and Dagger+", 2);
         }
     }
 
@@ -379,13 +379,13 @@ public class CardSilent {
 
     public static class DodgeAndRoll extends _DodgeAndRollT {
         public DodgeAndRoll() {
-            super("Dodge And Roll", 4);
+            super("Dodge and Roll", 4);
         }
     }
 
     public static class DodgeAndRollP extends _DodgeAndRollT {
         public DodgeAndRollP() {
-            super("Dodge And Roll+", 6);
+            super("Dodge and Roll+", 6);
         }
     }
 
@@ -1438,8 +1438,8 @@ public class CardSilent {
         }
     }
 
-    public static class FlechetteP extends _FlechettesT {
-        public FlechetteP() {
+    public static class FlechettesP extends _FlechettesT {
+        public FlechettesP() {
             super("Flechettes+", 6);
         }
     }
@@ -1492,13 +1492,13 @@ public class CardSilent {
 
     public static class HeelHook extends _HeelHookT {
         public HeelHook() {
-            super("HeelHook", 5);
+            super("Heel Hook", 5);
         }
     }
 
     public static class HeelHookP extends _HeelHookT {
         public HeelHookP() {
-            super("HeelHook+", 8);
+            super("Heel Hook+", 8);
         }
     }
 
@@ -1546,7 +1546,7 @@ public class CardSilent {
 
     public static class InfiniteBladesP extends _InfiniteBladeT {
         public InfiniteBladesP() {
-            super("Infinite Bladesz+", true);
+            super("Infinite Blades+", true);
         }
     }
 
@@ -1583,6 +1583,8 @@ public class CardSilent {
 
     public static class MasterfulStab extends Card {
         private final int maxEnergyCost;
+
+        public MasterfulStab() { this(0); }
 
         public MasterfulStab(int maxEnergyCost) {
             this(0, maxEnergyCost);
@@ -1639,6 +1641,8 @@ public class CardSilent {
 
     public static class MasterfulStabP extends Card {
         private final int maxEnergyCost;
+
+        public MasterfulStabP() { this(0); }
 
         public MasterfulStabP(int maxEnergyCost) {
             this(0, maxEnergyCost);
@@ -1839,13 +1843,13 @@ public class CardSilent {
 
     public static class RiddleWithHoles extends _RiddleWithHolesT {
         public RiddleWithHoles() {
-            super("Riddle With Holes", 3);
+            super("Riddle with Holes", 3);
         }
     }
 
     public static class RiddleWithHolesP extends _RiddleWithHolesT {
         public RiddleWithHolesP() {
-            super("Riddle With Holes+", 4);
+            super("Riddle with Holes+", 4);
         }
     }
 
@@ -1878,6 +1882,8 @@ public class CardSilent {
     }
 
     public static class Setup extends _SetupT {
+        public Setup() { this(true); }
+
         public Setup(boolean doNothing) {
             super("Setup", 1, doNothing);
         }
@@ -1888,6 +1894,8 @@ public class CardSilent {
     }
 
     public static class SetupP extends _SetupT {
+        public SetupP() { this(true); }
+
         public SetupP(boolean doNothing) {
             super("Setup+", 0, doNothing);
         }
@@ -2285,6 +2293,8 @@ public class CardSilent {
     }
 
     public static class Alchemize extends CardSilent._AlchemizeT {
+        public Alchemize() { this(100, 0, 0); }
+
         public Alchemize(int basePenaltyRatio, int possibleGeneratedPotions, int healthReward) {
             super("Alchemize", 1, basePenaltyRatio, possibleGeneratedPotions, healthReward);
         }
@@ -2295,6 +2305,8 @@ public class CardSilent {
     }
 
     public static class AlchemizeP extends CardSilent._AlchemizeT {
+        public AlchemizeP() { this(100, 0, 0); }
+
         public AlchemizeP(int basePenaltyRatio, int possibleGeneratedPotions, int healthReward) {
             super("Alchemize+", 0, basePenaltyRatio, possibleGeneratedPotions, healthReward);
         }
@@ -2585,7 +2597,7 @@ public class CardSilent {
         }
 
         public GlassKnife(int dmg, int limit) {
-            super("Glass Knife (" + dmg + ")", Card.ATTACK, 1, Card.RARE);
+            super(dmg == 8 ? "Glass Knife" : "Glass Knife (" + dmg + ")", Card.ATTACK, 1, Card.RARE);
             this.dmg = dmg;
             this.limit = limit;
             entityProperty.selectEnemy = true;
@@ -2637,7 +2649,7 @@ public class CardSilent {
         }
 
         public GlassKnifeP(int dmg, int limit) {
-            super("Glass Knife+ (" + dmg + ")", Card.ATTACK, 1, Card.RARE);
+            super(dmg == 12 ? "Glass Knife+" : "Glass Knife+ (" + dmg + ")", Card.ATTACK, 1, Card.RARE);
             this.dmg = dmg;
             this.limit = limit;
             entityProperty.selectEnemy = true;
@@ -2850,13 +2862,13 @@ public class CardSilent {
 
     public static class StormOfSteel extends _StormOfSteelT {
         public StormOfSteel() {
-            super("Storm Of Steel", false);
+            super("Storm of Steel", false);
         }
     }
 
     public static class StormOfSteelP extends _StormOfSteelT {
         public StormOfSteelP() {
-            super("Storm Of Steel+", true);
+            super("Storm of Steel+", true);
         }
     }
 
@@ -2897,13 +2909,13 @@ public class CardSilent {
 
     public static class ToolsOfTheTrade extends _ToolsOfTheTradeT {
         public ToolsOfTheTrade() {
-            super("Tools Of The Trade", 1);
+            super("Tools of the Trade", 1);
         }
     }
 
     public static class ToolsOfTheTradeP extends _ToolsOfTheTradeT {
         public ToolsOfTheTradeP() {
-            super("Tools Of The Trade+", 0);
+            super("Tools of the Trade+", 0);
         }
     }
 

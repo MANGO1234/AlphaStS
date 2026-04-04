@@ -189,7 +189,7 @@ public class CardDefect2 {
         }
 
         @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
-            return List.of(new CardOther.Slime());
+            return List.of(new CardOther.Slimed());
         }
     }
 

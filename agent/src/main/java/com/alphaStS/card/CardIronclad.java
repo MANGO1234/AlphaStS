@@ -92,7 +92,7 @@ public class CardIronclad {
         private boolean canUpgrade = true;
 
         public Armaments() {
-            super("Armament", Card.SKILL, 1, Card.COMMON);
+            super("Armaments", Card.SKILL, 1, Card.COMMON);
             entityProperty.selectFromHand = true;
         }
 
@@ -122,11 +122,11 @@ public class CardIronclad {
         }
     }
 
-    public static class ArmamentP extends Card {
+    public static class ArmamentsP extends Card {
         private boolean canUpgrade = true;
 
-        public ArmamentP() {
-            super("Armament+", Card.SKILL, 1, Card.COMMON);
+        public ArmamentsP() {
+            super("Armaments+", Card.SKILL, 1, Card.COMMON);
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
@@ -794,7 +794,7 @@ public class CardIronclad {
         }
 
         public BloodForBlood(int energyCost) {
-            super("Blood For Blood (" + energyCost + ")", Card.ATTACK, energyCost, Card.UNCOMMON);
+            super(energyCost == 4 ? "Blood for Blood" : "Blood for Blood (" + energyCost + ")", Card.ATTACK, energyCost, Card.UNCOMMON);
             entityProperty.selectEnemy = true;
         }
 
@@ -826,7 +826,7 @@ public class CardIronclad {
                     state.properties.bloodForBloodTransformIndexes[i] = toIdx;
                 }
             }
-            state.properties.addOnDamageHandler("Blood For Blood", new OnDamageHandler() {
+            state.properties.addOnDamageHandler("Blood for Blood", new OnDamageHandler() {
                 @Override public void handle(GameState state, Object source, boolean isAttack, int damageDealt) {
                     if (damageDealt <= 0) return;
                     state.getCounterForWrite()[counterIdx]++;
@@ -861,7 +861,7 @@ public class CardIronclad {
         }
 
         public BloodForBloodP(int energyCost) {
-            super("Blood For Blood+ (" + energyCost + ")", Card.ATTACK, energyCost, Card.UNCOMMON);
+            super(energyCost == 3 ? "Blood for Blood+" : "Blood for Blood+ (" + energyCost + ")", Card.ATTACK, energyCost, Card.UNCOMMON);
             entityProperty.selectEnemy = true;
         }
 
@@ -892,7 +892,7 @@ public class CardIronclad {
                     state.properties.bloodForBloodPTransformIndexes[i] = toIdx;
                 }
             }
-            state.properties.addOnDamageHandler("Blood For Blood+", new OnDamageHandler() {
+            state.properties.addOnDamageHandler("Blood for Blood+", new OnDamageHandler() {
                 @Override public void handle(GameState state, Object source, boolean isAttack, int damageDealt) {
                     if (damageDealt <= 0) return;
                     state.getCounterForWrite()[counterIdx]++;
@@ -1695,11 +1695,11 @@ public class CardIronclad {
         private boolean upgradable = false;
 
         public Rampage() {
-            this(8, 33);
+            this(8, 33, true);
         }
 
         public Rampage(int dmg, int limit) {
-            super("Rampage (" + dmg + ")", Card.ATTACK, 1, Card.UNCOMMON);
+            super(dmg == 8 ? "Rampage" : "Rampage (" + dmg + ")", Card.ATTACK, 1, Card.UNCOMMON);
             this.dmg = dmg;
             this.limit = limit;
             entityProperty.selectEnemy = true;
@@ -1756,7 +1756,7 @@ public class CardIronclad {
         }
 
         public RampageP(int dmg, int limit) {
-            super("Rampage+ (" + dmg + ")", Card.ATTACK, 1, Card.UNCOMMON);
+            super(dmg == 8 ? "Rampage+" : "Rampage+ (" + dmg + ")", Card.ATTACK, 1, Card.UNCOMMON);
             this.dmg = dmg;
             this.limit = limit;
             entityProperty.selectEnemy = true;
@@ -1877,8 +1877,10 @@ public class CardIronclad {
         private final int n;
         private boolean upgradable = true;
 
+        public SearingBlow() { this(0); }
+
         public SearingBlow(int numberOfUpgrades) {
-            super(numberOfUpgrades == 0 ? "Searing Blow" : "Searing Blow+" + numberOfUpgrades, Card.ATTACK, 2, Card.UNCOMMON);
+            super(numberOfUpgrades == 0 ? "Searing Blow" : numberOfUpgrades == 1 ? "Searing Blow+" : "Searing Blow+" + numberOfUpgrades, Card.ATTACK, 2, Card.UNCOMMON);
             n = numberOfUpgrades;
             entityProperty.selectEnemy = true;
         }
@@ -2546,7 +2548,7 @@ public class CardIronclad {
                     canUpgrade = true;
                 }
             }
-            idxes = state.properties.findCardIndex(ArmamentP.class);
+            idxes = state.properties.findCardIndex(ArmamentsP.class);
             for (int i = 0; i < idxes.length; i++) {
                 if (getCardCount(state, idxes[i]) > 0) {
                     canUpgrade = true;

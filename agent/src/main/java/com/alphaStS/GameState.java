@@ -567,7 +567,7 @@ public final class GameState implements State {
                 properties.apotheosisPCardIdx = i;
             } else if (cards.get(i).cardName.equals("Well-Laid Plans") || cards.get(i).cardName.equals("Well-Laid Plans+")) {
                 properties.wellLaidPlansCardIdx = i;
-            } else if (cards.get(i).cardName.equals("Tools Of The Trade") || cards.get(i).cardName.equals("Tools Of The Trade+")) {
+            } else if (cards.get(i).cardName.equals("Tools of the Trade") || cards.get(i).cardName.equals("Tools of the Trade+")) {
                 properties.toolsOfTheTradeCardIdx = i;
             } else if (cards.get(i).cardName.equals("Foresight") || cards.get(i).cardName.equals("Foresight+")) {
                 properties.foresightCardIdx = i;

@@ -451,7 +451,7 @@ public class TestStates {
         builder.addCard(new CardIronclad.Shockwave(), 1);
         builder.addCard(new CardColorless.RitualDaggerP(30, 2), 1);
         builder.addCard(new CardIronclad.BrutalityP(), 1);
-        builder.addCard(new CardIronclad.ArmamentP(), 1);
+        builder.addCard(new CardIronclad.ArmamentsP(), 1);
         builder.addCard(new CardIronclad.Shockwave(), 1);
         builder.addCard(new CardIronclad.SwordBoomerang(), 1);
         builder.addRelic(new Relic.BagOfPreparation());
@@ -481,7 +481,7 @@ public class TestStates {
         builder.addCard(new Card.Strike(), 4);
         builder.addCard(new Card.Defend(), 4);
         builder.addCard(new CardOther.AscendersBane(), 1);
-        builder.addCard(new CardIronclad.ArmamentP(), 1);
+        builder.addCard(new CardIronclad.ArmamentsP(), 1);
         builder.addCard(new CardIronclad.Exhume(), 1);
         builder.addCard(new CardIronclad.PowerThrough(), 1);
         builder.addCard(new CardIronclad.Disarm(), 1);
@@ -537,7 +537,7 @@ public class TestStates {
         builder.addCard(new CardIronclad.IronWave(), 1);
         builder.addCard(new CardIronclad.SpotWeakness(), 1);
         builder.addCard(new CardIronclad.PowerThrough(), 1);
-        builder.addCard(new CardIronclad.ArmamentP(), 1);
+        builder.addCard(new CardIronclad.ArmamentsP(), 1);
         builder.addCard(new CardIronclad.BattleTrance(), 1);
         builder.addRelic(new Relic.Vajra());
         builder.addRelic(new Relic.Lantern());
@@ -564,7 +564,7 @@ public class TestStates {
         builder.addCard(new CardIronclad.IronWave(), 1);
         builder.addCard(new CardIronclad.SpotWeakness(), 1);
         builder.addCard(new CardIronclad.PowerThrough(), 1);
-        builder.addCard(new CardIronclad.ArmamentP(), 1);
+        builder.addCard(new CardIronclad.ArmamentsP(), 1);
         builder.addCard(new CardIronclad.BattleTrance(), 1);
         builder.addCard(new CardIronclad.SwordBoomerang(), 1);
         builder.addCard(new CardIronclad.Disarm(), 1);
@@ -591,7 +591,7 @@ public class TestStates {
         builder.addCard(new CardIronclad.UppercutP(), 1);
         builder.addCard(new CardIronclad.IronWave(), 1);
         builder.addCard(new CardIronclad.SpotWeakness(), 1);
-        builder.addCard(new CardIronclad.ArmamentP(), 1);
+        builder.addCard(new CardIronclad.ArmamentsP(), 1);
         builder.addCard(new CardIronclad.BattleTrance(), 2);
         builder.addCard(new CardIronclad.SwordBoomerang(), 2);
         builder.addCard(new CardIronclad.Disarm(), 1);
@@ -627,7 +627,7 @@ public class TestStates {
         builder.addCard(new CardIronclad.UppercutP(), 1);
         builder.addCard(new CardIronclad.IronWave(), 1);
         builder.addCard(new CardIronclad.SpotWeakness(), 1);
-        builder.addCard(new CardIronclad.ArmamentP(), 1);
+        builder.addCard(new CardIronclad.ArmamentsP(), 1);
         builder.addCard(new CardIronclad.BattleTrance(), 1);
         builder.addCard(new CardIronclad.BattleTranceP(), 1);
         builder.addCard(new CardIronclad.SwordBoomerang(), 2);
@@ -662,7 +662,7 @@ public class TestStates {
         builder.addCard(new CardIronclad.UppercutP(), 1);
         builder.addCard(new CardIronclad.IronWave(), 1);
         builder.addCard(new CardIronclad.SpotWeakness(), 1);
-        builder.addCard(new CardIronclad.ArmamentP(), 1);
+        builder.addCard(new CardIronclad.ArmamentsP(), 1);
         builder.addCard(new CardIronclad.BattleTrance(), 1);
         builder.addCard(new CardIronclad.BattleTranceP(), 1);
         builder.addCard(new CardIronclad.SwordBoomerang(), 2);
@@ -712,7 +712,7 @@ public class TestStates {
         builder.addCard(new CardIronclad.UppercutP(), 1);
         builder.addCard(new CardIronclad.IronWave(), 1);
         builder.addCard(new CardIronclad.SpotWeakness(), 1);
-        builder.addCard(new CardIronclad.ArmamentP(), 1);
+        builder.addCard(new CardIronclad.ArmamentsP(), 1);
         builder.addCard(new CardIronclad.BattleTrance(), 1);
         builder.addCard(new CardIronclad.BattleTranceP(), 1);
         builder.addCard(new CardIronclad.SwordBoomerang(), 2);
@@ -762,7 +762,7 @@ public class TestStates {
         builder.addCard(new CardIronclad.UppercutP(), 1);
         builder.addCard(new CardIronclad.IronWave(), 1);
         builder.addCard(new CardIronclad.SpotWeakness(), 1);
-        builder.addCard(new CardIronclad.ArmamentP(), 1);
+        builder.addCard(new CardIronclad.ArmamentsP(), 1);
         builder.addCard(new CardIronclad.BattleTrance(), 2);
         builder.addCard(new CardIronclad.BattleTranceP(), 1);
         builder.addCard(new CardIronclad.SwordBoomerang(), 2);
@@ -812,7 +812,7 @@ public class TestStates {
         builder.addCard(new Card.Defend(), 4);
         builder.addCard(new CardOther.AscendersBane(), 1);
         builder.addCard(new CardIronclad.Carnage(), 1);
-        builder.addCard(new CardIronclad.ArmamentP(), 1);
+        builder.addCard(new CardIronclad.ArmamentsP(), 1);
         builder.addCard(new CardIronclad.Metallicize(), 1);
         builder.addCard(new CardIronclad.IronWave(), 1);
         builder.addCard(new CardIronclad.ShrugItOff(), 1);

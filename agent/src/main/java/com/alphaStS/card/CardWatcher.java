@@ -1602,7 +1602,7 @@ public class CardWatcher {
         }
 
         private SandsOfTime(int energyCost) {
-            super("Sands of Time (" + energyCost + ")", Card.ATTACK, energyCost, Card.UNCOMMON);
+            super(energyCost == 4 ? "Sands of Time" : "Sands of Time (" + energyCost + ")", Card.ATTACK, energyCost, Card.UNCOMMON);
             entityProperty.selectEnemy = true;
             this.retain = true;
         }
@@ -1655,7 +1655,7 @@ public class CardWatcher {
         }
 
         private SandsOfTimeP(int energyCost) {
-            super("Sands of Time+ (" + energyCost + ")", Card.ATTACK, energyCost, Card.UNCOMMON);
+            super(energyCost == 4 ? "Sands of Time+" : "Sands of Time+ (" + energyCost + ")", Card.ATTACK, energyCost, Card.UNCOMMON);
             entityProperty.selectEnemy = true;
             this.retain = true;
         }
@@ -2116,7 +2116,7 @@ public class CardWatcher {
         }
 
         public WindmillStrike(int damage, int limit) {
-            super("Windmill Strike (" + damage + ")", Card.ATTACK, 2, Card.UNCOMMON);
+            super(damage == 7 ? "Windmill Strike" : "Windmill Strike (" + damage + ")", Card.ATTACK, 2, Card.UNCOMMON);
             this.damage = damage;
             this.limit = limit;
             entityProperty.selectEnemy = true;
@@ -2182,7 +2182,7 @@ public class CardWatcher {
         }
 
         public WindmillStrikeP(int damage, int limit) {
-            super("Windmill Strike+ (" + damage + ")", Card.ATTACK, 2, Card.UNCOMMON);
+            super(damage == 10 ? "Windmill Strike+" : "Windmill Strike+ (" + damage + ")", Card.ATTACK, 2, Card.UNCOMMON);
             this.damage = damage;
             this.limit = limit;
             entityProperty.selectEnemy = true;
@@ -2438,6 +2438,8 @@ public class CardWatcher {
     }
 
     public static class ConjureBlade extends _ConjureBladeT {
+        public ConjureBlade() { this(1); }
+
         public ConjureBlade(int limit) {
             super("Conjure Blade", false, limit);
         }
@@ -2448,6 +2450,8 @@ public class CardWatcher {
     }
 
     public static class ConjureBladeP extends _ConjureBladeT {
+        public ConjureBladeP() { this(1); }
+
         public ConjureBladeP(int limit) {
             super("Conjure Blade+", true, limit);
         }
@@ -2712,6 +2716,8 @@ public class CardWatcher {
     }
 
     public static class LessonLearned extends _LessonLearnedT {
+        public LessonLearned() { this(2); }
+
         public LessonLearned(double healthRewardRatio) {
             super("Lesson Learned", 10, healthRewardRatio);
         }
@@ -2722,6 +2728,8 @@ public class CardWatcher {
     }
 
     public static class LessonLearnedP extends _LessonLearnedT {
+        public LessonLearnedP() { this(2); }
+
         public LessonLearnedP(double healthRewardRatio) {
             super("Lesson Learned+", 13, healthRewardRatio);
         }
@@ -2927,13 +2935,13 @@ public class CardWatcher {
         public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
             var generatedCards = new ArrayList<Card>();
             if (upgraded) {
-                generatedCards.add(new com.alphaStS.card.CardOther.WishPlatedArmorP());
-                generatedCards.add(new com.alphaStS.card.CardOther.WishStrengthP());
-                generatedCards.add(new com.alphaStS.card.CardOther.WishGoldP(healthRewardRatio));
+                generatedCards.add(new CardOther.LiveForeverP());
+                generatedCards.add(new CardOther.BecomeAlmightyP());
+                generatedCards.add(new CardOther.FameAndFortuneP(healthRewardRatio));
             } else {
-                generatedCards.add(new com.alphaStS.card.CardOther.WishPlatedArmor());
-                generatedCards.add(new com.alphaStS.card.CardOther.WishStrength());
-                generatedCards.add(new com.alphaStS.card.CardOther.WishGold(healthRewardRatio));
+                generatedCards.add(new CardOther.LiveForever());
+                generatedCards.add(new CardOther.BecomeAlmighty());
+                generatedCards.add(new CardOther.FameAndFortune(healthRewardRatio));
             }
             return generatedCards;
         }
@@ -2941,21 +2949,23 @@ public class CardWatcher {
         public List<Card> getPossibleSelect1OutOf3Cards(GameProperties gameProperties) {
             if (upgraded) {
                 return List.of(
-                    new com.alphaStS.card.CardOther.WishPlatedArmorP(),
-                    new com.alphaStS.card.CardOther.WishStrengthP(),
-                    new com.alphaStS.card.CardOther.WishGoldP(healthRewardRatio)
+                    new CardOther.LiveForeverP(),
+                    new CardOther.BecomeAlmightyP(),
+                    new CardOther.FameAndFortuneP(healthRewardRatio)
                 );
             } else {
                 return List.of(
-                    new com.alphaStS.card.CardOther.WishPlatedArmor(),
-                    new com.alphaStS.card.CardOther.WishStrength(),
-                    new com.alphaStS.card.CardOther.WishGold(healthRewardRatio)
+                    new CardOther.LiveForever(),
+                    new CardOther.BecomeAlmighty(),
+                    new CardOther.FameAndFortune(healthRewardRatio)
                 );
             }
         }
     }
 
     public static class Wish extends _WishT {
+        public Wish() { this(2); }
+
         public Wish(double healthRewardRatio) {
             super("Wish", 3, healthRewardRatio);
             this.upgraded = false;
@@ -2967,6 +2977,8 @@ public class CardWatcher {
     }
 
     public static class WishP extends _WishT {
+        public WishP() { this(2); }
+
         public WishP(double healthRewardRatio) {
             super("Wish+", 3, healthRewardRatio);
             this.upgraded = true;

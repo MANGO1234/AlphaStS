@@ -443,7 +443,7 @@ public class EnemyBeyond {
             }
         }
 
-        public List<Card> getPossibleGeneratedCards(GameProperties prop, List<Card> cards) { return List.of(new CardOther.Slime()); }
+        public List<Card> getPossibleGeneratedCards(GameProperties prop, List<Card> cards) { return List.of(new CardOther.Slimed()); }
 
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.registerCounter("DrawReduction", new GameProperties.CounterRegistrant() {

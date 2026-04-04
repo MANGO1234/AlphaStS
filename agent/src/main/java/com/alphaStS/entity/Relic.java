@@ -310,6 +310,10 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         int period;
         protected String counterName = "HappyFlower";
 
+        public HappyFlower() {
+            this(0, 0);
+        }
+
         public HappyFlower(int n, int healthReward) {
             this(n, healthReward, 3);
         }
@@ -400,6 +404,10 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     public static class Nunchaku extends Relic {
         int n;
         int healthReward;
+
+        public Nunchaku() {
+            this(0, 0);
+        }
 
         public Nunchaku(int n, int healthReward) {
             this.n = n;
@@ -493,6 +501,10 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     public static class PenNib extends Relic {
         int n;
         int healthReward;
+
+        public PenNib() {
+            this(0, 0);
+        }
 
         public PenNib(int n, int healthReward) {
             this.n = n;
@@ -756,6 +768,10 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     public static class InkBottle extends Relic {
         int n;
         int healthReward;
+
+        public InkBottle() {
+            this(0, 0);
+        }
 
         public InkBottle(int n, int healthReward) {
             this.n = n;
@@ -1291,6 +1307,10 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     public static class Girya extends Relic {
         private final int strength;
 
+        public Girya() {
+            this(0);
+        }
+
         public Girya(int strength) {
             this.strength = strength;
         }
@@ -1313,6 +1333,10 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
         int n;
         int rewardType = DEFAULT_REWARD;
+
+        public IncenseBurner() {
+            this(0);
+        }
 
         public IncenseBurner(int n) {
             this.n = n;
@@ -2638,6 +2662,10 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     public static class Inserter extends Relic {
         int n;
         int healthReward;
+
+        public Inserter() {
+            this(0, 0);
+        }
 
         public Inserter(int n, int healthReward) {
             this.n = n;
