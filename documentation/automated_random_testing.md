@@ -32,6 +32,7 @@ For each battle in the run data:
 |---|---|---|
 | `TestRunner` | `com.alphaStS.test` | Top-level driver: iterates run data and runs steps 1–4 per battle |
 | `RunDataParser` | `com.alphaStS.test` | Reads a JSON array of run-data objects; returns `Iterator<GameStateBuilder>` |
+| `BattleLoaderMod` | `battleloadermod` (repo: `sts_battle_loader_mod`) | STS mod: TCP server on port 2345 that applies a battle definition JSON and restarts the current battle |
 
 ---
 
@@ -39,10 +40,11 @@ For each battle in the run data:
 
 | Step | Status | Notes |
 |---|---|---|
-| `TestRunner` skeleton | Done | Four TODO stubs in place for steps 1–4 |
+| `TestRunner` skeleton | Done | Steps 2–4 still have TODO stubs |
 | `RunDataParser` | Done | Parses JSON array, stub `parseRunData()` returns empty builder |
 | Parse run data into `GameStateBuilder` | TODO | `RunDataParser.parseRunData()` needs deck, relics, potions, enemies, player HP wired in |
-| STS mod integration (step 1) | TODO | Mod to construct the battle in a live STS instance not yet written |
+| `GameStateBuilder` → JSON (`BattleBuilderJsonWriter`) | Done | Serializes player, deck, relics, potions to battle definition JSON |
+| STS mod integration (step 1) | Done | `BattleLoaderMod` listens on port 2345; `TestRunner.sendBattleDefinition()` sends JSON and waits for "OK" |
 | Communication mod + random bot (step 2) | TODO | Random-move bot and turn limit not yet implemented |
 | `.log` format and logging mod (step 3) | TODO | Log schema (state/action/RNG format) not yet defined or implemented |
 | Log replay + state assertions (step 4) | TODO | Replay logic and state comparison not yet implemented |

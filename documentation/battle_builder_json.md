@@ -3,8 +3,12 @@
 ## Overview
 
 `BattleBuilderJsonReader` accepts a JSON string describing a battle setup and
-returns a configured `GameStateBuilder`. In phase 1, only player configuration,
-deck, relics, and potions are wired; enemies and scenarios are not included.
+returns a configured `GameStateBuilder`. `BattleBuilderJsonWriter` is the inverse:
+it serializes a `GameStateBuilder` back to the same JSON format, enabling
+run-data builders to be sent to the STS mod.
+
+In phase 1, only player configuration, deck, relics, and potions are wired;
+enemies and scenarios are not included.
 
 ---
 
@@ -124,6 +128,9 @@ if (!result.valid()) {
 } else if (!result.ignoredItems().isEmpty()) {
     System.out.println("Ignored (not implemented): " + result.ignoredItems());
 }
+
+// Serialize a GameStateBuilder back to a battle definition JSON string
+String json = BattleBuilderJsonWriter.toJson(builder);
 ```
 
 ---

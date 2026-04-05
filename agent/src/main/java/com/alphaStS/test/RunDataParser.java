@@ -9,7 +9,6 @@ import com.alphaStS.entity.Potion;
 import com.alphaStS.entity.Relic;
 import com.alphaStS.enums.CharacterEnum;
 import com.alphaStS.player.Player;
-import com.alphaStS.utils.Tuple3;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -19,7 +18,7 @@ import java.io.InputStream;
 import java.util.*;
 import java.util.function.Function;
 
-public class RunDataParser implements Iterable<Tuple3<Integer, Integer, GameStateBuilder>> {
+public class RunDataParser implements Iterable<BattleEntry> {
 
     private final String jsonFilePath;
 
@@ -28,7 +27,7 @@ public class RunDataParser implements Iterable<Tuple3<Integer, Integer, GameStat
     }
 
     @Override
-    public Iterator<Tuple3<Integer, Integer, GameStateBuilder>> iterator() {
+    public Iterator<BattleEntry> iterator() {
         ObjectMapper mapper = new ObjectMapper();
         JsonNode root;
         try {
@@ -41,7 +40,7 @@ public class RunDataParser implements Iterable<Tuple3<Integer, Integer, GameStat
             throw new IllegalArgumentException("Expected a JSON array at the root of: " + jsonFilePath);
         }
 
-        List<Tuple3<Integer, Integer, GameStateBuilder>> builders = new ArrayList<>();
+        List<BattleEntry> builders = new ArrayList<>();
         for (int i = 0; i < root.size(); i++) {
             try {
                 System.out.printf("Parsing Battle %d\n", i);
@@ -59,7 +58,7 @@ public class RunDataParser implements Iterable<Tuple3<Integer, Integer, GameStat
      * @param i zero-based run index
      * @return list of {@code (runIndex, battleIndex, GameStateBuilder)} for each battle
      */
-    public List<Tuple3<Integer, Integer, GameStateBuilder>> parseRun(int i) throws Exception {
+    public List<BattleEntry> parseRun(int i) throws Exception {
         ObjectMapper mapper = new ObjectMapper();
         JsonNode root = mapper.readTree(new File(jsonFilePath));
         if (!root.isArray()) {
@@ -80,8 +79,8 @@ public class RunDataParser implements Iterable<Tuple3<Integer, Integer, GameStat
      * @param k zero-based battle index within the run
      * @return {@code (runIndex, battleIndex, GameStateBuilder)} for the requested battle
      */
-    public Tuple3<Integer, Integer, GameStateBuilder> parseBattle(int i, int k) throws Exception {
-        List<Tuple3<Integer, Integer, GameStateBuilder>> battles = parseRun(i);
+    public BattleEntry parseBattle(int i, int k) throws Exception {
+        List<BattleEntry> battles = parseRun(i);
         if (k < 0 || k >= battles.size()) {
             throw new IndexOutOfBoundsException(
                 "Battle index " + k + " out of range [0, " + battles.size() + ")");
@@ -91,10 +90,10 @@ public class RunDataParser implements Iterable<Tuple3<Integer, Integer, GameStat
 
     /**
      * Reconstructs a {@link GameStateBuilder} for every battle in the run, yielding
-     * one builder per entry in {@code damage_taken}.  Each builder captures the deck,
-     * relics, potions, and player HP as they were at the start of that battle.
+     * one {@link BattleEntry} per entry in {@code damage_taken}. Each entry captures
+     * the deck, relics, potions, player HP, and enemies name at the start of that battle.
      */
-    private List<Tuple3<Integer, Integer, GameStateBuilder>> parseRunData(JsonNode runNode, int runIdx, boolean verbose) {
+    private List<BattleEntry> parseRunData(JsonNode runNode, int runIdx, boolean verbose) {
         JsonNode run = runNode.has("event") ? runNode.get("event") : runNode;
         CharacterEnum character = parseCharacter(run.get("character_chosen").asText());
 
@@ -296,7 +295,7 @@ public class RunDataParser implements Iterable<Tuple3<Integer, Integer, GameStat
         List<Relic> relics = new ArrayList<>();
         relics.add(getStarterRelic(character));
         List<String> potions = new ArrayList<>();
-        List<Tuple3<Integer, Integer, GameStateBuilder>> battles = new ArrayList<>();
+        List<BattleEntry> battles = new ArrayList<>();
         int battleIdx = 0;
 
         if (verbose) {
@@ -317,10 +316,11 @@ public class RunDataParser implements Iterable<Tuple3<Integer, Integer, GameStat
             ctx.unknownParasiteRemaining += ctx.unknownParasiteCountObtainedAtFloor.getOrDefault(floor, 0);
             // Capture battle state BEFORE processing events at this floor
             if (ctx.battleFloors.containsKey(floor)) {
-                battles.add(new Tuple3<>(runIdx, battleIdx, buildBattleState(
+                String enemiesName = ctx.battleFloors.get(floor);
+                battles.add(new BattleEntry(runIdx, battleIdx, buildBattleState(
                     character, deck, relics, potions,
                     floor, currentHpPerFloor, maxHpPerFloor
-                )));
+                ), enemiesName));
                 battleIdx++;
             }
             applyFloorEvents(floor, deck, relics, potions, ctx);
@@ -466,6 +466,9 @@ public class RunDataParser implements Iterable<Tuple3<Integer, Integer, GameStat
                 builder.addPotion(potion);
             }
         }
+
+        // TODO: remove once real potion state is wired in from run data
+        builder.addPotion(new Potion.FirePotion());
 
         return builder;
     }
@@ -940,6 +943,7 @@ public class RunDataParser implements Iterable<Tuple3<Integer, Integer, GameStat
                 deck.add(BattleBuilderJsonReader.lookupCard("Vigilance"));
             }
         }
+        deck.add(BattleBuilderJsonReader.lookupCard("Ascender's Bane"));
         return deck;
     }
 

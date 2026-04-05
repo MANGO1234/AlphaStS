@@ -205,6 +205,11 @@ public class GameStateBuilder {
         potions.add(potion);
     }
 
+    /** Returns only the potions explicitly added via {@link #addPotion}, without the derived entries added by {@link #getPotions}. */
+    public List<Potion> getExplicitPotions() {
+        return new ArrayList<>(potions);
+    }
+
     public List<Potion> getPotions() {
         int maxPotionSlot = relics.stream().anyMatch((x) -> x instanceof Relic.PotionBelt) ? 4 : 2;
         for (Relic relic : relics) {
