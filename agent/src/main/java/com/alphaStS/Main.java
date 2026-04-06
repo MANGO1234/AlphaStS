@@ -3,6 +3,7 @@ package com.alphaStS;
 import com.alphaStS.gameAction.GameActionCtx;
 import com.alphaStS.gui.BattleBuilderGuiServer;
 import com.alphaStS.model.ModelPlain;
+import com.alphaStS.test.BattleEntry;
 import com.alphaStS.test.RunDataParser;
 import com.alphaStS.test.TestRunner;
 import com.alphaStS.utils.ServerRequest;
@@ -57,6 +58,11 @@ public class Main {
             String path = args.length > 1 ? args[1] : "../b.run";
             int idx = args.length > 2 ? Integer.parseInt(args[2]) : -1;
             testRunParser(path, idx);
+        } else if (args.length > 0 && args[0].equals("--test-run-generate")) {
+            // TODO: remove - temporary dev command
+            String path = args.length > 1 ? args[1] : "../b.run";
+            int upto = args.length > 2 ? Integer.parseInt(args[2]) : -1;
+            testRunGenerator(path, upto);
         } else {
             System.out.println("Invalid arguments");
         }
@@ -85,53 +91,47 @@ public class Main {
     // TODO: remove - temporary dev method for testing RunDataParser
     private static void testRunParser(String path, int idx) {
         System.out.println("Parsing run data from: " + path);
+        RunDataParser parser = new RunDataParser(path);
+        int totalBattles = 0;
+        List<BattleEntry> runs;
+        if (idx >= 0) {
+            try {
+                runs = parser.parseRun(idx);
+            } catch (Exception e) {
+                System.err.println("[RunDataParser] Failed to parse run " + idx + ": " + Arrays.toString(e.getStackTrace()));
+                return;
+            }
+        } else {
+            runs = new ArrayList<>();
+            parser.iterator().forEachRemaining(runs::add);
+        }
+        for (var run : runs) {
+            int runIdx = run.getRunIdx();
+            int battleIdx = run.getBattleIdx();
+            GameStateBuilder builder = run.getBuilder();
+            var cards = builder.getCards();
+            var relics = builder.getRelics();
+            var potions = builder.getPotions();
+            System.out.printf("Run %d, Battle %d — %d cards, %d relics, %d potions, HP %d/%d%n",
+                runIdx,
+                battleIdx,
+                cards.size(),
+                relics.size(),
+                potions.size(),
+                builder.getPlayer().getHealth(),
+                builder.getPlayer().getMaxHealth());
+            totalBattles++;
+        }
+        System.out.println("Total battles: " + totalBattles);
+    }
+
+    private static void testRunGenerator(String path, int upto) {
+        System.out.println("Parsing run data from: " + path);
         try {
-            new TestRunner().test(path);
+            new TestRunner().test(path, upto);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-//        RunDataParser parser = new RunDataParser(path);
-//        int totalBattles = 0;
-//        Iterable<Tuple3<Integer, Integer, GameStateBuilder>> runs;
-//        if (idx >= 0) {
-//            try {
-//                runs = parser.parseRun(idx);
-//            } catch (Exception e) {
-//                System.err.println("[RunDataParser] Failed to parse run " + idx + ": " + Arrays.toString(e.getStackTrace()));
-//                return;
-//            }
-//        } else {
-//            runs = parser;
-//        }
-//        for (var entry : runs) {
-//            int runIdx = entry.v1();
-//            int battleIdx = entry.v2();
-//            GameStateBuilder builder = entry.v3();
-//            var cards = builder.getCards();
-//            var relics = builder.getRelics();
-//            var potions = builder.getPotions();
-////            System.out.printf("Run %d, Battle %d — %d cards, %d relics, %d potions, HP %d/%d%n",
-////                runIdx,
-////                battleIdx,
-////                cards.size(),
-////                relics.size(),
-////                potions.size(),
-////                builder.getPlayer().getHealth(),
-////                builder.getPlayer().getMaxHealth());
-////            System.out.print("  deck: ");
-////            cards.forEach(c -> System.out.print(c.cardName + " "));
-////            System.out.println();
-////            System.out.print("  relics: ");
-////            relics.forEach(r -> System.out.print(r + " "));
-////            System.out.println();
-//            if (!potions.isEmpty()) {
-////                System.out.print("  potions: ");
-////                potions.forEach(p -> System.out.print(p + " "));
-////                System.out.println();
-//            }
-//            totalBattles++;
-//        }
-//        System.out.println("Total battles: " + totalBattles);
     }
 
     private static void printLengths(GameState state) throws IOException {

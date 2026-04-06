@@ -1,5 +1,6 @@
 package com.alphaStS.test;
 
+import com.alphaStS.enums.CharacterEnum;
 import com.alphaStS.gui.BattleBuilderJsonWriter;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -13,7 +14,13 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
-import java.util.Iterator;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import com.alphaStS.random.RandomGen;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.StringJoiner;
 
 public class TestRunner {
@@ -22,30 +29,357 @@ public class TestRunner {
     private static final String BATTLE_LOADER_HOST = "localhost";
     private static final int BATTLE_LOADER_PORT = 2345;
 
-    public void test(String runDataPath) throws Exception {
-        Iterator<BattleEntry> runData = new RunDataParser(runDataPath).iterator();
+    /** Host and port of the sts-comm-mod-server TCP proxy (bridges CommunicationMod). */
+    private static final String COMM_MOD_HOST = "127.0.0.1";
+    private static final int COMM_MOD_PORT = 2346;
 
-        while (runData.hasNext()) {
-            BattleEntry entry = runData.next();
+    /** STS save files, one per character — deleted and recreated before each battle. */
+    private static final String RUN_FILE_IRONCLAD =
+            "F:\\SteamLibrary\\steamapps\\common\\SlayTheSpire\\saves\\1_IRONCLAD.run.log";
+    private static final String RUN_FILE_SILENT =
+            "F:\\SteamLibrary\\steamapps\\common\\SlayTheSpire\\saves\\1_SILENT.run.log";
+    private static final String RUN_FILE_DEFECT =
+            "F:\\SteamLibrary\\steamapps\\common\\SlayTheSpire\\saves\\1_DEFECT.run.log";
+    private static final String RUN_FILE_WATCHER =
+            "F:\\SteamLibrary\\steamapps\\common\\SlayTheSpire\\saves\\1_WATCHER.run.log";
+
+    /** Maximum number of turns before the random-move bot aborts the battle. */
+    private static final int MAX_TURNS = 30;
+
+    /** Output directory for completed run files. */
+    private static final String TESTS_DIR = "tests";
+
+    public void test(String runDataPath, int upto) throws Exception {
+        ObjectMapper mapper = new ObjectMapper();
+
+        int k = 0;
+        for (BattleEntry entry : new RunDataParser(runDataPath)) {
             int runIdx = entry.getRunIdx();
             int battleIdx = entry.getBattleIdx();
             System.out.println("[TestRunner] Run " + runIdx + ", Battle " + battleIdx);
 
             // Step 1: Send the battle definition JSON to the BattleLoaderMod running in STS.
-            // The mod clears the current deck/relics/potions, fills them from the JSON, and
-            // restarts the current battle.
-            sendBattleDefinition(entry);
+            entry.getBuilder().getPlayer().setInBattleMaxHealth(entry.getBuilder().getPlayer().getMaxHealth() + 50000);
+            entry.getBuilder().getPlayer().setHealth(entry.getBuilder().getPlayer().getMaxHealth() + 50000);
+            boolean ok = sendBattleDefinition(entry);
+            if (!ok) {
+                System.err.println("[TestRunner] Skipping battle due to failed setup.");
+                continue;
+            }
 
-            // TODO 2: Using communication mod and a random move bot + player having 10000 hp,
-            // make random moves until battle ends (e.g. 30 turns limit).
+            // Delete the old .run save file and create a new one with the battle header.
+            CharacterEnum character = entry.getBuilder().getCharacter();
+            Path runFilePath = Paths.get(getRunFilePath(character));
+            Files.deleteIfExists(runFilePath);
 
-            // TODO 3: The states, actions, and rng rolls will be logged to .log (via a mod).
+            RandomGen rng = new RandomGen.RandomGenPlain();
+            long seed = rng.getStartingSeed();
+            ObjectNode header = mapper.createObjectNode();
+            header.put("play_id", entry.getPlayId());
+            header.put("battle_idx", battleIdx);
+            header.put("seed", seed);
+            Files.createDirectories(runFilePath.getParent());
+            Files.writeString(runFilePath, mapper.writeValueAsString(header) + "\n");
+            System.out.println("[TestRunner] Wrote run file header: " + runFilePath);
+
+            // Step 2: Play random moves via CommunicationMod until battle ends.
+            playRandomMoves(rng);
+
+            // Move the completed .run file to tests/<runIdx>_<battleIdx>_<seed>.run
+            Files.createDirectories(Paths.get(TESTS_DIR));
+            Path dest = Paths.get(TESTS_DIR, entry.getPlayId() + "_" + battleIdx + "_" + seed + ".run");
+            Files.move(runFilePath, dest, StandardCopyOption.REPLACE_EXISTING);
+            System.out.println("[TestRunner] Run file saved to: " + dest);
 
             // TODO 4: Use .log, construct a GameState of the same battle, replay from the start
             // of log until the end and check if the states match after each action.
 
-            break;
+            if (k++ >= upto) {
+                break;
+            }
         }
+    }
+
+    /**
+     * Plays random moves via the sts-comm-mod-server TCP proxy until the battle ends or the
+     * turn limit is reached.
+     *
+     * <p>The server sends a newline-delimited JSON game state after each command. The bot
+     * dispatches on {@code game_state.screen_type} to decide what action to take.
+     *
+     * @param rng   the RNG to use for all random choices (seed already recorded by caller)
+     */
+    private void playRandomMoves(RandomGen rng) throws IOException {
+        ObjectMapper mapper = new ObjectMapper();
+
+        try (Socket socket = new Socket(COMM_MOD_HOST, COMM_MOD_PORT)) {
+            BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream(), StandardCharsets.UTF_8));
+            PrintWriter writer = new PrintWriter(new OutputStreamWriter(socket.getOutputStream(), StandardCharsets.UTF_8), true);
+
+            String stateLine = reader.readLine();
+            boolean waitingOnReady = true;
+            while (stateLine != null) {
+                if (waitingOnReady) {
+                    ObjectNode cmdNode = mapper.createObjectNode();
+                    cmdNode.put("command", "STATE");
+                    writer.println(mapper.writeValueAsString(cmdNode));
+                    stateLine = reader.readLine();
+                } else {
+                    stateLine = reader.readLine();
+                }
+
+                JsonNode state = mapper.readTree(stateLine);
+                if (!state.path("ready_for_command").asBoolean(false)) {
+                    waitingOnReady = true;
+                    try {
+                        Thread.sleep(100);
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
+                    continue;
+                }
+                waitingOnReady = false;
+
+                JsonNode gameState = state.get("game_state");
+                if (gameState == null) {
+                    System.out.println("[TestRunner] No game_state in response; ending bot.");
+                    break;
+                }
+
+                String roomPhase = gameState.path("room_phase").asText("");
+                if ("COMPLETE".equals(roomPhase) || "GAME_OVER".equals(roomPhase)) {
+                    System.out.println("[TestRunner] Battle complete (room_phase=" + roomPhase + ").");
+                    break;
+                }
+
+                int turn = gameState.path("combat_state").path("turn").asInt(0);
+                if (turn > MAX_TURNS) {
+                    System.out.println("[TestRunner] Turn limit reached (" + MAX_TURNS + "); ending bot.");
+                    break;
+                }
+
+                String screenType = gameState.path("screen_type").asText("NONE");
+                String command = chooseCommand(gameState, screenType, rng);
+
+                if (command == null) {
+                    System.out.println("[TestRunner] No command chosen; ending bot.");
+                    break;
+                }
+
+                System.out.println("[TestRunner] Sending: " + command);
+                ObjectNode cmdNode = mapper.createObjectNode();
+                cmdNode.put("command", command);
+                writer.println(mapper.writeValueAsString(cmdNode));
+            }
+        }
+    }
+
+    /**
+     * Chooses a CommunicationMod command string based on the current game state and screen type.
+     *
+     * @return the command string (e.g. {@code "PLAY 1 0"}, {@code "END"}, {@code "CHOOSE 2"}),
+     *         or {@code null} if no action could be determined
+     */
+    private String chooseCommand(JsonNode gameState, String screenType, RandomGen rng) {
+        switch (screenType) {
+            case "NONE": {
+                return chooseNoneScreenCommand(gameState, rng);
+            }
+
+            case "HAND_SELECT": {
+                JsonNode screenState = gameState.path("screen_state");
+                JsonNode hand = screenState.path("hand");
+                int handSize = hand.size();
+                if (handSize == 0) {
+                    return "CONFIRM";
+                }
+                // Pick a random index from the hand to select.
+                int pick = rng.nextInt(handSize, null);
+                return "CHOOSE " + pick;
+            }
+
+            case "GRID": {
+                JsonNode screenState = gameState.path("screen_state");
+                JsonNode cards = screenState.path("cards");
+                int cardCount = cards.size();
+                if (cardCount == 0) {
+                    return "CONFIRM";
+                }
+                boolean anyNumber = screenState.path("any_number").asBoolean(false);
+                boolean confirmUp = screenState.path("confirm_up").asBoolean(false);
+
+                if (anyNumber) {
+                    // Each card has a 50% chance — pick the first unselected card that passes.
+                    // We send one CHOOSE at a time; track nothing across turns (stateless approach:
+                    // just pick one random card per call; the screen loops until confirmed).
+                    List<Integer> candidates = new ArrayList<>();
+                    JsonNode selected = screenState.path("selected_cards");
+                    for (int i = 0; i < cardCount; i++) {
+                        candidates.add(i);
+                    }
+                    // Remove already-selected cards from candidates.
+                    for (JsonNode sel : selected) {
+                        String selUuid = sel.path("uuid").asText();
+                        for (int i = 0; i < cardCount; i++) {
+                            if (cards.get(i).path("uuid").asText().equals(selUuid)) {
+                                candidates.remove(Integer.valueOf(i));
+                                break;
+                            }
+                        }
+                    }
+                    if (candidates.isEmpty() || confirmUp) {
+                        return "CONFIRM";
+                    }
+                    // 50% chance to pick a card vs confirm.
+                    if (rng.nextBoolean(null)) {
+                        return "CHOOSE " + candidates.get(rng.nextInt(candidates.size(), null));
+                    } else {
+                        return "CONFIRM";
+                    }
+                } else {
+                    int numCards = screenState.path("num_cards").asInt(1);
+                    JsonNode selected = screenState.path("selected_cards");
+                    int alreadySelected = selected.size();
+                    if (alreadySelected >= numCards) {
+                        return "CONFIRM";
+                    }
+                    // Build list of unselected card indices.
+                    List<Integer> unselected = new ArrayList<>();
+                    for (int i = 0; i < cardCount; i++) {
+                        unselected.add(i);
+                    }
+                    for (JsonNode sel : selected) {
+                        String selUuid = sel.path("uuid").asText();
+                        for (int i = 0; i < cardCount; i++) {
+                            if (cards.get(i).path("uuid").asText().equals(selUuid)) {
+                                unselected.remove(Integer.valueOf(i));
+                                break;
+                            }
+                        }
+                    }
+                    if (unselected.isEmpty()) {
+                        return "CONFIRM";
+                    }
+                    return "CHOOSE " + unselected.get(rng.nextInt(unselected.size(), null));
+                }
+            }
+
+            case "CARD_REWARD": {
+                JsonNode screenState = gameState.path("screen_state");
+                JsonNode cards = screenState.path("cards");
+                boolean skipAvailable = screenState.path("skip_available").asBoolean(false);
+                int cardCount = cards.size();
+
+                if (cardCount == 0) {
+                    return "RETURN";
+                }
+
+                if (skipAvailable) {
+                    // 4% skip, 96% pick a card.
+                    if (rng.nextInt(100, null) < 4) {
+                        return "RETURN";
+                    }
+                }
+                return "CHOOSE " + rng.nextInt(cardCount, null);
+            }
+
+            default: {
+                System.out.println("[TestRunner] Unhandled screen_type: " + screenType + "; sending CONFIRM.");
+                return "CONFIRM";
+            }
+        }
+    }
+
+    /**
+     * Builds a weighted action list for the NONE screen (standard combat) and picks one.
+     *
+     * <p>Each playable card and usable potion has weight 19; END has weight 1.
+     */
+    private String chooseNoneScreenCommand(JsonNode gameState, RandomGen rng) {
+        JsonNode combatState = gameState.path("combat_state");
+        JsonNode hand = combatState.path("hand");
+        JsonNode potions = gameState.path("potions");
+        JsonNode monsters = combatState.path("monsters");
+
+        // Collect live monster indices for targeted actions.
+        List<Integer> liveMonsters = new ArrayList<>();
+        for (int i = 0; i < monsters.size(); i++) {
+            if (!monsters.get(i).path("is_gone").asBoolean(false)) {
+                liveMonsters.add(i);
+            }
+        }
+
+        // Build weighted action list: (command string, weight).
+        List<String> actions = new ArrayList<>();
+        List<Integer> weights = new ArrayList<>();
+
+        for (int i = 0; i < hand.size(); i++) {
+            JsonNode card = hand.get(i);
+            if (!card.path("is_playable").asBoolean(false)) {
+                continue;
+            }
+            boolean hasTarget = card.path("has_target").asBoolean(false);
+            String cmd;
+            if (hasTarget && !liveMonsters.isEmpty()) {
+                int targetIdx = liveMonsters.get(rng.nextInt(liveMonsters.size(), null));
+                cmd = "PLAY " + (i + 1) + " " + targetIdx;
+            } else if (hasTarget) {
+                // No live target available; skip this card.
+                continue;
+            } else {
+                cmd = "PLAY " + (i + 1);
+            }
+            actions.add(cmd);
+            weights.add(19);
+        }
+
+        for (int i = 0; i < potions.size(); i++) {
+            JsonNode potion = potions.get(i);
+            if (!potion.path("can_use").asBoolean(false)) {
+                continue;
+            }
+            boolean requiresTarget = potion.path("requires_target").asBoolean(false);
+            String cmd;
+            if (requiresTarget && !liveMonsters.isEmpty()) {
+                int targetIdx = liveMonsters.get(rng.nextInt(liveMonsters.size(), null));
+                cmd = "POTION Use " + i + " " + targetIdx;
+            } else if (requiresTarget) {
+                continue;
+            } else {
+                cmd = "POTION Use " + i;
+            }
+            actions.add(cmd);
+            weights.add(19);
+        }
+
+        // END always available with weight 1.
+        actions.add("END");
+        weights.add(1);
+
+        // Weighted random selection.
+        int total = weights.stream().mapToInt(Integer::intValue).sum();
+        int roll = rng.nextInt(total, null);
+        int cumulative = 0;
+        for (int i = 0; i < actions.size(); i++) {
+            cumulative += weights.get(i);
+            if (roll < cumulative) {
+                return actions.get(i);
+            }
+        }
+
+        return "END";
+    }
+
+    /**
+     * Returns the save-file path for the given character.
+     */
+    private static String getRunFilePath(CharacterEnum character) {
+        return switch (character) {
+            case IRONCLAD -> RUN_FILE_IRONCLAD;
+            case SILENT   -> RUN_FILE_SILENT;
+            case DEFECT   -> RUN_FILE_DEFECT;
+            case WATCHER  -> RUN_FILE_WATCHER;
+        };
     }
 
     /**
@@ -61,16 +395,17 @@ public class TestRunner {
      * {@code LOAD_ERROR}, or {@code CRASH} on failure.
      *
      * @param entry the battle entry produced by {@link RunDataParser}
-     * @throws IOException if the connection fails or the mod returns an error response
+     * @return {@code true} if the mod applied the definition successfully; {@code false} otherwise
      */
-    private void sendBattleDefinition(BattleEntry entry) throws IOException {
+    private boolean sendBattleDefinition(BattleEntry entry) {
         ObjectMapper mapper = new ObjectMapper();
         String baseJson = BattleBuilderJsonWriter.toJson(entry.getBuilder());
         ObjectNode root;
         try {
             root = (ObjectNode) mapper.readTree(baseJson);
         } catch (Exception e) {
-            throw new IOException("[TestRunner] Failed to parse generated battle JSON", e);
+            System.err.println("[TestRunner] Failed to parse generated battle JSON: " + e.getMessage());
+            return false;
         }
 
         ObjectNode def = (ObjectNode) root.get("battle_definition");
@@ -81,7 +416,8 @@ public class TestRunner {
         try {
             json = mapper.writeValueAsString(root);
         } catch (Exception e) {
-            throw new IOException("[TestRunner] Failed to serialize battle definition with combat", e);
+            System.err.println("[TestRunner] Failed to serialize battle definition with combat: " + e.getMessage());
+            return false;
         }
 
         try (Socket socket = new Socket(BATTLE_LOADER_HOST, BATTLE_LOADER_PORT)) {
@@ -106,37 +442,46 @@ public class TestRunner {
             try {
                 responseRoot = mapper.readTree(responseStr);
             } catch (Exception e) {
-                throw new IOException("[TestRunner] Unparseable response from BattleLoaderMod: " + responseStr);
+                System.err.println("[TestRunner] Unparseable response from BattleLoaderMod: " + responseStr);
+                return false;
             }
 
             String result = responseRoot.path("result").asText();
             if ("OK".equals(result)) {
                 System.out.println("[TestRunner] BattleLoaderMod applied battle definition successfully.");
-                return;
+                return true;
             }
 
             String errorType = responseRoot.path("errorType").asText();
             switch (errorType) {
                 case "GENERAL":
-                    throw new IOException("[TestRunner] BattleLoaderMod error: "
+                    System.err.println("[TestRunner] BattleLoaderMod error: "
                             + responseRoot.path("errorMessage").asText());
+                    break;
                 case "LOAD_ERROR": {
                     StringJoiner sj = new StringJoiner(", ");
                     for (JsonNode err : responseRoot.path("errors")) {
                         sj.add(err.asText());
                     }
-                    throw new IOException("[TestRunner] BattleLoaderMod load errors: " + sj);
+                    System.err.println("[TestRunner] BattleLoaderMod load errors: " + sj);
+                    break;
                 }
                 case "CRASH": {
                     StringJoiner sj = new StringJoiner("\n");
                     for (JsonNode frame : responseRoot.path("stackTrace")) {
                         sj.add(frame.asText());
                     }
-                    throw new IOException("[TestRunner] BattleLoaderMod crash:\n" + sj);
+                    System.err.println("[TestRunner] BattleLoaderMod crash:\n" + sj);
+                    break;
                 }
                 default:
-                    throw new IOException("[TestRunner] Unexpected response from BattleLoaderMod: " + responseStr);
+                    System.err.println("[TestRunner] Unexpected response from BattleLoaderMod: " + responseStr);
             }
+            return false;
+
+        } catch (IOException e) {
+            System.err.println("[TestRunner] Connection to BattleLoaderMod failed: " + e.getMessage());
+            return false;
         }
     }
 }

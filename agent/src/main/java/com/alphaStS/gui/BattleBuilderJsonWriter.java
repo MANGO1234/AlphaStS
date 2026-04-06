@@ -45,7 +45,7 @@ public class BattleBuilderJsonWriter {
 
         def.put("character", characterName(builder.getCharacter()));
         def.put("player_health", builder.getPlayer().getHealth());
-        def.put("player_max_health", builder.getPlayer().getMaxHealth());
+        def.put("player_max_health", builder.getPlayer().getInBattleMaxHealth());
 
         ArrayNode deckNode = def.putArray("deck");
         for (Card card : builder.getCards()) {

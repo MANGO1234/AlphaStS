@@ -11,12 +11,14 @@ public class BattleEntry {
     private final int battleIdx;
     private final GameStateBuilder builder;
     private final String enemiesName;
+    private final String playId;
 
-    public BattleEntry(int runIdx, int battleIdx, GameStateBuilder builder, String enemiesName) {
+    public BattleEntry(int runIdx, int battleIdx, GameStateBuilder builder, String enemiesName, String playId) {
         this.runIdx = runIdx;
         this.battleIdx = battleIdx;
         this.builder = builder;
         this.enemiesName = enemiesName;
+        this.playId = playId;
     }
 
     public int getRunIdx() {
@@ -33,5 +35,9 @@ public class BattleEntry {
 
     public String getEnemiesName() {
         return enemiesName;
+    }
+
+    public String getPlayId() {
+        return playId;
     }
 }

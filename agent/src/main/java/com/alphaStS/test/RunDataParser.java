@@ -16,14 +16,48 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
+import java.util.Comparator;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 public class RunDataParser implements Iterable<BattleEntry> {
 
+    /** Sorts entries by character ordinal (IRONCLAD → SILENT → DEFECT → WATCHER). */
+    public static final Comparator<BattleEntry> SORT_BY_CHARACTER =
+            Comparator.comparing(e -> e.getBuilder().getCharacter().ordinal());
+
+    /** Filters for Ironclad battles only. */
+    public static final Predicate<BattleEntry> FILTER_IRONCLAD =
+            e -> e.getBuilder().getCharacter() == CharacterEnum.IRONCLAD;
+
+    /** Filters for Silent battles only. */
+    public static final Predicate<BattleEntry> FILTER_SILENT =
+            e -> e.getBuilder().getCharacter() == CharacterEnum.SILENT;
+
+    /** Filters for Defect battles only. */
+    public static final Predicate<BattleEntry> FILTER_DEFECT =
+            e -> e.getBuilder().getCharacter() == CharacterEnum.DEFECT;
+
+    /** Filters for Watcher battles only. */
+    public static final Predicate<BattleEntry> FILTER_WATCHER =
+            e -> e.getBuilder().getCharacter() == CharacterEnum.WATCHER;
+
     private final String jsonFilePath;
+    private Predicate<BattleEntry> filter;
+    private Comparator<BattleEntry> sort;
 
     public RunDataParser(String jsonFilePath) {
         this.jsonFilePath = jsonFilePath;
+    }
+
+    public RunDataParser withFilter(Predicate<BattleEntry> filter) {
+        this.filter = filter;
+        return this;
+    }
+
+    public RunDataParser withSort(Comparator<BattleEntry> sort) {
+        this.sort = sort;
+        return this;
     }
 
     @Override
@@ -49,6 +83,15 @@ public class RunDataParser implements Iterable<BattleEntry> {
                 System.err.println("[RunDataParser] Failed to parse run " + i + ": " + Arrays.toString(e.getStackTrace()));
             }
         }
+
+        if (filter != null) {
+            builders.removeIf(filter.negate());
+        }
+
+        if (sort != null) {
+            builders.sort(sort);
+        }
+
         return builders.iterator();
     }
 
@@ -320,7 +363,7 @@ public class RunDataParser implements Iterable<BattleEntry> {
                 battles.add(new BattleEntry(runIdx, battleIdx, buildBattleState(
                     character, deck, relics, potions,
                     floor, currentHpPerFloor, maxHpPerFloor
-                ), enemiesName));
+                ), enemiesName, run.get("play_id").asText()));
                 battleIdx++;
             }
             applyFloorEvents(floor, deck, relics, potions, ctx);
@@ -466,9 +509,6 @@ public class RunDataParser implements Iterable<BattleEntry> {
                 builder.addPotion(potion);
             }
         }
-
-        // TODO: remove once real potion state is wired in from run data
-        builder.addPotion(new Potion.FirePotion());
 
         return builder;
     }
