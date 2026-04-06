@@ -2485,80 +2485,15 @@ public final class GameState implements State {
     }
 
     public double calcFightProgress(boolean onlyHeart) {
+        if (currentEncounter != null && currentEncounter.encounterEnum != null && currentEncounter.encounterEnum.calcFightProgress != null) {
+            return currentEncounter.encounterEnum.calcFightProgress.apply(this, onlyHeart);
+        }
         int totalMaxHp = 0;
         int totalCurHp = 0;
-        boolean isSlimeBossAlive = false;
-        boolean isSpikeSlimeLAlive = false;
-        boolean isAcidSlimeLAlive = false;
-        boolean isGremlinLeaderAlive = false;
-        for (EnemyReadOnly enemy : enemies) {
-            if (enemy instanceof EnemyCity.GremlinLeader) {
-                isGremlinLeaderAlive = true;
-                break;
-            }
-        }
         for (int i = 0; i < getEnemiesForRead().size(); i++) {
             EnemyReadOnly enemy = getEnemiesForRead().get(i);
-            boolean addedMod = false;
-            if (enemy instanceof EnemyExordium.SlimeBoss boss) {
-                isSlimeBossAlive = boss.getHealth() > 0;
-            } else if (enemy instanceof EnemyExordium.LargeSpikeSlime slime) {
-                isSpikeSlimeLAlive = slime.getHealth() > 0;
-                if (isSlimeBossAlive) {
-                    totalCurHp += enemy.properties.maxHealth;
-                    totalMaxHp += enemy.properties.maxHealth;
-                    addedMod = true;
-                }
-            } else if (enemy instanceof EnemyExordium.LargeAcidSlime slime) {
-                isAcidSlimeLAlive = slime.getHealth() > 0;
-                if (isSlimeBossAlive) {
-                    totalCurHp += enemy.properties.maxHealth;
-                    totalMaxHp += enemy.properties.maxHealth;
-                    addedMod = true;
-                }
-            } else if (enemy instanceof EnemyExordium.MediumSpikeSlime) {
-                if (isSlimeBossAlive || isSpikeSlimeLAlive) {
-                    totalCurHp += enemy.properties.maxHealth;
-                    totalMaxHp += enemy.properties.maxHealth;
-                    addedMod = true;
-                }
-            } else if (enemy instanceof EnemyExordium.MediumAcidSlime) {
-                if (isSlimeBossAlive || isAcidSlimeLAlive) {
-                    totalCurHp += enemy.properties.maxHealth;
-                    totalMaxHp += enemy.properties.maxHealth;
-                    addedMod = true;
-                }
-            } else if (enemy instanceof EnemyBeyond.AwakenedOne ao) {
-                totalCurHp += ao.isAwakened() ? ao.getHealth() : (ao.getHealth() + enemy.properties.maxHealth);
-                totalMaxHp += enemy.properties.maxHealth * 2;
-                addedMod = true;
-            } else if (enemy instanceof EnemyCity.BronzeAutomaton ba) {
-                if (ba.getMove() <= EnemyCity.BronzeAutomaton.SPAWN_ORBS) {
-                    totalCurHp += 60 * 2; // the orbs
-                }
-            } else if (enemy instanceof EnemyCity.TorchHead) {
-                addedMod = true;
-            } else if (isGremlinLeaderAlive && ((enemy instanceof EnemyExordium.FatGremlin) || (enemy instanceof EnemyExordium.GremlinWizard) || (enemy instanceof EnemyExordium.MadGremlin) || (enemy instanceof EnemyExordium.ShieldGremlin) || (enemy instanceof EnemyExordium.SneakyGremlin))) {
-                addedMod = true;
-            } else if (properties.isHeartGauntlet && enemy instanceof EnemyEnding.CorruptHeart) {
-                if (getEnemiesForRead().get(0).getHealth() > 0 || getEnemiesForRead().get(1).getHealth() > 0) {
-                    if (onlyHeart) {
-                        totalCurHp = 0;
-                        totalMaxHp = enemy.properties.maxHealth;
-                    } else {
-                        totalCurHp += enemy.properties.maxHealth;
-                        totalMaxHp += enemy.properties.maxHealth;
-                        addedMod = true;
-                    }
-                } else if (onlyHeart) {
-                    totalCurHp = enemy.getHealth();
-                    totalMaxHp = enemy.properties.maxHealth;
-                }
-            }
-            if (!addedMod) {
-                totalCurHp += enemy.getHealth();
-                totalMaxHp += enemy.properties.maxHealth;
-            }
+            totalCurHp += enemy.getHealth();
+            totalMaxHp += enemy.properties.maxHealth;
         }
         return 1 - ((double) totalCurHp) / totalMaxHp;
     }

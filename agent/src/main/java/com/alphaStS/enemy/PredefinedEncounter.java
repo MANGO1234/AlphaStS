@@ -1,8 +1,10 @@
 package com.alphaStS.enemy;
 
+import com.alphaStS.GameState;
 import com.alphaStS.GameStateBuilder;
 
 import java.util.List;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -100,6 +102,16 @@ public enum PredefinedEncounter {
     public Supplier<List<Enemy>> enemiesSupplier;
     public Consumer<GameStateBuilder> encounterExtraLogic;
     public EnemyEncounter.EnemyReordering reordering;
+    public BiFunction<GameState, Boolean, Double> calcFightProgress;
+
+    static {
+        SLIME_BOSS.calcFightProgress = PredefinedEncounter::calcSlimeBossFightProgress;
+        AWAKENED_ONE.calcFightProgress = PredefinedEncounter::calcAwakenedOneFightProgress;
+        BRONZE_AUTOMATON.calcFightProgress = PredefinedEncounter::calcBronzeAutomatonFightProgress;
+        COLLECTOR.calcFightProgress = PredefinedEncounter::calcCollectorFightProgress;
+        GREMLIN_LEADER.calcFightProgress = PredefinedEncounter::calcGremlinLeaderFightProgress;
+        CORRUPT_HEART.calcFightProgress = PredefinedEncounter::calcCorruptHeartFightProgress;
+    }
 
     PredefinedEncounter(String internalKey, int act, List<Enemy> enemies, Consumer<GameStateBuilder> encounterExtraLogic,
             EnemyEncounter.EnemyReordering reordering) {
@@ -128,5 +140,148 @@ public enum PredefinedEncounter {
         this.internalKey = internalKey;
         this.act = act;
         this.enemies = enemies;
+    }
+
+    private static double calcSlimeBossFightProgress(GameState state, boolean onlyHeart) {
+        int totalMaxHp = 0;
+        int totalCurHp = 0;
+        boolean isSlimeBossAlive = false;
+        boolean isSpikeSlimeLAlive = false;
+        boolean isAcidSlimeLAlive = false;
+        for (int i = 0; i < state.getEnemiesForRead().size(); i++) {
+            EnemyReadOnly enemy = state.getEnemiesForRead().get(i);
+            boolean addedMod = false;
+            if (enemy instanceof EnemyExordium.SlimeBoss boss) {
+                isSlimeBossAlive = boss.getHealth() > 0;
+            } else if (enemy instanceof EnemyExordium.LargeSpikeSlime slime) {
+                isSpikeSlimeLAlive = slime.getHealth() > 0;
+                if (isSlimeBossAlive) {
+                    totalCurHp += enemy.properties.maxHealth;
+                    totalMaxHp += enemy.properties.maxHealth;
+                    addedMod = true;
+                }
+            } else if (enemy instanceof EnemyExordium.LargeAcidSlime slime) {
+                isAcidSlimeLAlive = slime.getHealth() > 0;
+                if (isSlimeBossAlive) {
+                    totalCurHp += enemy.properties.maxHealth;
+                    totalMaxHp += enemy.properties.maxHealth;
+                    addedMod = true;
+                }
+            } else if (enemy instanceof EnemyExordium.MediumSpikeSlime) {
+                if (isSlimeBossAlive || isSpikeSlimeLAlive) {
+                    totalCurHp += enemy.properties.maxHealth;
+                    totalMaxHp += enemy.properties.maxHealth;
+                    addedMod = true;
+                }
+            } else if (enemy instanceof EnemyExordium.MediumAcidSlime) {
+                if (isSlimeBossAlive || isAcidSlimeLAlive) {
+                    totalCurHp += enemy.properties.maxHealth;
+                    totalMaxHp += enemy.properties.maxHealth;
+                    addedMod = true;
+                }
+            }
+            if (!addedMod) {
+                totalCurHp += enemy.getHealth();
+                totalMaxHp += enemy.properties.maxHealth;
+            }
+        }
+        return 1 - ((double) totalCurHp) / totalMaxHp;
+    }
+
+    private static double calcAwakenedOneFightProgress(GameState state, boolean onlyHeart) {
+        int totalMaxHp = 0;
+        int totalCurHp = 0;
+        for (int i = 0; i < state.getEnemiesForRead().size(); i++) {
+            EnemyReadOnly enemy = state.getEnemiesForRead().get(i);
+            if (enemy instanceof EnemyBeyond.AwakenedOne ao) {
+                totalCurHp += ao.isAwakened() ? ao.getHealth() : (ao.getHealth() + enemy.properties.maxHealth);
+                totalMaxHp += enemy.properties.maxHealth * 2;
+            } else {
+                totalCurHp += enemy.getHealth();
+                totalMaxHp += enemy.properties.maxHealth;
+            }
+        }
+        return 1 - ((double) totalCurHp) / totalMaxHp;
+    }
+
+    private static double calcBronzeAutomatonFightProgress(GameState state, boolean onlyHeart) {
+        int totalMaxHp = 0;
+        int totalCurHp = 0;
+        for (int i = 0; i < state.getEnemiesForRead().size(); i++) {
+            EnemyReadOnly enemy = state.getEnemiesForRead().get(i);
+            if (enemy instanceof EnemyCity.BronzeAutomaton ba) {
+                if (ba.getMove() <= EnemyCity.BronzeAutomaton.SPAWN_ORBS) {
+                    totalCurHp += 60 * 2; // the orbs
+                }
+            }
+            totalCurHp += enemy.getHealth();
+            totalMaxHp += enemy.properties.maxHealth;
+        }
+        return 1 - ((double) totalCurHp) / totalMaxHp;
+    }
+
+    private static double calcCollectorFightProgress(GameState state, boolean onlyHeart) {
+        int totalMaxHp = 0;
+        int totalCurHp = 0;
+        for (int i = 0; i < state.getEnemiesForRead().size(); i++) {
+            EnemyReadOnly enemy = state.getEnemiesForRead().get(i);
+            if (enemy instanceof EnemyCity.TorchHead) {
+                continue;
+            }
+            totalCurHp += enemy.getHealth();
+            totalMaxHp += enemy.properties.maxHealth;
+        }
+        return 1 - ((double) totalCurHp) / totalMaxHp;
+    }
+
+    private static double calcGremlinLeaderFightProgress(GameState state, boolean onlyHeart) {
+        int totalMaxHp = 0;
+        int totalCurHp = 0;
+        boolean isGremlinLeaderAlive = false;
+        for (int i = 0; i < state.getEnemiesForRead().size(); i++) {
+            if (state.getEnemiesForRead().get(i) instanceof EnemyCity.GremlinLeader) {
+                isGremlinLeaderAlive = true;
+                break;
+            }
+        }
+        for (int i = 0; i < state.getEnemiesForRead().size(); i++) {
+            EnemyReadOnly enemy = state.getEnemiesForRead().get(i);
+            if (isGremlinLeaderAlive && (enemy instanceof EnemyExordium.FatGremlin || enemy instanceof EnemyExordium.GremlinWizard ||
+                    enemy instanceof EnemyExordium.MadGremlin || enemy instanceof EnemyExordium.ShieldGremlin || enemy instanceof EnemyExordium.SneakyGremlin)) {
+                continue;
+            }
+            totalCurHp += enemy.getHealth();
+            totalMaxHp += enemy.properties.maxHealth;
+        }
+        return 1 - ((double) totalCurHp) / totalMaxHp;
+    }
+
+    private static double calcCorruptHeartFightProgress(GameState state, boolean onlyHeart) {
+        int totalMaxHp = 0;
+        int totalCurHp = 0;
+        for (int i = 0; i < state.getEnemiesForRead().size(); i++) {
+            EnemyReadOnly enemy = state.getEnemiesForRead().get(i);
+            boolean addedMod = false;
+            if (state.properties.isHeartGauntlet && enemy instanceof EnemyEnding.CorruptHeart) {
+                if (state.getEnemiesForRead().get(0).getHealth() > 0 || state.getEnemiesForRead().get(1).getHealth() > 0) {
+                    if (onlyHeart) {
+                        totalCurHp = 0;
+                        totalMaxHp = enemy.properties.maxHealth;
+                    } else {
+                        totalCurHp += enemy.properties.maxHealth;
+                        totalMaxHp += enemy.properties.maxHealth;
+                        addedMod = true;
+                    }
+                } else if (onlyHeart) {
+                    totalCurHp = enemy.getHealth();
+                    totalMaxHp = enemy.properties.maxHealth;
+                }
+            }
+            if (!addedMod) {
+                totalCurHp += enemy.getHealth();
+                totalMaxHp += enemy.properties.maxHealth;
+            }
+        }
+        return 1 - ((double) totalCurHp) / totalMaxHp;
     }
 }
