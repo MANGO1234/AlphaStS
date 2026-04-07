@@ -59,7 +59,7 @@ public class EnemyEncounter {
         state.enemiesAlive = k;
     }
 
-    public static List<Enemy> getGremlinLeaderFightEnemies(GameStateBuilder builder) {
+    public static List<Enemy> getGremlinLeaderFightEnemies() {
         var gremlinList = List.of(new EnemyExordium.MadGremlin(), new EnemyExordium.SneakyGremlin(), new EnemyExordium.FatGremlin(), new EnemyExordium.GremlinWizard(),
                 new EnemyExordium.ShieldGremlin());
         for (var gremlin : gremlinList) {
