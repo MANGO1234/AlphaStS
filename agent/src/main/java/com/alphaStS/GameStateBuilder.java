@@ -99,13 +99,7 @@ public class GameStateBuilder {
     }
 
     public void addEnemyEncounter(PredefinedEncounter encounter) {
-        if (encounter.enemies != null && !encounter.enemies.isEmpty()) {
-            addEnemyEncounter(encounter, encounter.enemies.stream().map(Enemy::copy).toArray(Enemy[]::new));
-        } else if (encounter.enemiesSupplier != null) {
-            addEnemyEncounter(encounter, encounter.enemiesSupplier.get().toArray(Enemy[]::new));
-        } else {
-            throw new IllegalArgumentException();
-        }
+        addEnemyEncounter(encounter, encounter.enemiesSupplier.get().toArray(Enemy[]::new));
         if (encounter.encounterExtraLogic != null) {
             encounter.encounterExtraLogic.accept(this);
         }
