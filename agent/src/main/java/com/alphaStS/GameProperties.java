@@ -32,6 +32,8 @@ public class GameProperties implements Cloneable {
     // MCTS/Training/Playing etc. specific variables
     public boolean testNewFeature = true;
     public boolean multithreadedMTCS;
+    public boolean testingReplayMode;
+    public Queue<String[]> replayEventQueue;
     public boolean doingComparison;
     public boolean curriculumTraining;
     public boolean isTraining;

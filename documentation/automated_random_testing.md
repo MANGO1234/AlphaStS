@@ -46,5 +46,5 @@ For each battle in the run data:
 | `GameStateBuilder` → JSON (`BattleBuilderJsonWriter`) | Done | Serializes player, deck, relics, potions to battle definition JSON |
 | STS mod integration (step 1) | Done | `BattleLoaderMod` listens on port 2345; `TestRunner.sendBattleDefinition()` sends JSON and waits for "OK" |
 | Communication mod + random bot (step 2) | TODO | Random-move bot and turn limit not yet implemented |
-| `.log` format and logging mod (step 3) | TODO | Log schema (state/action/RNG format) not yet defined or implemented |
-| Log replay + state assertions (step 4) | TODO | Replay logic and state comparison not yet implemented |
+| `.log` format and logging mod (step 3) | Partial | `state:floor` and `action:*` logged; `event:shuffle` (deck order on reshuffle) added via `EmptyDeckShuffleActionPatch` |
+| Log replay + state assertions (step 4) | Partial | `TestRunner.replayLog()` skeleton: loads shuffle queue, builds `GameState` via `PredefinedEncounter`, stubs through state comparison; action application is TODO |

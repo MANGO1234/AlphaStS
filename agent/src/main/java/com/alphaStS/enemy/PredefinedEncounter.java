@@ -257,4 +257,20 @@ public enum PredefinedEncounter {
         }
         return 1 - ((double) totalCurHp) / totalMaxHp;
     }
+
+    /**
+     * Finds the PredefinedEncounter whose {@code internalKey} matches {@code enemiesName} and
+     * calls {@link GameStateBuilder#addEnemyEncounter(PredefinedEncounter)} on {@code builder}.
+     *
+     * @return true if a matching encounter was found and added, false otherwise
+     */
+    public static boolean addToGameStateBuilder(GameStateBuilder builder, String enemiesName) {
+        for (PredefinedEncounter encounter : values()) {
+            if (encounter.internalKey.equals(enemiesName)) {
+                builder.addEnemyEncounter(encounter);
+                return true;
+            }
+        }
+        return false;
+    }
 }

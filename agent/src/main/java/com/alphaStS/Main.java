@@ -62,7 +62,14 @@ public class Main {
             // TODO: remove - temporary dev command
             String path = args.length > 1 ? args[1] : "../b.run";
             int upto = args.length > 2 ? Integer.parseInt(args[2]) : -1;
-            testRunGenerator(path, upto);
+            String ip = "localhost";
+            for (int i = 1; i < args.length - 1; i++) {
+                if (args[i].equals("--ip")) {
+                    ip = args[i + 1];
+                    break;
+                }
+            }
+            testRunGenerator(path, upto, ip);
         } else {
             System.out.println("Invalid arguments");
         }
@@ -125,10 +132,10 @@ public class Main {
         System.out.println("Total battles: " + totalBattles);
     }
 
-    private static void testRunGenerator(String path, int upto) {
+    private static void testRunGenerator(String path, int upto, String host) {
         System.out.println("Parsing run data from: " + path);
         try {
-            new TestRunner().test(path, upto);
+            new TestRunner(host).test(path, upto);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

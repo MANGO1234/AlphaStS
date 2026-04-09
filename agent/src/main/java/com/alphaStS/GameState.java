@@ -3343,7 +3343,9 @@ public final class GameState implements State {
                 getDeckArrForWrite(discardArrLen)[deckArrLen++] = i;
             }
         }
-        if (properties.frozenEye != null && properties.frozenEye.isRelicEnabledInScenario(this)) {
+        if (properties.testingReplayMode) {
+            com.alphaStS.test.TestReplay.applyShuffleFromQueue(this);
+        } else if (properties.frozenEye != null && properties.frozenEye.isRelicEnabledInScenario(this)) {
             setIsStochastic();
             Utils.shuffle(this, getDeckArrForWrite(), deckArrLen, getSearchRandomGen());
             deckArrFixedDrawLen = deckArrLen;
