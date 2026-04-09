@@ -31,7 +31,7 @@ cmd = [
     '--add-opens', 'java.base/java.util=ALL-UNNAMED',
     '-classpath', CLASS_PATH,
     'com.alphaStS.Main',
-    '--test-run-parser', run_file,
+    '--test-run-generate', run_file
 ]
 if run_idx is not None:
     cmd.append(run_idx)
