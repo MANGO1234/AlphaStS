@@ -130,7 +130,7 @@ public class NNInputLenTest {
         builder.addCard(new CardSilent.PiercingWail());    // affectEnemyStrengthEot
 
         builder.setPlayer(new Player(80, 80));
-        builder.add(PredefinedEncounter.TRIPLE_BYRDS);
+        builder.addEnemyEncounter(PredefinedEncounter.TRIPLE_BYRDS);
 
         assertEquals(129, new GameState(builder).properties.inputLen);
     }
@@ -168,7 +168,7 @@ public class NNInputLenTest {
         builder.addCard(new CardIronclad.Anger(), 1);
         builder.addCard(new CardIronclad.BurningPactP(), 1);
 
-        builder.add(PredefinedEncounter.SENTRIES);
+        builder.addEnemyEncounter(PredefinedEncounter.SENTRIES);
 
         builder.addRelic(new Relic.Orichalcum());
         builder.addRelic(new Relic.BronzeScales());
@@ -221,7 +221,7 @@ public class NNInputLenTest {
         builder.addCard(new CardIronclad.Anger(), 1);
         builder.addCard(new CardIronclad.BurningPactP(), 1);
 
-        builder.add(PredefinedEncounter.SENTRIES);
+        builder.addEnemyEncounter(PredefinedEncounter.SENTRIES);
 
         builder.addRelic(new Relic.Orichalcum());
         builder.addRelic(new Relic.BronzeScales());

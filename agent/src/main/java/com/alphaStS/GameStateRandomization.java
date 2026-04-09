@@ -531,9 +531,6 @@ public interface GameStateRandomization {
             int count = 0;
             for (Potion p : potions) {
                 if (!p.isGenerated) {
-                    if (p.healPlayer) {
-                        throw new IllegalArgumentException(p + " heals player and cannot be included in penalty scenarios");
-                    }
                     count++;
                 }
             }
@@ -541,6 +538,18 @@ public interface GameStateRandomization {
                 if (scenario.length != count) {
                     throw new IllegalArgumentException("Scenario length " + scenario.length + " does not match non-generated potion count " + count);
                 }
+            }
+            int k = 0;
+            for (int i = 0; i < potions.size(); i++) {
+                if (potions.get(i).isGenerated) {
+                    continue;
+                }
+                if (!(potions.get(i) instanceof Potion.FairyInABottle || potions.get(i) instanceof Potion.BloodPotion || potions.get(i) instanceof Potion.RegenPotion || potions.get(i) instanceof Potion.BlockPotion)) {
+                    for (int j = 0; j < scenarios.length; j++) {
+                        scenarios[j][k] = 100;
+                    }
+                }
+                k++;
             }
             this.potions = potions;
             this.scenarios = scenarios;

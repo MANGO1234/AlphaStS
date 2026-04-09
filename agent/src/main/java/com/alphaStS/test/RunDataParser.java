@@ -311,7 +311,7 @@ public class RunDataParser implements Iterable<BattleEntry> {
         // Necronomicon obtained -> also obtain Calling Bell
         for (Map.Entry<Integer, List<String>> entry : new HashMap<>(ctx.relicObtainedAtFloor).entrySet()) {
             if (entry.getValue().contains("Necronomicon")) {
-                addEntityToFloorMap(ctx.relicObtainedAtFloor, entry.getKey(), "Calling Bell");
+                addEntityToFloorMap(ctx.cardObtainedAtFloor, entry.getKey(), "Necronomicurse");
             }
         }
 
