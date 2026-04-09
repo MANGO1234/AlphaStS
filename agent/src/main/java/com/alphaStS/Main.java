@@ -3,8 +3,6 @@ package com.alphaStS;
 import com.alphaStS.gameAction.GameActionCtx;
 import com.alphaStS.gui.BattleBuilderGuiServer;
 import com.alphaStS.model.ModelPlain;
-import com.alphaStS.test.BattleEntry;
-import com.alphaStS.test.RunDataParser;
 import com.alphaStS.test.TestRunner;
 import com.alphaStS.utils.ServerRequest;
 import com.alphaStS.utils.Tuple3;
@@ -53,23 +51,8 @@ public class Main {
             InteractiveServer.start(state, args, SAVES_DIR, CUR_ITER_DIRECTORY);
         } else if (args.length > 0 && args[0].equals("--interactive-server-test")) {
             InteractiveServer.test(args);
-        } else if (args.length > 0 && args[0].equals("--test-run-parser")) {
-            // TODO: remove - temporary dev command
-            String path = args.length > 1 ? args[1] : "../b.run";
-            int idx = args.length > 2 ? Integer.parseInt(args[2]) : -1;
-            testRunParser(path, idx);
-        } else if (args.length > 0 && args[0].equals("--test-run-generate")) {
-            // TODO: remove - temporary dev command
-            String path = args.length > 1 ? args[1] : "../b.run";
-            int upto = args.length > 2 ? Integer.parseInt(args[2]) : -1;
-            String ip = "localhost";
-            for (int i = 1; i < args.length - 1; i++) {
-                if (args[i].equals("--ip")) {
-                    ip = args[i + 1];
-                    break;
-                }
-            }
-            testRunGenerator(path, upto, ip);
+        } else if (args.length > 0 && args[0].equals("--replay-test")) {
+            TestRunner.replayTest(args);
         } else {
             System.out.println("Invalid arguments");
         }
@@ -94,52 +77,6 @@ public class Main {
     private static String PREV_ITER_DIRECTORY;
     private static int ITERATION = -1;
     private static int WAIT_FOR_ITERATION = -1;
-
-    // TODO: remove - temporary dev method for testing RunDataParser
-    private static void testRunParser(String path, int idx) {
-        System.out.println("Parsing run data from: " + path);
-        RunDataParser parser = new RunDataParser(path);
-        int totalBattles = 0;
-        List<BattleEntry> runs;
-        if (idx >= 0) {
-            try {
-                runs = parser.parseRun(idx);
-            } catch (Exception e) {
-                System.err.println("[RunDataParser] Failed to parse run " + idx + ": " + Arrays.toString(e.getStackTrace()));
-                return;
-            }
-        } else {
-            runs = new ArrayList<>();
-            parser.iterator().forEachRemaining(runs::add);
-        }
-        for (var run : runs) {
-            int runIdx = run.getRunIdx();
-            int battleIdx = run.getBattleIdx();
-            GameStateBuilder builder = run.getBuilder();
-            var cards = builder.getCards();
-            var relics = builder.getRelics();
-            var potions = builder.getPotions();
-            System.out.printf("Run %d, Battle %d — %d cards, %d relics, %d potions, HP %d/%d%n",
-                runIdx,
-                battleIdx,
-                cards.size(),
-                relics.size(),
-                potions.size(),
-                builder.getPlayer().getHealth(),
-                builder.getPlayer().getMaxHealth());
-            totalBattles++;
-        }
-        System.out.println("Total battles: " + totalBattles);
-    }
-
-    private static void testRunGenerator(String path, int upto, String host) {
-        System.out.println("Parsing run data from: " + path);
-        try {
-            new TestRunner(host).test(path, upto);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
 
     private static void printLengths(GameState state) throws IOException {
         ObjectMapper mapper = new ObjectMapper();

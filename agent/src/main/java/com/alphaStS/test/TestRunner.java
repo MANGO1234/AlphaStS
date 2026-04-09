@@ -64,7 +64,102 @@ public class TestRunner {
     /** Output directory for completed run files. */
     private static final String TESTS_DIR = "tests";
 
-    public void test(String runDataPath, int upto) throws Exception {
+    /**
+     * Dispatches the {@code --replay-test} command and its subcommands.
+     */
+    public static void replayTest(String[] args) {
+        String subCmd = args.length > 1 ? args[1] : "--parse-historical-data";
+        if (subCmd.equals("--parse-historical-data")) {
+            String path = args.length > 2 ? args[2] : "../b.run";
+            int idx = args.length > 3 ? Integer.parseInt(args[3]) : -1;
+            parseHistoricalData(path, idx);
+        } else if (subCmd.equals("--generate-runs")) {
+            if (args.length < 3) {
+                System.err.println("Usage: --replay-test --generate-runs <historical-data-path> [--upto N] [--ip host] [--replay]");
+                return;
+            }
+            String path = args[2];
+            int upto = -1;
+            String ip = "localhost";
+            boolean doReplay = false;
+            for (int i = 3; i < args.length; i++) {
+                if (args[i].equals("--upto") && i + 1 < args.length) {
+                    upto = Integer.parseInt(args[i + 1]);
+                    i++;
+                } else if (args[i].equals("--ip") && i + 1 < args.length) {
+                    ip = args[i + 1];
+                    i++;
+                } else if (args[i].equals("--replay")) {
+                    doReplay = true;
+                }
+            }
+            try {
+                new TestRunner(ip).generateRuns(path, upto, doReplay);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        } else if (subCmd.equals("--replay-run")) {
+            if (args.length < 4) {
+                System.err.println("Usage: --replay-test --replay-run <run-log-path> <historical-data-path>");
+                return;
+            }
+            String runLogPath = args[2];
+            String historicalDataPath = args[3];
+            try {
+                new TestRunner().replayRunFile(Paths.get(runLogPath), historicalDataPath);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        } else {
+            System.err.println("Unknown --replay-test subcommand: " + subCmd);
+            System.err.println("Valid subcommands: --parse-historical-data, --generate-runs, --replay-run");
+        }
+    }
+
+    /**
+     * Parses a historical run data file and prints a summary of each battle entry.
+     */
+    public static void parseHistoricalData(String path, int idx) {
+        System.out.println("Parsing run data from: " + path);
+        RunDataParser parser = new RunDataParser(path);
+        int totalBattles = 0;
+        List<BattleEntry> runs;
+        if (idx >= 0) {
+            try {
+                runs = parser.parseRun(idx);
+            } catch (Exception e) {
+                System.err.println("[RunDataParser] Failed to parse run " + idx + ": " + e.getMessage());
+                return;
+            }
+        } else {
+            runs = new ArrayList<>();
+            parser.iterator().forEachRemaining(runs::add);
+        }
+        for (var run : runs) {
+            int runIdx = run.getRunIdx();
+            int battleIdx = run.getBattleIdx();
+            GameStateBuilder builder = run.getBuilder();
+            var cards = builder.getCards();
+            var relics = builder.getRelics();
+            var potions = builder.getPotions();
+            System.out.printf("Run %d, Battle %d \u2014 %d cards, %d relics, %d potions, HP %d/%d%n",
+                runIdx,
+                battleIdx,
+                cards.size(),
+                relics.size(),
+                potions.size(),
+                builder.getPlayer().getHealth(),
+                builder.getPlayer().getMaxHealth());
+            totalBattles++;
+        }
+        System.out.println("Total battles: " + totalBattles);
+    }
+
+    /**
+     * Generates replay run files from a historical run data file by playing random moves in STS.
+     * Step 4 (replay validation) is optional and controlled by {@code doReplay}.
+     */
+    public void generateRuns(String runDataPath, int upto, boolean doReplay) throws Exception {
         ObjectMapper mapper = new ObjectMapper();
 
         int k = 0;
@@ -100,24 +195,55 @@ public class TestRunner {
             // Step 2: Play random moves via CommunicationMod until battle ends.
             playRandomMoves(rng);
 
-            // Move the completed .run file to tests/<runIdx>_<battleIdx>_<seed>.run
+            // Move the completed .run file to tests/<play_id>_<battleIdx>_<seed>.run
             Files.createDirectories(Paths.get(TESTS_DIR));
             Path dest = Paths.get(TESTS_DIR, entry.getPlayId() + "_" + battleIdx + "_" + seed + ".run");
             Files.move(runFilePath, dest, StandardCopyOption.REPLACE_EXISTING);
             System.out.println("[TestRunner] Run file saved to: " + dest.toAbsolutePath());
 
-            // Step 4: Replay the log through a GameState and assert states match after each action.
-            try {
-                replayLog(entry, dest);
-                System.out.println("[TestRunner] Replay passed for run " + runIdx + ", battle " + battleIdx);
-            } catch (Exception e) {
-                System.err.println("[TestRunner] Replay failed for run " + runIdx + ", battle " + battleIdx + ": " + e.getMessage());
+            // Step 4 (optional): Replay the log through a GameState and assert states match after each action.
+            if (doReplay) {
+                try {
+                    replayLog(entry, dest);
+                    System.out.println("[TestRunner] Replay passed for run " + runIdx + ", battle " + battleIdx);
+                } catch (Exception e) {
+                    System.err.println("[TestRunner] Replay failed for run " + runIdx + ", battle " + battleIdx + ": " + e.getMessage());
+                }
             }
 
-            if (++k >= upto) {
+            if (upto >= 0 && ++k >= upto) {
                 break;
             }
         }
+    }
+
+    /**
+     * Replays a run log file, looking up the corresponding battle setup from the historical data
+     * and validating the simulated game state after each action.
+     */
+    public void replayRunFile(Path logFile, String historicalDataPath) throws Exception {
+        ObjectMapper mapper = new ObjectMapper();
+        List<String> lines = Files.readAllLines(logFile);
+        if (lines.isEmpty()) {
+            throw new ReplayException("Empty run log file: " + logFile, null, null);
+        }
+        JsonNode header = mapper.readTree(lines.get(0));
+        String playId = header.path("play_id").asText();
+        int battleIdx = header.path("battle_idx").asInt(-1);
+
+        BattleEntry matchingEntry = null;
+        for (BattleEntry entry : new RunDataParser(historicalDataPath)) {
+            if (entry.getPlayId().equals(playId) && entry.getBattleIdx() == battleIdx) {
+                matchingEntry = entry;
+                break;
+            }
+        }
+        if (matchingEntry == null) {
+            throw new ReplayException(
+                "No matching BattleEntry for play_id=" + playId + ", battle_idx=" + battleIdx, null, null);
+        }
+        replayLog(matchingEntry, logFile);
+        System.out.println("[TestRunner] Replay passed for play_id=" + playId + ", battle_idx=" + battleIdx);
     }
 
     /**

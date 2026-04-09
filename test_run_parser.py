@@ -22,36 +22,71 @@ CLASS_PATH = sep.join([
     f'{M2_REPO}/one/util/streamex/0.8.3/streamex-0.8.3.jar',
 ])
 
-parser = argparse.ArgumentParser()
-parser.add_argument('--generate', action='store_true', help='Use --test-run-generate instead of --test-run-parser')
-parser.add_argument('--ip', default=None, help='IP address for sendBattleDefinition (only used with --generate)')
-parser.add_argument('run_file', nargs='?', default='../../b.run')
-parser.add_argument('run_idx', nargs='?', default=None)
+JAVA_BASE = [
+    'java',
+    '--add-opens', 'java.base/java.util=ALL-UNNAMED',
+    '-classpath', CLASS_PATH,
+    'com.alphaStS.Main',
+    '--replay-test',
+]
+
+parser = argparse.ArgumentParser(description='Replay test utilities for battle log validation.')
+subparsers = parser.add_subparsers(dest='subcommand')
+
+# --parse-historical-data (default)
+parse_parser = subparsers.add_parser(
+    'parse-historical-data',
+    help='Parse a historical run data file and print a summary of each battle entry.',
+)
+parse_parser.add_argument('run_file', nargs='?', default='../../b.run',
+                          help='Path to the historical run data file.')
+parse_parser.add_argument('run_idx', nargs='?', default=None,
+                          help='Optional run index to parse a single run.')
+
+# --generate-runs
+generate_parser = subparsers.add_parser(
+    'generate-runs',
+    help='Generate replay run files by playing random moves in STS.',
+)
+generate_parser.add_argument('run_file',
+                             help='Path to the historical run data file (required).')
+generate_parser.add_argument('--upto', type=int, default=None,
+                             help='Maximum number of battles to process.')
+generate_parser.add_argument('--ip', default=None,
+                             help='IP address of the STS server.')
+generate_parser.add_argument('--replay', action='store_true',
+                             help='Replay each generated run log after saving.')
+
+# --replay-run
+replay_parser = subparsers.add_parser(
+    'replay-run',
+    help='Replay a single run log file against the simulated game state.',
+)
+replay_parser.add_argument('run_log',
+                           help='Path to the .run log file to replay.')
+replay_parser.add_argument('historical_data',
+                           help='Path to the historical run data file.')
+
 args = parser.parse_args()
 
 os.chdir('./agent')
 
-if args.generate:
-    cmd = [
-        'java',
-        '--add-opens', 'java.base/java.util=ALL-UNNAMED',
-        '-classpath', CLASS_PATH,
-        'com.alphaStS.Main',
-        '--test-run-generate', args.run_file,
-    ]
-    if args.run_idx is not None:
-        cmd.append(args.run_idx)
+if args.subcommand == 'generate-runs':
+    cmd = JAVA_BASE + ['--generate-runs', args.run_file]
+    if args.upto is not None:
+        cmd += ['--upto', str(args.upto)]
     if args.ip is not None:
-        cmd.extend(['--ip', args.ip])
+        cmd += ['--ip', args.ip]
+    if args.replay:
+        cmd += ['--replay']
+elif args.subcommand == 'replay-run':
+    cmd = JAVA_BASE + ['--replay-run', args.run_log, args.historical_data]
 else:
-    cmd = [
-        'java',
-        '--add-opens', 'java.base/java.util=ALL-UNNAMED',
-        '-classpath', CLASS_PATH,
-        'com.alphaStS.Main',
-        '--test-run-parser', args.run_file,
-    ]
-    if args.run_idx is not None:
-        cmd.append(args.run_idx)
+    # Default: parse-historical-data
+    cmd = JAVA_BASE + ['--parse-historical-data']
+    if hasattr(args, 'run_file'):
+        cmd += [args.run_file]
+    if hasattr(args, 'run_idx') and args.run_idx is not None:
+        cmd += [args.run_idx]
 
 subprocess.run(cmd)
