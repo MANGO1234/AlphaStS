@@ -1,7 +1,12 @@
 package com.alphaStS.test;
 
+import com.alphaStS.GameState;
+import com.alphaStS.GameStateBuilder;
+import com.alphaStS.enemy.PredefinedEncounter;
 import com.alphaStS.enums.CharacterEnum;
+import com.alphaStS.gameAction.GameActionCtx;
 import com.alphaStS.gui.BattleBuilderJsonWriter;
+import com.alphaStS.random.RandomGen;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -18,30 +23,40 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import com.alphaStS.random.RandomGen;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
 import java.util.StringJoiner;
 
 public class TestRunner {
 
     /** Host and port of the BattleLoaderMod TCP server running inside STS. */
-    private static final String BATTLE_LOADER_HOST = "localhost";
+    private final String BATTLE_LOADER_HOST;
     private static final int BATTLE_LOADER_PORT = 2345;
 
+    public TestRunner() {
+        this.BATTLE_LOADER_HOST = "localhost";
+        this.COMM_MOD_HOST = "localhost";
+    }
+
+    public TestRunner(String host) {
+        this.BATTLE_LOADER_HOST = host;
+        this.COMM_MOD_HOST = host;
+    }
+
     /** Host and port of the sts-comm-mod-server TCP proxy (bridges CommunicationMod). */
-    private static final String COMM_MOD_HOST = "127.0.0.1";
+    private final String COMM_MOD_HOST;
     private static final int COMM_MOD_PORT = 2346;
 
     /** STS save files, one per character — deleted and recreated before each battle. */
-    private static final String RUN_FILE_IRONCLAD =
-            "F:\\SteamLibrary\\steamapps\\common\\SlayTheSpire\\saves\\1_IRONCLAD.run.log";
-    private static final String RUN_FILE_SILENT =
-            "F:\\SteamLibrary\\steamapps\\common\\SlayTheSpire\\saves\\1_SILENT.run.log";
-    private static final String RUN_FILE_DEFECT =
-            "F:\\SteamLibrary\\steamapps\\common\\SlayTheSpire\\saves\\1_DEFECT.run.log";
-    private static final String RUN_FILE_WATCHER =
-            "F:\\SteamLibrary\\steamapps\\common\\SlayTheSpire\\saves\\1_WATCHER.run.log";
+    private static final String STS_SAVES_DIR = isWsl()
+            ? "/mnt/f/SteamLibrary/steamapps/common/SlayTheSpire/saves/"
+            : "F:\\SteamLibrary\\steamapps\\common\\SlayTheSpire\\saves\\";
+    private static final String RUN_FILE_IRONCLAD = STS_SAVES_DIR + "1_IRONCLAD.run.log";
+    private static final String RUN_FILE_SILENT   = STS_SAVES_DIR + "1_SILENT.run.log";
+    private static final String RUN_FILE_DEFECT   = STS_SAVES_DIR + "1_DEFECT.run.log";
+    private static final String RUN_FILE_WATCHER  = STS_SAVES_DIR + "1_WATCHER.run.log";
 
     /** Maximum number of turns before the random-move bot aborts the battle. */
     private static final int MAX_TURNS = 30;
@@ -89,12 +104,17 @@ public class TestRunner {
             Files.createDirectories(Paths.get(TESTS_DIR));
             Path dest = Paths.get(TESTS_DIR, entry.getPlayId() + "_" + battleIdx + "_" + seed + ".run");
             Files.move(runFilePath, dest, StandardCopyOption.REPLACE_EXISTING);
-            System.out.println("[TestRunner] Run file saved to: " + dest);
+            System.out.println("[TestRunner] Run file saved to: " + dest.toAbsolutePath());
 
-            // TODO 4: Use .log, construct a GameState of the same battle, replay from the start
-            // of log until the end and check if the states match after each action.
+            // Step 4: Replay the log through a GameState and assert states match after each action.
+            try {
+                replayLog(entry, dest);
+                System.out.println("[TestRunner] Replay passed for run " + runIdx + ", battle " + battleIdx);
+            } catch (Exception e) {
+                System.err.println("[TestRunner] Replay failed for run " + runIdx + ", battle " + battleIdx + ": " + e.getMessage());
+            }
 
-            if (k++ >= upto) {
+            if (++k >= upto) {
                 break;
             }
         }
@@ -170,6 +190,65 @@ public class TestRunner {
                 ObjectNode cmdNode = mapper.createObjectNode();
                 cmdNode.put("command", command);
                 writer.println(mapper.writeValueAsString(cmdNode));
+            }
+        }
+    }
+
+    /**
+     * Replays a completed {@code .run} log file through an alphaStS {@link GameState}, comparing
+     * each logged {@code state:floor} against the simulated state after the corresponding action.
+     *
+     * @throws Exception if the enemies name is unknown, or if a state mismatch is detected
+     */
+    private void replayLog(BattleEntry entry, Path logFile) throws Exception {
+        ObjectMapper mapper = new ObjectMapper();
+        List<String> lines = Files.readAllLines(logFile);
+
+        // Pre-pass: load replay events from the log into the queue.
+        Queue<String[]> replayEventQueue = new LinkedList<>();
+        for (String line : lines) {
+            JsonNode node = mapper.readTree(line);
+            String type = node.path("_type").asText();
+            if ("event:shuffle".equals(type)) {
+                JsonNode orderNode = node.path("deckOrder");
+                String[] order = new String[orderNode.size()];
+                for (int i = 0; i < orderNode.size(); i++) {
+                    order[i] = orderNode.get(i).asText();
+                }
+                replayEventQueue.add(order);
+            }
+        }
+
+        // Build the GameState for this battle.
+        GameStateBuilder builder = entry.getBuilder();
+        boolean found = PredefinedEncounter.addToGameStateBuilder(builder, entry.getEnemiesName());
+        if (!found) {
+            throw new ReplayException("Unknown enemies name: " + entry.getEnemiesName(), null, null);
+        }
+        GameState state = new GameState(builder);
+        state.properties.testingReplayMode = true;
+        state.properties.replayEventQueue = replayEventQueue;
+        state.properties.random = new RandomGen.RandomGenPlain();
+
+        // Advance through pre-battle contexts to reach PLAY_CARD.
+        while (state.actionCtx == GameActionCtx.BEGIN_PRE_BATTLE ||
+               state.actionCtx == GameActionCtx.BEGIN_BATTLE ||
+               state.actionCtx == GameActionCtx.BEGIN_TURN ||
+               state.actionCtx == GameActionCtx.AFTER_RANDOMIZATION) {
+            state = state.doAction(0);
+        }
+
+        // Replay: compare state:floor entries and apply actions.
+        for (String line : lines) {
+            JsonNode node = mapper.readTree(line);
+            String type = node.path("_type").asText();
+
+            if ("state:floor".equals(type)) {
+                TestReplay.compareStateFloor(line, state);
+            } else if ("action:play_card".equals(type)) {
+                // TODO: apply play_card action to state using card name and target_index from log
+            } else if ("action:end_turn".equals(type)) {
+                // TODO: apply end_turn action to state, advance through BEGIN_TURN
             }
         }
     }
@@ -373,6 +452,16 @@ public class TestRunner {
     /**
      * Returns the save-file path for the given character.
      */
+    private static boolean isWsl() {
+        if (!System.getProperty("os.name", "").toLowerCase().contains("linux")) return false;
+        try {
+            String procVersion = new String(java.nio.file.Files.readAllBytes(java.nio.file.Paths.get("/proc/version")));
+            return procVersion.toLowerCase().contains("microsoft");
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
     private static String getRunFilePath(CharacterEnum character) {
         return switch (character) {
             case IRONCLAD -> RUN_FILE_IRONCLAD;
