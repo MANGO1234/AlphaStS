@@ -66,6 +66,8 @@ replay_parser.add_argument('run_log',
                            help='Path to the .run log file to replay.')
 replay_parser.add_argument('historical_data',
                            help='Path to the historical run data file.')
+replay_parser.add_argument('--verbose', action='store_true',
+                           help='Print simulated and logged state at each step.')
 
 args = parser.parse_args()
 
@@ -81,6 +83,8 @@ if args.subcommand == 'generate-runs':
         cmd += ['--replay']
 elif args.subcommand == 'replay-run':
     cmd = JAVA_BASE + ['--replay-run', args.run_log, args.historical_data]
+    if args.verbose:
+        cmd += ['--verbose']
 else:
     # Default: parse-historical-data
     cmd = JAVA_BASE + ['--parse-historical-data']

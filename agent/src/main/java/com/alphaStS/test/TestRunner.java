@@ -5,6 +5,7 @@ import com.alphaStS.GameStateBuilder;
 import com.alphaStS.enemy.PredefinedEncounter;
 import com.alphaStS.enums.CharacterEnum;
 import com.alphaStS.gameAction.GameActionCtx;
+import com.alphaStS.gameAction.GameActionType;
 import com.alphaStS.gui.BattleBuilderJsonWriter;
 import com.alphaStS.random.RandomGen;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -100,13 +101,17 @@ public class TestRunner {
             }
         } else if (subCmd.equals("--replay-run")) {
             if (args.length < 4) {
-                System.err.println("Usage: --replay-test --replay-run <run-log-path> <historical-data-path>");
+                System.err.println("Usage: --replay-test --replay-run <run-log-path> <historical-data-path> [--verbose]");
                 return;
             }
             String runLogPath = args[2];
             String historicalDataPath = args[3];
+            boolean verbose = false;
+            for (int i = 4; i < args.length; i++) {
+                if (args[i].equals("--verbose")) verbose = true;
+            }
             try {
-                new TestRunner().replayRunFile(Paths.get(runLogPath), historicalDataPath);
+                new TestRunner().replayRunFile(Paths.get(runLogPath), historicalDataPath, verbose);
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
@@ -204,7 +209,7 @@ public class TestRunner {
             // Step 4 (optional): Replay the log through a GameState and assert states match after each action.
             if (doReplay) {
                 try {
-                    replayLog(entry, dest);
+                    replayLog(entry, dest, false);
                     System.out.println("[TestRunner] Replay passed for run " + runIdx + ", battle " + battleIdx);
                 } catch (Exception e) {
                     System.err.println("[TestRunner] Replay failed for run " + runIdx + ", battle " + battleIdx + ": " + e.getMessage());
@@ -221,7 +226,7 @@ public class TestRunner {
      * Replays a run log file, looking up the corresponding battle setup from the historical data
      * and validating the simulated game state after each action.
      */
-    public void replayRunFile(Path logFile, String historicalDataPath) throws Exception {
+    public void replayRunFile(Path logFile, String historicalDataPath, boolean verbose) throws Exception {
         ObjectMapper mapper = new ObjectMapper();
         List<String> lines = Files.readAllLines(logFile);
         if (lines.isEmpty()) {
@@ -242,7 +247,7 @@ public class TestRunner {
             throw new ReplayException(
                 "No matching BattleEntry for play_id=" + playId + ", battle_idx=" + battleIdx, null, null);
         }
-        replayLog(matchingEntry, logFile);
+        replayLog(matchingEntry, logFile, verbose);
         System.out.println("[TestRunner] Replay passed for play_id=" + playId + ", battle_idx=" + battleIdx);
     }
 
@@ -326,12 +331,14 @@ public class TestRunner {
      *
      * @throws Exception if the enemies name is unknown, or if a state mismatch is detected
      */
-    private void replayLog(BattleEntry entry, Path logFile) throws Exception {
+    private void replayLog(BattleEntry entry, Path logFile, boolean verbose) throws Exception {
         ObjectMapper mapper = new ObjectMapper();
         List<String> lines = Files.readAllLines(logFile);
 
-        // Pre-pass: load replay events from the log into the queue.
+        // Pre-pass: load replay events from the log into the queue and extract initial enemy HPs.
         Queue<String[]> replayEventQueue = new LinkedList<>();
+        int[] initialEnemyHps = null;
+        int[] initialEnemyMaxHps = null;
         for (String line : lines) {
             JsonNode node = mapper.readTree(line);
             String type = node.path("_type").asText();
@@ -342,6 +349,14 @@ public class TestRunner {
                     order[i] = orderNode.get(i).asText();
                 }
                 replayEventQueue.add(order);
+            } else if ("state:floor".equals(type) && initialEnemyHps == null) {
+                JsonNode monsters = node.path("combat_state").path("monsters");
+                initialEnemyHps = new int[monsters.size()];
+                initialEnemyMaxHps = new int[monsters.size()];
+                for (int i = 0; i < monsters.size(); i++) {
+                    initialEnemyHps[i] = monsters.get(i).path("hp_current").asInt();
+                    initialEnemyMaxHps[i] = monsters.get(i).path("hp_max").asInt();
+                }
             }
         }
 
@@ -356,6 +371,23 @@ public class TestRunner {
         state.properties.replayEventQueue = replayEventQueue;
         state.properties.random = new RandomGen.RandomGenPlain();
 
+        // The first event:shuffle in the log is the initial deck order STS chose before the first
+        // draw. Set it directly so the simulation draws the same opening hand.
+        if (!replayEventQueue.isEmpty()) {
+            String[] initialOrder = replayEventQueue.poll();
+            state.deckArr = new short[initialOrder.length + 2];
+            state.deckArrLen = 0;
+            for (String cardName : initialOrder) {
+                for (int i = 0; i < state.properties.cardDict.length; i++) {
+                    if (state.properties.cardDict[i].cardName.equals(cardName)) {
+                        state.deckArr[state.deckArrLen++] = (short) i;
+                        break;
+                    }
+                }
+            }
+            state.deckArrFixedDrawLen = state.deckArrLen;
+        }
+
         // Advance through pre-battle contexts to reach PLAY_CARD.
         while (state.actionCtx == GameActionCtx.BEGIN_PRE_BATTLE ||
                state.actionCtx == GameActionCtx.BEGIN_BATTLE ||
@@ -364,17 +396,72 @@ public class TestRunner {
             state = state.doAction(0);
         }
 
+        // Hardcode enemy HPs from the first state:floor to avoid randomization divergence.
+        if (initialEnemyHps != null) {
+            for (int i = 0; i < initialEnemyHps.length; i++) {
+                state.getEnemiesForWrite().getForWrite(i).setHealth(initialEnemyHps[i]);
+                state.getEnemiesForWrite().getForWrite(i).setMaxHealthInBattle(initialEnemyMaxHps[i]);
+            }
+        }
+
         // Replay: compare state:floor entries and apply actions.
         for (String line : lines) {
             JsonNode node = mapper.readTree(line);
             String type = node.path("_type").asText();
 
             if ("state:floor".equals(type)) {
+                if (verbose) {
+                    System.out.println("-------------------------");
+                    System.out.println("Sim: " + state);
+                    System.out.println("Log: " + line);
+                    System.out.println("-------------------------");
+                }
                 TestReplay.compareStateFloor(line, state);
             } else if ("action:play_card".equals(type)) {
-                // TODO: apply play_card action to state using card name and target_index from log
+                if (verbose) System.out.println(line);
+                String cardName = node.path("card").asText();
+                int targetIndex = node.path("target_index").asInt(-1);
+
+                int[] legal = state.getLegalActions();
+                int actionIdx = -1;
+                for (int i = 0; i < legal.length; i++) {
+                    var a = state.properties.actionsByCtx[state.actionCtx.ordinal()][legal[i]];
+                    if (a.type() == GameActionType.PLAY_CARD
+                            && state.properties.cardDict[a.idx()].cardName.equals(cardName)) {
+                        actionIdx = i;
+                        break;
+                    }
+                }
+                if (actionIdx < 0) {
+                    throw new ReplayException("Card not found in legal actions: " + cardName, state, line);
+                }
+                state = state.doAction(actionIdx);
+
+                if (state.actionCtx == GameActionCtx.SELECT_ENEMY) {
+                    int[] enemyLegal = state.getLegalActions();
+                    int enemyPos = -1;
+                    for (int i = 0; i < enemyLegal.length; i++) {
+                        if (enemyLegal[i] == targetIndex) {
+                            enemyPos = i;
+                            break;
+                        }
+                    }
+                    if (enemyPos < 0) {
+                        throw new ReplayException(
+                            "Target enemy " + targetIndex + " not in legal actions", state, line);
+                    }
+                    state = state.doAction(enemyPos);
+                }
             } else if ("action:end_turn".equals(type)) {
-                // TODO: apply end_turn action to state, advance through BEGIN_TURN
+                if (verbose) System.out.println(line);
+                // END_TURN is always the last legal action in PLAY_CARD context.
+                state = state.doAction(state.getLegalActions().length - 1);
+                // Advance through BEGIN_TURN to reach PLAY_CARD.
+                while (state.actionCtx == GameActionCtx.BEGIN_TURN) {
+                    state = state.doAction(0);
+                }
+            } else if (verbose) {
+                System.out.println(line);
             }
         }
     }
