@@ -1472,6 +1472,14 @@ public final class GameState implements State {
             if (transformCardIdx >= 0) {
                 cardIdx = transformCardIdx;
             }
+            if (properties.razorTooth != null && properties.razorTooth.isRelicEnabledInScenario(this)) {
+                if (properties.cardDict[cardIdx].cardType == Card.ATTACK || properties.cardDict[cardIdx].cardType == Card.SKILL) {
+                    int upgIdx = properties.upgradeIdxes[cardIdx];
+                    if (upgIdx >= 0) {
+                        cardIdx = upgIdx;
+                    }
+                }
+            }
             if (cloneSource == null && (properties.havocCounterIdx < 0 || getCounterForRead()[properties.havocCounterIdx] == 0)) {
                 if (properties.cardDict[cardIdx].exhaustWhenPlayed) {
                     exhaustedCardHandle(cardIdx, true);
@@ -1765,6 +1773,9 @@ public final class GameState implements State {
         }
         if (properties.sneckoEye != null && properties.sneckoEye.isRelicEnabledInScenario(this)) {
             drawCount += 2;
+        }
+        if (properties.bigMushroom != null && properties.bigMushroom.isRelicEnabledInScenario(this)) {
+            drawCount -= 2;
         }
         draw(drawCount);
         for (GameEventHandler handler : properties.startOfTurnHandlers) {

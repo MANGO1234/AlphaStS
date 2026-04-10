@@ -31,6 +31,10 @@ public class Player extends PlayerReadOnly {
             dmg = 0;
             state.getCounterForWrite()[state.properties.bufferCounterIdx]--;
         }
+        if (state.properties.beatingRemnantCounterIdx >= 0 && state.properties.beatingRemnant != null && state.properties.beatingRemnant.isRelicEnabledInScenario(state)) {
+            int hpLost = state.getCounterForRead()[state.properties.beatingRemnantCounterIdx];
+            dmg = Math.max(0, Math.min(dmg, 20 - hpLost));
+        }
         health -= dmg;
         block = Math.max(0, block - n);
         if (platedArmor > 0 && dmg > 0) {
@@ -40,6 +44,9 @@ public class Player extends PlayerReadOnly {
             health = 0;
         }
         int dmgDealt = startHealth - health;
+        if (state.properties.beatingRemnantCounterIdx >= 0 && state.properties.beatingRemnant != null && state.properties.beatingRemnant.isRelicEnabledInScenario(state)) {
+            state.getCounterForWrite()[state.properties.beatingRemnantCounterIdx] += dmgDealt;
+        }
         if (health == 0) {
             tryReviveWithFairyInABottle(state);
         }
@@ -60,6 +67,10 @@ public class Player extends PlayerReadOnly {
                 dmg = 0;
                 state.getCounterForWrite()[state.properties.bufferCounterIdx]--;
             }
+            if (state.properties.beatingRemnantCounterIdx >= 0 && state.properties.beatingRemnant != null && state.properties.beatingRemnant.isRelicEnabledInScenario(state)) {
+                int hpLost = state.getCounterForRead()[state.properties.beatingRemnantCounterIdx];
+                dmg = Math.max(0, Math.min(dmg, 20 - hpLost));
+            }
             health -= dmg;
             block = Math.max(0, block - n);
         } else {
@@ -71,12 +82,19 @@ public class Player extends PlayerReadOnly {
                 dmg = 0;
                 state.getCounterForWrite()[state.properties.bufferCounterIdx]--;
             }
+            if (state.properties.beatingRemnantCounterIdx >= 0 && state.properties.beatingRemnant != null && state.properties.beatingRemnant.isRelicEnabledInScenario(state)) {
+                int hpLost = state.getCounterForRead()[state.properties.beatingRemnantCounterIdx];
+                dmg = Math.max(0, Math.min(dmg, 20 - hpLost));
+            }
             health -= dmg;
         }
         if (health < 0) {
             health = 0;
         }
         int dmgDealt = startHealth - health;
+        if (state.properties.beatingRemnantCounterIdx >= 0 && state.properties.beatingRemnant != null && state.properties.beatingRemnant.isRelicEnabledInScenario(state)) {
+            state.getCounterForWrite()[state.properties.beatingRemnantCounterIdx] += dmgDealt;
+        }
         if (health == 0) {
             tryReviveWithFairyInABottle(state);
         }
@@ -225,10 +243,15 @@ public class Player extends PlayerReadOnly {
         if ((state.buffs & PlayerBuff.BARRICADE.mask()) != 0) {
         } else if (state.properties.blurCounterIdx >= 0 && state.getCounterForRead()[state.properties.blurCounterIdx] > 0) {
             state.getCounterForWrite()[state.properties.blurCounterIdx]--;
-        } else if (state.properties.calipers != null && state.properties.calipers.isRelicEnabledInScenario(state)) {
-            block = Math.max(block - 15, 0);
         } else {
-            block = 0;
+            int retained = 0;
+            if (state.properties.calipers != null && state.properties.calipers.isRelicEnabledInScenario(state)) {
+                retained = Math.max(block - 15, 0);
+            }
+            if (state.properties.sturdyClamp != null && state.properties.sturdyClamp.isRelicEnabledInScenario(state)) {
+                retained = Math.max(retained, Math.min(block, 10));
+            }
+            block = retained;
         }
     }
 

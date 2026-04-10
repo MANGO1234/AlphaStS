@@ -586,8 +586,32 @@ public class Relic2 {
     public static class ArtOfWar extends Relic.ArtOfWar {
     }
 
-    // TODO: Beating Remnant (Rare)
-    //   Effect: You cannot lose more than 20 HP in a single turn.
+    public static class BeatingRemnant extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.beatingRemnant = this;
+            state.properties.registerCounter("BeatingRemnant", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 20.0f;
+                    return idx + 1;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+
+                @Override public void onRegister(int counterIdx) {
+                    state.properties.beatingRemnantCounterIdx = counterIdx;
+                }
+            });
+            state.properties.addStartOfTurnHandler("BeatingRemnant", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (isRelicEnabledInScenario(state)) {
+                        state.getCounterForWrite()[counterIdx] = 0;
+                    }
+                }
+            });
+        }
+    }
 
     public static class CaptainsWheel extends Relic.CaptainsWheel {
     }
@@ -680,11 +704,55 @@ public class Relic2 {
 
     // No need to implement Prayer Wheel: Normal enemies drop an additional card reward.
 
-    // TODO: Rainbow Ring (Rare)
-    //   Effect: The first time you play an Attack, Skill, and Powers each turn, gain 1 Strength and 1 Dexterity.
+    public static class RainbowRing extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("RainbowRing", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    var counter = state.getCounterForRead()[counterIdx];
+                    input[idx] = (counter & 1) != 0 ? 0.1f : 0.0f;
+                    input[idx + 1] = (counter & (1 << 1)) != 0 ? 0.1f : 0.0f;
+                    input[idx + 2] = (counter & (1 << 2)) != 0 ? 0.1f : 0.0f;
+                    return idx + 3;
+                }
 
-    // TODO: Razor Tooth (Rare)
-    //   Effect: Every time you play an Attack or Skill, Upgrade it for the remainder of combat.
+                @Override public int getInputLenDelta() {
+                    return 3;
+                }
+            });
+            state.properties.addOnCardPlayedHandler("RainbowRing", new GameEventCardHandler() {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                    if (!isRelicEnabledInScenario(state) || state.getCounterForRead()[counterIdx] == 0b111) {
+                        return;
+                    }
+                    var cardType = state.properties.cardDict[cardIdx].cardType;
+                    if (cardType == Card.ATTACK) {
+                        state.getCounterForWrite()[counterIdx] |= 1;
+                    } else if (cardType == Card.SKILL) {
+                        state.getCounterForWrite()[counterIdx] |= 1 << 1;
+                    } else if (cardType == Card.POWER) {
+                        state.getCounterForWrite()[counterIdx] |= 1 << 2;
+                    }
+                    if (state.getCounterForRead()[counterIdx] == 0b111) {
+                        state.getPlayerForWrite().gainStrength(1);
+                        state.getPlayerForWrite().gainDexterity(1);
+                    }
+                }
+            });
+            state.properties.addEndOfTurnHandler("RainbowRing", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (isRelicEnabledInScenario(state)) {
+                        state.getCounterForWrite()[counterIdx] = 0;
+                    }
+                }
+            });
+        }
+    }
+
+    public static class RazorTooth extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.razorTooth = this;
+        }
+    }
 
     // No need to implement Shovel: You can now dig at Rest Sites to obtain a random Relic.
 
@@ -694,8 +762,11 @@ public class Relic2 {
     public static class StoneCalendar extends Relic.StoneCalendar {
     }
 
-    // TODO: Sturdy Clamp (Rare)
-    //   Effect: Up to 10 Block persists across turns.
+    public static class SturdyClamp extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.sturdyClamp = this;
+        }
+    }
 
     // No need to implement The Courier: The merchant no longer runs out of cards, relics, or potions and his prices are reduced by 20%.
 
@@ -707,8 +778,22 @@ public class Relic2 {
     public static class UnceasingTop extends Relic.UnceasingTop {
     }
 
-    // TODO: Unsettling Lamp (Rare)
-    //   Effect: Each combat, the first time you play a card that Debuffs an enemy, double its effect.
+    public static class UnsettlingLamp extends Relic {
+        public UnsettlingLamp() {
+            entityProperty.possibleBuffs |= PlayerBuff.UNSETTLING_LAMP.mask();
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.unsettlingLamp = this;
+            state.properties.addStartOfBattleHandler("UnsettlingLamp", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (isRelicEnabledInScenario(state)) {
+                        state.buffs |= PlayerBuff.UNSETTLING_LAMP.mask();
+                    }
+                }
+            });
+        }
+    }
 
     // TODO: Vexing Puzzlebox (Rare)
     //   Effect: At the start of each combat, add a random card into your Hand. It costs 0 energy.
@@ -721,14 +806,86 @@ public class Relic2 {
     // *********************************************  Shop  *********************************************
     // **************************************************************************************************
 
-    // TODO: Belt Buckle (Shop)
-    //   Effect: While you have no potions, you have 2 additional Dexterity.
+    public static class BeltBuckle extends Relic {
+        public BeltBuckle() {
+            entityProperty.changePlayerDexterity = true;
+        }
 
-    // TODO: Bread (Shop)
-    //   Effect: At the start of your first turn, lose 2 energy. At the start of all other turns, gain energy.
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("BeltBuckle", this, null);
+            state.properties.addStartOfBattleHandler("BeltBuckle", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (!isRelicEnabledInScenario(state)) {
+                        return;
+                    }
+                    if (state.getPotionCount() == 0) {
+                        state.getPlayerForWrite().gainDexterity(2);
+                        state.getCounterForWrite()[counterIdx] = 1;
+                    } else {
+                        state.getCounterForWrite()[counterIdx] = 0;
+                    }
+                }
+            });
+            state.properties.addOnPotionUseHandler("BeltBuckle", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (isRelicEnabledInScenario(state) && state.getCounterForRead()[counterIdx] == 0 && state.getPotionCount() == 1) {
+                        state.getPlayerForWrite().gainDexterity(2);
+                        state.getCounterForWrite()[counterIdx] = 1;
+                    }
+                }
+            });
+            state.properties.addOnCardPlayedHandler("BeltBuckle", new GameEventCardHandler() {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                    if (isRelicEnabledInScenario(state) && state.getCounterForRead()[counterIdx] == 1 && state.getPotionCount() > 0) {
+                        state.getPlayerForWrite().applyDebuff(state, DebuffType.LOSE_DEXTERITY, 2);
+                        state.getCounterForWrite()[counterIdx] = 0;
+                    }
+                }
+            });
+        }
+    }
 
-    // TODO: Burning Sticks (Shop)
-    //   Effect: The first time each combat you Exhaust a Skill, add a copy of it into your Hand.
+    public static class Bread extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.addStartOfTurnHandler("Bread", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (!isRelicEnabledInScenario(state)) {
+                        return;
+                    }
+                    if (state.turnNum == 1) {
+                        state.gainEnergy(-2);
+                    } else {
+                        state.gainEnergy(1);
+                    }
+                }
+            });
+        }
+    }
+
+    public static class BurningSticks extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("BurningSticks", this, null);
+            state.properties.addStartOfBattleHandler("BurningSticks", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (isRelicEnabledInScenario(state)) {
+                        state.getCounterForWrite()[counterIdx] = 0;
+                    }
+                }
+            });
+            state.properties.addOnExhaustHandler("BurningSticks", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (!isRelicEnabledInScenario(state) || state.getCounterForRead()[counterIdx] != 0) {
+                        return;
+                    }
+                    int exhaustedCardIdx = state.exhaustArr[state.exhaustArrLen - 1];
+                    if (state.properties.cardDict[exhaustedCardIdx].cardType == Card.SKILL) {
+                        state.getCounterForWrite()[counterIdx] = 1;
+                        state.addCardToHand(exhaustedCardIdx);
+                    }
+                }
+            });
+        }
+    }
 
     // No need to implement Cauldron: Upon pickup, brews 5 random potions.
 
@@ -766,8 +923,18 @@ public class Relic2 {
     // TODO: Punch Dagger (Shop)
     //   Effect: Upon pickup, Enchant an Attack with Momentum 5.
 
-    // TODO: Ringing Triangle (Shop)
-    //   Effect: Retain your Hand on the first turn of combat.
+    public static class RingingTriangle extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerRetainHandCounter(this);
+            state.properties.addStartOfBattleHandler("RingingTriangle", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (isRelicEnabledInScenario(state)) {
+                        state.getCounterForWrite()[counterIdx] = 1;
+                    }
+                }
+            });
+        }
+    }
 
     // TODO: Royal Stamp (Shop)
     //   Effect: Upon pickup, choose an Attack or Skill in your Deck to Enchant with Royally Approved.
@@ -808,8 +975,11 @@ public class Relic2 {
         }
     }
 
-    // TODO: Big Mushroom (Event)
-    //   Effect: Upon pickup, raise your Max HP by 20. At the start of each combat, draw 2 fewer cards.
+    public static class BigMushroom extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.bigMushroom = this;
+        }
+    }
 
     // No need to implement Bing Bong: Whenever you add a card to your Deck, add one additional copy.
 
