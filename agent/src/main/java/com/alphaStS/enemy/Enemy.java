@@ -205,6 +205,11 @@ public abstract class Enemy extends EnemyReadOnly {
             artifact--;
             return false;
         }
+        if (state.properties.unsettlingLamp != null && state.properties.unsettlingLamp.isRelicEnabledInScenario(state)
+                && (state.buffs & PlayerBuff.UNSETTLING_LAMP.mask()) != 0) {
+            n *= 2;
+            state.buffs &= ~PlayerBuff.UNSETTLING_LAMP.mask();
+        }
         switch (type) {
         case VULNERABLE -> {
             this.vulnerable += n;

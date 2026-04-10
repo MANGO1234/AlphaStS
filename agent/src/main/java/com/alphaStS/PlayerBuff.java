@@ -16,6 +16,7 @@ public record PlayerBuff(long mask, String name) {
     public final static PlayerBuff WRIST_BLADE = new PlayerBuff(1L << 39, "Wrist Blade");
     public final static PlayerBuff BATTLE_TRANCE = new PlayerBuff(1L << 40, "Battle Trance");
     public final static PlayerBuff SEEKING_EDGE = new PlayerBuff(1L << 41, "Seeking Edge");
+    public final static PlayerBuff UNSETTLING_LAMP = new PlayerBuff(1L << 42, "Unsettling Lamp");
 
     public final static PlayerBuff[] BUFFS = new PlayerBuff[] {
             BARRICADE,
@@ -30,5 +31,6 @@ public record PlayerBuff(long mask, String name) {
             END_TURN_IMMEDIATELY,
             USED_VAULT,
             WRIST_BLADE,
+            UNSETTLING_LAMP,
     };
 }

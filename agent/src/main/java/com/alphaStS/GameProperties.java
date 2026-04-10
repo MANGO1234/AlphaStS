@@ -183,6 +183,7 @@ public class GameProperties implements Cloneable {
     public int wellLaidPlansCardIdx = -1;
 
     // cached counter indexes
+    public int beatingRemnantCounterIdx = -1;
     public int accuracyCounterIdx = -1;
     public int attacksPlayedThisTurnCounterIdx = -1;
     public int biasedCognitionLimitCounterIdx = -1;
@@ -280,6 +281,8 @@ public class GameProperties implements Cloneable {
     public int voidFormCounterIdx = -1;
     public int royaltiesGoldCounterIdx = -1;
 
+    public Relic beatingRemnant = null;
+    public Relic bigMushroom = null;
     public Relic birdFacedUrn = null;
     public Relic blackBlood = null;
     public Relic bloodVial = null;
@@ -306,6 +309,7 @@ public class GameProperties implements Cloneable {
     public Relic oddMushroom = null;
     public Relic paperKrane = null;
     public Relic paperPhrog = null;
+    public Relic razorTooth = null;
     public Relic runicDome = null;
     public Relic runicPyramid = null;
     public Relic sacredBark = null;
@@ -313,6 +317,7 @@ public class GameProperties implements Cloneable {
     public Relic sneckoSkull = null;
     public Relic strangeSpoon = null;
     public Relic strikeDummy = null;
+    public Relic sturdyClamp = null;
     public Relic tingsha = null;
     public Relic toolbox = null;
     public Relic torii = null;
@@ -321,6 +326,7 @@ public class GameProperties implements Cloneable {
     public Relic tungstenRod = null;
     public Relic turnip = null;
     public Relic unceasingTop = null;
+    public Relic unsettlingLamp = null;
     public Relic violetLotus = null;
     public Relic wristBlade = null;
     public Relic miniatureCannon = null;
