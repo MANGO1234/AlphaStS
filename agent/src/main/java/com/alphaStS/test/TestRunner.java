@@ -6,6 +6,7 @@ import com.alphaStS.enemy.PredefinedEncounter;
 import com.alphaStS.enums.CharacterEnum;
 import com.alphaStS.gameAction.GameActionCtx;
 import com.alphaStS.gameAction.GameActionType;
+import com.alphaStS.gui.BattleBuilderJsonReader;
 import com.alphaStS.gui.BattleBuilderJsonWriter;
 import com.alphaStS.random.RandomGen;
 import com.alphaStS.random.RandomGenTest;
@@ -119,18 +120,17 @@ public class TestRunner {
                 throw new RuntimeException(e);
             }
         } else if (subCmd.equals("--replay-run")) {
-            if (args.length < 4) {
-                System.err.println("Usage: --replay-test --replay-run <run-log-path> <historical-data-path> [--verbose]");
+            if (args.length < 3) {
+                System.err.println("Usage: --replay-test --replay-run <run-log-path> [--verbose]");
                 return;
             }
             String runLogPath = args[2];
-            String historicalDataPath = args[3];
             boolean verbose = false;
-            for (int i = 4; i < args.length; i++) {
+            for (int i = 3; i < args.length; i++) {
                 if (args[i].equals("--verbose")) verbose = true;
             }
             try {
-                new TestRunner().replayRunFile(Paths.get(runLogPath), historicalDataPath, verbose);
+                new TestRunner().replayRunFile(Paths.get(runLogPath), verbose);
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
@@ -208,6 +208,9 @@ public class TestRunner {
             header.put("play_id", entry.getPlayId());
             header.put("battle_idx", battleIdx);
             header.put("seed", seed);
+            JsonNode battleDefJson = mapper.readTree(BattleBuilderJsonWriter.toJson(entry.getBuilder()));
+            header.set("battle_definition", battleDefJson.get("battle_definition"));
+            header.put("encounter", entry.getEnemiesName());
             Files.createDirectories(runFilePath.getParent());
             Files.writeString(runFilePath, mapper.writeValueAsString(header) + "\n");
             System.out.println("[TestRunner] Wrote run file header: " + runFilePath);
@@ -234,10 +237,10 @@ public class TestRunner {
     }
 
     /**
-     * Replays a run log file, looking up the corresponding battle setup from the historical data
-     * and validating the simulated game state after each action.
+     * Replays a run log file, reading the battle setup from the embedded header and
+     * validating the simulated game state after each action.
      */
-    public void replayRunFile(Path logFile, String historicalDataPath, boolean verbose) throws Exception {
+    public void replayRunFile(Path logFile, boolean verbose) throws Exception {
         ObjectMapper mapper = new ObjectMapper();
         List<String> lines = Files.readAllLines(logFile);
         if (lines.isEmpty()) {
@@ -247,18 +250,21 @@ public class TestRunner {
         String playId = header.path("play_id").asText();
         int battleIdx = header.path("battle_idx").asInt(-1);
 
-        BattleEntry matchingEntry = null;
-        for (BattleEntry entry : new RunDataParser(historicalDataPath)) {
-            if (entry.getPlayId().equals(playId) && entry.getBattleIdx() == battleIdx) {
-                matchingEntry = entry;
-                break;
-            }
+        JsonNode battleDefNode = header.path("battle_definition");
+        if (battleDefNode.isMissingNode()) {
+            throw new ReplayException("Run log header missing 'battle_definition'", null, null);
         }
-        if (matchingEntry == null) {
-            throw new ReplayException(
-                "No matching BattleEntry for play_id=" + playId + ", battle_idx=" + battleIdx, null, null);
+        String enemiesName = header.path("encounter").asText();
+        if (enemiesName.isEmpty()) {
+            throw new ReplayException("Run log header missing 'encounter'", null, null);
         }
-        replayLog(matchingEntry, logFile, verbose);
+
+        ObjectNode wrappedDef = mapper.createObjectNode();
+        wrappedDef.set("battle_definition", battleDefNode);
+        GameStateBuilder builder = BattleBuilderJsonReader.fromJson(mapper.writeValueAsString(wrappedDef));
+
+        BattleEntry entry = new BattleEntry(0, battleIdx, builder, enemiesName, playId);
+        replayLog(entry, logFile, verbose);
         System.out.println("[TestRunner] Replay passed for play_id=" + playId + ", battle_idx=" + battleIdx);
     }
 
