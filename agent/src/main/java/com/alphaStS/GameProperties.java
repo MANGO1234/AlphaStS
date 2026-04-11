@@ -175,6 +175,7 @@ public class GameProperties implements Cloneable {
     public int echoFormPCardIdx = -1;
     public int foresightCardIdx = -1;
     public int gamblingChipsCardIdx = -1;
+    public int enthralledCardIdx = -1;
     public int nilroysCodexHelperCardIdx = -1;
     public int normalityCardIdx = -1;
     public int sovereignBladeCardIdx = -1;
@@ -316,6 +317,7 @@ public class GameProperties implements Cloneable {
     public Relic sneckoSkull = null;
     public Relic strangeSpoon = null;
     public Relic strikeDummy = null;
+    public Relic strikeDummyQQQ = null;
     public Relic sturdyClamp = null;
     public Relic tingsha = null;
     public Relic toolbox = null;

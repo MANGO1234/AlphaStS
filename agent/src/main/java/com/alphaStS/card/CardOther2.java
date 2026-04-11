@@ -133,9 +133,11 @@ public class CardOther2 {
 
     public static class Doubt extends CardOther.Doubt {}
 
-    // TODO: Enthralled (Curse) - 2 energy, Curse
-    //   Effect: If this is in your Hand, it must be played before other cards. Eternal.
-    //   No upgrade.
+    public static class Enthralled extends Card {
+        public Enthralled() {
+            super("Enthralled", Card.CURSE, 2, Card.COMMON);
+        }
+    }
 
     public static class Folly extends Card {
         public Folly() {

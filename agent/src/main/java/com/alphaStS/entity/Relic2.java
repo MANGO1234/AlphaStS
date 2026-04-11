@@ -1,7 +1,6 @@
 package com.alphaStS.entity;
 
 import com.alphaStS.*;
-import com.alphaStS.card.Card;
 import com.alphaStS.card.CardColorless2;
 import com.alphaStS.enemy.Enemy;
 import com.alphaStS.enums.DebuffType;
@@ -11,6 +10,7 @@ import com.alphaStS.eventHandler.GameEventHandler;
 import com.alphaStS.random.RandomGenCtx;
 import com.alphaStS.utils.CounterStat;
 
+import com.alphaStS.card.*;
 import java.util.List;
 import java.util.Objects;
 
@@ -1196,19 +1196,45 @@ public class Relic2 {
         }
     }
 
-    // TODO: Snecko Eye??? (Event)
-    //   Effect: Start each combat Confused.
+    public static class SneckoEyeQQQ extends Relic.SneckoEye {
+    }
 
-    // TODO: Strike Dummy??? (Event)
-    //   Effect: Cards containing “Strike” deal 1 additional damage.
+    public static class StrikeDummyQQQ extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.strikeDummyQQQ = this;
+        }
+    }
 
-    // TODO: Sword of Jade (Event)
-    //   Effect: Start each combat with 3 Strength.
+    public static class SwordOfJade extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.addStartOfBattleHandler("SwordOfJade", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (isRelicEnabledInScenario(state)) {
+                        state.getPlayerForWrite().gainStrength(3);
+                    }
+                }
+            });
+        }
+    }
 
     // No need to implement Sword of Stone: Transforms into a powerful Relic after defeating 5 Elites.
 
-    // TODO: Tea of Discourtesy (Event)
-    //   Effect: At the start of the next combat, shuffle 2 Dazed into your Draw Pile.
+    public static class TeaOfDiscourtesy extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.addStartOfBattleHandler("TeaOfDiscourtesy", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (isRelicEnabledInScenario(state)) {
+                        state.addCardToDeck(generatedCardIdx, false);
+                        state.addCardToDeck(generatedCardIdx, false);
+                    }
+                }
+            });
+        }
+
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            return List.of(new CardOther2.Dazed());
+        }
+    }
 
     public static class TheBoot extends Relic.TheBoot {
     }
@@ -1217,8 +1243,17 @@ public class Relic2 {
 
     // No need to implement The Merchant's Rug???: Poor imitation. Does nothing.
 
-    // TODO: Venerable Tea Set??? (Event)
-    //   Effect: Whenever you enter a Rest Site, start the next combat with an additional energy.
+    public static class VenerableTeaSetQQQ extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.addStartOfBattleHandler("VenerableTeaSetQQQ", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (isRelicEnabledInScenario(state)) {
+                        state.energyRefill += 1;
+                    }
+                }
+            });
+        }
+    }
 
     // No need to implement Wongo Customer Appreciation Badge: Does nothing.
 
@@ -1230,11 +1265,9 @@ public class Relic2 {
 
     // No need to implement Alchemical Coffer: Upon pickup, gain 4 potion slots filled with random potions.
 
-    // TODO: Arcane Scroll (Ancient)
-    //   Effect: Upon pickup, obtain a random Rare Card to add to your Deck.
+    // No need to implement Arcane Scroll: Upon pickup, obtain a random Rare Card to add to your Deck.
 
-    // TODO: Archaic Tooth (Ancient)
-    //   Effect: Upon pickup, Transform a starter card with an ancient version.
+    // No need to implement Archaic Tooth: Upon pickup, Transform a starter card with an ancient version.
 
     public static class Astrolabe extends Relic.Astrolabe {
     }
@@ -1242,16 +1275,71 @@ public class Relic2 {
     // TODO: Beautiful Bracelet (Ancient)
     //   Effect: Upon pickup, choose 3 cards in your Deck. Enchant them with Swift 3.
 
-    // TODO: Biiig Hug (Ancient)
-    //   Effect: Upon pickup, remove 4 cards from your Deck. Whenever you shuffle your Draw Pile, add a Soot into your Draw Pile.
+    public static class BiiigHug extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.addOnShuffleHandler("BiiigHug", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (isRelicEnabledInScenario(state)) {
+                        state.addCardToDeck(generatedCardIdx, false);
+                    }
+                }
+            });
+        }
+
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            return List.of(new CardOther2.Soot());
+        }
+    }
 
     // No need to implement Black Star: Elites drop an additional Relic when defeated.
 
-    // TODO: Blessed Antler (Ancient)
-    //   Effect: Gain energy at the start of each turn. At the start of each combat, shuffle 3 Dazed into your Draw Pile.
+    public static class BlessedAntler extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.addStartOfTurnHandler("BlessedAntler", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (isRelicEnabledInScenario(state)) {
+                        state.energy += 1;
+                    }
+                }
+            });
+            state.properties.addStartOfBattleHandler("BlessedAntler", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (isRelicEnabledInScenario(state)) {
+                        state.addCardToDeck(generatedCardIdx, false);
+                        state.addCardToDeck(generatedCardIdx, false);
+                        state.addCardToDeck(generatedCardIdx, false);
+                    }
+                }
+            });
+        }
 
-    // TODO: Blood-Soaked Rose (Ancient)
-    //   Effect: Upon pickup, add 1 Enthralled to your Deck. Gain energy at the start of each turn.
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            return List.of(new CardOther2.Dazed());
+        }
+    }
+
+    public static class BloodSoakedRose extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.addStartOfTurnHandler("BloodSoakedRose", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (isRelicEnabledInScenario(state)) {
+                        state.energy += 1;
+                    }
+                }
+            });
+            state.properties.addStartOfBattleHandler("BloodSoakedRose", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (isRelicEnabledInScenario(state)) {
+                        state.addCardToDeck(generatedCardIdx, false);
+                    }
+                }
+            });
+        }
+
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            return List.of(new CardOther2.Enthralled());
+        }
+    }
 
     // TODO: Booming Conch (Ancient)
     //   Effect: At the start of Elite combats, draw 2 additional cards.
@@ -1606,7 +1694,7 @@ public class Relic2 {
     //   Effect: Whenever you create a Colorless card, gain 2 Block.
 
     // TODO: Vitruvian Minion (Shop)
-    //   Effect: Cards containing “Minion” deal double damage and gain double Block.
+    //   Effect: Cards containing "Minion" deal double damage and gain double Block.
 
     // **************************************************************************************************
     // ********************************************* Necrobinder *********************************************
