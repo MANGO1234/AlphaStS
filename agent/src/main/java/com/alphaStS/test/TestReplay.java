@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Queue;
 
 public class TestReplay {
 
@@ -14,16 +15,22 @@ public class TestReplay {
 
     /**
      * Called from {@link GameState#reshuffle()} when {@code properties.testingReplayMode} is true.
-     * Pops the next deck order from {@code properties.replayEventQueue} and sets {@code deckArr}
-     * to that fixed order, ensuring cards are drawn in the exact sequence recorded in the log.
+     * Pops the next {@link TestReplayEvent.ShuffleEvent} from {@code properties.replayEventQueue}
+     * and sets {@code deckArr} to that fixed order, ensuring cards are drawn in the exact sequence
+     * recorded in the log.
      *
-     * @return true if the queue had an entry and the deck was set, false if the queue was empty
+     * @return true if the queue had a ShuffleEvent and the deck was set, false if the queue was empty
      */
     public static boolean applyShuffleFromQueue(GameState state) {
-        if (state.properties.replayEventQueue == null || state.properties.replayEventQueue.isEmpty()) {
+        Queue<TestReplayEvent> queue = state.properties.replayEventQueue;
+        if (queue == null || queue.isEmpty()) {
             return false;
         }
-        String[] deckOrder = state.properties.replayEventQueue.poll();
+        TestReplayEvent event = queue.poll();
+        if (!(event instanceof TestReplayEvent.ShuffleEvent shuffleEvent)) {
+            throw new IllegalStateException("Expected ShuffleEvent but got " + event.getClass().getSimpleName());
+        }
+        String[] deckOrder = shuffleEvent.deckOrder;
         state.deckArrLen = 0;
         for (String cardName : deckOrder) {
             for (int i = 0; i < state.properties.cardDict.length; i++) {

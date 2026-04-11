@@ -19,6 +19,7 @@ import com.alphaStS.eventHandler.OnOtsyDamageHandler;
 import com.alphaStS.eventHandler.OnStarChangeHandler;
 import com.alphaStS.gameAction.GameAction;
 import com.alphaStS.random.RandomGen;
+import com.alphaStS.test.TestReplayEvent;
 import com.alphaStS.utils.CounterStat;
 import com.alphaStS.utils.Tuple;
 import com.alphaStS.utils.Tuple3;
@@ -33,7 +34,7 @@ public class GameProperties implements Cloneable {
     public boolean testNewFeature = true;
     public boolean multithreadedMTCS;
     public boolean testingReplayMode;
-    public Queue<String[]> replayEventQueue;
+    public Queue<TestReplayEvent> replayEventQueue;
     public boolean doingComparison;
     public boolean curriculumTraining;
     public boolean isTraining;
