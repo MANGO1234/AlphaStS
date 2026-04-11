@@ -31,6 +31,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 import java.util.StringJoiner;
+import java.util.function.Predicate;
 
 public class TestRunner {
 
@@ -73,21 +74,37 @@ public class TestRunner {
     public static void replayTest(String[] args) {
         String subCmd = args.length > 1 ? args[1] : "--parse-historical-data";
         if (subCmd.equals("--parse-historical-data")) {
-            String path = args.length > 2 ? args[2] : "../b.run";
-            int idx = args.length > 3 ? Integer.parseInt(args[3]) : -1;
-            parseHistoricalData(path, idx);
-        } else if (subCmd.equals("--generate-runs")) {
             if (args.length < 3) {
-                System.err.println("Usage: --replay-test --generate-runs <historical-data-path> [--upto N] [--ip host] [--replay]");
+                System.err.println("Usage: --replay-test --parse-historical-data <historical-data-path> [--filter <spec>]");
+                System.err.println("  --filter <spec>  comma-separated list of {run}:{battle} selectors");
+                System.err.println("                   run/battle may each be *, N, or N-M (inclusive)");
+                System.err.println("                   e.g. --filter 0:*,1:2-5,*:0");
                 return;
             }
             String path = args[2];
-            int upto = -1;
+            Predicate<BattleEntry> filter = null;
+            for (int i = 3; i < args.length; i++) {
+                if (args[i].equals("--filter") && i + 1 < args.length) {
+                    filter = parseFilter(args[i + 1]);
+                    i++;
+                }
+            }
+            parseHistoricalData(path, filter);
+        } else if (subCmd.equals("--generate-runs")) {
+            if (args.length < 3) {
+                System.err.println("Usage: --replay-test --generate-runs <historical-data-path> [--filter <spec>] [--ip host] [--replay]");
+                System.err.println("  --filter <spec>  comma-separated list of {run}:{battle} selectors");
+                System.err.println("                   run/battle may each be *, N, or N-M (inclusive)");
+                System.err.println("                   e.g. --filter 0:*,1:2-5,*:0");
+                return;
+            }
+            String path = args[2];
+            Predicate<BattleEntry> filter = null;
             String ip = "localhost";
             boolean doReplay = false;
             for (int i = 3; i < args.length; i++) {
-                if (args[i].equals("--upto") && i + 1 < args.length) {
-                    upto = Integer.parseInt(args[i + 1]);
+                if (args[i].equals("--filter") && i + 1 < args.length) {
+                    filter = parseFilter(args[i + 1]);
                     i++;
                 } else if (args[i].equals("--ip") && i + 1 < args.length) {
                     ip = args[i + 1];
@@ -97,7 +114,7 @@ public class TestRunner {
                 }
             }
             try {
-                new TestRunner(ip).generateRuns(path, upto, doReplay);
+                new TestRunner(ip).generateRuns(path, filter, doReplay);
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
@@ -124,24 +141,17 @@ public class TestRunner {
     }
 
     /**
-     * Parses a historical run data file and prints a summary of each battle entry.
+     * Parses a historical run data file and prints a summary of each matching battle entry.
      */
-    public static void parseHistoricalData(String path, int idx) {
+    public static void parseHistoricalData(String path, Predicate<BattleEntry> filter) {
         System.out.println("Parsing run data from: " + path);
         RunDataParser parser = new RunDataParser(path);
-        int totalBattles = 0;
-        List<BattleEntry> runs;
-        if (idx >= 0) {
-            try {
-                runs = parser.parseRun(idx);
-            } catch (Exception e) {
-                System.err.println("[RunDataParser] Failed to parse run " + idx + ": " + e.getMessage());
-                return;
-            }
-        } else {
-            runs = new ArrayList<>();
-            parser.iterator().forEachRemaining(runs::add);
+        if (filter != null) {
+            parser = parser.withFilter(filter);
         }
+        int totalBattles = 0;
+        List<BattleEntry> runs = new ArrayList<>();
+        parser.iterator().forEachRemaining(runs::add);
         for (var run : runs) {
             int runIdx = run.getRunIdx();
             int battleIdx = run.getBattleIdx();
@@ -166,11 +176,14 @@ public class TestRunner {
      * Generates replay run files from a historical run data file by playing random moves in STS.
      * Step 4 (replay validation) is optional and controlled by {@code doReplay}.
      */
-    public void generateRuns(String runDataPath, int upto, boolean doReplay) throws Exception {
+    public void generateRuns(String runDataPath, Predicate<BattleEntry> filter, boolean doReplay) throws Exception {
         ObjectMapper mapper = new ObjectMapper();
 
-        int k = 0;
-        for (BattleEntry entry : new RunDataParser(runDataPath)) {
+        RunDataParser parser = new RunDataParser(runDataPath);
+        if (filter != null) {
+            parser = parser.withFilter(filter);
+        }
+        for (BattleEntry entry : parser) {
             int runIdx = entry.getRunIdx();
             int battleIdx = entry.getBattleIdx();
             System.out.println("[TestRunner] Run " + runIdx + ", Battle " + battleIdx);
@@ -216,10 +229,6 @@ public class TestRunner {
                 } catch (Exception e) {
                     System.err.println("[TestRunner] Replay failed for run " + runIdx + ", battle " + battleIdx + ": " + e.getMessage());
                 }
-            }
-
-            if (upto >= 0 && ++k >= upto) {
-                break;
             }
         }
     }
@@ -660,6 +669,42 @@ public class TestRunner {
         }
 
         return "END";
+    }
+
+    /**
+     * Parses a comma-separated filter spec into a predicate over BattleEntry.
+     * Each token has the form {@code {run}:{battle}} where each part is
+     * {@code *}, a single index {@code N}, or an inclusive range {@code N-M}.
+     * Examples: {@code 0:*}, {@code 1:2-5}, {@code *:0}, {@code 0-2:*}
+     */
+    static Predicate<BattleEntry> parseFilter(String spec) {
+        Predicate<BattleEntry> result = e -> false;
+        for (String token : spec.split(",")) {
+            token = token.trim();
+            int colon = token.indexOf(':');
+            if (colon < 0) {
+                throw new IllegalArgumentException("Invalid filter token (missing ':'): " + token);
+            }
+            Predicate<Integer> runPred    = parseIndexSpec(token.substring(0, colon));
+            Predicate<Integer> battlePred = parseIndexSpec(token.substring(colon + 1));
+            result = result.or(e -> runPred.test(e.getRunIdx()) && battlePred.test(e.getBattleIdx()));
+        }
+        return result;
+    }
+
+    /** Parses a single index spec: {@code *}, {@code N}, or {@code N-M} (inclusive). */
+    private static Predicate<Integer> parseIndexSpec(String spec) {
+        if (spec.equals("*")) {
+            return i -> true;
+        }
+        int dash = spec.indexOf('-');
+        if (dash > 0) {
+            int start = Integer.parseInt(spec.substring(0, dash));
+            int end   = Integer.parseInt(spec.substring(dash + 1));
+            return i -> i >= start && i <= end;
+        }
+        int exact = Integer.parseInt(spec);
+        return i -> i == exact;
     }
 
     /**
