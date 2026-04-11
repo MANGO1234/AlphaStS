@@ -1,7 +1,6 @@
 import subprocess
 import platform
 import os
-import sys
 import argparse
 
 sep = ':'
@@ -33,15 +32,21 @@ JAVA_BASE = [
 parser = argparse.ArgumentParser(description='Replay test utilities for battle log validation.')
 subparsers = parser.add_subparsers(dest='subcommand')
 
+FILTER_HELP = (
+    'comma-separated list of {run}:{battle} selectors; '
+    'each part is *, N, or N-M (inclusive). '
+    'e.g. "0:*,1:2-5,*:0"'
+)
+
 # --parse-historical-data (default)
 parse_parser = subparsers.add_parser(
     'parse-historical-data',
     help='Parse a historical run data file and print a summary of each battle entry.',
 )
-parse_parser.add_argument('run_file', nargs='?', default='../../b.run',
+parse_parser.add_argument('run_file',
                           help='Path to the historical run data file.')
-parse_parser.add_argument('run_idx', nargs='?', default=None,
-                          help='Optional run index to parse a single run.')
+parse_parser.add_argument('--filter', dest='filter', default=None,
+                          metavar='SPEC', help=FILTER_HELP)
 
 # --generate-runs
 generate_parser = subparsers.add_parser(
@@ -49,9 +54,9 @@ generate_parser = subparsers.add_parser(
     help='Generate replay run files by playing random moves in STS.',
 )
 generate_parser.add_argument('run_file',
-                             help='Path to the historical run data file (required).')
-generate_parser.add_argument('--upto', type=int, default=None,
-                             help='Maximum number of battles to process.')
+                             help='Path to the historical run data file.')
+generate_parser.add_argument('--filter', dest='filter', default=None,
+                             metavar='SPEC', help=FILTER_HELP)
 generate_parser.add_argument('--ip', default=None,
                              help='IP address of the STS server.')
 generate_parser.add_argument('--replay', action='store_true',
@@ -75,8 +80,8 @@ os.chdir('./agent')
 
 if args.subcommand == 'generate-runs':
     cmd = JAVA_BASE + ['--generate-runs', args.run_file]
-    if args.upto is not None:
-        cmd += ['--upto', str(args.upto)]
+    if args.filter is not None:
+        cmd += ['--filter', args.filter]
     if args.ip is not None:
         cmd += ['--ip', args.ip]
     if args.replay:
@@ -87,10 +92,8 @@ elif args.subcommand == 'replay-run':
         cmd += ['--verbose']
 else:
     # Default: parse-historical-data
-    cmd = JAVA_BASE + ['--parse-historical-data']
-    if hasattr(args, 'run_file'):
-        cmd += [args.run_file]
-    if hasattr(args, 'run_idx') and args.run_idx is not None:
-        cmd += [args.run_idx]
+    cmd = JAVA_BASE + ['--parse-historical-data', args.run_file]
+    if args.filter is not None:
+        cmd += ['--filter', args.filter]
 
 subprocess.run(cmd)

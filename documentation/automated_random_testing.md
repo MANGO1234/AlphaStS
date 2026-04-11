@@ -31,8 +31,48 @@ For each battle in the run data:
 | Class | Location | Purpose |
 |---|---|---|
 | `TestRunner` | `com.alphaStS.test` | Top-level driver: iterates run data and runs steps 1–4 per battle |
-| `RunDataParser` | `com.alphaStS.test` | Reads a JSON array of run-data objects; returns `Iterator<GameStateBuilder>` |
+| `RunDataParser` | `com.alphaStS.test` | Reads a JSON array of run-data objects; returns `Iterator<BattleEntry>` |
 | `BattleLoaderMod` | `battleloadermod` (repo: `sts_battle_loader_mod`) | STS mod: TCP server on port 2345 that applies a battle definition JSON and restarts the current battle |
+
+---
+
+## CLI Reference
+
+All subcommands are invoked via `--replay-test <subcommand> ...`.
+
+### `--parse-historical-data <path> [--filter <spec>]`
+
+Parses a run data JSON file and prints a summary of each matching battle.
+
+### `--generate-runs <path> [--filter <spec>] [--ip <host>] [--replay]`
+
+Plays random moves in STS for each matching battle and saves `.run` log files to `tests/`.
+`--replay` additionally validates each log against the Java simulation after it is saved.
+
+### `--replay-run <run-log-path> <historical-data-path> [--verbose]`
+
+Replays a single saved `.run` log file, looking up the battle setup from the historical data,
+and asserts that the simulated state matches after each action.
+
+### `--filter <spec>`
+
+Selects which battles to process. `<spec>` is a comma-separated list of tokens of the form
+`{run}:{battle}`, where each part is:
+
+| Syntax | Meaning |
+|--------|---------|
+| `*` | all indices |
+| `N` | exactly index N (0-based) |
+| `N-M` | indices N through M inclusive |
+
+**Examples:**
+
+```
+--filter 0:*          # all battles in run 0
+--filter 1:2-5        # battles 2, 3, 4, 5 in run 1
+--filter *:0          # first battle of every run
+--filter 0-2:*,5:3    # all battles in runs 0–2, plus battle 3 of run 5
+```
 
 ---
 
