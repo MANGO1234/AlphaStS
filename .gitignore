@@ -19,3 +19,4 @@ agent/tests/
 .serena/
 .mcp.json
 !.claude/skills/
+.gitattributes
