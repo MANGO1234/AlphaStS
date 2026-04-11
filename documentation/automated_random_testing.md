@@ -49,10 +49,11 @@ Parses a run data JSON file and prints a summary of each matching battle.
 Plays random moves in STS for each matching battle and saves `.run` log files to `tests/`.
 `--replay` additionally validates each log against the Java simulation after it is saved.
 
-### `--replay-run <run-log-path> <historical-data-path> [--verbose]`
+### `--replay-run <run-log-path> [--verbose]`
 
-Replays a single saved `.run` log file, looking up the battle setup from the historical data,
-and asserts that the simulated state matches after each action.
+Replays a single saved `.run` log file. The battle setup (`GameStateBuilder` and enemy
+encounter) is read directly from the header embedded when the file was generated, so
+no historical data file is required.
 
 ### `--filter <spec>`
 
