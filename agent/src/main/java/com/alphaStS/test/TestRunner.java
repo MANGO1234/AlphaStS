@@ -8,6 +8,7 @@ import com.alphaStS.gameAction.GameActionCtx;
 import com.alphaStS.gameAction.GameActionType;
 import com.alphaStS.gui.BattleBuilderJsonWriter;
 import com.alphaStS.random.RandomGen;
+import com.alphaStS.random.RandomGenTest;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -335,10 +336,9 @@ public class TestRunner {
         ObjectMapper mapper = new ObjectMapper();
         List<String> lines = Files.readAllLines(logFile);
 
-        // Pre-pass: load replay events from the log into the queue and extract initial enemy HPs.
+        // Pre-pass: load replay events from the log into queues.
         Queue<String[]> replayEventQueue = new LinkedList<>();
-        int[] initialEnemyHps = null;
-        int[] initialEnemyMaxHps = null;
+        Queue<int[]> replayEnemyHpQueue = new LinkedList<>();
         for (String line : lines) {
             JsonNode node = mapper.readTree(line);
             String type = node.path("_type").asText();
@@ -349,14 +349,8 @@ public class TestRunner {
                     order[i] = orderNode.get(i).asText();
                 }
                 replayEventQueue.add(order);
-            } else if ("state:floor".equals(type) && initialEnemyHps == null) {
-                JsonNode monsters = node.path("combat_state").path("monsters");
-                initialEnemyHps = new int[monsters.size()];
-                initialEnemyMaxHps = new int[monsters.size()];
-                for (int i = 0; i < monsters.size(); i++) {
-                    initialEnemyHps[i] = monsters.get(i).path("hp_current").asInt();
-                    initialEnemyMaxHps[i] = monsters.get(i).path("hp_max").asInt();
-                }
+            } else if ("event:enemy_hp".equals(type)) {
+                replayEnemyHpQueue.add(new int[]{node.path("min_hp").asInt(), node.path("chosen_hp").asInt()});
             }
         }
 
@@ -369,7 +363,7 @@ public class TestRunner {
         GameState state = new GameState(builder);
         state.properties.testingReplayMode = true;
         state.properties.replayEventQueue = replayEventQueue;
-        state.properties.random = new RandomGen.RandomGenPlain();
+        state.properties.random = new RandomGenTest(replayEnemyHpQueue);
 
         // The first event:shuffle in the log is the initial deck order STS chose before the first
         // draw. Set it directly so the simulation draws the same opening hand.
@@ -394,14 +388,6 @@ public class TestRunner {
                state.actionCtx == GameActionCtx.BEGIN_TURN ||
                state.actionCtx == GameActionCtx.AFTER_RANDOMIZATION) {
             state = state.doAction(0);
-        }
-
-        // Hardcode enemy HPs from the first state:floor to avoid randomization divergence.
-        if (initialEnemyHps != null) {
-            for (int i = 0; i < initialEnemyHps.length; i++) {
-                state.getEnemiesForWrite().getForWrite(i).setHealth(initialEnemyHps[i]);
-                state.getEnemiesForWrite().getForWrite(i).setMaxHealthInBattle(initialEnemyMaxHps[i]);
-            }
         }
 
         // Replay: compare state:floor entries and apply actions.

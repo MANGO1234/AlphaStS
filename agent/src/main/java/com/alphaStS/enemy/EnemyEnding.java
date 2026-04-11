@@ -12,6 +12,7 @@ import com.alphaStS.random.RandomGen;
 import com.alphaStS.random.RandomGenCtx;
 
 import java.util.List;
+import com.alphaStS.utils.Tuple;
 
 public class EnemyEnding {
     public static class SpireShield extends Enemy {
@@ -94,8 +95,8 @@ public class EnemyEnding {
             return 6;
         }
 
-        @Override public void randomize(RandomGen random, boolean training, int difficulty) {
-//            int b = random.nextInt(6, RandomGenCtx.Other) + 1;
+        @Override public void randomize(GameState state, boolean training, int difficulty) {
+//            int b = state.getSearchRandomGen().nextInt(6, RandomGenCtx.Other) + 1;
             if (training) {
                 health = (int) Math.round(((double) (health * difficulty)) / 6);
             } else {
@@ -183,8 +184,8 @@ public class EnemyEnding {
             return 9;
         }
 
-        @Override public void randomize(RandomGen random, boolean training, int difficulty) {
-//            int b = random.nextInt(9, RandomGenCtx.Other) + 1;
+        @Override public void randomize(GameState state, boolean training, int difficulty) {
+//            int b = state.getSearchRandomGen().nextInt(9, RandomGenCtx.Other) + 1;
             if (training) {
                 health = (int) Math.round(((double) (health * difficulty)) / 9);
             } else {
@@ -440,7 +441,7 @@ public class EnemyEnding {
             return s.subSequence(0, s.length() - 1) + ", invincible=" + invincible + ", buffCount=" + buffCount + "}";
         }
 
-        @Override public void randomize(RandomGen random, boolean training, int difficulty) {
+        @Override public void randomize(GameState state, boolean training, int difficulty) {
             if (training) {
                 health = health / 40 * difficulty;
             } else {

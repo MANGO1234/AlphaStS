@@ -11,6 +11,7 @@ import com.alphaStS.random.RandomGenCtx;
 
 import java.util.Arrays;
 import java.util.List;
+import com.alphaStS.utils.Tuple;
 
 public class EnemyExordium {
     public static class GremlinNob extends Enemy {
@@ -88,12 +89,12 @@ public class EnemyExordium {
             return "Unknown";
         }
 
-        public void randomize(RandomGen random, boolean training, int difficulty) {
-            int b = random.nextInt(10, RandomGenCtx.Other) + 1;
+        public void randomize(GameState state, boolean training, int difficulty) {
+            int b = state.getSearchRandomGen().nextInt(10, RandomGenCtx.Other) + 1;
             if (b < 10 && training) {
                 health = (int) Math.round(((double) (health * b)) / 10);
             } else {
-                health = 85 + random.nextInt(6, RandomGenCtx.Other);
+                health = 85 + state.getSearchRandomGen().nextInt(6, RandomGenCtx.RandomEnemyHealth, new Tuple<>(85, state));
             }
         }
 
@@ -190,12 +191,12 @@ public class EnemyExordium {
             return "Unknown";
         }
 
-        public void randomize(RandomGen random, boolean training, int difficulty) {
-            int b = random.nextInt(10, RandomGenCtx.Other) + 1;
+        public void randomize(GameState state, boolean training, int difficulty) {
+            int b = state.getSearchRandomGen().nextInt(10, RandomGenCtx.Other) + 1;
             if (training && b < 10) {
                 health = (int) Math.round(((double) (health * b)) / 10);
             } else {
-                health = 112 + random.nextInt(4, RandomGenCtx.Other);
+                health = 112 + state.getSearchRandomGen().nextInt(4, RandomGenCtx.RandomEnemyHealth, new Tuple<>(112, state));
             }
         }
 
@@ -261,12 +262,12 @@ public class EnemyExordium {
 
         public List<Card> getPossibleGeneratedCards(GameProperties prop, List<Card> cards) { return List.of(new CardOther.Dazed()); }
 
-        public void randomize(RandomGen random, boolean training, int difficulty) {
-            int b = random.nextInt(4, RandomGenCtx.Other) + 1;
+        public void randomize(GameState state, boolean training, int difficulty) {
+            int b = state.getSearchRandomGen().nextInt(4, RandomGenCtx.Other) + 1;
             if (training && b < 4) {
                 health = (int) Math.round(((double) (health * b)) / 4);
             } else {
-                health = 39 + random.nextInt(7, RandomGenCtx.Other);
+                health = 39 + state.getSearchRandomGen().nextInt(7, RandomGenCtx.RandomEnemyHealth, new Tuple<>(39, state));
             }
         }
 
@@ -364,9 +365,9 @@ public class EnemyExordium {
             return "Unknown";
         }
 
-        public void randomize(RandomGen random, boolean training, int difficulty) {
+        public void randomize(GameState state, boolean training, int difficulty) {
             if (training) {
-                int b = random.nextInt(25, RandomGenCtx.Other) + 1;
+                int b = state.getSearchRandomGen().nextInt(25, RandomGenCtx.Other) + 1;
                 health = 264 * b / 25;
             }
         }
@@ -500,8 +501,8 @@ public class EnemyExordium {
             return "Unknown";
         }
 
-        public void randomize(RandomGen random, boolean training, int difficulty) {
-            int b = training ? random.nextInt(25, RandomGenCtx.Other) + 1 : 25;
+        public void randomize(GameState state, boolean training, int difficulty) {
+            int b = training ? state.getSearchRandomGen().nextInt(25, RandomGenCtx.Other) + 1 : 25;
             health = 250 * b / 25;
         }
 
@@ -637,8 +638,8 @@ public class EnemyExordium {
 
         public List<Card> getPossibleGeneratedCards(GameProperties prop, List<Card> cards) { return List.of(new CardOther.Slimed()); }
 
-        public void randomize(RandomGen random, boolean training, int difficulty) {
-            int b = random.nextInt(15, RandomGenCtx.Other) + 1;
+        public void randomize(GameState state, boolean training, int difficulty) {
+            int b = state.getSearchRandomGen().nextInt(15, RandomGenCtx.Other) + 1;
             health = 10 * (training ? b : 15);
             if (health <= properties.maxHealth / 2) {
                 move = SPLIT;
@@ -763,8 +764,8 @@ public class EnemyExordium {
 
         public List<Card> getPossibleGeneratedCards(GameProperties prop, List<Card> cards) { return List.of(new CardOther.Slimed()); }
 
-        public void randomize(RandomGen random, boolean training, int difficulty) {
-            health = 67 + random.nextInt(7, RandomGenCtx.Other);
+        public void randomize(GameState state, boolean training, int difficulty) {
+            health = 67 + state.getSearchRandomGen().nextInt(7, RandomGenCtx.RandomEnemyHealth, new Tuple<>(67, state));
             splitMaxHealth = health;
         }
 
@@ -833,8 +834,8 @@ public class EnemyExordium {
 
         public List<Card> getPossibleGeneratedCards(GameProperties prop, List<Card> cards) { return List.of(new CardOther.Slimed()); }
 
-        public void randomize(RandomGen random, boolean training, int difficulty) {
-            health = 29 + random.nextInt(6, RandomGenCtx.Other);
+        public void randomize(GameState state, boolean training, int difficulty) {
+            health = 29 + state.getSearchRandomGen().nextInt(6, RandomGenCtx.RandomEnemyHealth, new Tuple<>(29, state));
         }
 
         public String getName() {
@@ -876,8 +877,8 @@ public class EnemyExordium {
             return "Unknown";
         }
 
-        public void randomize(RandomGen random, boolean training, int difficulty) {
-            health = 11 + random.nextInt(5, RandomGenCtx.Other);
+        public void randomize(GameState state, boolean training, int difficulty) {
+            health = 11 + state.getSearchRandomGen().nextInt(5, RandomGenCtx.RandomEnemyHealth, new Tuple<>(11, state));
         }
 
         public String getName() {
@@ -992,8 +993,8 @@ public class EnemyExordium {
 
         public List<Card> getPossibleGeneratedCards(GameProperties prop, List<Card> cards) { return List.of(new CardOther.Slimed()); }
 
-        public void randomize(RandomGen random, boolean training, int difficulty) {
-            health = 68 + random.nextInt(5, RandomGenCtx.Other);
+        public void randomize(GameState state, boolean training, int difficulty) {
+            health = 68 + state.getSearchRandomGen().nextInt(5, RandomGenCtx.RandomEnemyHealth, new Tuple<>(68, state));
             splitMaxHealth = health;
         }
 
@@ -1073,8 +1074,8 @@ public class EnemyExordium {
 
         public List<Card> getPossibleGeneratedCards(GameProperties prop, List<Card> cards) { return List.of(new CardOther.Slimed()); }
 
-        public void randomize(RandomGen random, boolean training, int difficulty) {
-            health = 29 + random.nextInt(6, RandomGenCtx.Other);
+        public void randomize(GameState state, boolean training, int difficulty) {
+            health = 29 + state.getSearchRandomGen().nextInt(6, RandomGenCtx.RandomEnemyHealth, new Tuple<>(29, state));
         }
 
         public String getName() {
@@ -1128,8 +1129,8 @@ public class EnemyExordium {
             return "Unknown";
         }
 
-        public void randomize(RandomGen random, boolean training, int difficulty) {
-            health = 9 + random.nextInt(5, RandomGenCtx.Other);
+        public void randomize(GameState state, boolean training, int difficulty) {
+            health = 9 + state.getSearchRandomGen().nextInt(5, RandomGenCtx.RandomEnemyHealth, new Tuple<>(9, state));
         }
 
         public String getName() {
@@ -1211,12 +1212,12 @@ public class EnemyExordium {
             return "Unknown";
         }
 
-        @Override public void randomize(RandomGen random, boolean training, int difficulty) {
-            int b = random.nextInt(3, RandomGenCtx.Other) + 1;
+        @Override public void randomize(GameState state, boolean training, int difficulty) {
+            int b = state.getSearchRandomGen().nextInt(3, RandomGenCtx.Other) + 1;
             if (training && b < 3) {
                 health = (int) Math.round(((double) (health * b)) / 3);
             } else {
-                health = 48 + random.nextInt(5, RandomGenCtx.Other);
+                health = 48 + state.getSearchRandomGen().nextInt(5, RandomGenCtx.RandomEnemyHealth, new Tuple<>(48, state));
             }
         }
 
@@ -1292,12 +1293,12 @@ public class EnemyExordium {
             return "Unknown";
         }
 
-        @Override public void randomize(RandomGen random, boolean training, int difficulty) {
-            int b = random.nextInt(3, RandomGenCtx.Other) + 1;
+        @Override public void randomize(GameState state, boolean training, int difficulty) {
+            int b = state.getSearchRandomGen().nextInt(3, RandomGenCtx.Other) + 1;
             if (training && b < 3) {
                 health = (int) Math.round(((double) (health * b)) / 3);
             } else {
-                health = 48 + random.nextInt(5, RandomGenCtx.Other);
+                health = 48 + state.getSearchRandomGen().nextInt(5, RandomGenCtx.RandomEnemyHealth, new Tuple<>(48, state));
             }
         }
 
@@ -1382,8 +1383,8 @@ public class EnemyExordium {
             return "Unknown";
         }
 
-        public void randomize(RandomGen random, boolean training, int difficulty) {
-            health = 42 + random.nextInt(5, RandomGenCtx.Other);
+        public void randomize(GameState state, boolean training, int difficulty) {
+            health = 42 + state.getSearchRandomGen().nextInt(5, RandomGenCtx.RandomEnemyHealth, new Tuple<>(42, state));
         }
 
         public String getName() {
@@ -1441,11 +1442,11 @@ public class EnemyExordium {
             return "Unknown";
         }
 
-        public void randomize(RandomGen random, boolean training, int difficulty) {
+        public void randomize(GameState state, boolean training, int difficulty) {
             if (training) {
                 health = (int) Math.round(((double) (health * difficulty)) / 5);
             } else {
-                health = 50 + random.nextInt(7, RandomGenCtx.RandomEnemyHealth, 50);
+                health = 50 + state.getSearchRandomGen().nextInt(7, RandomGenCtx.RandomEnemyHealth, new Tuple<>(50, state));
             }
         }
 
@@ -1556,9 +1557,9 @@ public class EnemyExordium {
             return "Unknown";
         }
 
-        public void randomize(RandomGen random, boolean training, int difficulty) {
-            health = 11 + random.nextInt(6, RandomGenCtx.Other);
-            curlUpAmount = 9 + random.nextInt(4, RandomGenCtx.Other);
+        public void randomize(GameState state, boolean training, int difficulty) {
+            health = 11 + state.getSearchRandomGen().nextInt(6, RandomGenCtx.RandomEnemyHealth, new Tuple<>(11, state));
+            curlUpAmount = 9 + state.getSearchRandomGen().nextInt(4, RandomGenCtx.Other);
         }
 
         public String getName() {
@@ -1689,9 +1690,9 @@ public class EnemyExordium {
             return "Unknown";
         }
 
-        public void randomize(RandomGen random, boolean training, int difficulty) {
-            health = 12 + random.nextInt(7, RandomGenCtx.Other);
-            curlUpAmount = 9 + random.nextInt(4, RandomGenCtx.Other);
+        public void randomize(GameState state, boolean training, int difficulty) {
+            health = 12 + state.getSearchRandomGen().nextInt(7, RandomGenCtx.RandomEnemyHealth, new Tuple<>(12, state));
+            curlUpAmount = 9 + state.getSearchRandomGen().nextInt(4, RandomGenCtx.Other);
         }
 
         public String getName() {
@@ -1803,8 +1804,8 @@ public class EnemyExordium {
             return "Unknown";
         }
 
-        public void randomize(RandomGen random, boolean training, int difficulty) {
-            health = 24 + random.nextInt(5, RandomGenCtx.Other);
+        public void randomize(GameState state, boolean training, int difficulty) {
+            health = 24 + state.getSearchRandomGen().nextInt(5, RandomGenCtx.RandomEnemyHealth, new Tuple<>(24, state));
         }
 
         public String getName() {
@@ -1882,8 +1883,8 @@ public class EnemyExordium {
             return "Unknown";
         }
 
-        public void randomize(RandomGen random, boolean training, int difficulty) {
-            health = 46 + random.nextInt(5, RandomGenCtx.Other);
+        public void randomize(GameState state, boolean training, int difficulty) {
+            health = 46 + state.getSearchRandomGen().nextInt(5, RandomGenCtx.RandomEnemyHealth, new Tuple<>(46, state));
         }
 
         @Override public int getNNInputLen(GameProperties prop) {
@@ -2039,8 +2040,8 @@ public class EnemyExordium {
             });
         }
 
-        public void randomize(RandomGen random, boolean training, int difficulty) {
-            health = 50 + random.nextInt(5, RandomGenCtx.Other);
+        public void randomize(GameState state, boolean training, int difficulty) {
+            health = 50 + state.getSearchRandomGen().nextInt(5, RandomGenCtx.RandomEnemyHealth, new Tuple<>(50, state));
         }
 
         public String getName() {
@@ -2088,8 +2089,8 @@ public class EnemyExordium {
             return "Unknown";
         }
 
-        public void randomize(RandomGen random, boolean training, int difficulty) {
-            health = 14 + random.nextInt(5, RandomGenCtx.Other);
+        public void randomize(GameState state, boolean training, int difficulty) {
+            health = 14 + state.getSearchRandomGen().nextInt(5, RandomGenCtx.RandomEnemyHealth, new Tuple<>(14, state));
         }
 
         public String getName() {
@@ -2142,8 +2143,8 @@ public class EnemyExordium {
             return "Unknown";
         }
 
-        public void randomize(RandomGen random, boolean training, int difficulty) {
-            health = 21 + random.nextInt(5, RandomGenCtx.Other);
+        public void randomize(GameState state, boolean training, int difficulty) {
+            health = 21 + state.getSearchRandomGen().nextInt(5, RandomGenCtx.RandomEnemyHealth, new Tuple<>(21, state));
         }
 
         public String getName() {
@@ -2187,8 +2188,8 @@ public class EnemyExordium {
             return "Unknown";
         }
 
-        public void randomize(RandomGen random, boolean training, int difficulty) {
-            health = 11 + random.nextInt(5, RandomGenCtx.Other);
+        public void randomize(GameState state, boolean training, int difficulty) {
+            health = 11 + state.getSearchRandomGen().nextInt(5, RandomGenCtx.RandomEnemyHealth, new Tuple<>(11, state));
         }
 
         public String getName() {
@@ -2257,8 +2258,8 @@ public class EnemyExordium {
             return "Unknown";
         }
 
-        public void randomize(RandomGen random, boolean training, int difficulty) {
-            health = 13 + random.nextInt(5, RandomGenCtx.Other);
+        public void randomize(GameState state, boolean training, int difficulty) {
+            health = 13 + state.getSearchRandomGen().nextInt(5, RandomGenCtx.RandomEnemyHealth, new Tuple<>(13, state));
         }
 
         public String getName() {
@@ -2317,8 +2318,8 @@ public class EnemyExordium {
             return "Unknown";
         }
 
-        public void randomize(RandomGen random, boolean training, int difficulty) {
-            health = 22 + random.nextInt(5, RandomGenCtx.Other);
+        public void randomize(GameState state, boolean training, int difficulty) {
+            health = 22 + state.getSearchRandomGen().nextInt(5, RandomGenCtx.RandomEnemyHealth, new Tuple<>(22, state));
         }
 
         public String getName() {

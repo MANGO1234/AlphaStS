@@ -299,7 +299,7 @@ public abstract class Enemy extends EnemyReadOnly {
         return this;
     }
 
-    public abstract void randomize(RandomGen random, boolean training, int difficulty);
+    public abstract void randomize(GameState state, boolean training, int difficulty);
     public int getMaxRandomizeDifficulty() {
         return 0;
     }
@@ -466,8 +466,8 @@ public abstract class Enemy extends EnemyReadOnly {
             return this;
         }
 
-        @Override public void randomize(RandomGen random, boolean training, int difficulty) {
-            currentEnemy.randomize(random, training, difficulty);
+        @Override public void randomize(GameState state, boolean training, int difficulty) {
+            currentEnemy.randomize(state, training, difficulty);
         }
 
         @Override public int getMaxRandomizeDifficulty() {

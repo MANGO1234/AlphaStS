@@ -4323,7 +4323,7 @@ public final class GameState implements State {
             setIsStochastic();
             var enemy = getEnemiesForWrite().getForWrite(idx);
             if (startingHealth < 0) {
-                enemy.randomize(getSearchRandomGen(), properties.curriculumTraining, -1);
+                enemy.randomize(this, properties.curriculumTraining, -1);
             } else {
                 enemy.setHealth(startingHealth);
             }
