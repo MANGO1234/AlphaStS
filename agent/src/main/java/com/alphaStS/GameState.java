@@ -553,7 +553,9 @@ public final class GameState implements State {
         }
         List<Integer> strikeIdxes = new ArrayList<>();
         for (int i = 0; i < cards.size(); i++) {
-            if (cards.get(i).cardName.equals("Normality")) {
+            if (cards.get(i).cardName.equals("Enthralled")) {
+                properties.enthralledCardIdx = i;
+            } else if (cards.get(i).cardName.equals("Normality")) {
                 properties.normalityCardIdx = i;
             } else if (cards.get(i).cardName.contains("Strike")) {
                 strikeIdxes.add(i);
@@ -3143,9 +3145,14 @@ public final class GameState implements State {
                         }
                     }
                 }
+                boolean enthralledConstraint = properties.enthralledCardIdx >= 0 &&
+                    GameStateUtils.getCardCount(getHandArrForRead(), handArrLen, properties.enthralledCardIdx) > 0;
                 if (!isCardPlayBlocked()) {
                     for (int i = 0; i < handArrLen; i++) {
                         if (!legal[handArr[i]]) {
+                            if (enthralledConstraint && handArr[i] != properties.enthralledCardIdx) {
+                                continue;
+                            }
                             if (getPlayerForRead().isEntangled() && properties.cardDict[handArr[i]].cardType == Card.ATTACK) {
                                 continue;
                             }
@@ -3886,6 +3893,9 @@ public final class GameState implements State {
         }
         if (properties.strikeDummy != null && properties.strikeDummy.isRelicEnabledInScenario(this) && CardManager.isStrike(damageSource)) {
             dmg += 3;
+        }
+        if (properties.strikeDummyQQQ != null && properties.strikeDummyQQQ.isRelicEnabledInScenario(this) && CardManager.isStrike(damageSource)) {
+            dmg += 1;
         }
         dmg += player.getStrength();
         if (properties.accuracyCounterIdx >= 0 && (damageSource instanceof CardColorless.Shiv || damageSource instanceof CardColorless.ShivP)) {
