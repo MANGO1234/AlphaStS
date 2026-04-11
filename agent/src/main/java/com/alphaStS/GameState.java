@@ -3884,6 +3884,9 @@ public final class GameState implements State {
         if (properties.miniatureCannon != null && properties.miniatureCannon.isRelicEnabledInScenario(this) && CardManager.isUpgraded(damageSource)) {
             dmg += 3;
         }
+        if (properties.strikeDummy != null && properties.strikeDummy.isRelicEnabledInScenario(this) && CardManager.isStrike(damageSource)) {
+            dmg += 3;
+        }
         dmg += player.getStrength();
         if (properties.accuracyCounterIdx >= 0 && (damageSource instanceof CardColorless.Shiv || damageSource instanceof CardColorless.ShivP)) {
             dmg += getCounterForRead()[properties.accuracyCounterIdx];

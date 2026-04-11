@@ -12,6 +12,10 @@ public class CardManager {
         return card.cardName.contains("+");
     }
 
+    public static boolean isStrike(Card card) {
+        return card.cardName.contains("Strike");
+    }
+
     public static List<Card> getCharacterCardsByType(CharacterEnum character, int cardType, boolean generateHealingCard) {
         return switch (character) {
             case IRONCLAD -> getIroncladCards(cardType, generateHealingCard);
