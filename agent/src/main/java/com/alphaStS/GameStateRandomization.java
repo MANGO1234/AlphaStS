@@ -422,7 +422,7 @@ public interface GameStateRandomization {
             }
             if (!state.properties.isTraining || (!curriculumTrainingIfNoDifficulty && (minDifficulty <= 0 || minDifficulty == totalDifficulty))) {
                 for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
-                    enemy.randomize(state.getSearchRandomGen(), false, -1);
+                    enemy.randomize(state, false, -1);
                     if (enemy.hasBurningHealthBuff()) {
                         enemy.setHealth((int) (enemy.getHealth() * 1.25));
                     }
@@ -433,9 +433,9 @@ public interface GameStateRandomization {
                     if (enemy.getMaxRandomizeDifficulty() > 0) {
                         state.setIsStochastic();
                         var r = state.getSearchRandomGen().nextInt(enemy.getMaxRandomizeDifficulty(), RandomGenCtx.Other) + 1;
-                        enemy.randomize(state.getSearchRandomGen(), true, r);
+                        enemy.randomize(state, true, r);
                     } else {
-                        enemy.randomize(state.getSearchRandomGen(), true, -1);
+                        enemy.randomize(state, true, -1);
                     }
                     if (enemy.hasBurningHealthBuff()) {
                         enemy.setHealth((int) (enemy.getHealth() * 1.25));
@@ -460,7 +460,7 @@ public interface GameStateRandomization {
                         state.reviveEnemy(2, false, -1);
                         ((EnemyEnding.CorruptHeart) state.getEnemiesForWrite().getForWrite(2)).setInvincible(200);
                         for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
-                            enemy.randomize(state.getSearchRandomGen(), true, difficultyChosen);
+                            enemy.randomize(state, true, difficultyChosen);
                             if (enemy.hasBurningHealthBuff()) {
                                 enemy.setHealth((int) (enemy.getHealth() * 1.25));
                             }
@@ -492,7 +492,7 @@ public interface GameStateRandomization {
                 }
                 i = 0;
                 for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
-                    enemy.randomize(state.getSearchRandomGen(), true, difficulties[i++] + 1);
+                    enemy.randomize(state, true, difficulties[i++] + 1);
                     if (enemy.hasBurningHealthBuff()) {
                         enemy.setHealth((int) (enemy.getHealth() * 1.25));
                     }

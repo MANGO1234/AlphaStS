@@ -2966,7 +2966,7 @@ public class InteractiveMode {
                     }
                 }
                 case RandomEnemyHealth -> {
-                    return interactiveMode.selectEnemyHealth(reader, (Integer) arg, bound, history);
+                    return interactiveMode.selectEnemyHealth(reader, ((Tuple<Integer, GameState>) arg).v1(), bound, history);
                 }
                 case RandomEnemyGeneral, RandomEnemyJuggernaut, RandomEnemySwordBoomerang, RandomEnemyLightningOrb, RandomEnemyRipAndTear -> {
                     return interactiveMode.selectEnemyRandomInteractive(reader, (GameState) arg, history, ctx);

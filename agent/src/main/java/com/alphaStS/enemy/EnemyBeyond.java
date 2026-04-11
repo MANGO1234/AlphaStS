@@ -11,6 +11,7 @@ import com.alphaStS.random.RandomGenCtx;
 import com.alphaStS.utils.CrashException;
 
 import java.util.List;
+import com.alphaStS.utils.Tuple;
 
 public class EnemyBeyond {
     public static class AwakenedOne extends Enemy {
@@ -197,7 +198,7 @@ public class EnemyBeyond {
             }
         }
 
-        @Override public void randomize(RandomGen random, boolean training, int difficulty) {
+        @Override public void randomize(GameState state, boolean training, int difficulty) {
             if (training) {
                 if (difficulty <= 16) {
                     awakened = true;
@@ -308,9 +309,9 @@ public class EnemyBeyond {
             return 12;
         }
 
-        @Override public void randomize(RandomGen random, boolean training, int difficulty) {
+        @Override public void randomize(GameState state, boolean training, int difficulty) {
             if (training) {
-//                difficulty = random.nextInt(12, RandomGenCtx.Other) + 1;
+//                difficulty = state.getSearchRandomGen().nextInt(12, RandomGenCtx.Other) + 1;
                 health = (int) Math.round(((double) (health * difficulty)) / 12);
             } else {
                 health = 265;
@@ -387,9 +388,9 @@ public class EnemyBeyond {
             return 12;
         }
 
-        @Override public void randomize(RandomGen random, boolean training, int difficulty) {
+        @Override public void randomize(GameState state, boolean training, int difficulty) {
             if (training) {
-//                difficulty = random.nextInt(12, RandomGenCtx.Other) + 1;
+//                difficulty = state.getSearchRandomGen().nextInt(12, RandomGenCtx.Other) + 1;
                 health = (int) Math.round(((double) (health * difficulty)) / 12);
             } else {
                 health = 265;
@@ -574,9 +575,9 @@ public class EnemyBeyond {
             return 24;
         }
 
-        @Override public void randomize(RandomGen random, boolean training, int difficulty) {
+        @Override public void randomize(GameState state, boolean training, int difficulty) {
             if (training) {
-//                int difficulty = random.nextInt(24, RandomGenCtx.Other) + 1;
+//                int difficulty = state.getSearchRandomGen().nextInt(24, RandomGenCtx.Other) + 1;
                 health = (int) Math.round((health * difficulty) / 24.0);
                 if (health < 240) {
                     hasted = true;
@@ -730,9 +731,9 @@ public class EnemyBeyond {
             });
         }
 
-        @Override public void randomize(RandomGen random, boolean training, int difficulty) {
+        @Override public void randomize(GameState state, boolean training, int difficulty) {
             if (training) {
-                int b = random.nextInt(26, RandomGenCtx.Other) + 1;
+                int b = state.getSearchRandomGen().nextInt(26, RandomGenCtx.Other) + 1;
                 health = (int) Math.round((health * b) / 26.0);
             } else {
                 health = 520;
@@ -1005,9 +1006,9 @@ public class EnemyBeyond {
 
         public List<Card> getPossibleGeneratedCards(GameProperties prop, List<Card> cards) { return List.of(new CardOther.Burn()); }
 
-        @Override public void randomize(RandomGen random, boolean training, int difficulty) {
+        @Override public void randomize(GameState state, boolean training, int difficulty) {
             if (training) {
-                int b = random.nextInt(10, RandomGenCtx.Other) + 1;
+                int b = state.getSearchRandomGen().nextInt(10, RandomGenCtx.Other) + 1;
                 health = (int) Math.round((health * b) / 10.0);
             } else {
                 health = 200;
@@ -1180,12 +1181,12 @@ public class EnemyBeyond {
             return "Unknown";
         }
 
-        @Override public void randomize(RandomGen random, boolean training, int difficulty) {
+        @Override public void randomize(GameState state, boolean training, int difficulty) {
             if (training) {
-                int b = random.nextInt(10, RandomGenCtx.Other) + 1;
+                int b = state.getSearchRandomGen().nextInt(10, RandomGenCtx.Other) + 1;
                 health = (int) Math.round((health * b) / 10.0);
             } else {
-                health = 190 + random.nextInt(11, RandomGenCtx.Other);
+                health = 190 + state.getSearchRandomGen().nextInt(11, RandomGenCtx.RandomEnemyHealth, new Tuple<>(190, state));
             }
         }
 
@@ -1243,12 +1244,12 @@ public class EnemyBeyond {
             return "Unknown";
         }
 
-        @Override public void randomize(RandomGen random, boolean training, int difficulty) {
+        @Override public void randomize(GameState state, boolean training, int difficulty) {
             if (training) {
-                int b = random.nextInt(4, RandomGenCtx.Other) + 1;
+                int b = state.getSearchRandomGen().nextInt(4, RandomGenCtx.Other) + 1;
                 health = (int) Math.round((health * b) / 4.0);
             } else {
-                health = 20 + random.nextInt(6, RandomGenCtx.Other);
+                health = 20 + state.getSearchRandomGen().nextInt(6, RandomGenCtx.RandomEnemyHealth, new Tuple<>(20, state));
             }
         }
 
@@ -1329,8 +1330,8 @@ public class EnemyBeyond {
             return "Unknown";
         }
 
-        @Override public void randomize(RandomGen random, boolean training, int difficulty) {
-            int b = random.nextInt(15, RandomGenCtx.Other) + 1;
+        @Override public void randomize(GameState state, boolean training, int difficulty) {
+            int b = state.getSearchRandomGen().nextInt(15, RandomGenCtx.Other) + 1;
             if (training) {
                 health = (int) Math.round((health * b) / 15.0);
             } else {
@@ -1500,8 +1501,8 @@ public class EnemyBeyond {
             return "Unknown";
         }
 
-        @Override public void randomize(RandomGen random, boolean training, int difficulty) {
-            int b = random.nextInt(8, RandomGenCtx.Other) + 1;
+        @Override public void randomize(GameState state, boolean training, int difficulty) {
+            int b = state.getSearchRandomGen().nextInt(8, RandomGenCtx.Other) + 1;
             if (training) {
                 health = (int) Math.round((health * b) / 8.0);
             } else {
@@ -1624,12 +1625,12 @@ public class EnemyBeyond {
             return "Unknown";
         }
 
-        @Override public void randomize(RandomGen random, boolean training, int difficulty) {
+        @Override public void randomize(GameState state, boolean training, int difficulty) {
             if (training) {
-                int b = random.nextInt(5, RandomGenCtx.Other) + 1;
+                int b = state.getSearchRandomGen().nextInt(5, RandomGenCtx.Other) + 1;
                 health = (int) Math.round((health * b) / 5.0);
             } else {
-                health = 92 + random.nextInt(11, RandomGenCtx.Other);
+                health = 92 + state.getSearchRandomGen().nextInt(11, RandomGenCtx.RandomEnemyHealth, new Tuple<>(92, state));
             }
         }
 
@@ -1728,8 +1729,8 @@ public class EnemyBeyond {
             });
         }
 
-        @Override public void randomize(RandomGen random, boolean training, int difficulty) {
-            int b = random.nextInt(9, RandomGenCtx.Other) + 1;
+        @Override public void randomize(GameState state, boolean training, int difficulty) {
+            int b = state.getSearchRandomGen().nextInt(9, RandomGenCtx.Other) + 1;
             if (training) {
                 health = (int) Math.round((health * b) / 9.0);
             } else {
@@ -1893,12 +1894,12 @@ public class EnemyBeyond {
             return "Unknown";
         }
 
-        @Override public void randomize(RandomGen random, boolean training, int difficulty) {
-            int b = random.nextInt(6, RandomGenCtx.Other) + 1;
+        @Override public void randomize(GameState state, boolean training, int difficulty) {
+            int b = state.getSearchRandomGen().nextInt(6, RandomGenCtx.Other) + 1;
             if (training) {
                 health = (int) Math.round((health * b) / 6.0);
             } else {
-                health = 50 + random.nextInt(10, RandomGenCtx.Other);
+                health = 50 + state.getSearchRandomGen().nextInt(10, RandomGenCtx.RandomEnemyHealth, new Tuple<>(50, state));
             }
         }
 
@@ -1986,8 +1987,8 @@ public class EnemyBeyond {
             return "Unknown";
         }
 
-        @Override public void randomize(RandomGen random, boolean training, int difficulty) {
-            health = 31 + random.nextInt(8, RandomGenCtx.Other);
+        @Override public void randomize(GameState state, boolean training, int difficulty) {
+            health = 31 + state.getSearchRandomGen().nextInt(8, RandomGenCtx.RandomEnemyHealth, new Tuple<>(31, state));
         }
 
         public List<Card> getPossibleGeneratedCards(GameProperties prop, List<Card> cards) { return List.of(new CardOther.Dazed()); }
@@ -2047,8 +2048,8 @@ public class EnemyBeyond {
             return "Unknown";
         }
 
-        @Override public void randomize(RandomGen random, boolean training, int difficulty) {
-            health = 30 + random.nextInt(6, RandomGenCtx.Other);
+        @Override public void randomize(GameState state, boolean training, int difficulty) {
+            health = 30 + state.getSearchRandomGen().nextInt(6, RandomGenCtx.RandomEnemyHealth, new Tuple<>(30, state));
         }
 
         @Override public String getName() {
@@ -2111,8 +2112,8 @@ public class EnemyBeyond {
             return super.equals(o) && thorn == ((EnemyBeyond.Spiker) o).thorn;
         }
 
-        @Override public void randomize(RandomGen random, boolean training, int difficulty) {
-            health = 44 + random.nextInt(17, RandomGenCtx.Other);
+        @Override public void randomize(GameState state, boolean training, int difficulty) {
+            health = 44 + state.getSearchRandomGen().nextInt(17, RandomGenCtx.RandomEnemyHealth, new Tuple<>(44, state));
         }
 
         @Override public String getName() {
@@ -2200,7 +2201,7 @@ public class EnemyBeyond {
             return "Unknown";
         }
 
-        @Override public void randomize(RandomGen random, boolean training, int difficulty) {
+        @Override public void randomize(GameState state, boolean training, int difficulty) {
             health = 999;
         }
 
