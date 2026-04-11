@@ -46,5 +46,5 @@ For each battle in the run data:
 | `GameStateBuilder` → JSON (`BattleBuilderJsonWriter`) | Done | Serializes player, deck, relics, potions to battle definition JSON |
 | STS mod integration (step 1) | Done | `BattleLoaderMod` listens on port 2345; `TestRunner.sendBattleDefinition()` sends JSON and waits for "OK" |
 | Communication mod + random bot (step 2) | TODO | Random-move bot and turn limit not yet implemented |
-| `.log` format and logging mod (step 3) | Partial | `state:floor` and `action:*` logged; `event:shuffle` (deck order on reshuffle) via `EmptyDeckShuffleActionPatch`; `event:enemy_hp` (min/max/chosen HP per enemy) via `EnemyHpPatch` |
-| Log replay + state assertions (step 4) | Done | `TestRunner.replayLog()` applies actions to `GameState`; `TestReplay.compareStateFloor` asserts energy, block, monster HP, exhaust pile; enemy HP replay via `RandomGenTest` (pops `event:enemy_hp` queue on `RandomEnemyHealth` calls) |
+| `.log` format and logging mod (step 3) | Partial | `state:floor` and `action:*` logged; `event:shuffle` (deck order on reshuffle) via `EmptyDeckShuffleActionPatch`; `event:enemy_hp` (id/min/max/chosen HP per enemy) via `EnemyHpPatch` |
+| Log replay + state assertions (step 4) | Done | `TestRunner.replayLog()` applies actions to `GameState`; `TestReplay.compareStateFloor` asserts energy, block, monster HP, exhaust pile; shuffle and enemy HP replay share a unified `Queue<TestReplayEvent>`; `RandomGenTest` validates bound and applies chosen HP on `RandomEnemyHealth` calls |

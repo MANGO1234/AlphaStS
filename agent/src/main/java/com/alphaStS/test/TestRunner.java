@@ -26,6 +26,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
@@ -336,9 +337,8 @@ public class TestRunner {
         ObjectMapper mapper = new ObjectMapper();
         List<String> lines = Files.readAllLines(logFile);
 
-        // Pre-pass: load replay events from the log into queues.
-        Queue<String[]> replayEventQueue = new LinkedList<>();
-        Queue<int[]> replayEnemyHpQueue = new LinkedList<>();
+        // Pre-pass: load all replay events into a single ordered queue.
+        Queue<TestReplayEvent> replayEventQueue = new LinkedList<>();
         for (String line : lines) {
             JsonNode node = mapper.readTree(line);
             String type = node.path("_type").asText();
@@ -348,9 +348,12 @@ public class TestRunner {
                 for (int i = 0; i < orderNode.size(); i++) {
                     order[i] = orderNode.get(i).asText();
                 }
-                replayEventQueue.add(order);
+                replayEventQueue.add(new TestReplayEvent.ShuffleEvent(order));
             } else if ("event:enemy_hp".equals(type)) {
-                replayEnemyHpQueue.add(new int[]{node.path("min_hp").asInt(), node.path("chosen_hp").asInt()});
+                replayEventQueue.add(new TestReplayEvent.EnemyHpEvent(
+                    node.path("min_hp").asInt(),
+                    node.path("max_hp").asInt(),
+                    node.path("chosen_hp").asInt()));
             }
         }
 
@@ -363,15 +366,26 @@ public class TestRunner {
         GameState state = new GameState(builder);
         state.properties.testingReplayMode = true;
         state.properties.replayEventQueue = replayEventQueue;
-        state.properties.random = new RandomGenTest(replayEnemyHpQueue);
+        state.properties.random = new RandomGenTest(replayEventQueue);
 
-        // The first event:shuffle in the log is the initial deck order STS chose before the first
-        // draw. Set it directly so the simulation draws the same opening hand.
-        if (!replayEventQueue.isEmpty()) {
-            String[] initialOrder = replayEventQueue.poll();
-            state.deckArr = new short[initialOrder.length + 2];
+        // The first ShuffleEvent in the queue is the initial deck order STS chose before the first
+        // draw. EnemyHpEvents precede it in the queue and are left in place — RandomGenTest will
+        // consume them during pre-battle advancement. We use an iterator to remove only the
+        // ShuffleEvent without disturbing the EnemyHpEvents ahead of it.
+        TestReplayEvent.ShuffleEvent initialShuffle = null;
+        Iterator<TestReplayEvent> queueIter = ((LinkedList<TestReplayEvent>) replayEventQueue).iterator();
+        while (queueIter.hasNext()) {
+            TestReplayEvent evt = queueIter.next();
+            if (evt instanceof TestReplayEvent.ShuffleEvent se) {
+                initialShuffle = se;
+                queueIter.remove();
+                break;
+            }
+        }
+        if (initialShuffle != null) {
+            state.deckArr = new short[initialShuffle.deckOrder.length + 2];
             state.deckArrLen = 0;
-            for (String cardName : initialOrder) {
+            for (String cardName : initialShuffle.deckOrder) {
                 for (int i = 0; i < state.properties.cardDict.length; i++) {
                     if (state.properties.cardDict[i].cardName.equals(cardName)) {
                         state.deckArr[state.deckArrLen++] = (short) i;
