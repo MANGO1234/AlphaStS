@@ -2,6 +2,7 @@ package com.alphaStS.entity;
 
 import com.alphaStS.*;
 import com.alphaStS.card.Card;
+import com.alphaStS.card.CardColorless2;
 import com.alphaStS.enemy.Enemy;
 import com.alphaStS.enums.DebuffType;
 import com.alphaStS.enums.OrbType;
@@ -9,6 +10,9 @@ import com.alphaStS.eventHandler.GameEventCardHandler;
 import com.alphaStS.eventHandler.GameEventHandler;
 import com.alphaStS.random.RandomGenCtx;
 import com.alphaStS.utils.CounterStat;
+
+import java.util.List;
+import java.util.Objects;
 
 public class Relic2 {
     // **************************************************************************************************
@@ -989,27 +993,83 @@ public class Relic2 {
         }
     }
 
-    // TODO: Bone Tea (Event)
-    //   Effect: At the start of the next combat, Upgrade your starting hand.
+    public static class BoneTea extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.addStartOfTurnHandler("BoneTea", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (state.turnNum == 1 && isRelicEnabledInScenario(state)) {
+                        state.handArrTransform(state.properties.upgradeIdxes);
+                    }
+                }
+            });
+        }
 
-    // TODO: Byrdpip (Event)
-    //   Effect: Upon pickup, gain the card Byrd Swoop. A Byrdpip will accompany you in battles.
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            return cards.stream().map(Card::getUpgrade).filter(Objects::nonNull).toList();
+        }
+    }
+
+    public static class Byrdpip extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.addStartOfBattleHandler("Byrdpip", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (isRelicEnabledInScenario(state)) {
+                        state.addCardToDeck(generatedCardIdx, false);
+                    }
+                }
+            });
+        }
+
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            return List.of(new CardColorless2.ByrdSwoop());
+        }
+    }
 
     // No need to implement Darkstone Periapt: Whenever you obtain a Curse, raise your Max HP by 6.
 
-    // TODO: Daughter of the Wind (Event)
-    //   Effect: Whenever you play an Attack, gain 1 Block.
+    public static class DaughterOfTheWind extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.addOnCardPlayedHandler("DaughterOfTheWind", new GameEventCardHandler() {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                    if (isRelicEnabledInScenario(state) && state.properties.cardDict[cardIdx].cardType == Card.ATTACK) {
+                        state.playerGainBlockNotFromCardPlay(1);
+                    }
+                }
+            });
+        }
+    }
 
     // No need to implement Dream Catcher: Whenever you Rest, you may add a card to your Deck.
 
-    // TODO: Ember Tea (Event)
-    //   Effect: At the start of the next 5 combats, gain 2 Strength.
+    public static class EmberTea extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.addStartOfTurnHandler("EmberTea", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (state.turnNum == 1 && isRelicEnabledInScenario(state)) {
+                        state.getPlayerForWrite().gainStrength(2);
+                    }
+                }
+            });
+        }
+    }
 
-    // TODO: Forgotten Soul (Event)
-    //   Effect: Whenever you Exhaust a card, deal 1 damage to a random enemy.
+    public static class ForgottenSoul extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.addOnExhaustHandler("ForgottenSoul", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (!isRelicEnabledInScenario(state)) {
+                        return;
+                    }
+                    int enemyIdx = GameStateUtils.getRandomEnemyIdx(state, RandomGenCtx.RandomEnemyGeneral);
+                    if (enemyIdx >= 0) {
+                        state.playerDoNonAttackDamageToEnemy(state.getEnemiesForWrite().getForWrite(enemyIdx), 1, true);
+                    }
+                }
+            });
+        }
+    }
 
-    // TODO: Fragrant Mushroom (Event)
-    //   Effect: Upon pickup, lose 15 HP and Upgrade 3 random cards.
+    // No need to implement Fragrant Mushroom: Upon pickup, lose 15 HP and Upgrade 3 random cards.
 
     // TODO: Fresnel Lens (Event)
     //   Effect: Whenever you add a card that gains Block to your Deck, Enchant it with Nimble 2.
@@ -1029,15 +1089,37 @@ public class Relic2 {
 
     // No need to implement Lee's Waffle???: Upon pickup, heal 10% of your HP.
 
-    // TODO: Lost Wisp (Event)
-    //   Effect: Whenever you play a Power, deal 8 damage to ALL enemies.
+    public static class LostWisp extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.addOnCardPlayedHandler("LostWisp", new GameEventCardHandler() {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                    if (isRelicEnabledInScenario(state) && state.properties.cardDict[cardIdx].cardType == Card.POWER) {
+                        for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
+                            state.playerDoNonAttackDamageToEnemy(enemy, 8, true);
+                        }
+                    }
+                }
+            });
+        }
+    }
 
     // No need to implement Mango???: Upon pickup, raise your Max HP by 3.
 
     // No need to implement Maw Bank: Whenever you climb a floor, gain 12 Gold. No longer works when you spend any Gold at the shop.
 
-    // TODO: Mr. Struggles (Event)
-    //   Effect: At the start of your turn, deal damage equal to the turn number to ALL enemies.
+    public static class MrStruggles extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.addStartOfTurnHandler("MrStruggles", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (isRelicEnabledInScenario(state)) {
+                        for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
+                            state.playerDoNonAttackDamageToEnemy(enemy, state.turnNum, true);
+                        }
+                    }
+                }
+            });
+        }
+    }
 
     public static class OrichalcumQQQ extends Relic.Orichalcum {
         public OrichalcumQQQ() {
@@ -1045,11 +1127,74 @@ public class Relic2 {
         }
     }
 
-    // TODO: Pollinous Core (Event)
-    //   Effect: Every 4 turns, draw 2 additional cards.
+    public static class PollinousCore extends Relic {
+        private final int healthReward;
 
-    // TODO: Royal Poison (Event)
-    //   Effect: At the start of each combat, lose 4 HP.
+        public PollinousCore() {
+            this(0);
+        }
+
+        public PollinousCore(int healthReward) {
+            this.healthReward = healthReward;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("PollinousCore", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 4.0f;
+                    return idx + 1;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            }, true);
+            state.properties.addStartOfTurnHandler("PollinousCore", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (!isRelicEnabledInScenario(state)) {
+                        return;
+                    }
+                    var counter = state.getCounterForWrite();
+                    counter[counterIdx]++;
+                    if (counter[counterIdx] == 4) {
+                        counter[counterIdx] = 0;
+                        state.draw(2);
+                    }
+                }
+            });
+            if (healthReward > 0) {
+                state.properties.addExtraTrainingTarget("PollinousCore", this, new TrainingTarget() {
+                    @Override public void fillVArray(GameState state, VArray v, int isTerminal) {
+                        if (isTerminal > 0) {
+                            v.setVExtra(vExtraIdx, state.getCounterForRead()[counterIdx] / 3.0);
+                        } else if (isTerminal == 0) {
+                            v.setVExtra(vExtraIdx, state.getVExtra(vExtraIdx));
+                        }
+                    }
+
+                    @Override public void updateQValues(GameState state, VArray v) {
+                        v.add(GameState.V_HEALTH_IDX, healthReward * v.getVExtra(vExtraIdx) / state.getPlayerForRead().getMaxHealth());
+                    }
+                });
+            }
+        }
+
+        @Override public CounterStat getCounterStat() {
+            return new CounterStat(counterIdx, "Pollinous Core");
+        }
+    }
+
+    public static class RoyalPoison extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.addStartOfBattleHandler("RoyalPoison", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (isRelicEnabledInScenario(state)) {
+                        state.doNonAttackDamageToPlayer(4, false, this);
+                    }
+                }
+            });
+        }
+    }
 
     // TODO: Snecko Eye??? (Event)
     //   Effect: Start each combat Confused.
