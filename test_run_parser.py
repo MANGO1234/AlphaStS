@@ -61,6 +61,9 @@ generate_parser.add_argument('--ip', default=None,
                              help='IP address of the STS server.')
 generate_parser.add_argument('--replay', action='store_true',
                              help='Replay each generated run log after saving.')
+generate_parser.add_argument('--replay-seed', dest='replay_seed', default=None,
+                             metavar='RUN_FILE',
+                             help='Reproduce exact battle from a run file using its recorded game seeds and bot seed.')
 
 # --replay-run
 replay_parser = subparsers.add_parser(
@@ -98,6 +101,8 @@ if args.subcommand == 'generate-runs':
         cmd += ['--ip', args.ip]
     if args.replay:
         cmd += ['--replay']
+    if args.replay_seed is not None:
+        cmd += ['--replay-seed', os.path.abspath(args.replay_seed)]
 elif args.subcommand == 'replay-run':
     cmd = JAVA_BASE + ['--replay-run'] + replay_paths
     if args.verbose:
