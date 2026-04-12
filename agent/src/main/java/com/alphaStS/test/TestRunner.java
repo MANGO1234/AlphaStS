@@ -121,18 +121,25 @@ public class TestRunner {
             }
         } else if (subCmd.equals("--replay-run")) {
             if (args.length < 3) {
-                System.err.println("Usage: --replay-test --replay-run <run-log-path> [--verbose]");
+                System.err.println("Usage: --replay-test --replay-run <path> [<path>...] [--verbose]");
                 return;
             }
-            String runLogPath = args[2];
             boolean verbose = false;
-            for (int i = 3; i < args.length; i++) {
-                if (args[i].equals("--verbose")) verbose = true;
+            List<Path> paths = new ArrayList<>();
+            for (int i = 2; i < args.length; i++) {
+                if (args[i].equals("--verbose")) {
+                    verbose = true;
+                } else {
+                    paths.add(Paths.get(args[i]));
+                }
             }
-            try {
-                new TestRunner().replayRunFile(Paths.get(runLogPath), verbose);
-            } catch (Exception e) {
-                throw new RuntimeException(e);
+            TestRunner runner = new TestRunner();
+            for (Path p : paths) {
+                try {
+                    runner.replayRunFile(p, verbose);
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
             }
         } else {
             System.err.println("Unknown --replay-test subcommand: " + subCmd);
@@ -691,11 +698,24 @@ public class TestRunner {
             if (colon < 0) {
                 throw new IllegalArgumentException("Invalid filter token (missing ':'): " + token);
             }
-            Predicate<Integer> runPred    = parseIndexSpec(token.substring(0, colon));
-            Predicate<Integer> battlePred = parseIndexSpec(token.substring(colon + 1));
-            result = result.or(e -> runPred.test(e.getRunIdx()) && battlePred.test(e.getBattleIdx()));
+            Predicate<BattleEntry> runPred    = parseRunSpec(token.substring(0, colon));
+            Predicate<Integer>     battlePred = parseIndexSpec(token.substring(colon + 1));
+            result = result.or(e -> runPred.test(e) && battlePred.test(e.getBattleIdx()));
         }
         return result;
+    }
+
+    /**
+     * Parses the run part of a filter token: an index spec ({@code *}, {@code N}, {@code N-M})
+     * or a play_id string matched against {@link BattleEntry#getPlayId()}.
+     */
+    private static Predicate<BattleEntry> parseRunSpec(String spec) {
+        try {
+            Predicate<Integer> idxPred = parseIndexSpec(spec);
+            return e -> idxPred.test(e.getRunIdx());
+        } catch (NumberFormatException ignored) {
+            return e -> spec.equals(e.getPlayId());
+        }
     }
 
     /** Parses a single index spec: {@code *}, {@code N}, or {@code N-M} (inclusive). */

@@ -49,30 +49,41 @@ Parses a run data JSON file and prints a summary of each matching battle.
 Plays random moves in STS for each matching battle and saves `.run` log files to `tests/`.
 `--replay` additionally validates each log against the Java simulation after it is saved.
 
-### `--replay-run <run-log-path> [--verbose]`
+### `--replay-run <path> [<path>...] [--verbose]`
 
-Replays a single saved `.run` log file. The battle setup (`GameStateBuilder` and enemy
-encounter) is read directly from the header embedded when the file was generated, so
-no historical data file is required.
+Replays one or more saved `.run` log files. Each path may be a `.run` file or a directory;
+directories are expanded to all `.run` files they contain (non-recursive, sorted). The battle
+setup (`GameStateBuilder` and enemy encounter) is read directly from the header embedded when
+each file was generated, so no historical data file is required.
 
 ### `--filter <spec>`
 
 Selects which battles to process. `<spec>` is a comma-separated list of tokens of the form
-`{run}:{battle}`, where each part is:
+`{run}:{battle}`, where the run part is:
 
 | Syntax | Meaning |
 |--------|---------|
-| `*` | all indices |
-| `N` | exactly index N (0-based) |
-| `N-M` | indices N through M inclusive |
+| `*` | all runs |
+| `N` | exactly run index N (0-based) |
+| `N-M` | run indices N through M inclusive |
+| `<play_id>` | run whose play_id matches this string |
+
+And the battle part is:
+
+| Syntax | Meaning |
+|--------|---------|
+| `*` | all battles |
+| `N` | exactly battle index N (0-based) |
+| `N-M` | battle indices N through M inclusive |
 
 **Examples:**
 
 ```
---filter 0:*          # all battles in run 0
---filter 1:2-5        # battles 2, 3, 4, 5 in run 1
---filter *:0          # first battle of every run
---filter 0-2:*,5:3    # all battles in runs 0–2, plus battle 3 of run 5
+--filter 0:*                              # all battles in run 0
+--filter 1:2-5                            # battles 2, 3, 4, 5 in run 1
+--filter *:0                              # first battle of every run
+--filter 0-2:*,5:3                        # all battles in runs 0–2, plus battle 3 of run 5
+--filter 251eb1e0-5bfe-4c74-...:0        # battle 0 of the run with that play_id
 ```
 
 ---

@@ -34,8 +34,8 @@ subparsers = parser.add_subparsers(dest='subcommand')
 
 FILTER_HELP = (
     'comma-separated list of {run}:{battle} selectors; '
-    'each part is *, N, or N-M (inclusive). '
-    'e.g. "0:*,1:2-5,*:0"'
+    'run may be *, N, N-M (inclusive), or a play_id string. '
+    'e.g. "0:*,1:2-5,*:0,<play_id>:0"'
 )
 
 # --parse-historical-data (default)
@@ -65,14 +65,28 @@ generate_parser.add_argument('--replay', action='store_true',
 # --replay-run
 replay_parser = subparsers.add_parser(
     'replay-run',
-    help='Replay a single run log file against the simulated game state.',
+    help='Replay run log files against the simulated game state.',
 )
-replay_parser.add_argument('run_log',
-                           help='Path to the .run log file to replay.')
+replay_parser.add_argument('run_logs', nargs='+',
+                           help='One or more .run log files and/or directories containing .run files (non-recursive).')
 replay_parser.add_argument('--verbose', action='store_true',
                            help='Print simulated and logged state at each step.')
 
 args = parser.parse_args()
+
+# Resolve replay paths before chdir so relative paths work correctly.
+# Directories are expanded to their .run files (non-recursive, sorted).
+replay_paths = []
+if args.subcommand == 'replay-run':
+    for p in args.run_logs:
+        p = os.path.abspath(p)
+        if os.path.isdir(p):
+            for name in sorted(os.listdir(p)):
+                full = os.path.join(p, name)
+                if name.endswith('.run') and os.path.isfile(full):
+                    replay_paths.append(full)
+        else:
+            replay_paths.append(p)
 
 os.chdir('./agent')
 
@@ -85,7 +99,7 @@ if args.subcommand == 'generate-runs':
     if args.replay:
         cmd += ['--replay']
 elif args.subcommand == 'replay-run':
-    cmd = JAVA_BASE + ['--replay-run', args.run_log]
+    cmd = JAVA_BASE + ['--replay-run'] + replay_paths
     if args.verbose:
         cmd += ['--verbose']
 else:
