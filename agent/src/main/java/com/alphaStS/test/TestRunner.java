@@ -27,6 +27,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -139,7 +140,22 @@ public class TestRunner {
                 }
             }
             TestRunner runner = new TestRunner();
+            List<Path> runFiles = new ArrayList<>();
             for (Path p : paths) {
+                if (Files.isDirectory(p)) {
+                    try (var stream = Files.list(p)) {
+                        stream.filter(f -> f.getFileName().toString().endsWith(".run"))
+                              .forEach(runFiles::add);
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                } else {
+                    runFiles.add(p);
+                }
+            }
+            runFiles.sort(Comparator.comparingInt(TestRunner::parseBattleIdxFromFileName)
+                                    .thenComparingLong(TestRunner::parseTimestampFromFileName));
+            for (Path p : runFiles) {
                 try {
                     runner.replayRunFile(p, verbose);
                 } catch (Exception e) {
@@ -253,11 +269,17 @@ public class TestRunner {
             System.out.println("[TestRunner] Wrote run file header: " + runFilePath);
 
             // Step 2: Play random moves via CommunicationMod until battle ends.
-            playRandomMoves(rng);
+            boolean battleCompleted = playRandomMoves(rng);
 
-            // Move the completed .run file to tests/<play_id>_<battleIdx>_<seed>.run
+            // Only persist the run file when the battle properly finished.
+            if (!battleCompleted) {
+                System.err.println("[TestRunner] Battle did not complete (room_phase != COMPLETE); skipping save.");
+                continue;
+            }
+
             Files.createDirectories(Paths.get(TESTS_DIR));
-            Path dest = Paths.get(TESTS_DIR, entry.getPlayId() + "_" + battleIdx + "_" + seed + ".run");
+            long epochMs = System.currentTimeMillis();
+            Path dest = Paths.get(TESTS_DIR, entry.getPlayId() + "_" + battleIdx + "_" + epochMs + ".run");
             Files.move(runFilePath, dest, StandardCopyOption.REPLACE_EXISTING);
             System.out.println("[TestRunner] Run file saved to: " + dest.toAbsolutePath());
 
@@ -314,8 +336,9 @@ public class TestRunner {
      *
      * @param rng   the RNG to use for all random choices (seed already recorded by caller)
      */
-    private void playRandomMoves(RandomGen rng) throws IOException {
+    private boolean playRandomMoves(RandomGen rng) throws IOException {
         ObjectMapper mapper = new ObjectMapper();
+        boolean completed = false;
 
         try (Socket socket = new Socket(COMM_MOD_HOST, COMM_MOD_PORT)) {
             BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream(), StandardCharsets.UTF_8));
@@ -353,6 +376,7 @@ public class TestRunner {
 
                 String roomPhase = gameState.path("room_phase").asText("");
                 if ("COMPLETE".equals(roomPhase) || "GAME_OVER".equals(roomPhase)) {
+                    completed = "COMPLETE".equals(roomPhase);
                     System.out.println("[TestRunner] Battle complete (room_phase=" + roomPhase + ").");
                     break;
                 }
@@ -377,6 +401,7 @@ public class TestRunner {
                 writer.println(mapper.writeValueAsString(cmdNode));
             }
         }
+        return completed;
     }
 
     /**
@@ -763,9 +788,32 @@ public class TestRunner {
         return i -> i == exact;
     }
 
-    /**
-     * Returns the save-file path for the given character.
-     */
+    /** Parses the battle index from a run filename of the form {@code <play_id>_<battle_idx>_<timestamp>.run}. */
+    private static int parseBattleIdxFromFileName(Path p) {
+        String name = p.getFileName().toString();
+        if (name.endsWith(".run")) name = name.substring(0, name.length() - 4);
+        String[] parts = name.split("_");
+        if (parts.length >= 2) {
+            try {
+                return Integer.parseInt(parts[parts.length - 2]);
+            } catch (NumberFormatException ignored) {}
+        }
+        return 0;
+    }
+
+    /** Parses the epoch timestamp from a run filename of the form {@code <play_id>_<battle_idx>_<timestamp>.run}. */
+    private static long parseTimestampFromFileName(Path p) {
+        String name = p.getFileName().toString();
+        if (name.endsWith(".run")) name = name.substring(0, name.length() - 4);
+        String[] parts = name.split("_");
+        if (parts.length >= 1) {
+            try {
+                return Long.parseLong(parts[parts.length - 1]);
+            } catch (NumberFormatException ignored) {}
+        }
+        return 0L;
+    }
+
     private static boolean isWsl() {
         if (!System.getProperty("os.name", "").toLowerCase().contains("linux")) return false;
         try {
@@ -776,6 +824,7 @@ public class TestRunner {
         }
     }
 
+    /** Returns the save-file path for the given character. */
     private static String getRunFilePath(CharacterEnum character) {
         return switch (character) {
             case IRONCLAD -> RUN_FILE_IRONCLAD;
