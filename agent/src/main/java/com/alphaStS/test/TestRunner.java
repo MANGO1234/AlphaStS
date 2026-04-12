@@ -93,16 +93,18 @@ public class TestRunner {
             parseHistoricalData(path, filter);
         } else if (subCmd.equals("--generate-runs")) {
             if (args.length < 3) {
-                System.err.println("Usage: --replay-test --generate-runs <historical-data-path> [--filter <spec>] [--ip host] [--replay]");
-                System.err.println("  --filter <spec>  comma-separated list of {run}:{battle} selectors");
-                System.err.println("                   run/battle may each be *, N, or N-M (inclusive)");
-                System.err.println("                   e.g. --filter 0:*,1:2-5,*:0");
+                System.err.println("Usage: --replay-test --generate-runs <historical-data-path> [--filter <spec>] [--ip host] [--replay] [--replay-seed <run-file>]");
+                System.err.println("  --filter <spec>        comma-separated list of {run}:{battle} selectors");
+                System.err.println("                         run/battle may each be *, N, or N-M (inclusive)");
+                System.err.println("                         e.g. --filter 0:*,1:2-5,*:0");
+                System.err.println("  --replay-seed <file>   reproduce exact battle from a run file (uses its recorded seeds)");
                 return;
             }
             String path = args[2];
             Predicate<BattleEntry> filter = null;
             String ip = "localhost";
             boolean doReplay = false;
+            Path replaySeedFile = null;
             for (int i = 3; i < args.length; i++) {
                 if (args[i].equals("--filter") && i + 1 < args.length) {
                     filter = parseFilter(args[i + 1]);
@@ -110,12 +112,15 @@ public class TestRunner {
                 } else if (args[i].equals("--ip") && i + 1 < args.length) {
                     ip = args[i + 1];
                     i++;
+                } else if (args[i].equals("--replay-seed") && i + 1 < args.length) {
+                    replaySeedFile = Paths.get(args[i + 1]);
+                    i++;
                 } else if (args[i].equals("--replay")) {
                     doReplay = true;
                 }
             }
             try {
-                new TestRunner(ip).generateRuns(path, filter, doReplay);
+                new TestRunner(ip).generateRuns(path, filter, doReplay, replaySeedFile);
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
@@ -182,9 +187,34 @@ public class TestRunner {
     /**
      * Generates replay run files from a historical run data file by playing random moves in STS.
      * Step 4 (replay validation) is optional and controlled by {@code doReplay}.
+     * If {@code replaySeedFile} is non-null, seeds are read from that run file to reproduce the
+     * exact original battle (game RNG counters + bot seed).
      */
-    public void generateRuns(String runDataPath, Predicate<BattleEntry> filter, boolean doReplay) throws Exception {
+    public void generateRuns(String runDataPath, Predicate<BattleEntry> filter, boolean doReplay, Path replaySeedFile) throws Exception {
         ObjectMapper mapper = new ObjectMapper();
+
+        // When reproducing from a seed file, load its alphaStS seed and game seeds upfront.
+        Long replayAlphaSeed = null;
+        JsonNode replayGameSeeds = null;
+        if (replaySeedFile != null) {
+            List<String> seedLines = Files.readAllLines(replaySeedFile);
+            if (seedLines.isEmpty()) {
+                throw new IllegalArgumentException("--replay-seed file is empty: " + replaySeedFile);
+            }
+            JsonNode seedHeader = mapper.readTree(seedLines.get(0));
+            replayAlphaSeed = seedHeader.path("seed").asLong();
+            for (int i = 1; i < seedLines.size(); i++) {
+                JsonNode node = mapper.readTree(seedLines.get(i));
+                if ("event:seeds".equals(node.path("_type").asText())) {
+                    replayGameSeeds = node;
+                    break;
+                }
+            }
+            if (replayGameSeeds == null) {
+                System.err.println("[TestRunner] Warning: no event:seeds found in replay-seed file; game RNG may not reproduce exactly.");
+            }
+            System.out.println("[TestRunner] Reproducing from seed file: " + replaySeedFile + " (alphaSeed=" + replayAlphaSeed + ")");
+        }
 
         RunDataParser parser = new RunDataParser(runDataPath);
         if (filter != null) {
@@ -198,7 +228,7 @@ public class TestRunner {
             // Step 1: Send the battle definition JSON to the BattleLoaderMod running in STS.
             entry.getBuilder().getPlayer().setInBattleMaxHealth(entry.getBuilder().getPlayer().getMaxHealth() + 50000);
             entry.getBuilder().getPlayer().setHealth(entry.getBuilder().getPlayer().getMaxHealth() + 50000);
-            boolean ok = sendBattleDefinition(entry);
+            boolean ok = sendBattleDefinition(entry, replayGameSeeds);
             if (!ok) {
                 System.err.println("[TestRunner] Skipping battle due to failed setup.");
                 continue;
@@ -209,7 +239,7 @@ public class TestRunner {
             Path runFilePath = Paths.get(getRunFilePath(character));
             Files.deleteIfExists(runFilePath);
 
-            RandomGen rng = new RandomGen.RandomGenPlain();
+            RandomGen rng = replayAlphaSeed != null ? new RandomGen.RandomGenPlain(replayAlphaSeed) : new RandomGen.RandomGenPlain();
             long seed = rng.getStartingSeed();
             ObjectNode header = mapper.createObjectNode();
             header.put("play_id", entry.getPlayId());
@@ -761,16 +791,18 @@ public class TestRunner {
      *
      * <p>Builds the JSON from the entry's {@link com.alphaStS.GameStateBuilder} and
      * injects a {@code "combat"} array (containing the enemies name) so the mod can
-     * restart the correct encounter.
+     * restart the correct encounter. If {@code seeds} is non-null, it is embedded in the
+     * battle definition so the mod can restore RNG counters before any battle RNG fires.
      *
      * <p>The mod responds with a JSON object whose {@code result} field is {@code "OK"} on
      * success, or {@code "ERROR"} with an {@code errorType} of {@code GENERAL},
      * {@code LOAD_ERROR}, or {@code CRASH} on failure.
      *
-     * @param entry the battle entry produced by {@link RunDataParser}
+     * @param entry  the battle entry produced by {@link RunDataParser}
+     * @param seeds  optional {@code event:seeds} node from a run file; {@code null} to skip
      * @return {@code true} if the mod applied the definition successfully; {@code false} otherwise
      */
-    private boolean sendBattleDefinition(BattleEntry entry) {
+    private boolean sendBattleDefinition(BattleEntry entry, JsonNode seeds) {
         ObjectMapper mapper = new ObjectMapper();
         String baseJson = BattleBuilderJsonWriter.toJson(entry.getBuilder());
         ObjectNode root;
@@ -784,6 +816,9 @@ public class TestRunner {
         ObjectNode def = (ObjectNode) root.get("battle_definition");
         ArrayNode combatNode = def.putArray("combat");
         combatNode.add(entry.getEnemiesName());
+        if (seeds != null) {
+            def.set("seeds", seeds);
+        }
 
         String json;
         try {

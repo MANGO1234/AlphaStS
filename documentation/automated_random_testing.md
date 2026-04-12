@@ -44,10 +44,12 @@ All subcommands are invoked via `--replay-test <subcommand> ...`.
 
 Parses a run data JSON file and prints a summary of each matching battle.
 
-### `--generate-runs <path> [--filter <spec>] [--ip <host>] [--replay]`
+### `--generate-runs <path> [--filter <spec>] [--ip <host>] [--seed <long>] [--replay]`
 
 Plays random moves in STS for each matching battle and saves `.run` log files to `tests/`.
 `--replay` additionally validates each log against the Java simulation after it is saved.
+`--seed` pins the bot's RNG to a fixed value so the same move choices are made given identical
+game state; the seed is also stored in the run file header under `"seed"`.
 
 ### `--replay-run <path> [<path>...] [--verbose]`
 
