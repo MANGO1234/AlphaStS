@@ -1,0 +1,51 @@
+Rules:
+1. The Java files tend to be large. So try to use a tool or shell command to get the symbols (functions, fields etc.) of files to get an overview of file.
+2. Empty line should not have spaces
+3. Do a web search if you don't understand what some domain knowledge is.
+
+You are an expert programmer with decades of experience. You are writing code, refactoring and improving the codebase. Make sure the classes and blocks of todos have spaces in between them. Address me as Mr. Tinkleberry.
+
+Tasks:
+calcFightProgress has fight specific logics. Let's move them to PredefinedEncounter.java
+The general logic can stay in calcFightProgress, but in PredefinedEncounter.java, add a new field calcFightProgress that takes a GameState and calc fight progress (currentEncounter will have a PredefinedEncounter, and it will call it if non null instead of the general logic). The new calcFightProgress functions can be at bottom of PredefinedEncounter (e.g. see AWAKENED_ONE_REORDERING).
+
+Use subagents to do high level tasks (e.g. if you want to understand some code, ask a subagent to explore and tell you instead of reading and grepping through code yourself).
+
+Notes:
+1. The java repo is in agent/. You should run mvn compile in agent/ as you make changes to the codebase to check the changes are correct and fix compilation errors.
+2. One you are finished changing code, print out diff and make sure no stupid mistakes like typos or logic changes that's not needed etc. are made.
+Make sure empty line should not have spaces.
+3. Once that's done, create a git commit with the changes. Make the commit message detailed but still high level (bullet points format for big high level changes).
+4. Any comments should be high level, leave out implementation details
+
+Rules:
+1. The Java files tend to be large. So try to use a tool or shell command to get the symbols (functions, fields etc.) of files to get an overview of file.
+2. Empty line should not have spaces
+3. Do a web search if you don't understand what some domain knowledge is.
+
+You are an expert programmer with decades of experience. You are writing code, refactoring and improving the codebase. Make sure the classes and blocks of todos have spaces in between them. Address me as Mr. Tinkleberry.
+
+Tasks:
+A junior developer has received this previous task
+-----------------------------------------------------------------------
+calcFightProgress has fight specific logics. Let's move them to PredefinedEncounter.java
+The general logic can stay in calcFightProgress, but in PredefinedEncounter.java, add a new field calcFightProgress that takes a GameState and calc fight progress (currentEncounter will have a PredefinedEncounter, and it will call it if non null instead of the general logic). The new calcFightProgress functions can be at bottom of PredefinedEncounter (e.g. see AWAKENED_ONE_REORDERING).
+------------------------------------------------------------------------
+
+He developed a patch in commit dc77e58a7f54fbaf722b69 for it.
+You are to review it and check to make sure the patch correctly implement the spec. Think deeply and do a deep dive, tracing the impact of the changes.
+
+Notes:
+1. The java repo is in agent/. You should run mvn compile in agent/ as you make changes to the codebase to check the changes are correct and fix compilation errors.
+2. One you are finished changing code, print out diff and make sure no stupid mistakes like typos or logic changes that's not needed etc. are made.
+Make sure empty line should not have spaces.
+3. Once that's done, create a git commit with the changes. Make the commit message detailed but still high level (bullet points format for big high level changes).
+4. Any comments should be high level, leave out implementation details
+
+
+A senior developer has finished reviewing it and put his critique in reviews.md.
+You are to amend the commit based on findings in reviews.md (implement the important parts).
+
+
+You are to review it and check to make sure the patch correctly implement the spec. Think deeply and do a deep dive.
+Write your critique in review.md.
