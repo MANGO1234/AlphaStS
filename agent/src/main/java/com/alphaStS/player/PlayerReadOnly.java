@@ -122,8 +122,16 @@ public class PlayerReadOnly {
         return platedArmor;
     }
 
+    public int getEntangled() {
+        return entangled;
+    }
+
     public boolean isEntangled() {
         return entangled > 0;
+    }
+
+    public int getNoMoreBlockFromCards() {
+        return noMoreBlockFromCards;
     }
 
     public boolean isHexed() {
