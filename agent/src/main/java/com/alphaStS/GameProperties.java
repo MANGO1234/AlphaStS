@@ -278,6 +278,7 @@ public class GameProperties implements Cloneable {
     public int playerDoomCounterIdx = -1;
     public int doomPerTurnCounterIdx = -1;
     public int cardsPlayedThisTurnCounterIdx = -1;
+    public int brilliantScarfCounterIdx = -1;
     public int conquerorCounterIdx = -1;
     public int reflectCounterIdx = -1;
     public int swordSageCounterIdx = -1;
@@ -297,6 +298,7 @@ public class GameProperties implements Cloneable {
     public Relic championBelt = null;
     public Relic chemicalX = null;
     public Relic deadBranch = null;
+    public Relic diamondDiadem = null;
     public Relic frozenEye = null;
     public Relic ginger = null;
     public Relic goldenEye = null;
@@ -334,6 +336,7 @@ public class GameProperties implements Cloneable {
     public Relic violetLotus = null;
     public Relic wristBlade = null;
     public Relic miniatureCannon = null;
+    public Relic fiddle = null;
     public Relic vambrace = null;
     public int vambraceCounterIdx = -1;
 

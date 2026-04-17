@@ -1341,11 +1341,49 @@ public class Relic2 {
         }
     }
 
-    // TODO: Booming Conch (Ancient)
-    //   Effect: At the start of Elite combats, draw 2 additional cards.
+    public static class BoomingConch extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.addStartOfTurnHandler("BoomingConch", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (state.turnNum == 1 && isRelicEnabledInScenario(state) && isEliteFight(state)) {
+                        state.draw(2);
+                    }
+                }
+            });
+        }
+    }
 
-    // TODO: Brilliant Scarf (Ancient)
-    //   Effect: The 5th card you play each turn is free.
+    public static class BrilliantScarf extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("BrilliantScarf", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 5.0f;
+                    return idx + 1;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            state.properties.addOnCardPlayedHandler("BrilliantScarf", new GameEventCardHandler() {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                    if (isRelicEnabledInScenario(state)) {
+                        state.getCounterForWrite()[counterIdx]++;
+                    }
+                }
+            });
+            state.properties.addStartOfTurnHandler("BrilliantScarf", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    state.getCounterForWrite()[counterIdx] = 0;
+                }
+            });
+        }
+
+        @Override public void setCounterIdx(GameProperties gameProperties, int idx) {
+            super.setCounterIdx(gameProperties, idx);
+            gameProperties.brilliantScarfCounterIdx = idx;
+        }
+    }
 
     // No need to implement Calling Bell: Upon pickup, obtain a unique Curse and 3 Relics.
 
@@ -1354,23 +1392,41 @@ public class Relic2 {
 
     // No need to implement Claws: Upon pickup, Transform up to 6 cards into Maul.
 
-    // TODO: Crossbow (Ancient)
-    //   Effect: At the start of your turn, add a random Attack into your Hand. It costs 0 energy this turn.
+    public static class Crossbow extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.addStartOfTurnHandler("Crossbow", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (isRelicEnabledInScenario(state)) {
+                        state.setIsStochastic();
+                        int r = state.getSearchRandomGen().nextInt(generatedCardIdxes.length, RandomGenCtx.RandomCardGen);
+                        state.addCardToHand(generatedCardIdxes[r]);
+                    }
+                }
+            });
+        }
+
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            return CardManager.getCharacterCardsByTypeTmp0Cost(properties.character, Card.ATTACK, false);
+        }
+    }
 
     // No need to implement Cursed Pearl: Upon pickup, receive Greed. Gain 333 Gold.
 
     // TODO: Delicate Frond (Ancient)
     //   Effect: At the start of each combat, fill all empty potion slots with random potions.
 
-    // TODO: Diamond Diadem (Ancient)
-    //   Effect: Whenever you play 2 or fewer cards in a turn, take half damage from enemies.
+    public static class DiamondDiadem extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.diamondDiadem = this;
+            state.properties.registerCardsPlayedThisTurnCounter();
+        }
+    }
 
     // No need to implement Distinguished Cape: Upon pickup, lose 9 Max HP. Add 3 Apparitions to your Deck.
 
     // No need to implement Driftwood: You may reroll each card reward once.
 
-    // TODO: Dusty Tome (Ancient)
-    //   Effect: Upon pickup, obtain an Ancient Card.
+    // No need to implement Dusty Tome: Upon pickup, obtain an Ancient Card.
 
     public static class Ectoplasm extends Relic.Ectoplasm {
     }
@@ -1380,8 +1436,18 @@ public class Relic2 {
 
     // No need to implement Empty Cage: Upon pickup, remove 2 cards from your Deck.
 
-    // TODO: Fiddle (Ancient)
-    //   Effect: At the start of each turn, draw 2 additional cards. You may not draw cards during your turn.
+    public static class Fiddle extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.fiddle = this;
+            state.properties.addStartOfTurnHandler("Fiddle", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (isRelicEnabledInScenario(state)) {
+                        state.draw(2);
+                    }
+                }
+            });
+        }
+    }
 
     // No need to implement Fur Coat: Upon pickup, mark 7 random combats. Enemies in those rooms have 1 HP.
 
@@ -1394,11 +1460,120 @@ public class Relic2 {
 
     // No need to implement Golden Pearl: Upon pickup, gain 150 Gold.
 
-    // TODO: Iron Club (Ancient)
-    //   Effect: Every 4 cards you play, draw 1 card.
+    public static class IronClub extends Relic {
+        int n;
+        int healthReward;
 
-    // TODO: Jeweled Mask (Ancient)
-    //   Effect: At the start of combat put a random Powers from your Draw Pile into your Hand, it's free to play.
+        public IronClub() {
+            this(0, 0);
+        }
+
+        public IronClub(int n, int healthReward) {
+            this.n = n;
+            this.healthReward = healthReward;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("IronClub", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = (state.getCounterForRead()[counterIdx] + 1) / 4.0f;
+                    return idx + 1;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            }, true);
+            state.properties.addOnCardPlayedHandler("IronClub", new GameEventCardHandler() {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                    if (!isRelicEnabledInScenario(state)) {
+                        return;
+                    }
+                    int c = state.getCounterForRead()[counterIdx] + 1;
+                    if (c == 4) {
+                        c = 0;
+                        state.draw(1);
+                    }
+                    state.getCounterForWrite()[counterIdx] = c;
+                }
+            });
+            state.properties.addStartOfBattleHandler(new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (isRelicEnabledInScenario(state)) {
+                        state.getCounterForWrite()[counterIdx] = n;
+                    }
+                }
+            });
+            if (healthReward > 0) {
+                state.properties.addExtraTrainingTarget("IronClub", this, new TrainingTarget() {
+                    @Override public void fillVArray(GameState state, VArray v, int isTerminal) {
+                        if (isTerminal > 0) {
+                            v.setVExtra(vExtraIdx, state.getCounterForRead()[counterIdx] / 3.0);
+                        } else if (isTerminal == 0) {
+                            v.setVExtra(vExtraIdx, state.getVExtra(vExtraIdx));
+                        }
+                    }
+
+                    @Override public void updateQValues(GameState state, VArray v) {
+                        v.add(GameState.V_HEALTH_IDX, healthReward * v.getVExtra(vExtraIdx) / state.getPlayerForRead().getMaxHealth());
+                    }
+                });
+            }
+        }
+    }
+
+    public static class JeweledMask extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.addStartOfBattleHandler("JeweledMask", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (!isRelicEnabledInScenario(state)) {
+                        return;
+                    }
+                    int powerCount = 0;
+                    for (int i = 0; i < state.deckArrLen; i++) {
+                        if (state.properties.cardDict[state.deckArr[i]].cardType == Card.POWER) {
+                            powerCount++;
+                        }
+                    }
+                    if (powerCount == 0) {
+                        return;
+                    }
+                    int r;
+                    if (powerCount > 1) {
+                        state.setIsStochastic();
+                        r = state.getSearchRandomGen().nextInt(powerCount, RandomGenCtx.RandomCardGen);
+                    } else {
+                        r = 0;
+                    }
+                    int k = 0, chosenPos = -1;
+                    for (int i = 0; i < state.deckArrLen; i++) {
+                        if (state.properties.cardDict[state.deckArr[i]].cardType == Card.POWER) {
+                            if (k == r) {
+                                chosenPos = i;
+                                break;
+                            }
+                            k++;
+                        }
+                    }
+                    int chosenCardIdx = state.deckArr[chosenPos];
+                    int permCostCardIdx = state.properties.findCardIndex(state.properties.cardDict[chosenCardIdx].getPermCostIfPossible(0));
+                    state.getDeckArrForWrite()[chosenPos] = state.deckArr[state.deckArrLen - 1];
+                    state.deckArrLen--;
+                    state.addCardToHand(permCostCardIdx);
+                }
+            });
+        }
+
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            var result = new java.util.ArrayList<Card>();
+            for (Card c : cards) {
+                if (c.cardType == Card.POWER) {
+                    result.add(c.getPermCostIfPossible(0));
+                }
+            }
+            return result;
+        }
+    }
 
     // No need to implement Jewelry Box: Upon pickup, add 1 Apotheosis to your Deck.
 
@@ -1432,8 +1607,17 @@ public class Relic2 {
     // TODO: Nutritious Soup (Ancient)
     //   Effect: Upon pickup, Enchant all Strikes in your Deck with Tezcatara's Ember.
 
-    // TODO: Pael's Blood (Ancient)
-    //   Effect: At the start of your turn, draw 1 additional card.
+    public static class PaelsBlood extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.addStartOfTurnHandler("PaelsBlood", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (isRelicEnabledInScenario(state)) {
+                        state.draw(1);
+                    }
+                }
+            });
+        }
+    }
 
     // TODO: Pael's Claw (Ancient)
     //   Effect: Upon pickup, Enchant all Defends with Goopy.
@@ -1441,11 +1625,29 @@ public class Relic2 {
     // TODO: Pael's Eye (Ancient)
     //   Effect: The first time each combat you end your turn without playing cards, Exhaust your Hand, and take an extra turn.
 
-    // TODO: Pael's Flesh (Ancient)
-    //   Effect: Gain an additional energy at the start of your 3rd turn, and every turn after that.
+    public static class PaelsFlesh extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.addNNInputHandler("PaelsFlesh", new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = Math.min(state.turnNum, 3) / 3.0f;
+                    return idx + 1;
+                }
 
-    // TODO: Pael's Growth (Ancient)
-    //   Effect: Upon pickup, Enchant a card with Clone.
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            state.properties.addStartOfTurnHandler("PaelsFlesh", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (isRelicEnabledInScenario(state) && state.turnNum >= 3) {
+                        state.energy += 1;
+                    }
+                }
+            });
+        }
+    }
+
+    // No need to implement Pael's Growth: Upon pickup, Enchant a card with Clone.
 
     // No need to implement Pael's Horn: Upon pickup, add 2 Relax to your Deck.
 

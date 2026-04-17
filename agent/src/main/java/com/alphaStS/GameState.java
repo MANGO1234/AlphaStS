@@ -96,6 +96,7 @@ public final class GameState implements State {
     public int battleRandomizationIdxChosen = -1;
     public int startOfBattleActionIdx = 0;
     public boolean skipInteractiveModeSetup;
+    public boolean isStartOfTurnPhase = false;
     public EnemyEncounter currentEncounter = null;
 
     // various other buffs/debuffs
@@ -1000,6 +1001,7 @@ public final class GameState implements State {
         battleRandomizationIdxChosen = other.battleRandomizationIdxChosen;
         startOfBattleActionIdx = other.startOfBattleActionIdx;
         skipInteractiveModeSetup = other.skipInteractiveModeSetup;
+        isStartOfTurnPhase = other.isStartOfTurnPhase;
         energyRefill = other.energyRefill;
         player = other.player;
         enemies = other.enemies;
@@ -1058,6 +1060,9 @@ public final class GameState implements State {
 
     public int draw(int count) {
         if (count == 0 || getPlayerForRead().cannotDrawCard()) {
+            return -1;
+        }
+        if (properties.fiddle != null && properties.fiddle.isRelicEnabledInScenario(this) && !isStartOfTurnPhase) {
             return -1;
         }
         boolean triggerShuffleEffect = discardArrLen > 0;
@@ -1195,6 +1200,8 @@ public final class GameState implements State {
         } else if (properties.nextEtherealCostZeroCounterIdx >= 0 && counter[properties.nextEtherealCostZeroCounterIdx] > 0 && properties.cardDict[cardIdx].ethereal) {
             return 0;
         } else if (properties.voidFormCounterIdx >= 0 && (counter[properties.voidFormCounterIdx] & 0xFF) > 0) {
+            return 0;
+        } else if (properties.brilliantScarfCounterIdx >= 0 && counter[properties.brilliantScarfCounterIdx] == 4) {
             return 0;
         }
         return properties.cardDict[cardIdx].energyCost(this);
@@ -1779,10 +1786,12 @@ public final class GameState implements State {
         if (properties.bigMushroom != null && properties.bigMushroom.isRelicEnabledInScenario(this)) {
             drawCount -= 2;
         }
+        isStartOfTurnPhase = true;
         draw(drawCount);
         for (GameEventHandler handler : properties.startOfTurnHandlers) {
             handler.handle(this);
         }
+        isStartOfTurnPhase = false;
         if (properties.toolsOfTheTradeCounterIdx >= 0 && getCounterForRead()[properties.toolsOfTheTradeCounterIdx] > 0) {
             getCounterForWrite()[properties.toolsOfTheTradeCounterIdx] += getCounterForRead()[properties.toolsOfTheTradeCounterIdx] << 16;
             var action = properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][properties.toolsOfTheTradeCardIdx];
@@ -4040,6 +4049,11 @@ public final class GameState implements State {
         int move = enemy.getMove();
         int totalDmgDealt = 0;
         var player = getPlayerForWrite();
+        if (properties.diamondDiadem != null && properties.diamondDiadem.isRelicEnabledInScenario(this)
+                && properties.cardsPlayedThisTurnCounterIdx >= 0
+                && counter[properties.cardsPlayedThisTurnCounterIdx] <= 2) {
+            dmgInt = dmgInt / 2;
+        }
         double dmg = calcEnemyDamageModifiers(enemy, dmgInt);
         for (int i = 0; i < times; i++) {
             if (!enemy.isAlive() || enemy.getMove() != move) { // dead or interrupted
