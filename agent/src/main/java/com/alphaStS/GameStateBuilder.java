@@ -364,4 +364,14 @@ public class GameStateBuilder {
     public List<List<String>> getPerScenarioCommands() {
         return perScenarioCommands;
     }
+
+    private int gold = -1;
+
+    public void setGold(int gold) {
+        this.gold = gold;
+    }
+
+    public int getGold() {
+        return gold;
+    }
 }

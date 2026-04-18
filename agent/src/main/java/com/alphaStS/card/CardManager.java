@@ -111,6 +111,24 @@ public class CardManager {
         return cards;
     }
 
+    public static List<Card> getCurseCards() {
+        List<Card> cards = new ArrayList<>();
+        cards.add(new CardOther2.BadLuck());
+        cards.add(new CardOther2.Clumsy());
+        cards.add(new CardOther2.Decay());
+        cards.add(new CardOther2.Doubt());
+        cards.add(new CardOther2.Folly());
+        cards.add(new CardOther2.Greed());
+        cards.add(new CardOther2.Injury());
+        cards.add(new CardOther2.Normality());
+        cards.add(new CardOther2.PoorSleep());
+        cards.add(new CardOther2.Regret());
+        cards.add(new CardOther2.Shame());
+        cards.add(new CardOther2.SporesMind());
+        cards.add(new CardOther2.Writhe());
+        return cards;
+    }
+
     private static HashSet<Class<?>> colorlessCardClasses;
 
     public static boolean isColorlessCard(Card card) {

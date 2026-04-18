@@ -633,6 +633,9 @@ public final class GameState implements State {
                 @Override public int getInputLenDelta() { return 1; }
             });
         }
+        if (builder.getGold() >= 0) {
+            properties.registerCurrentGoldCounter(builder.getGold());
+        }
         properties.compileCounterInfo();
         counter = new int[properties.counterLength];
         Collections.sort(properties.startOfBattleHandlers);
@@ -1204,7 +1207,11 @@ public final class GameState implements State {
         } else if (properties.brilliantScarfCounterIdx >= 0 && counter[properties.brilliantScarfCounterIdx] == 4) {
             return 0;
         }
-        return properties.cardDict[cardIdx].energyCost(this);
+        int cost = properties.cardDict[cardIdx].energyCost(this);
+        if (properties.spikedGauntlets != null && properties.spikedGauntlets.isRelicEnabledInScenario(this) && properties.cardDict[cardIdx].cardType == Card.POWER) {
+            cost++;
+        }
+        return cost;
     }
 
     public void setActionCtx(GameActionCtx ctx, GameAction action, Class cloneSource) {
@@ -4243,6 +4250,10 @@ public final class GameState implements State {
     public int playerGainBlock(int n) {
         if (properties.vambraceCounterIdx >= 0 && properties.vambrace.isRelicEnabledInScenario(this) && getCounterForRead()[properties.vambraceCounterIdx] == 0) {
             getCounterForWrite()[properties.vambraceCounterIdx] = 1;
+            n *= 2;
+        }
+        if (properties.paelsLegionCounterIdx >= 0 && properties.paelsLegion.isRelicEnabledInScenario(this) && getCounterForRead()[properties.paelsLegionCounterIdx] == 0) {
+            getCounterForWrite()[properties.paelsLegionCounterIdx] = 2;
             n *= 2;
         }
         int blockGained = getPlayerForWrite().gainBlock(n, this);

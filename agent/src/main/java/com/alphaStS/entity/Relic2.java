@@ -11,6 +11,7 @@ import com.alphaStS.random.RandomGenCtx;
 import com.alphaStS.utils.CounterStat;
 
 import com.alphaStS.card.*;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -1651,11 +1652,62 @@ public class Relic2 {
 
     // No need to implement Pael's Horn: Upon pickup, add 2 Relax to your Deck.
 
-    // TODO: Pael's Legion (Ancient)
-    //   Effect: Doubles Block gained from a card, then goes to sleep for 2 turns.
+    public static class PaelsLegion extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.paelsLegion = this;
+            state.properties.registerCounter("PaelsLegion", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 2.0f;
+                    return idx + 1;
+                }
 
-    // TODO: Pael's Tears (Ancient)
-    //   Effect: If you end your turn with unspent energy, gain an additional 2 energy next turn.
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+
+                @Override public void onRegister(int counterIdx) {
+                    state.properties.paelsLegionCounterIdx = counterIdx;
+                }
+            });
+            state.properties.addStartOfTurnHandler("PaelsLegion", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (isRelicEnabledInScenario(state) && state.getCounterForRead()[counterIdx] > 0) {
+                        state.getCounterForWrite()[counterIdx]--;
+                    }
+                }
+            });
+        }
+    }
+
+    public static class PaelsTears extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("PaelsTears", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx];
+                    return idx + 1;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            state.properties.addPreEndOfTurnHandler("PaelsTears", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (isRelicEnabledInScenario(state)) {
+                        state.getCounterForWrite()[counterIdx] = state.energy > 0 ? 1 : 0;
+                    }
+                }
+            });
+            state.properties.addStartOfTurnHandler("PaelsTears", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (isRelicEnabledInScenario(state) && state.getCounterForRead()[counterIdx] == 1) {
+                        state.getCounterForWrite()[counterIdx] = 0;
+                        state.energy += 2;
+                    }
+                }
+            });
+        }
+    }
 
     // No need to implement Pael's Tooth: Upon pickup, remove 5 cards from your Deck. After each combat, randomly add 1 back Upgrade.
 
@@ -1678,20 +1730,60 @@ public class Relic2 {
 
     // No need to implement Preserved Fog: Upon pickup, remove 5 cards from your Deck. Add Folly to your Deck.
 
-    // TODO: Prismatic Gem (Ancient)
-    //   Effect: Gain energy at the start of each turn. Card rewards now contain cards from other colors.
+    public static class PrismaticGem extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.addStartOfBattleHandler("PrismaticGem", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (isRelicEnabledInScenario(state)) {
+                        state.energyRefill += 1;
+                    }
+                }
+            });
+        }
+    }
 
-    // TODO: Pumpkin Candle (Ancient)
-    //   Effect: Gain energy at the start of each turn. Extinguishes at the start of Act 3.
+    public static class PumpkinCandle extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.addStartOfBattleHandler("PumpkinCandle", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (isRelicEnabledInScenario(state)) {
+                        state.energyRefill += 1;
+                    }
+                }
+            });
+        }
+    }
 
-    // TODO: Radiant Pearl (Ancient)
-    //   Effect: At the start of each combat, add 1 Luminesce into your Hand.
+    public static class RadiantPearl extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.addStartOfBattleHandler("RadiantPearl", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (isRelicEnabledInScenario(state)) {
+                        state.addCardToHand(generatedCardIdx);
+                    }
+                }
+            });
+        }
+
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            return List.of(new CardColorless2.Luminesce());
+        }
+    }
 
     public static class RunicPyramid extends Relic.RunicPyramid {
     }
 
-    // TODO: Sai (Ancient)
-    //   Effect: At the start of your turn, gain 7 Block.
+    public static class Sai extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.addStartOfTurnHandler("Sai", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (isRelicEnabledInScenario(state)) {
+                        state.playerGainBlockNotFromCardPlay(7);
+                    }
+                }
+            });
+        }
+    }
 
     // TODO: Sand Castle (Ancient)
     //   Effect: Upon pickup, Upgrade 6 random cards.
@@ -1700,11 +1792,51 @@ public class Relic2 {
 
     // No need to implement Sea Glass: See 15 cards from another character. Choose any number of them to add to your Deck.
 
-    // TODO: Seal of Gold (Ancient)
-    //   Effect: At the start of your turn, spend 5 Gold to gain energy.
+    public static class SealOfGold extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.addStartOfTurnHandler("SealOfGold", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (!isRelicEnabledInScenario(state) || state.properties.currentGoldCounterIdx < 0) {
+                        return;
+                    }
+                    if (state.getCounterForRead()[state.properties.currentGoldCounterIdx] >= 5) {
+                        state.getCounterForWrite()[state.properties.currentGoldCounterIdx] -= 5;
+                        state.energy += 1;
+                    }
+                }
+            });
+        }
+    }
 
-    // TODO: Sere Talon (Ancient)
-    //   Effect: Upon pickup, add 2 random Curses and 3 Wishes to your Deck.
+    public static class SereTalon extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.addStartOfBattleHandler("SereTalon", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (!isRelicEnabledInScenario(state) || !state.isFirstEncounter()) {
+                        return;
+                    }
+                    int numCurses = generatedCardIdxes.length - 1;
+                    int wishIdx = generatedCardIdxes[numCurses];
+                    if (numCurses > 1) {
+                        state.setIsStochastic();
+                    }
+                    for (int i = 0; i < 2; i++) {
+                        int r = numCurses > 1 ? state.getSearchRandomGen().nextInt(numCurses, RandomGenCtx.RandomCardGen) : 0;
+                        state.addCardToDeck(generatedCardIdxes[r], false);
+                    }
+                    state.addCardToDeck(wishIdx, false);
+                    state.addCardToDeck(wishIdx, false);
+                    state.addCardToDeck(wishIdx, false);
+                }
+            });
+        }
+
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            var result = new ArrayList<>(CardManager.getCurseCards());
+            result.add(new CardColorless2.Wish());
+            return result;
+        }
+    }
 
     // No need to implement Signet Ring: Upon pickup, gain 999 Gold.
 
@@ -1718,8 +1850,18 @@ public class Relic2 {
     public static class Sozu extends Relic.Sozu {
     }
 
-    // TODO: Spiked Gauntlets (Ancient)
-    //   Effect: Gain energy at the start of each turn. Powers cost 1 more energy.
+    public static class SpikedGauntlets extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.spikedGauntlets = this;
+            state.properties.addStartOfBattleHandler("SpikedGauntlets", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (isRelicEnabledInScenario(state)) {
+                        state.energyRefill += 1;
+                    }
+                }
+            });
+        }
+    }
 
     // No need to implement Stone Humidifier: Whenever you Rest at a Rest Site, raise your Max HP by 5.
 
@@ -1730,8 +1872,22 @@ public class Relic2 {
     // TODO: Throwing Axe (Ancient)
     //   Effect: The first card you play each combat is played an extra time.
 
-    // TODO: Toasty Mittens (Ancient)
-    //   Effect: At the start of your turn, Exhaust the top card of your Draw Pile and gain 1 Strength.
+    public static class ToastyMittens extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.addStartOfTurnHandler("ToastyMittens", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (!isRelicEnabledInScenario(state)) {
+                        return;
+                    }
+                    int cardIdx = state.drawOneCardSpecial();
+                    if (cardIdx >= 0) {
+                        state.exhaustedCardHandle(cardIdx, false);
+                    }
+                    state.getPlayerForWrite().gainStrength(1);
+                }
+            });
+        }
+    }
 
     // No need to implement Touch of Orobas: Upon pickup, replace your starter Relic with an Ancient version.
 
@@ -1743,8 +1899,17 @@ public class Relic2 {
     public static class VelvetChoker extends Relic.VelvetChoker {
     }
 
-    // TODO: Very Hot Cocoa (Ancient)
-    //   Effect: Start each combat with an additional 4 energy.
+    public static class VeryHotCocoa extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.addStartOfBattleHandler("VeryHotCocoa", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (isRelicEnabledInScenario(state)) {
+                        state.gainEnergy(4);
+                    }
+                }
+            });
+        }
+    }
 
     // No need to implement War Hammer: Whenever you kill an Elite, Upgrade 4 random cards.
 

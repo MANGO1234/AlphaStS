@@ -337,6 +337,10 @@ public class GameProperties implements Cloneable {
     public Relic wristBlade = null;
     public Relic miniatureCannon = null;
     public Relic fiddle = null;
+    public Relic paelsLegion = null;
+    public int paelsLegionCounterIdx = -1;
+    public Relic spikedGauntlets = null;
+    public int currentGoldCounterIdx = -1;
     public Relic vambrace = null;
     public int vambraceCounterIdx = -1;
 
@@ -1386,6 +1390,31 @@ public class GameProperties implements Cloneable {
         addStartOfTurnHandler("CardsPlayedThisTurn", new GameEventHandler() {
             @Override public void handle(GameState state) {
                 state.getCounterForWrite()[state.properties.cardsPlayedThisTurnCounterIdx] = 0;
+            }
+        });
+    }
+
+    private static final CounterRegistrant CurrentGoldCounterRegistrant = new CounterRegistrant() {
+        @Override public void setCounterIdx(GameProperties gp, int idx) { gp.currentGoldCounterIdx = idx; }
+        @Override public int getCounterIdx(GameProperties gp) { return gp.currentGoldCounterIdx; }
+    };
+
+    public void registerCurrentGoldCounter(int initialGold) {
+        registerCounter("CurrentGold", CurrentGoldCounterRegistrant, new NetworkInputHandler() {
+            @Override public int addToInput(GameState state, float[] input, int idx) {
+                input[idx] = state.getCounterForRead()[state.properties.currentGoldCounterIdx] / 100.0f;
+                return idx + 1;
+            }
+
+            @Override public int getInputLenDelta() {
+                return 1;
+            }
+        }, true);
+        addStartOfBattleHandler("CurrentGold", new GameEventHandler() {
+            @Override public void handle(GameState state) {
+                if (state.isFirstEncounter()) {
+                    state.getCounterForWrite()[state.properties.currentGoldCounterIdx] = initialGold;
+                }
             }
         });
     }
