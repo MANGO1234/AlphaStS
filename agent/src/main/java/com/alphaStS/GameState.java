@@ -3864,6 +3864,10 @@ public final class GameState implements State {
         if (properties.vigorCounterIdx >= 0 && counter[properties.vigorCounterIdx] > 0) {
             dmg += counter[properties.vigorCounterIdx];
         }
+        if (properties.gigantificationCounterIdx >= 0 && counter[properties.gigantificationCounterIdx] > 0) {
+            dmg *= 3;
+            getCounterForWrite()[properties.gigantificationCounterIdx]--;
+        }
         if (properties.lethalityCounterIdx >= 0 && counter[properties.lethalityCounterIdx] > 0 &&
                 counter[properties.attacksPlayedThisTurnCounterIdx] == 0) {
             dmg = dmg * (1 + counter[properties.lethalityCounterIdx] / 100.0);

@@ -3,13 +3,17 @@ package com.alphaStS.entity;
 import com.alphaStS.GameProperties;
 import com.alphaStS.GameState;
 import com.alphaStS.card.Card;
+import com.alphaStS.card.CardColorless2;
+import com.alphaStS.card.CardManager;
 import com.alphaStS.enums.DebuffType;
 import com.alphaStS.eventHandler.GameEventHandler;
 import com.alphaStS.gameAction.GameActionCtx;
 import com.alphaStS.random.RandomGenCtx;
 import com.alphaStS.utils.Tuple;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class Potion2 {
     // **************************************************************************************************
@@ -342,26 +346,112 @@ public class Potion2 {
 
     // No need to implement Fruit Juice
 
-    // TODO: Gigantification Potion (Rare)
-    //   Effect: The next Attack you play deals triple damage.
+    public static class GigantificationPotion extends Potion {
+        @Override public GameActionCtx use(GameState state, int idx) {
+            state.getCounterForWrite()[state.properties.gigantificationCounterIdx]++;
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("Gigantification", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 2.0f;
+                    return idx + 1;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+
+                @Override public void onRegister(int counterIdx) {
+                    state.properties.gigantificationCounterIdx = counterIdx;
+                }
+            });
+        }
+    }
 
     public static class LiquidMemories extends Potion.LiquidMemories {
     }
 
-    // TODO: Lucky Tonic (Rare)
-    //   Effect: Gain 1 Buffer.
+    public static class LuckyTonic extends Potion {
+        @Override public GameActionCtx use(GameState state, int idx) {
+            state.getCounterForWrite()[state.properties.bufferCounterIdx]++;
+            return GameActionCtx.PLAY_CARD;
+        }
 
-    // TODO: Mazaleth's Gift (Rare)
-    //   Effect: Gain 1 Ritual.
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerBufferCounter(state, this);
+        }
+    }
 
-    // TODO: Orobic Acid (Rare)
-    //   Effect: Add a random Attack, Skill, and Power into your Hand. They're free to play this turn.
+    public static class MazalethsGift extends Potion.CultistPotion {
+    }
 
-    // TODO: Shackling Potion (Rare)
-    //   Effect: ALL enemies lose 7 Strength this turn.
+    public static class OrobicAcid extends Potion {
+        private int[] attackIdxes;
+        private int[] skillIdxes;
+        private int[] powerIdxes;
 
-    // TODO: Ship in a Bottle (Rare)
-    //   Effect: Gain 10 Block. Next turn, gain 10 Block.
+        @Override public GameActionCtx use(GameState state, int idx) {
+            state.setIsStochastic();
+            int r = state.getSearchRandomGen().nextInt(attackIdxes.length, RandomGenCtx.RandomCardGen, new Tuple<>(state, attackIdxes));
+            state.addCardToHand(state.createCard(attackIdxes[r]));
+            r = state.getSearchRandomGen().nextInt(skillIdxes.length, RandomGenCtx.RandomCardGen, new Tuple<>(state, skillIdxes));
+            state.addCardToHand(state.createCard(skillIdxes[r]));
+            r = state.getSearchRandomGen().nextInt(powerIdxes.length, RandomGenCtx.RandomCardGen, new Tuple<>(state, powerIdxes));
+            state.addCardToHand(state.createCard(powerIdxes[r]));
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties props, List<Card> cards) {
+            var all = new ArrayList<Card>();
+            all.addAll(CardManager.getCharacterCardsByTypeTmp0Cost(props.character, Card.ATTACK, false));
+            all.addAll(CardManager.getCharacterCardsByTypeTmp0Cost(props.character, Card.SKILL, false));
+            all.addAll(CardManager.getCharacterCardsByTypeTmp0Cost(props.character, Card.POWER, false));
+            return all;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            var atkList = new ArrayList<Integer>();
+            var sklList = new ArrayList<Integer>();
+            var pwrList = new ArrayList<Integer>();
+            for (int i : generatedCardIdxes) {
+                int type = state.properties.cardDict[i].getBaseCard().cardType;
+                if (type == Card.ATTACK) atkList.add(i);
+                else if (type == Card.SKILL) sklList.add(i);
+                else if (type == Card.POWER) pwrList.add(i);
+            }
+            attackIdxes = atkList.stream().mapToInt(x -> x).toArray();
+            skillIdxes = sklList.stream().mapToInt(x -> x).toArray();
+            powerIdxes = pwrList.stream().mapToInt(x -> x).toArray();
+        }
+    }
+
+    public static class ShacklingPotion extends Potion {
+        public ShacklingPotion() {
+            entityProperty.affectEnemyStrength = true;
+            entityProperty.affectEnemyStrengthEot = true;
+        }
+
+        @Override public GameActionCtx use(GameState state, int idx) {
+            for (var enemy : state.getEnemiesForWrite().iterateOverAlive()) {
+                enemy.applyDebuff(state, DebuffType.LOSE_STRENGTH_EOT, 7);
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class ShipInABottle extends Potion {
+        @Override public GameActionCtx use(GameState state, int idx) {
+            state.playerGainBlockNotFromCardPlay(10);
+            state.getCounterForWrite()[counterIdx] += 10;
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerBlockNextTurnCounter(this);
+        }
+    }
 
     // STS2 Snecko Oil draws 7 cards (up from 5 in STS1).
     public static class SneckoOil extends Potion.SneckoOil {
@@ -381,25 +471,48 @@ public class Potion2 {
     // ********************************************* Event  *********************************************
     // **************************************************************************************************
 
-    // TODO: Foul Potion (Event)
-    //   Effect: Deal 12 damage to EVERYONE. Can be thrown at the Merchant for 100 Gold instead.
+    public static class FoulPotion extends Potion {
+        @Override public GameActionCtx use(GameState state, int idx) {
+            for (var enemy : state.getEnemiesForWrite().iterateOverAlive()) {
+                state.playerDoNonAttackDamageToEnemy(enemy, 12, true);
+            }
+            state.doNonAttackDamageToPlayer(12, false, this);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
 
-    // TODO: Glowwater Potion (Event)
-    //   Effect: Exhaust your Hand. Draw 10 cards.
+    public static class GlowwaterPotion extends Potion {
+        @Override public GameActionCtx use(GameState state, int idx) {
+            for (int i = state.handArrLen - 1; i >= 0; i--) {
+                state.exhaustCardFromHandByPosition(i, false);
+            }
+            state.updateHandArr();
+            state.draw(10);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
 
     // **************************************************************************************************
     // ********************************************* Token  *********************************************
     // **************************************************************************************************
 
-    // TODO: Potion-Shaped Rock (Token)
-    //   Effect: Deal 15 damage.
+    public static class PotionShapedRock extends Potion {
+        public PotionShapedRock() {
+            entityProperty.selectEnemy = true;
+        }
+
+        @Override public GameActionCtx use(GameState state, int idx) {
+            state.playerDoNonAttackDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), 15, true);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
 
     // **************************************************************************************************
     // ********************************************* Ironclad *********************************************
     // **************************************************************************************************
 
-    // TODO: Ashwater (Uncommon)
-    //   Effect: Exhaust any number of cards in your Hand.
+    public static class Ashwater extends Potion.Elixir {
+    }
 
     public static class BloodPotion extends Potion.BloodPotion {
     }
@@ -437,25 +550,76 @@ public class Potion2 {
     // ********************************************* Regent *********************************************
     // **************************************************************************************************
 
-    // TODO: Cosmic Concoction (Rare)
-    //   Effect: Add 3 Upgraded Colorless cards into your Hand.
+    public static class CosmicConcoction extends Potion {
+        @Override public GameActionCtx use(GameState state, int idx) {
+            state.setIsStochastic();
+            for (int i = 0; i < 3; i++) {
+                int r = state.getSearchRandomGen().nextInt(generatedCardIdxes.length, RandomGenCtx.RandomCardGen, new Tuple<>(state, generatedCardIdxes));
+                state.addCardToHand(state.createCard(generatedCardIdxes[r]));
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
 
-    // TODO: King's Courage (Uncommon)
-    //   Effect: Forge 15.
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties props, List<Card> cards) {
+            return CardManager.getColorlessCards(false).stream()
+                    .map(Card::getUpgrade).filter(Objects::nonNull).toList();
+        }
+    }
 
-    // TODO: Star Potion (Common)
-    //   Effect: Gain 3 star
+    public static class KingsCourage extends Potion {
+        public KingsCourage() {
+            entityProperty.canForge = true;
+        }
+
+        @Override public GameActionCtx use(GameState state, int idx) {
+            state.forge(15);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class StarPotion extends Potion {
+        @Override public GameActionCtx use(GameState state, int idx) {
+            state.gainStar(3);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
 
     // **************************************************************************************************
     // ********************************************* Necrobinder *********************************************
     // **************************************************************************************************
 
-    // TODO: Bone Brew (Uncommon)
-    //   Effect: Summon 15.
+    public static class BoneBrew extends Potion {
+        public BoneBrew() {
+            entityProperty.canSummon = true;
+        }
 
-    // TODO: Pot of Ghouls (Rare)
-    //   Effect: Add 2 Souls into your Hand.
+        @Override public GameActionCtx use(GameState state, int idx) {
+            state.summon(15);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
 
-    // TODO: Potion of Doom (Common)
-    //   Effect: Apply 33 Doom.
+    public static class PotOfGhouls extends Potion {
+        @Override public GameActionCtx use(GameState state, int idx) {
+            state.addCardToHand(generatedCardIdx);
+            state.addCardToHand(generatedCardIdx);
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties props, List<Card> cards) {
+            return List.of(new CardColorless2.Soul());
+        }
+    }
+
+    public static class PotionOfDoom extends Potion {
+        public PotionOfDoom() {
+            entityProperty.selectEnemy = true;
+            entityProperty.doomEnemy = true;
+        }
+
+        @Override public GameActionCtx use(GameState state, int idx) {
+            state.getEnemiesForWrite().getForWrite(idx).applyDebuff(state, DebuffType.DOOM, 33);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
 }

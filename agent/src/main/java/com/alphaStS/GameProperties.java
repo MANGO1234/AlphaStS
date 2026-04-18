@@ -210,6 +210,7 @@ public class GameProperties implements Cloneable {
     public int forgeCounterIdx = -1;
     public int foresightCounterIdx = -1;
     public int geneticAlgorithmCounterIdx = -1;
+    public int gigantificationCounterIdx = -1;
     public int handOfGreedCounterIdx = -1;
     public int happyFlowerCounterIdx = -1;
     public int havocCounterIdx = -1;
