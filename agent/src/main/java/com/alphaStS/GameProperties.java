@@ -191,6 +191,7 @@ public class GameProperties implements Cloneable {
     public int attacksPlayedThisTurnCounterIdx = -1;
     public int biasedCognitionLimitCounterIdx = -1;
     public int blizzardCounterIdx = -1;
+    public int metronomeCounterIdx = -1;
     public int bloodForBloodCounterIdx = -1;
     public int blurCounterIdx = -1;
     public int brillianceCounterIdx = -1;

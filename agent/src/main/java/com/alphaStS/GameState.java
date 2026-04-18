@@ -4490,6 +4490,14 @@ public final class GameState implements State {
         } else if (properties.thunderStrikeCounterIdx >= 0 && orb == OrbType.LIGHTNING) {
             getCounterForWrite()[properties.thunderStrikeCounterIdx]++;
         }
+        if (properties.metronomeCounterIdx >= 0) {
+            getCounterForWrite()[properties.metronomeCounterIdx]++;
+            if (getCounterForRead()[properties.metronomeCounterIdx] == 7) {
+                for (Enemy enemy : getEnemiesForWrite().iterateOverAlive()) {
+                    playerDoNonAttackDamageToEnemy(enemy, 30, true);
+                }
+            }
+        }
     }
 
     private void triggerOrbActive(int i) {

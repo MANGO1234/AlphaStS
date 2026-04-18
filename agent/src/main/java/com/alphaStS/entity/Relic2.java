@@ -7,6 +7,8 @@ import com.alphaStS.enums.DebuffType;
 import com.alphaStS.enums.OrbType;
 import com.alphaStS.eventHandler.GameEventCardHandler;
 import com.alphaStS.eventHandler.GameEventHandler;
+import com.alphaStS.eventHandler.OnDamageHandler;
+import com.alphaStS.eventHandler.OnStarChangeHandler;
 import com.alphaStS.random.RandomGenCtx;
 import com.alphaStS.utils.CounterStat;
 
@@ -1940,8 +1942,29 @@ public class Relic2 {
     public static class CharonsAshes extends Relic.CharonsAshes {
     }
 
-    // TODO: Demon Tongue (Rare)
-    //   Effect: The first time you lose HP on your turn, heal HP equal to the amount lost.
+    public static class DemonTongue extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("DemonTongue", this, null);
+            state.properties.registerIsPlayerTurnCounter();
+            state.properties.addStartOfBattleHandler("DemonTongue", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (isRelicEnabledInScenario(state)) {
+                        state.getCounterForWrite()[counterIdx] = 0;
+                    }
+                }
+            });
+            state.properties.addOnDamageHandler("DemonTongue", new OnDamageHandler() {
+                @Override public void handle(GameState state, Object source, boolean isAttack, int damageDealt) {
+                    if (!isRelicEnabledInScenario(state)) return;
+                    if (state.getCounterForRead()[counterIdx] != 0) return;
+                    if (damageDealt <= 0) return;
+                    if (state.properties.isPlayerTurnCounterIdx < 0 || state.getCounterForRead()[state.properties.isPlayerTurnCounterIdx] == 0) return;
+                    state.getCounterForWrite()[counterIdx] = 1;
+                    state.healPlayer(damageDealt);
+                }
+            });
+        }
+    }
 
     public static class PaperPhrog extends Relic.PaperPhrog {
     }
@@ -1959,8 +1982,20 @@ public class Relic2 {
     // ********************************************* Silent *********************************************
     // **************************************************************************************************
 
-    // TODO: Helical Dart (Rare)
-    //   Effect: Whenever you play a Shiv, gain 1 Dexterity this turn.
+    public static class HelicalDart extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            entityProperty.changePlayerDexterity = true;
+            state.properties.addOnCardPlayedHandler("HelicalDart", new GameEventCardHandler() {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                    if (!isRelicEnabledInScenario(state)) return;
+                    if (state.properties.cardDict[cardIdx].getBaseCard() instanceof CardColorless.Shiv) {
+                        state.getPlayerForWrite().gainDexterity(1);
+                        state.getPlayerForWrite().applyDebuff(state, DebuffType.LOSE_DEXTERITY_EOT, 1);
+                    }
+                }
+            });
+        }
+    }
 
     public static class NinjaScroll extends Relic.NinjaScroll {
     }
@@ -1968,8 +2003,17 @@ public class Relic2 {
     public static class PaperKrane extends Relic.PaperKrane {
     }
 
-    // TODO: Ring of the Drake (Starter)
-    //   Effect: At the start of your first 3 turns, draw 2 additional cards.
+    public static class RingOfTheDrake extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.addStartOfTurnHandler("RingOfTheDrake", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (state.turnNum <= 3 && isRelicEnabledInScenario(state)) {
+                        state.draw(2);
+                    }
+                }
+            });
+        }
+    }
 
     public static class RingOfTheSnake extends Relic.RingOfTheSnake {
     }
@@ -2020,11 +2064,63 @@ public class Relic2 {
         }
     }
 
-    // TODO: Metronome (Rare)
-    //   Effect: The first time you Channel 7 Orbs each combat, deal 30 damage to ALL enemies.
+    public static class Metronome extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("Metronome", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 7.0f;
+                    return idx + 1;
+                }
+                @Override public int getInputLenDelta() { return 1; }
+            });
+            state.properties.addStartOfBattleHandler("Metronome", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (isRelicEnabledInScenario(state)) {
+                        state.getCounterForWrite()[counterIdx] = 0;
+                    }
+                }
+            });
+        }
 
-    // TODO: Power Cell (Rare)
-    //   Effect: At the start of each combat, add 2 zero-cost cards from your Draw Pile into your Hand.
+        @Override public void setCounterIdx(GameProperties gameProperties, int idx) {
+            super.setCounterIdx(gameProperties, idx);
+            gameProperties.metronomeCounterIdx = idx;
+        }
+    }
+
+    public static class PowerCell extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.addStartOfBattleHandler("PowerCell", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (!isRelicEnabledInScenario(state)) return;
+                    var deck = state.getDeckArrForRead();
+                    int count = 0;
+                    int[] candidates = new int[state.deckArrLen];
+                    for (int i = 0; i < state.deckArrLen; i++) {
+                        if (state.properties.cardDict[deck[i]].energyCost == 0) {
+                            candidates[count++] = deck[i];
+                        }
+                    }
+                    if (count == 0) return;
+                    int[] chosen = new int[Math.min(count, 2)];
+                    if (count <= 2) {
+                        System.arraycopy(candidates, 0, chosen, 0, chosen.length);
+                    } else {
+                        state.setIsStochastic();
+                        for (int i = 0; i < 2; i++) {
+                            int r = state.getSearchRandomGen().nextInt(count - i, RandomGenCtx.CardDraw);
+                            chosen[i] = candidates[r];
+                            candidates[r] = candidates[count - i - 1];
+                        }
+                    }
+                    for (int i = 0; i < chosen.length; i++) {
+                        state.addCardToHand(chosen[i]);
+                        state.removeCardFromDeck(chosen[i], false);
+                    }
+                }
+            });
+        }
+    }
 
     public static class RunicCapacitor extends Relic.RunicCapacitor {
     }
@@ -2036,20 +2132,88 @@ public class Relic2 {
     // ********************************************* Regent *********************************************
     // **************************************************************************************************
 
-    // TODO: Divine Destiny (Starter)
-    //   Effect: At the start of each combat, gain 6 star.
+    public static class DivineDestiny extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.addStartOfBattleHandler("DivineDestiny", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (isRelicEnabledInScenario(state)) {
+                        state.gainStar(6);
+                    }
+                }
+            });
+        }
+    }
 
-    // TODO: Divine Right (Starter)
-    //   Effect: At the start of each combat, gain 3 star.
+    public static class DivineRight extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.addStartOfBattleHandler("DivineRight", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (isRelicEnabledInScenario(state)) {
+                        state.gainStar(3);
+                    }
+                }
+            });
+        }
+    }
 
-    // TODO: Fencing Manual (Common)
-    //   Effect: At the start of each combat, Forge 10.
+    public static class FencingManual extends Relic {
+        public FencingManual() {
+            entityProperty.canForge = true;
+        }
 
-    // TODO: Galactic Dust (Uncommon)
-    //   Effect: For every 10 star spent, gain 10 Block.
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.addStartOfBattleHandler("FencingManual", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (isRelicEnabledInScenario(state)) {
+                        state.forge(10);
+                    }
+                }
+            });
+        }
+    }
 
-    // TODO: Lunar Pastry (Rare)
-    //   Effect: At the end of your turn, gain star.
+    public static class GalacticDust extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("GalacticDust", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 10.0f;
+                    return idx + 1;
+                }
+                @Override public int getInputLenDelta() { return 1; }
+            });
+            state.properties.addStartOfBattleHandler("GalacticDust", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (isRelicEnabledInScenario(state)) {
+                        state.getCounterForWrite()[counterIdx] = 0;
+                    }
+                }
+            });
+            state.properties.addOnStarChangeHandler("GalacticDust", new OnStarChangeHandler() {
+                @Override public void handle(GameState state, int amount) {
+                    if (!isRelicEnabledInScenario(state) || amount >= 0) return;
+                    int prev = state.getCounterForRead()[counterIdx];
+                    state.getCounterForWrite()[counterIdx] += (-amount);
+                    int next = state.getCounterForRead()[counterIdx];
+                    int blocks = next / 10 - prev / 10;
+                    if (blocks > 0) {
+                        state.playerGainBlockNotFromCardPlay(blocks * 10);
+                    }
+                }
+            });
+        }
+    }
+
+    public static class LunarPastry extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.addEndOfTurnHandler("LunarPastry", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (isRelicEnabledInScenario(state)) {
+                        state.gainStar(1);
+                    }
+                }
+            });
+        }
+    }
 
     // TODO: Mini Regent (Rare)
     //   Effect: The first time you spend star each turn, gain 1 Strength.
