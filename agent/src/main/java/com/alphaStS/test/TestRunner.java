@@ -2,6 +2,8 @@ package com.alphaStS.test;
 
 import com.alphaStS.GameState;
 import com.alphaStS.GameStateBuilder;
+import com.alphaStS.enemy.Enemy;
+import com.alphaStS.enemy.EnemyManager;
 import com.alphaStS.enemy.PredefinedEncounter;
 import com.alphaStS.enums.CharacterEnum;
 import com.alphaStS.gameAction.GameActionCtx;
@@ -438,7 +440,11 @@ public class TestRunner {
         GameStateBuilder builder = entry.getBuilder();
         boolean found = PredefinedEncounter.addToGameStateBuilder(builder, entry.getEnemiesName());
         if (!found) {
-            throw new ReplayException("Unknown enemies name: " + entry.getEnemiesName(), null, null);
+            List<Enemy> enemies = buildEnemiesFromFirstFloor(lines, mapper);
+            if (enemies.isEmpty()) {
+                throw new ReplayException("Unknown encounter and no enemies in first state:floor: " + entry.getEnemiesName(), null, null);
+            }
+            builder.addEnemyEncounter(enemies.toArray(Enemy[]::new));
         }
         GameState state = new GameState(builder);
         state.properties.testingReplayMode = true;
@@ -541,6 +547,30 @@ public class TestRunner {
                 System.out.println(line);
             }
         }
+    }
+
+    /**
+     * Reads the first state:floor entry in the log and returns one Enemy instance per monster,
+     * using EnemyManager to resolve each monster's display name to a factory.
+     */
+    private static List<Enemy> buildEnemiesFromFirstFloor(List<String> lines, ObjectMapper mapper) throws Exception {
+        for (String line : lines) {
+            JsonNode node = mapper.readTree(line);
+            if (!"state:floor".equals(node.path("_type").asText())) continue;
+            JsonNode monsters = node.path("combat_state").path("monsters");
+            List<Enemy> enemies = new ArrayList<>();
+            for (int i = 0; i < monsters.size(); i++) {
+                String name = monsters.get(i).path("name").asText("");
+                if (name.isEmpty()) continue;
+                var factory = EnemyManager.getFactory(name);
+                if (factory == null) {
+                    throw new ReplayException("No EnemyManager factory for monster name: " + name, null, null);
+                }
+                enemies.add(factory.get());
+            }
+            return enemies;
+        }
+        return List.of();
     }
 
     /**
