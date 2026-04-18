@@ -345,6 +345,8 @@ public class GameProperties implements Cloneable {
     public int currentGoldCounterIdx = -1;
     public Relic vambrace = null;
     public int vambraceCounterIdx = -1;
+    public Relic vitruvianMinion = null;
+    public Relic undyingSigil = null;
 
     public boolean isRunicDomeEnabled(GameState state) {
         return runicDome != null && runicDome.isRelicEnabledInScenario(state);
@@ -700,6 +702,7 @@ public class GameProperties implements Cloneable {
     public List<GameEventHandler> onScryHandlers = new ArrayList<>();
     public List<GameEventEnemyHandler> onEnemyDeathHandlers = new ArrayList<>();
     public List<GameEventHandler> onOtsyDeathHandlers = new ArrayList<>();
+    public List<GameEventHandler> onOtsyAttackHandlers = new ArrayList<>();
     public List<OnOtsyDamageHandler> onOtsyLosesHPHandlers = new ArrayList<>();
     public List<GameEventEnemyDebuffHandler> onEnemyDebuffHandlers = new ArrayList<>();
     public List<OnDamageHandler> onDamageHandlers = new ArrayList<>();
@@ -810,6 +813,10 @@ public class GameProperties implements Cloneable {
 
     public void addOnOtsyDeathHandler(String handlerName, GameEventHandler handler) {
         addHandler(handlerName + "OnOtsyDeath", handler, onOtsyDeathHandlers);
+    }
+
+    public void addOnOtsyAttackHandler(String handlerName, GameEventHandler handler) {
+        addHandler(handlerName + "OnOtsyAttack", handler, onOtsyAttackHandlers);
     }
 
     public void addOnOtsyLosesHPHandler(String handlerName, OnOtsyDamageHandler handler) {

@@ -3848,6 +3848,9 @@ public final class GameState implements State {
         if (properties.strikeDummyQQQ != null && properties.strikeDummyQQQ.isRelicEnabledInScenario(this) && CardManager.isStrike(damageSource)) {
             dmg += 1;
         }
+        if (properties.vitruvianMinion != null && properties.vitruvianMinion.isRelicEnabledInScenario(this) && damageSource.cardName.contains("Minion")) {
+            dmg *= 2;
+        }
         dmg += player.getStrength();
         if (properties.accuracyCounterIdx >= 0 && (damageSource instanceof CardColorless.Shiv || damageSource instanceof CardColorless.ShivP)) {
             dmg += getCounterForRead()[properties.accuracyCounterIdx];
@@ -3959,6 +3962,9 @@ public final class GameState implements State {
         if (properties.otsyAttackedThisTurnCounterIdx >= 0) {
             getCounterForWrite()[properties.otsyAttackedThisTurnCounterIdx]++;
         }
+        for (var handler : properties.onOtsyAttackHandlers) {
+            handler.handle(this);
+        }
         int bonus = properties.otsyDamageBonusCounterIdx >= 0 ? getCounterForRead()[properties.otsyDamageBonusCounterIdx] : 0;
         double dmg = dmgInt + bonus;
         if (enemy.getVulnerable() > 0) {
@@ -4052,6 +4058,9 @@ public final class GameState implements State {
         }
         if (properties.intangibleCounterIdx >= 0 && getCounterForRead()[properties.intangibleCounterIdx] > 0 && dmg > 0) {
             dmg = 1;
+        }
+        if (properties.undyingSigil != null && properties.undyingSigil.isRelicEnabledInScenario(this) && enemy.getDoom() >= enemy.getHealth()) {
+            dmg *= 0.5;
         }
         return dmg;
     }
@@ -4258,6 +4267,11 @@ public final class GameState implements State {
         }
         if (properties.paelsLegionCounterIdx >= 0 && properties.paelsLegion.isRelicEnabledInScenario(this) && getCounterForRead()[properties.paelsLegionCounterIdx] == 0) {
             getCounterForWrite()[properties.paelsLegionCounterIdx] = 2;
+            n *= 2;
+        }
+        if (properties.vitruvianMinion != null && properties.vitruvianMinion.isRelicEnabledInScenario(this)
+                && currentAction != null && currentAction.type() == GameActionType.PLAY_CARD
+                && properties.cardDict[currentAction.idx()].cardName.contains("Minion")) {
             n *= 2;
         }
         int blockGained = getPlayerForWrite().gainBlock(n, this);

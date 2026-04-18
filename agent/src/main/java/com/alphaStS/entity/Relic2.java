@@ -7,6 +7,7 @@ import com.alphaStS.enums.DebuffType;
 import com.alphaStS.enums.OrbType;
 import com.alphaStS.eventHandler.GameEventCardHandler;
 import com.alphaStS.eventHandler.GameEventHandler;
+import com.alphaStS.eventHandler.OnCardCreationHandler;
 import com.alphaStS.eventHandler.OnDamageHandler;
 import com.alphaStS.eventHandler.OnStarChangeHandler;
 import com.alphaStS.random.RandomGenCtx;
@@ -2215,17 +2216,62 @@ public class Relic2 {
         }
     }
 
-    // TODO: Mini Regent (Rare)
-    //   Effect: The first time you spend star each turn, gain 1 Strength.
+    public static class MiniRegent extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("MiniRegent", this, null);
+            state.properties.addStartOfTurnHandler("MiniRegent", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    state.getCounterForWrite()[counterIdx] = 0;
+                }
+            });
+            state.properties.addOnStarChangeHandler("MiniRegent", new OnStarChangeHandler() {
+                @Override public void handle(GameState state, int amount) {
+                    if (!isRelicEnabledInScenario(state) || amount >= 0) return;
+                    if (state.getCounterForRead()[counterIdx] == 0) {
+                        state.getCounterForWrite()[counterIdx] = 1;
+                        state.getPlayerForWrite().gainStrength(1);
+                    }
+                }
+            });
+        }
+    }
 
-    // TODO: Orange Dough (Rare)
-    //   Effect: At the start of each combat, add 2 random Colorless cards into your Hand.
+    public static class OrangeDough extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.addStartOfBattleHandler("OrangeDough", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (!isRelicEnabledInScenario(state)) return;
+                    state.setIsStochastic();
+                    for (int i = 0; i < 2; i++) {
+                        int r = state.getSearchRandomGen().nextInt(generatedCardIdxes.length, RandomGenCtx.RandomCardGen);
+                        state.addCardToHand(state.createCard(generatedCardIdxes[r]));
+                    }
+                }
+            });
+        }
 
-    // TODO: Regalite (Uncommon)
-    //   Effect: Whenever you create a Colorless card, gain 2 Block.
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            return CardManager.getColorlessCards(false);
+        }
+    }
 
-    // TODO: Vitruvian Minion (Shop)
-    //   Effect: Cards containing "Minion" deal double damage and gain double Block.
+    public static class Regalite extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.addOnCardCreationHandler("Regalite", new OnCardCreationHandler() {
+                @Override public void handle(GameState state, int cardIdx) {
+                    if (isRelicEnabledInScenario(state) && CardManager.isColorlessCard(state.properties.cardDict[cardIdx])) {
+                        state.playerGainBlockNotFromCardPlay(2);
+                    }
+                }
+            });
+        }
+    }
+
+    public static class VitruvianMinion extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.vitruvianMinion = this;
+        }
+    }
 
     // **************************************************************************************************
     // ********************************************* Necrobinder *********************************************
@@ -2234,8 +2280,17 @@ public class Relic2 {
     // TODO: Big Hat (Rare)
     //   Effect: At the start of each combat, add 2 random Ethereal cards into your Hand.
 
-    // TODO: Bone Flute (Common)
-    //   Effect: Whenever Osty attacks, gain 2 Block.
+    public static class BoneFlute extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.addOnOtsyAttackHandler("BoneFlute", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (isRelicEnabledInScenario(state)) {
+                        state.playerGainBlockNotFromCardPlay(2);
+                    }
+                }
+            });
+        }
+    }
 
     // TODO: Book Repair Knife (Uncommon)
     //   Effect: Whenever a non-Minion enemy dies to Doom, heal 3 HP.
@@ -2243,18 +2298,69 @@ public class Relic2 {
     // TODO: Bookmark (Rare)
     //   Effect: At the end of each turn, lower the cost of a random Retained card by 1 until played.
 
-    // TODO: Bound Phylactery (Starter)
-    //   Effect: At the start of your turn, Summon 1.
+    public static class BoundPhylactery extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.addStartOfTurnHandler("BoundPhylactery", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (isRelicEnabledInScenario(state)) {
+                        state.summon(1);
+                    }
+                }
+            });
+        }
+    }
 
-    // TODO: Funerary Mask (Uncommon)
-    //   Effect: At the start of each combat, add 3 Souls into your Draw Pile.
+    public static class FuneraryMask extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.addStartOfBattleHandler("FuneraryMask", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (!isRelicEnabledInScenario(state)) return;
+                    for (int i = 0; i < 3; i++) {
+                        state.addCardToDeck(generatedCardIdx);
+                    }
+                }
+            });
+        }
 
-    // TODO: Ivory Tile (Rare)
-    //   Effect: Whenever you play a card that costs 3 energy or more, gain energy.
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            return List.of(new CardColorless2.Soul());
+        }
+    }
 
-    // TODO: Phylactery Unbound (Starter)
-    //   Effect: At the start of each combat, Summon 5. At the start of your turn, Summon 2.
+    public static class IvoryTile extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.addOnCardPlayedHandler("IvoryTile", new GameEventCardHandler() {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                    if (isRelicEnabledInScenario(state) && energyUsed >= 3) {
+                        state.gainEnergy(1);
+                    }
+                }
+            });
+        }
+    }
 
-    // TODO: Undying Sigil (Shop)
-    //   Effect: Enemies with at least as much Doom as HP deal 50% less damage.
+    public static class PhylacteryUnbound extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.addStartOfBattleHandler("PhylacteryUnbound", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (isRelicEnabledInScenario(state)) {
+                        state.summon(5);
+                    }
+                }
+            });
+            state.properties.addStartOfTurnHandler("PhylacteryUnbound", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (isRelicEnabledInScenario(state)) {
+                        state.summon(2);
+                    }
+                }
+            });
+        }
+    }
+
+    public static class UndyingSignil extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.undyingSigil = this;
+        }
+    }
 }
