@@ -1,0 +1,590 @@
+{
+    "AwakenedOne": {
+        "alphaStS_name": "Awakened One",
+        "sts_internal_name": "AwakenedOne",
+        "moves": {
+            "1": 0,
+            "2": 1,
+            "3": 2,
+            "5": 3,
+            "6": 4,
+            "8": 5
+        }
+    },
+    "Bear": {
+        "alphaStS_name": "Bear",
+        "sts_internal_name": "BanditBear",
+        "moves": {
+            "1": 2,
+            "2": 0,
+            "3": 1
+        }
+    },
+    "BlueSlaver": {
+        "alphaStS_name": "Blue Slaver",
+        "sts_internal_name": "SlaverBlue",
+        "moves": {
+            "1": 0,
+            "4": 1
+        }
+    },
+    "BookOfStabbing": {
+        "alphaStS_name": "Book Of Stabbing",
+        "sts_internal_name": "BookOfStabbing",
+        "moves": {
+            "1": 0,
+            "2": 1
+        }
+    },
+    "BronzeAutomaton": {
+        "alphaStS_name": "Bronze Automaton",
+        "sts_internal_name": "BronzeAutomaton",
+        "moves": {
+            "1": 1,
+            "2": 5,
+            "3": 6,
+            "4": 0,
+            "5": 2
+        }
+    },
+    "BronzeOrb": {
+        "alphaStS_name": "Bronze Orb",
+        "sts_internal_name": "BronzeOrb",
+        "moves": {
+            "1": 1,
+            "2": 2,
+            "3": 0
+        }
+    },
+    "Byrd": {
+        "alphaStS_name": "Byrd",
+        "sts_internal_name": "Byrd",
+        "moves": {
+            "1": 1,
+            "2": 5,
+            "3": 2,
+            "4": 3,
+            "5": 4,
+            "6": 0
+        }
+    },
+    "Centurion": {
+        "alphaStS_name": "Centurion",
+        "sts_internal_name": "Centurion",
+        "moves": {
+            "1": 0,
+            "2": 2,
+            "3": 1
+        }
+    },
+    "Chosen": {
+        "alphaStS_name": "Chosen",
+        "sts_internal_name": "Chosen",
+        "moves": {
+            "1": 2,
+            "2": 4,
+            "3": 3,
+            "4": 0,
+            "5": 1
+        }
+    },
+    "CorruptHeart": {
+        "alphaStS_name": "Corrupt Heart",
+        "sts_internal_name": "CorruptHeart",
+        "moves": {
+            "1": 1,
+            "2": 2,
+            "3": 0,
+            "4": 3
+        }
+    },
+    "Cultist": {
+        "alphaStS_name": "Cultist",
+        "sts_internal_name": "Cultist",
+        "moves": {
+            "1": 1,
+            "3": 0
+        }
+    },
+    "Dagger": {
+        "alphaStS_name": "Dagger",
+        "sts_internal_name": "SnakeDagger",
+        "moves": {
+            "1": 0,
+            "2": 1
+        }
+    },
+    "Darkling": {
+        "alphaStS_name": "Darkling",
+        "sts_internal_name": "Darkling",
+        "moves": {
+            "1": 1,
+            "2": 2,
+            "3": 0,
+            "4": 3,
+            "5": 4
+        }
+    },
+    "Deca": {
+        "alphaStS_name": "Deca",
+        "sts_internal_name": "Deca",
+        "moves": {
+            "0": 1,
+            "2": 0
+        }
+    },
+    "Donu": {
+        "alphaStS_name": "Donu",
+        "sts_internal_name": "Donu",
+        "moves": {
+            "0": 1,
+            "2": 0
+        }
+    },
+    "Exploder": {
+        "alphaStS_name": "Exploder",
+        "sts_internal_name": "Exploder",
+        "moves": {
+            "1": 2,
+            "2": 0
+        }
+    },
+    "FatGremlin": {
+        "alphaStS_name": "Fat Gremlin",
+        "sts_internal_name": "GremlinFat",
+        "moves": {
+            "2": 0
+        }
+    },
+    "FungiBeast": {
+        "alphaStS_name": "Fungi Beast",
+        "sts_internal_name": "FungiBeast",
+        "moves": {
+            "1": 0,
+            "2": 1
+        }
+    },
+    "GiantHead": {
+        "alphaStS_name": "Giant Head",
+        "sts_internal_name": "GiantHead",
+        "moves": {
+            "1": 1,
+            "2": 2,
+            "3": 0
+        }
+    },
+    "GreenLouse": {
+        "alphaStS_name": "Green Louse",
+        "sts_internal_name": "LouseDefensive",
+        "moves": {
+            "3": 0,
+            "4": 1
+        }
+    },
+    "GremlinLeader": {
+        "alphaStS_name": "Gremlin Leader",
+        "sts_internal_name": "GremlinLeader",
+        "moves": {
+            "2": 1,
+            "3": 0,
+            "4": 2
+        }
+    },
+    "GremlinNob": {
+        "alphaStS_name": "Gremlin Nob",
+        "sts_internal_name": "GremlinNob",
+        "moves": {
+            "1": 2,
+            "2": 1,
+            "3": 0
+        }
+    },
+    "GremlinWizard": {
+        "alphaStS_name": "Gremlin Wizard",
+        "sts_internal_name": "GremlinWizard",
+        "moves": {
+            "1": 2,
+            "2": 0
+        }
+    },
+    "Hexaghost": {
+        "alphaStS_name": "Hexaghost",
+        "sts_internal_name": "Hexaghost",
+        "moves": {
+            "1": 1,
+            "2": 3,
+            "3": 5,
+            "4": 2,
+            "5": 0,
+            "6": 8
+        }
+    },
+    "JawWorm": {
+        "alphaStS_name": "Jaw Worm",
+        "sts_internal_name": "JawWorm",
+        "moves": {
+            "1": 0,
+            "2": 1,
+            "3": 2
+        }
+    },
+    "Lagavulin": {
+        "alphaStS_name": "Lagavulin",
+        "sts_internal_name": "Lagavulin",
+        "moves": {
+            "1": 5,
+            "3": 3,
+            "4": 6,
+            "5": 0,
+            "6": 3
+        }
+    },
+    "LargeAcidSlime": {
+        "alphaStS_name": "Large Acid Slime",
+        "sts_internal_name": "AcidSlime_L",
+        "moves": {
+            "1": 0,
+            "2": 1,
+            "3": 3,
+            "4": 2
+        }
+    },
+    "LargeSpikeSlime": {
+        "alphaStS_name": "Large Spike Slime",
+        "sts_internal_name": "SpikeSlime_L",
+        "moves": {
+            "1": 0,
+            "3": 2,
+            "4": 1
+        }
+    },
+    "Looter": {
+        "alphaStS_name": "Looter",
+        "sts_internal_name": "Looter",
+        "moves": {
+            "1": 0,
+            "2": 3,
+            "3": 4,
+            "4": 2
+        }
+    },
+    "MadGremlin": {
+        "alphaStS_name": "Mad Gremlin",
+        "sts_internal_name": "GremlinWarrior",
+        "moves": {
+            "1": 0
+        }
+    },
+    "MediumAcidSlime": {
+        "alphaStS_name": "Medium Acid Slime",
+        "sts_internal_name": "AcidSlime_M",
+        "moves": {
+            "1": 0,
+            "2": 1,
+            "4": 2
+        }
+    },
+    "MediumSpikeSlime": {
+        "alphaStS_name": "Medium Spike Slime",
+        "sts_internal_name": "SpikeSlime_M",
+        "moves": {
+            "1": 0,
+            "4": 1
+        }
+    },
+    "Mugger": {
+        "alphaStS_name": "Mugger",
+        "sts_internal_name": "Mugger",
+        "moves": {
+            "1": 0,
+            "2": 3,
+            "3": 4,
+            "4": 2
+        }
+    },
+    "Mystic": {
+        "alphaStS_name": "Mystic",
+        "sts_internal_name": "Healer",
+        "moves": {
+            "1": 2,
+            "2": 0,
+            "3": 1
+        }
+    },
+    "Nemesis": {
+        "alphaStS_name": "Nemesis",
+        "sts_internal_name": "Nemesis",
+        "moves": {
+            "2": 1,
+            "3": 2,
+            "4": 0
+        }
+    },
+    "OrbWalker": {
+        "alphaStS_name": "Orb Walker",
+        "sts_internal_name": "OrbWalker",
+        "moves": {
+            "1": 0,
+            "2": 1
+        }
+    },
+    "Pointy": {
+        "alphaStS_name": "Pointy",
+        "sts_internal_name": "BanditPointy",
+        "moves": {
+            "1": 0
+        }
+    },
+    "RedLouse": {
+        "alphaStS_name": "Red Louse",
+        "sts_internal_name": "LouseNormal",
+        "moves": {
+            "3": 0,
+            "4": 1
+        }
+    },
+    "RedSlaver": {
+        "alphaStS_name": "Red Slaver",
+        "sts_internal_name": "SlaverRed",
+        "moves": {
+            "1": 0,
+            "2": 2,
+            "3": 1
+        }
+    },
+    "Reptomancer": {
+        "alphaStS_name": "Reptomancer",
+        "sts_internal_name": "Reptomancer",
+        "moves": {
+            "1": 1,
+            "2": 0,
+            "3": 2
+        }
+    },
+    "Repulsor": {
+        "alphaStS_name": "Repulsor",
+        "sts_internal_name": "Repulsor",
+        "moves": {
+            "1": 1,
+            "2": 0
+        }
+    },
+    "Romeo": {
+        "alphaStS_name": "Romeo",
+        "sts_internal_name": "BanditLeader",
+        "moves": {
+            "1": 2,
+            "2": 0,
+            "3": 1
+        }
+    },
+    "Sentry": {
+        "alphaStS_name": "Sentry",
+        "sts_internal_name": "Sentry",
+        "moves": {
+            "3": 1,
+            "4": 0
+        }
+    },
+    "ShelledParasite": {
+        "alphaStS_name": "Shelled Parasite",
+        "sts_internal_name": "ShelledParasite",
+        "moves": {
+            "1": 2,
+            "2": 0,
+            "3": 1,
+            "4": 3
+        }
+    },
+    "ShieldGremlin": {
+        "alphaStS_name": "Shield Gremlin",
+        "sts_internal_name": "GremlinTsundere",
+        "moves": {
+            "1": 0,
+            "2": 1
+        }
+    },
+    "SlimeBoss": {
+        "alphaStS_name": "Slime Boss",
+        "sts_internal_name": "SlimeBoss",
+        "moves": {
+            "1": 2,
+            "2": 1,
+            "3": 3,
+            "4": 0
+        }
+    },
+    "SmallAcidSlime": {
+        "alphaStS_name": "Small Acid Slime",
+        "sts_internal_name": "AcidSlime_S",
+        "moves": {
+            "1": 0,
+            "2": 1
+        }
+    },
+    "SmallSpikeSlime": {
+        "alphaStS_name": "Small Spike Slime",
+        "sts_internal_name": "SpikeSlime_S",
+        "moves": {
+            "1": 0
+        }
+    },
+    "SnakePlant": {
+        "alphaStS_name": "Snake Plant",
+        "sts_internal_name": "SnakePlant",
+        "moves": {
+            "1": 0,
+            "2": 1
+        }
+    },
+    "SneakyGremlin": {
+        "alphaStS_name": "Sneaky Gremlin",
+        "sts_internal_name": "GremlinThief",
+        "moves": {
+            "1": 0
+        }
+    },
+    "Snecko": {
+        "alphaStS_name": "Snecko",
+        "sts_internal_name": "Snecko",
+        "moves": {
+            "1": 0,
+            "2": 2,
+            "3": 1
+        }
+    },
+    "SphericGuardian": {
+        "alphaStS_name": "Spheric Guardian",
+        "sts_internal_name": "SphericGuardian",
+        "moves": {
+            "1": 2,
+            "2": 0,
+            "3": 3,
+            "4": 1
+        }
+    },
+    "Spiker": {
+        "alphaStS_name": "Spiker",
+        "sts_internal_name": "Spiker",
+        "moves": {
+            "1": 0,
+            "2": 1
+        }
+    },
+    "SpireGrowth": {
+        "alphaStS_name": "Spire Growth",
+        "sts_internal_name": "SpireGrowth",
+        "moves": {
+            "1": 0,
+            "2": 2,
+            "3": 1
+        }
+    },
+    "SpireShield": {
+        "alphaStS_name": "Spire Shield",
+        "sts_internal_name": "SpireShield",
+        "moves": {
+            "1": 0,
+            "2": 1,
+            "3": 2
+        }
+    },
+    "SpireSpear": {
+        "alphaStS_name": "Spire Spear",
+        "sts_internal_name": "SpireSpear",
+        "moves": {
+            "1": 0,
+            "2": 1,
+            "3": 2
+        }
+    },
+    "Taskmaster": {
+        "alphaStS_name": "Taskmaster",
+        "sts_internal_name": "Taskmaster",
+        "moves": {
+            "2": 0
+        }
+    },
+    "TheChamp": {
+        "alphaStS_name": "The Champ",
+        "sts_internal_name": "Champ",
+        "moves": {
+            "1": 3,
+            "2": 0,
+            "3": 5,
+            "4": 1,
+            "5": 4,
+            "6": 2,
+            "7": 6
+        }
+    },
+    "TheCollector": {
+        "alphaStS_name": "The Collector",
+        "sts_internal_name": "TheCollector",
+        "moves": {
+            "1": 3,
+            "2": 1,
+            "3": 0,
+            "4": 2,
+            "5": 3
+        }
+    },
+    "TheGuardian": {
+        "alphaStS_name": "The Guardian",
+        "sts_internal_name": "TheGuardian",
+        "moves": {
+            "1": 4,
+            "2": 1,
+            "3": 5,
+            "4": 6,
+            "5": 3,
+            "6": 0,
+            "7": 2
+        }
+    },
+    "TheMaw": {
+        "alphaStS_name": "The Maw",
+        "sts_internal_name": "Maw",
+        "moves": {
+            "2": 0,
+            "3": 2,
+            "4": 1,
+            "5": 3
+        }
+    },
+    "TimeEater": {
+        "alphaStS_name": "Time Eater",
+        "sts_internal_name": "TimeEater",
+        "moves": {
+            "2": 0,
+            "3": 2,
+            "4": 1,
+            "5": 3
+        }
+    },
+    "TorchHead": {
+        "alphaStS_name": "Torch Head",
+        "sts_internal_name": "TorchHead",
+        "moves": {
+            "1": 0
+        }
+    },
+    "Transient": {
+        "alphaStS_name": "Transient",
+        "sts_internal_name": "Transient",
+        "moves": {
+            "1": 0
+        }
+    },
+    "WrithingMass": {
+        "alphaStS_name": "Writhing Mass",
+        "sts_internal_name": "WrithingMass",
+        "moves": {
+            "0": 4,
+            "1": 3,
+            "2": 1,
+            "3": 2,
+            "4": 0
+        }
+    }
+}

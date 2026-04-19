@@ -543,6 +543,15 @@ public class TestRunner {
                 while (state.actionCtx == GameActionCtx.BEGIN_TURN) {
                     state = state.doAction(0);
                 }
+            } else if ("event:set_move".equals(type)) {
+                if (verbose) System.out.println(line);
+                String monsterId = node.path("monster_id").asText();
+                int monsterIndex = node.path("monster_index").asInt();
+                int stsMoveId = node.path("move_index").asInt();
+                EnemyMoveMapping em = EnemyMoveMapping.getMapping().get(monsterId);
+                if (em != null && em.moves.containsKey(stsMoveId)) {
+                    state.getEnemiesForWrite().getForWrite(monsterIndex).setMove(em.moves.get(stsMoveId));
+                }
             } else if (verbose) {
                 System.out.println(line);
             }
