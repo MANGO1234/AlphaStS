@@ -114,28 +114,36 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         if (energyCost <= temporaryCost || isXCost) {
             return this;
         }
-        return new Card.CardWrapper(this, temporaryCost, -1, -1, false);
+        var mod = new CardModification();
+        mod.tmpChangeCost = temporaryCost;
+        return new Card.CardWrapper(this, mod);
     }
 
     public Card getTmpRetainIfPossible() {
         if (retain) {
             return this;
         }
-        return new Card.CardWrapper(this, -1, -1, -1, true);
+        var mod = new CardModification();
+        mod.tmpRetain = true;
+        return new Card.CardWrapper(this, mod);
     }
 
     public Card getTemporaryCostUntilPlayedIfPossible(int temporaryCost) {
         if (energyCost <= temporaryCost || isXCost) {
             return this;
         }
-        return new Card.CardWrapper(this, -1, temporaryCost, -1, false);
+        var mod = new CardModification();
+        mod.tmpUntilPlayedCost = temporaryCost;
+        return new Card.CardWrapper(this, mod);
     }
 
     public Card getPermCostIfPossible(int permCost) {
         if (energyCost < 0 || energyCost == permCost || isXCost) {
             return this;
         }
-        return new Card.CardWrapper(this, -1, -1, permCost, false);
+        var mod = new CardModification();
+        mod.permChangeCost = permCost;
+        return new Card.CardWrapper(this, mod);
     }
 
     @Override public String toString() {
@@ -173,42 +181,52 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         return card;
     }
 
+    public static class CardModification {
+        public int tmpChangeCost = -1;
+        public int tmpUntilPlayedCost = -1;
+        public int permChangeCost = -1;
+        public boolean tmpRetain = false;
+
+        public CardModification clone() {
+            var copy = new CardModification();
+            copy.tmpChangeCost = tmpChangeCost;
+            copy.tmpUntilPlayedCost = tmpUntilPlayedCost;
+            copy.permChangeCost = permChangeCost;
+            copy.tmpRetain = tmpRetain;
+            return copy;
+        }
+    }
+
     public static class CardWrapper extends Card {
         private final Card card;
-        private final int tmpChangeCost;
-        private final int tmpUntilPlayedCost;
-        private final int permChangeCost;
-        private final boolean tmpRetain;
+        private final CardModification mod;
 
-        public CardWrapper(Card card, int tmpChangeCost, int tmpUntilPlayedCost, int permChangeCost, boolean tmpRetain) {
-            super(generateCardName(card, tmpChangeCost, tmpUntilPlayedCost, permChangeCost, tmpRetain), card.cardType, getEffectiveEnergyCost(card, tmpChangeCost, tmpUntilPlayedCost, permChangeCost), card.rarity);
+        public CardWrapper(Card card, CardModification mod) {
+            super(generateCardName(card, mod), card.cardType, getEffectiveEnergyCost(card, mod), card.rarity);
             this.card = card;
-            this.tmpChangeCost = tmpChangeCost;
-            this.tmpUntilPlayedCost = tmpUntilPlayedCost;
-            this.permChangeCost = permChangeCost;
-            this.tmpRetain = tmpRetain;
+            this.mod = mod;
             copyCardProperties(card);
         }
 
-        private static int getEffectiveEnergyCost(Card card, int tmpChangeCost, int tmpUntilPlayedCost, int permChangeCost) {
-            if (tmpChangeCost != -1) return tmpChangeCost;
-            if (tmpUntilPlayedCost != -1) return tmpUntilPlayedCost;
-            if (permChangeCost != -1) return permChangeCost;
+        private static int getEffectiveEnergyCost(Card card, CardModification mod) {
+            if (mod.tmpChangeCost != -1) return mod.tmpChangeCost;
+            if (mod.tmpUntilPlayedCost != -1) return mod.tmpUntilPlayedCost;
+            if (mod.permChangeCost != -1) return mod.permChangeCost;
             return card.energyCost;
         }
 
-        private static String generateCardName(Card card, int tmpChangeCost, int tmpUntilPlayedCost, int permChangeCost, boolean tmpRetain) {
+        private static String generateCardName(Card card, CardModification mod) {
             StringBuilder sb = new StringBuilder(card.cardName);
-            if (tmpChangeCost != -1) {
-                sb.append(" (Tmp ").append(tmpChangeCost).append(")");
+            if (mod.tmpChangeCost != -1) {
+                sb.append(" (Tmp ").append(mod.tmpChangeCost).append(")");
             }
-            if (tmpUntilPlayedCost != -1) {
-                sb.append(" (Tmp Until Played ").append(tmpUntilPlayedCost).append(")");
+            if (mod.tmpUntilPlayedCost != -1) {
+                sb.append(" (Tmp Until Played ").append(mod.tmpUntilPlayedCost).append(")");
             }
-            if (permChangeCost != -1) {
-                sb.append(" (Perm ").append(permChangeCost).append(")");
+            if (mod.permChangeCost != -1) {
+                sb.append(" (Perm ").append(mod.permChangeCost).append(")");
             }
-            if (tmpRetain) {
+            if (mod.tmpRetain) {
                 sb.append(" (Tmp Retain)");
             }
             return sb.toString();
@@ -281,7 +299,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
         @Override
         public int onPlayTransformCardIdx(GameProperties prop, int cardIdx) {
-            if (tmpUntilPlayedCost != -1 || tmpRetain) {
+            if (mod.tmpUntilPlayedCost != -1 || mod.tmpRetain) {
                 int idx = card.onPlayTransformCardIdx(prop, cardIdx);
                 return idx == -1 ? cardIdx : idx;
             }
@@ -305,20 +323,20 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
         @Override
         public int realEnergyCost() {
-            return permChangeCost >= 0 ? permChangeCost : card.realEnergyCost();
+            return mod.permChangeCost >= 0 ? mod.permChangeCost : card.realEnergyCost();
         }
 
         @Override
         public int energyCost(GameState state) {
-            if (tmpChangeCost != -1) return tmpChangeCost;
-            if (tmpUntilPlayedCost != -1) return tmpUntilPlayedCost;
-            if (permChangeCost != -1) return permChangeCost;
+            if (mod.tmpChangeCost != -1) return mod.tmpChangeCost;
+            if (mod.tmpUntilPlayedCost != -1) return mod.tmpUntilPlayedCost;
+            if (mod.permChangeCost != -1) return mod.permChangeCost;
             return card.energyCost;
         }
 
         @Override
         public boolean retain() {
-            return tmpRetain || card.retain;
+            return mod.tmpRetain || card.retain;
         }
 
         @Override
@@ -331,85 +349,92 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
             return card.getBaseCard();
         }
 
-        private Card wrap(Card newCard, int tmpChangeCost, int tmpUntilPlayedCost, int permChangeCost, boolean tmpRetain) {
-            int newTmpChangeCost = -1;
-            int newTmpUntilPlayedCost = -1;
-            int newPermChangeCost = -1;
-            boolean newTmpRetain = false;
+        private Card wrap(Card newCard, CardModification newMod) {
+            var resultMod = new CardModification();
             var modified = false;
             var cardEnergyCost = newCard.energyCost;
-            if (permChangeCost >= 0 && cardEnergyCost != permChangeCost) {
-                cardEnergyCost = permChangeCost;
-                var permCard = newCard.getPermCostIfPossible(permChangeCost);
+            if (newMod.permChangeCost >= 0 && cardEnergyCost != newMod.permChangeCost) {
+                cardEnergyCost = newMod.permChangeCost;
+                var permCard = newCard.getPermCostIfPossible(newMod.permChangeCost);
                 if (permCard instanceof CardWrapper) {
-                    newPermChangeCost = permChangeCost;
+                    resultMod.permChangeCost = newMod.permChangeCost;
                     modified = true;
                 } else {
                     newCard = permCard;
                 }
             }
-            if (tmpChangeCost >= 0 && !(cardEnergyCost <= tmpChangeCost || newCard.isXCost)) {
-                newTmpChangeCost = tmpChangeCost;
+            if (newMod.tmpChangeCost >= 0 && !(cardEnergyCost <= newMod.tmpChangeCost || newCard.isXCost)) {
+                resultMod.tmpChangeCost = newMod.tmpChangeCost;
                 modified = true;
             }
-            if (tmpUntilPlayedCost >= 0 && !(cardEnergyCost <= tmpUntilPlayedCost || newCard.isXCost)) {
-                newTmpUntilPlayedCost = tmpUntilPlayedCost;
+            if (newMod.tmpUntilPlayedCost >= 0 && !(cardEnergyCost <= newMod.tmpUntilPlayedCost || newCard.isXCost)) {
+                resultMod.tmpUntilPlayedCost = newMod.tmpUntilPlayedCost;
                 modified = true;
             }
-            if (!newCard.retain && tmpRetain) {
-                newTmpRetain = true;
+            if (!newCard.retain && newMod.tmpRetain) {
+                resultMod.tmpRetain = true;
                 modified = true;
             }
             if (!modified) {
                 return newCard;
             }
-            return new CardWrapper(newCard, newTmpChangeCost, newTmpUntilPlayedCost, newPermChangeCost, newTmpRetain);
+            return new CardWrapper(newCard, resultMod);
         }
 
         @Override
         public Card wrap(Card newCard) {
-            return wrap(newCard, tmpChangeCost, tmpUntilPlayedCost, permChangeCost, tmpRetain);
+            return wrap(newCard, mod);
         }
 
         @Override
         public Card wrapAfterPlay(Card newCard) {
-            return wrap(newCard, -1, -1, permChangeCost, false);
+            var newMod = new CardModification();
+            newMod.permChangeCost = mod.permChangeCost;
+            return wrap(newCard, newMod);
         }
 
         @Override
         public Card getPermCostIfPossible(int permCost) {
-            return wrap(card, tmpChangeCost, tmpUntilPlayedCost, permCost, tmpRetain);
+            var newMod = mod.clone();
+            newMod.permChangeCost = permCost;
+            return wrap(card, newMod);
         }
 
         @Override
         public Card getTemporaryCostUntilPlayedIfPossible(int newCost) {
-            return wrap(card, tmpChangeCost, newCost, permChangeCost, tmpRetain);
+            var newMod = mod.clone();
+            newMod.tmpUntilPlayedCost = newCost;
+            return wrap(card, newMod);
         }
 
         @Override
         public Card getTemporaryCostIfPossible(int newCost) {
-            return wrap(card, newCost, tmpUntilPlayedCost, permChangeCost, tmpRetain);
+            var newMod = mod.clone();
+            newMod.tmpChangeCost = newCost;
+            return wrap(card, newMod);
         }
 
         @Override
         public Card getTmpRetainIfPossible() {
-            return wrap(card, tmpChangeCost, tmpUntilPlayedCost, permChangeCost, true);
+            var newMod = mod.clone();
+            newMod.tmpRetain = true;
+            return wrap(card, newMod);
         }
 
         public boolean isTmpChangeCost() {
-            return tmpChangeCost != -1;
+            return mod.tmpChangeCost != -1;
         }
 
         public boolean isTmpUntilPlayedCost() {
-            return tmpUntilPlayedCost != -1;
+            return mod.tmpUntilPlayedCost != -1;
         }
 
         public boolean isPermChangeCost() {
-            return permChangeCost != -1;
+            return mod.permChangeCost != -1;
         }
 
         public boolean isTmpRetain() {
-            return tmpRetain;
+            return mod.tmpRetain;
         }
 
         @Override
@@ -428,11 +453,11 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
             if (upgrade == null) {
                 return null;
             }
-            int newPermCost = permChangeCost;
-            if (upgrade.energyCost < permChangeCost && card.energyCost < upgrade.energyCost) {
-                newPermCost = -1;
+            var newMod = mod.clone();
+            if (upgrade.energyCost < mod.permChangeCost && card.energyCost < upgrade.energyCost) {
+                newMod.permChangeCost = -1;
             }
-            return wrap(upgrade, tmpChangeCost, tmpUntilPlayedCost, newPermCost, tmpRetain);
+            return wrap(upgrade, newMod);
         }
     }
 
