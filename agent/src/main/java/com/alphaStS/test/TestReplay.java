@@ -51,9 +51,7 @@ public class TestReplay {
      * the card piles from the log.
      *
      * <p>Strictly compared (throws {@link ReplayException} on mismatch): player energy, player
-     * block, each monster's current HP, and the exhaust pile. Player and enemy detail fields
-     * (strength, debuffs, move, etc.) are structurally compared but use hardcoded log values of 0
-     * until the runlogger logs those fields.
+     * block, player HP, each monster's current HP and powers, and the exhaust pile.
      *
      * <p>Synced from log without comparing: hand, draw pile, discard pile. STS draws randomly
      * while the simulation uses a different RNG, so draw order diverges between turns. Syncing
@@ -85,7 +83,7 @@ public class TestReplay {
             throw new ReplayException("Block mismatch: log=" + logBlock + " state=" + stateBlock, state, stateFloorJson);
         }
 
-        comparePlayerState(combatState.path("player"), state.getPlayerForRead(), state, stateFloorJson);
+        comparePlayerState(combatState.path("player"), root, state.getPlayerForRead(), state, stateFloorJson);
 
         JsonNode monsters = combatState.path("monsters");
         for (int i = 0; i < monsters.size(); i++) {
@@ -114,179 +112,196 @@ public class TestReplay {
         state.discardArrLen = combatState.path("discard_pile").size();
     }
 
-    // Compares player detail fields against the log. All log values are hardcoded to 0 until test fails
-    private static void comparePlayerState(JsonNode playerNode, PlayerReadOnly player,
+    // Compares player fields; reads hp_current/hp_max from the state:floor root, other fields
+    // from combat_state.player. Fields absent from the log default to 0/false so alphaStS is
+    // always checked against the expected baseline.
+    private static void comparePlayerState(JsonNode playerNode, JsonNode root, PlayerReadOnly player,
             GameState state, String line) throws ReplayException {
-        int logInBattleMaxHealth = 0;
-        if (logInBattleMaxHealth != player.getInBattleMaxHealth()) {
+        int logInBattleMaxHealth = root.path("hp_max").asInt(-1);
+        if (logInBattleMaxHealth >= 0 && logInBattleMaxHealth != player.getInBattleMaxHealth()) {
             throw new ReplayException("Player inBattleMaxHealth mismatch: log=" + logInBattleMaxHealth + " state=" + player.getInBattleMaxHealth(), state, line);
         }
 
-        int logHealth = 0;
-        if (logHealth != player.getHealth()) {
+        int logHealth = root.path("hp_current").asInt(-1);
+        if (logHealth >= 0 && logHealth != player.getHealth()) {
             throw new ReplayException("Player health mismatch: log=" + logHealth + " state=" + player.getHealth(), state, line);
         }
 
-        int logStrength = 0;
+        int logStrength = playerNode.path("strength").asInt(0);
         if (logStrength != player.getStrength()) {
             throw new ReplayException("Player strength mismatch: log=" + logStrength + " state=" + player.getStrength(), state, line);
         }
 
-        int logDexterity = 0;
+        int logDexterity = playerNode.path("dexterity").asInt(0);
         if (logDexterity != player.getDexterity()) {
             throw new ReplayException("Player dexterity mismatch: log=" + logDexterity + " state=" + player.getDexterity(), state, line);
         }
 
-        int logVulnerable = 0;
+        int logVulnerable = playerNode.path("vulnerable").asInt(0);
         if (logVulnerable != player.getVulnerable()) {
             throw new ReplayException("Player vulnerable mismatch: log=" + logVulnerable + " state=" + player.getVulnerable(), state, line);
         }
 
-        int logWeak = 0;
+        int logWeak = playerNode.path("weak").asInt(0);
         if (logWeak != player.getWeak()) {
             throw new ReplayException("Player weak mismatch: log=" + logWeak + " state=" + player.getWeak(), state, line);
         }
 
-        int logFrail = 0;
+        int logFrail = playerNode.path("frail").asInt(0);
         if (logFrail != player.getFrail()) {
             throw new ReplayException("Player frail mismatch: log=" + logFrail + " state=" + player.getFrail(), state, line);
         }
 
-        int logArtifact = 0;
+        int logArtifact = playerNode.path("artifact").asInt(0);
         if (logArtifact != player.getArtifact()) {
             throw new ReplayException("Player artifact mismatch: log=" + logArtifact + " state=" + player.getArtifact(), state, line);
         }
 
-        boolean logCannotDrawCard = false;
+        boolean logCannotDrawCard = playerNode.path("cannot_draw_card").asBoolean(false);
         if (logCannotDrawCard != player.cannotDrawCard()) {
             throw new ReplayException("Player cannotDrawCard mismatch: log=" + logCannotDrawCard + " state=" + player.cannotDrawCard(), state, line);
         }
 
-        boolean logHexed = false;
+        boolean logHexed = playerNode.path("hexed").asBoolean(false);
         if (logHexed != player.isHexed()) {
             throw new ReplayException("Player hexed mismatch: log=" + logHexed + " state=" + player.isHexed(), state, line);
         }
 
-        int logEntangled = 0;
+        int logEntangled = playerNode.path("entangled").asInt(0);
         if (logEntangled != player.getEntangled()) {
             throw new ReplayException("Player entangled mismatch: log=" + logEntangled + " state=" + player.getEntangled(), state, line);
         }
 
-        int logLoseStrengthEot = 0;
+        int logLoseStrengthEot = playerNode.path("lose_strength_eot").asInt(0);
         if (logLoseStrengthEot != player.getLoseStrengthEot()) {
             throw new ReplayException("Player loseStrengthEot mismatch: log=" + logLoseStrengthEot + " state=" + player.getLoseStrengthEot(), state, line);
         }
 
-        int logLoseDexterityEot = 0;
+        int logLoseDexterityEot = playerNode.path("lose_dexterity_eot").asInt(0);
         if (logLoseDexterityEot != player.getLoseDexterityEot()) {
             throw new ReplayException("Player loseDexterityEot mismatch: log=" + logLoseDexterityEot + " state=" + player.getLoseDexterityEot(), state, line);
         }
 
-        int logLoseFocusEot = 0;
+        int logLoseFocusEot = playerNode.path("lose_focus_eot").asInt(0);
         if (logLoseFocusEot != player.getLoseFocusEot()) {
             throw new ReplayException("Player loseFocusEot mismatch: log=" + logLoseFocusEot + " state=" + player.getLoseFocusEot(), state, line);
         }
 
-        int logPlatedArmor = 0;
+        int logPlatedArmor = playerNode.path("plated_armor").asInt(0);
         if (logPlatedArmor != player.getPlatedArmor()) {
             throw new ReplayException("Player platedArmor mismatch: log=" + logPlatedArmor + " state=" + player.getPlatedArmor(), state, line);
         }
 
-        int logNoMoreBlockFromCards = 0;
+        int logNoMoreBlockFromCards = playerNode.path("no_more_block_from_cards").asInt(0);
         if (logNoMoreBlockFromCards != player.getNoMoreBlockFromCards()) {
             throw new ReplayException("Player noMoreBlockFromCards mismatch: log=" + logNoMoreBlockFromCards + " state=" + player.getNoMoreBlockFromCards(), state, line);
         }
 
-        int logAccumulatedDamage = 0;
+        int logAccumulatedDamage = playerNode.path("accumulated_damage").asInt(0);
         if (logAccumulatedDamage != player.getAccumulatedDamage()) {
             throw new ReplayException("Player accumulatedDamage mismatch: log=" + logAccumulatedDamage + " state=" + player.getAccumulatedDamage(), state, line);
         }
     }
 
-    // Compares enemy detail fields against the log. All log values are hardcoded to 0 until test fails
+    // Extracts the amount for a named power from a monster's powers array; returns 0 if absent.
+    private static int getPowerAmount(JsonNode monsterNode, String powerId) {
+        JsonNode powers = monsterNode.path("powers");
+        if (powers.isMissingNode() || !powers.isArray()) {
+            return 0;
+        }
+        for (JsonNode power : powers) {
+            if (powerId.equals(power.path("id").asText())) {
+                return power.path("amount").asInt(0);
+            }
+        }
+        return 0;
+    }
+
+    // Compares enemy fields; reads hp values directly from the monster node and power amounts
+    // from the powers array. Fields not tracked in the log are compared against 0.
     private static void compareEnemyState(JsonNode monsterNode, EnemyReadOnly enemy, int idx,
             GameState state, String line) throws ReplayException {
-        int logMaxHealthInBattle = 0;
-        if (logMaxHealthInBattle != enemy.getMaxHealthInBattle()) {
+        int logMaxHealthInBattle = monsterNode.path("hp_max").asInt(-1);
+        if (logMaxHealthInBattle >= 0 && logMaxHealthInBattle != enemy.getMaxHealthInBattle()) {
             throw new ReplayException("Monster[" + idx + "] maxHealthInBattle mismatch: log=" + logMaxHealthInBattle + " state=" + enemy.getMaxHealthInBattle(), state, line);
         }
 
-        int logHealth = 0;
-        if (logHealth != enemy.getHealth()) {
+        int logHealth = monsterNode.path("hp_current").asInt(-1);
+        if (logHealth >= 0 && logHealth != enemy.getHealth()) {
             throw new ReplayException("Monster[" + idx + "] health mismatch: log=" + logHealth + " state=" + enemy.getHealth(), state, line);
         }
 
-        int logBlock = 0;
+        int logBlock = monsterNode.path("block").asInt(0);
         if (logBlock != enemy.getBlock()) {
             throw new ReplayException("Monster[" + idx + "] block mismatch: log=" + logBlock + " state=" + enemy.getBlock(), state, line);
         }
 
-        int logStrength = 0;
+        int logStrength = getPowerAmount(monsterNode, "Strength");
         if (logStrength != enemy.getStrength()) {
             throw new ReplayException("Monster[" + idx + "] strength mismatch: log=" + logStrength + " state=" + enemy.getStrength(), state, line);
         }
 
-        int logVulnerable = 0;
+        int logVulnerable = getPowerAmount(monsterNode, "Vulnerable");
         if (logVulnerable != enemy.getVulnerable()) {
             throw new ReplayException("Monster[" + idx + "] vulnerable mismatch: log=" + logVulnerable + " state=" + enemy.getVulnerable(), state, line);
         }
 
-        int logWeak = 0;
+        int logWeak = getPowerAmount(monsterNode, "Weak");
         if (logWeak != enemy.getWeak()) {
             throw new ReplayException("Monster[" + idx + "] weak mismatch: log=" + logWeak + " state=" + enemy.getWeak(), state, line);
         }
 
-        int logArtifact = 0;
+        int logArtifact = getPowerAmount(monsterNode, "Artifact");
         if (logArtifact != enemy.getArtifact()) {
             throw new ReplayException("Monster[" + idx + "] artifact mismatch: log=" + logArtifact + " state=" + enemy.getArtifact(), state, line);
         }
 
-        int logPoison = 0;
+        int logPoison = getPowerAmount(monsterNode, "Poison");
         if (logPoison != enemy.getPoison()) {
             throw new ReplayException("Monster[" + idx + "] poison mismatch: log=" + logPoison + " state=" + enemy.getPoison(), state, line);
         }
 
-        int logRegeneration = 0;
+        int logRegeneration = getPowerAmount(monsterNode, "Regen");
         if (logRegeneration != enemy.getRegeneration()) {
             throw new ReplayException("Monster[" + idx + "] regeneration mismatch: log=" + logRegeneration + " state=" + enemy.getRegeneration(), state, line);
         }
 
-        int logMetallicize = 0;
+        int logMetallicize = getPowerAmount(monsterNode, "Metallicize");
         if (logMetallicize != enemy.getMetallicize()) {
             throw new ReplayException("Monster[" + idx + "] metallicize mismatch: log=" + logMetallicize + " state=" + enemy.getMetallicize(), state, line);
         }
 
-        int logPlatedArmor = 0;
+        int logPlatedArmor = getPowerAmount(monsterNode, "Plated Armor");
         if (logPlatedArmor != enemy.getPlatedArmor()) {
             throw new ReplayException("Monster[" + idx + "] platedArmor mismatch: log=" + logPlatedArmor + " state=" + enemy.getPlatedArmor(), state, line);
         }
 
-        int logLoseStrengthEot = 0;
+        int logLoseStrengthEot = getPowerAmount(monsterNode, "Strength Down");
         if (logLoseStrengthEot != enemy.getLoseStrengthEot()) {
             throw new ReplayException("Monster[" + idx + "] loseStrengthEot mismatch: log=" + logLoseStrengthEot + " state=" + enemy.getLoseStrengthEot(), state, line);
         }
 
-        int logCorpseExplosion = 0;
+        int logCorpseExplosion = getPowerAmount(monsterNode, "Corpse Explosion");
         if (logCorpseExplosion != enemy.getCorpseExplosion()) {
             throw new ReplayException("Monster[" + idx + "] corpseExplosion mismatch: log=" + logCorpseExplosion + " state=" + enemy.getCorpseExplosion(), state, line);
         }
 
-        int logChoke = 0;
+        int logChoke = getPowerAmount(monsterNode, "Choke");
         if (logChoke != enemy.getChoke()) {
             throw new ReplayException("Monster[" + idx + "] choke mismatch: log=" + logChoke + " state=" + enemy.getChoke(), state, line);
         }
 
-        int logLockOn = 0;
+        int logLockOn = getPowerAmount(monsterNode, "Lock On");
         if (logLockOn != enemy.getLockOn()) {
             throw new ReplayException("Monster[" + idx + "] lockOn mismatch: log=" + logLockOn + " state=" + enemy.getLockOn(), state, line);
         }
 
-        int logTalkToTheHand = 0;
+        int logTalkToTheHand = getPowerAmount(monsterNode, "Talk to the Hand");
         if (logTalkToTheHand != enemy.getTalkToTheHand()) {
             throw new ReplayException("Monster[" + idx + "] talkToTheHand mismatch: log=" + logTalkToTheHand + " state=" + enemy.getTalkToTheHand(), state, line);
         }
 
-        int logMark = 0;
+        int logMark = getPowerAmount(monsterNode, "Mark");
         if (logMark != enemy.getMark()) {
             throw new ReplayException("Monster[" + idx + "] mark mismatch: log=" + logMark + " state=" + enemy.getMark(), state, line);
         }
