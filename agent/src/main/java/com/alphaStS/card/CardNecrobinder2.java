@@ -3,6 +3,7 @@ package com.alphaStS.card;
 import com.alphaStS.*;
 import com.alphaStS.enemy.Enemy;
 import com.alphaStS.enemy.EnemyReadOnly;
+import com.alphaStS.enums.CharacterEnum;
 import com.alphaStS.enums.DebuffType;
 import com.alphaStS.eventHandler.GameEventCardHandler;
 import com.alphaStS.eventHandler.GameEventEnemyDebuffHandler;
@@ -11,8 +12,11 @@ import com.alphaStS.eventHandler.GameEventHandler;
 import com.alphaStS.eventHandler.OnOtsyDamageHandler;
 import com.alphaStS.gameAction.GameActionCtx;
 import com.alphaStS.random.RandomGenCtx;
+import com.alphaStS.utils.CounterStat;
+import com.alphaStS.utils.Tuple;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
@@ -67,6 +71,7 @@ public class CardNecrobinder2 {
             super(cardName, Card.ATTACK, 1, Card.COMMON);
             this.damage = damage;
             entityProperty.selectEnemy = true;
+            entityProperty.otsyAttack = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -322,6 +327,7 @@ public class CardNecrobinder2 {
             super(cardName, Card.ATTACK, 2, Card.COMMON);
             this.damage = damage;
             entityProperty.selectEnemy = true;
+            entityProperty.otsyAttack = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -497,6 +503,7 @@ public class CardNecrobinder2 {
             super(cardName, Card.ATTACK, 0, Card.COMMON);
             this.damage = damage;
             entityProperty.selectEnemy = true;
+            entityProperty.otsyAttack = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -642,13 +649,126 @@ public class CardNecrobinder2 {
         }
     }
 
-    // TODO: Sculpting Strike (Common) - 1 energy, Attack
-    //   Effect: Deal 8 damage. Add Ethereal to a card in your Hand.
-    //   Upgraded Effect: Deal 11 damage. Add Ethereal to a card in your Hand.
+    private static abstract class _SculptingStrikeT extends Card {
+        private final int damage;
+        private int[] permEtherealTransformIdxes;
 
-    // TODO: Snap (Common) - 1 energy, Attack
-    //   Effect: Osty deals 7 damage. Add Retain to a card in your Hand.
-    //   Upgraded Effect: Osty deals 10 damage. Add Retain to a card in your Hand.
+        public _SculptingStrikeT(String cardName, int damage) {
+            super(cardName, Card.ATTACK, 1, Card.COMMON);
+            this.damage = damage;
+            entityProperty.selectEnemy = true;
+            entityProperty.selectFromHand = true;
+            selectFromHandLater = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            if (state.actionCtx == GameActionCtx.PLAY_CARD) {
+                state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
+                for (int i = 0; i < state.handArrLen; i++) {
+                    if (!state.properties.cardDict[state.handArr[i]].ethereal()) {
+                        return GameActionCtx.SELECT_CARD_HAND;
+                    }
+                }
+                return GameActionCtx.PLAY_CARD;
+            } else {
+                if (permEtherealTransformIdxes != null && permEtherealTransformIdxes[idx] >= 0) {
+                    var handArr = state.getHandArrForWrite();
+                    for (int i = 0; i < state.handArrLen; i++) {
+                        if (handArr[i] == idx) {
+                            state.transformCard(handArr, i, permEtherealTransformIdxes[idx]);
+                            break;
+                        }
+                    }
+                }
+                return GameActionCtx.PLAY_CARD;
+            }
+        }
+
+        @Override public boolean canSelectCard(Card card) { return !card.ethereal(); }
+
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            return cards.stream().filter(c -> !c.ethereal()).map(Card::getPermEthereal).toList();
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            permEtherealTransformIdxes = new int[state.properties.cardDict.length];
+            Arrays.fill(permEtherealTransformIdxes, -1);
+            for (int i = 0; i < state.properties.cardDict.length; i++) {
+                if (!state.properties.cardDict[i].ethereal()) {
+                    permEtherealTransformIdxes[i] = state.properties.findCardIndex(state.properties.cardDict[i].getPermEthereal());
+                }
+            }
+        }
+    }
+
+    public static class SculptingStrike extends _SculptingStrikeT {
+        public SculptingStrike() { super("Sculpting Strike", 8); }
+    }
+
+    public static class SculptingStrikeP extends _SculptingStrikeT {
+        public SculptingStrikeP() { super("Sculpting Strike+", 11); }
+    }
+
+    private static abstract class _SnapT extends Card {
+        private final int damage;
+        private int[] permRetainTransformIdxes;
+
+        public _SnapT(String cardName, int damage) {
+            super(cardName, Card.ATTACK, 1, Card.COMMON);
+            this.damage = damage;
+            entityProperty.selectEnemy = true;
+            entityProperty.otsyAttack = true;
+            entityProperty.selectFromHand = true;
+            selectFromHandLater = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            if (state.actionCtx == GameActionCtx.PLAY_CARD) {
+                state.otsyDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage);
+                for (int i = 0; i < state.handArrLen; i++) {
+                    if (!state.properties.cardDict[state.handArr[i]].retain()) {
+                        return GameActionCtx.SELECT_CARD_HAND;
+                    }
+                }
+                return GameActionCtx.PLAY_CARD;
+            } else {
+                if (permRetainTransformIdxes != null && permRetainTransformIdxes[idx] >= 0) {
+                    var handArr = state.getHandArrForWrite();
+                    for (int i = 0; i < state.handArrLen; i++) {
+                        if (handArr[i] == idx) {
+                            state.transformCard(handArr, i, permRetainTransformIdxes[idx]);
+                            break;
+                        }
+                    }
+                }
+                return GameActionCtx.PLAY_CARD;
+            }
+        }
+
+        @Override public boolean canSelectCard(Card card) { return !card.retain(); }
+
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            return cards.stream().filter(c -> !c.retain()).map(Card::getPermRetain).toList();
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            permRetainTransformIdxes = new int[state.properties.cardDict.length];
+            Arrays.fill(permRetainTransformIdxes, -1);
+            for (int i = 0; i < state.properties.cardDict.length; i++) {
+                if (!state.properties.cardDict[i].retain()) {
+                    permRetainTransformIdxes[i] = state.properties.findCardIndex(state.properties.cardDict[i].getPermRetain());
+                }
+            }
+        }
+    }
+
+    public static class Snap extends _SnapT {
+        public Snap() { super("Snap", 7); }
+    }
+
+    public static class SnapP extends _SnapT {
+        public SnapP() { super("Snap+", 10); }
+    }
 
     private static abstract class _SowT extends Card {
         private final int damage;
@@ -714,6 +834,7 @@ public class CardNecrobinder2 {
         public _BoneShardsT(String cardName, int n) {
             super(cardName, Card.ATTACK, 1, Card.UNCOMMON);
             this.n = n;
+            entityProperty.otsyAttack = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -1341,11 +1462,86 @@ public class CardNecrobinder2 {
         }
     }
 
-    // TODO: Fetch (Uncommon) - 0 energy, Attack
-    //   Effect: Osty deals 3 damage. If this is the first time this card has been played this turn, draw 1 card.
-    //   Upgraded Effect: Osty deals 6 damage. If this is the first time this card has been played this turn, draw 1 card.
-    //   Hint: every instance of fetch counts separately -> to properly make it work, have a FetchUsed/FetchUsedP card
-    //   that's transform on play, and then transform back to Fetch end of turn
+    private static abstract class _FetchT extends Card {
+        private final int damage;
+
+        public _FetchT(String cardName, int damage) {
+            super(cardName, Card.ATTACK, 0, Card.UNCOMMON);
+            this.damage = damage;
+            entityProperty.selectEnemy = true;
+            entityProperty.otsyAttack = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.otsyDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage);
+            state.draw(1);
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public int onPlayTransformCardIdx(GameProperties prop, int cardIdx) {
+            return generatedCardIdx;
+        }
+    }
+
+    public static class Fetch extends _FetchT {
+        public Fetch() { super("Fetch", 3); }
+
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            return List.of(new FetchUsed());
+        }
+    }
+
+    public static class FetchP extends _FetchT {
+        public FetchP() { super("Fetch+", 6); }
+
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            return List.of(new FetchUsedP());
+        }
+    }
+
+    private static abstract class _FetchUsedT extends Card {
+        private final int damage;
+
+        public _FetchUsedT(String cardName, int damage) {
+            super(cardName, Card.ATTACK, 0, Card.UNCOMMON);
+            this.damage = damage;
+            entityProperty.selectEnemy = true;
+            entityProperty.otsyAttack = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.otsyDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage);
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            int[] revertTransform = new int[state.properties.cardDict.length];
+            Arrays.fill(revertTransform, -1);
+            for (int i = 0; i < state.properties.cardDict.length; i++) {
+                var base = state.properties.cardDict[i].getBaseCard();
+                if (base instanceof FetchUsed) {
+                    revertTransform[i] = state.properties.findCardIndex(new Fetch());
+                } else if (base instanceof FetchUsedP) {
+                    revertTransform[i] = state.properties.findCardIndex(new FetchP());
+                }
+            }
+            state.properties.addEndOfTurnHandler("FetchUsedRevert", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    state.handArrTransform(revertTransform);
+                    state.deckArrTransform(revertTransform);
+                    state.discardArrTransform(revertTransform);
+                }
+            });
+        }
+    }
+
+    public static class FetchUsed extends _FetchUsedT {
+        public FetchUsed() { super("Fetch (Used)", 3); }
+    }
+
+    public static class FetchUsedP extends _FetchUsedT {
+        public FetchUsedP() { super("Fetch+ (Used)", 6); }
+    }
 
     private static abstract class _FriendshipT extends Card {
         private final int strengthLoss;
@@ -1440,6 +1636,7 @@ public class CardNecrobinder2 {
             this.damage = damage;
             this.vuln = vuln;
             entityProperty.vulnEnemy = true;
+            entityProperty.otsyAttack = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -1619,7 +1816,7 @@ public class CardNecrobinder2 {
             state.properties.addOnCardDrawnHandler("Pagestorm", new GameEventCardHandler() {
                 @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
                     int stacks = state.getCounterForRead()[counterIdx];
-                    if (stacks > 0 && state.properties.cardDict[cardIdx].ethereal) {
+                    if (stacks > 0 && state.properties.cardDict[cardIdx].ethereal()) {
                         state.draw(stacks);
                     }
                 }
@@ -1695,7 +1892,7 @@ public class CardNecrobinder2 {
             });
             state.properties.addOnCardPlayedHandler("EtherealCardsPlayedThisCombat", new GameEventCardHandler() {
                 @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
-                    if (state.properties.cardDict[cardIdx].ethereal) {
+                    if (state.properties.cardDict[cardIdx].ethereal()) {
                         state.getCounterForWrite()[etherealCountRegistrant.getCounterIdx(state.properties)]++;
                     }
                 }
@@ -1754,6 +1951,7 @@ public class CardNecrobinder2 {
             super(cardName, Card.ATTACK, 1, Card.UNCOMMON);
             this.damage = damage;
             entityProperty.selectEnemy = true;
+            entityProperty.otsyAttack = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -1790,6 +1988,7 @@ public class CardNecrobinder2 {
             super(cardName, Card.ATTACK, 0, Card.UNCOMMON);
             this.damage = damage;
             entityProperty.selectEnemy = true;
+            entityProperty.otsyAttack = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -1925,6 +2124,7 @@ public class CardNecrobinder2 {
             entityProperty.selectEnemy = true;
             entityProperty.sicEmEnemy = true;
             entityProperty.canSummon = true;
+            entityProperty.otsyAttack = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -2032,7 +2232,7 @@ public class CardNecrobinder2 {
             });
             state.properties.addOnCardPlayedHandler("NextEtherealCostZero", new GameEventCardHandler() {
                 @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
-                    if (state.properties.cardDict[cardIdx].ethereal && state.getCounterForRead()[counterIdx] > 0) {
+                    if (state.properties.cardDict[cardIdx].ethereal() && state.getCounterForRead()[counterIdx] > 0) {
                         state.getCounterForWrite()[counterIdx]--;
                     }
                 }
@@ -2094,7 +2294,7 @@ public class CardNecrobinder2 {
             });
             state.properties.addOnCardPlayedHandler("EtherealCardsPlayedThisCombat", new GameEventCardHandler() {
                 @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
-                    if (state.properties.cardDict[cardIdx].ethereal) {
+                    if (state.properties.cardDict[cardIdx].ethereal()) {
                         state.getCounterForWrite()[counterIdx]++;
                     }
                 }
@@ -2114,9 +2314,40 @@ public class CardNecrobinder2 {
         }
     }
 
-    // TODO: Call of the Void (Rare) - 1 energy, Power
-    //   Effect: At the start of your turn, add 1 random card into your Hand. It gains Ethereal.
-    //   Upgraded Effect: Innate. At the start of your turn, add 1 random card into your Hand. It gains Ethereal.
+    private static abstract class _CallOfTheVoidT extends Card {
+        public _CallOfTheVoidT(String cardName, boolean innate) {
+            super(cardName, Card.POWER, 1, Card.RARE);
+            this.innate = innate;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            return CardManager.getCharacterCards(CharacterEnum.NECROBINDER, false).stream()
+                    .map(Card::getPermEthereal)
+                    .toList();
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.addStartOfTurnHandler("CallOfTheVoid", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    state.setIsStochastic();
+                    int randomIdx = state.getSearchRandomGen().nextInt(generatedCardIdxes.length, RandomGenCtx.RandomCardGen, new Tuple<>(state, generatedCardIdxes));
+                    state.addCardToHand(generatedCardIdxes[randomIdx]);
+                }
+            });
+        }
+    }
+
+    public static class CallOfTheVoid extends _CallOfTheVoidT {
+        public CallOfTheVoid() { super("Call of the Void", false); }
+    }
+
+    public static class CallOfTheVoidP extends _CallOfTheVoidT {
+        public CallOfTheVoidP() { super("Call of the Void+", true); }
+    }
 
     private static abstract class _DemesneT extends Card {
         public _DemesneT(String cardName, int cost) {
@@ -2770,7 +3001,7 @@ public class CardNecrobinder2 {
             state.properties.addOnCardPlayedHandler("SpiritOfAsh", new GameEventCardHandler() {
                 @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
                     int block = state.getCounterForRead()[counterIdx];
-                    if (block > 0 && state.properties.cardDict[cardIdx].ethereal) {
+                    if (block > 0 && state.properties.cardDict[cardIdx].ethereal()) {
                         state.playerGainBlockNotFromCardPlay(block);
                     }
                 }
@@ -2790,35 +3021,277 @@ public class CardNecrobinder2 {
         }
     }
 
-    // TODO: Squeeze (Rare) - 3 energy, Attack
-    //   Effect: Osty deals 25 damage. Deals 5 additional damage for ALL your other Osty Attacks.
-    //   Upgraded Effect: Osty deals 30 damage. Deals 6 additional damage for ALL your other Osty Attacks.
+    private static abstract class _SqueezeT extends Card {
+        private final int damage;
+        private final int bonusPerOtsy;
+        private boolean[] isOtsyAttack;
 
-    // TODO: The Scythe (Rare) - 2 energy, Attack
-    //   Effect: Deal 13 damage. Permanently increase this card's damage by 3. Exhaust.
-    //   Upgraded Effect: Deal 13 damage. Permanently increase this card's damage by 4. Exhaust.
+        public _SqueezeT(String cardName, int damage, int bonusPerOtsy) {
+            super(cardName, Card.ATTACK, 3, Card.RARE);
+            this.damage = damage;
+            this.bonusPerOtsy = bonusPerOtsy;
+            entityProperty.selectEnemy = true;
+            entityProperty.otsyAttack = true;
+        }
 
-    // TODO: Time's Up (Rare) - 2 energy, Attack
-    //   Effect: Deal damage equal to the enemy's Doom. Exhaust.
-    //   Upgraded Effect: Retain. Deal damage equal to the enemy's Doom. Exhaust.
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            int count = 0;
+            for (int i = 0; i < state.handArrLen; i++) {
+                if (isOtsyAttack[state.handArr[i]]) count++;
+            }
+            for (int i = 0; i < state.deckArrLen; i++) {
+                if (isOtsyAttack[state.deckArr[i]]) count++;
+            }
+            for (int i = 0; i < state.discardArrLen; i++) {
+                if (isOtsyAttack[state.discardArr[i]]) count++;
+            }
+            count--;
+            state.otsyDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage + count * bonusPerOtsy);
+            return GameActionCtx.PLAY_CARD;
+        }
 
-    // TODO: Transfigure (Rare) - 1 energy, Skill
-    //   Effect: Add Replay to a card in your Hand. It costs an extra energy. Exhaust.
-    //   Upgraded Effect: Add Replay to a card in your Hand. It costs an extra energy.
+        @Override public void gamePropertiesSetup(GameState state) {
+            isOtsyAttack = new boolean[state.properties.cardDict.length];
+            for (int i = 0; i < state.properties.cardDict.length; i++) {
+                isOtsyAttack[i] = state.properties.cardDict[i].entityProperty.otsyAttack;
+            }
+        }
+    }
 
-    // TODO: Undeath (Rare) - 0 energy, Skill
-    //   Effect: Gain 7 Block. Add a copy of this card into your Discard Pile.
-    //   Upgraded Effect: Gain 9 Block. Add a copy of this card into your Discard Pile.
+    public static class Squeeze extends _SqueezeT {
+        public Squeeze() { super("Squeeze", 25, 5); }
+    }
+
+    public static class SqueezeP extends _SqueezeT {
+        public SqueezeP() { super("Squeeze+", 30, 6); }
+    }
+
+    private static abstract class _TheScytheT extends Card {
+        protected final int n;
+        private final int dmgInc;
+        protected final int healthRewardRatio;
+
+        public _TheScytheT(String cardName, int n, int dmgInc, int healthRewardRatio) {
+            super(cardName, Card.ATTACK, 2, Card.RARE);
+            this.n = n;
+            this.dmgInc = dmgInc;
+            this.healthRewardRatio = healthRewardRatio;
+            entityProperty.selectEnemy = true;
+            exhaustWhenPlayed = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            int bonus = state.getCounterForRead()[counterIdx];
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n + bonus, this);
+            state.getCounterForWrite()[counterIdx] += dmgInc;
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("TheScythe", this, healthRewardRatio == 0 ? null : new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 50.0f;
+                    return idx + 1;
+                }
+                @Override public int getInputLenDelta() { return 1; }
+            });
+            if (healthRewardRatio > 0) {
+                state.properties.addExtraTrainingTarget("TheScythe", this, new TrainingTarget() {
+                    @Override public void fillVArray(GameState state, VArray v, int isTerminal) {
+                        if (isTerminal > 0) {
+                            v.setVExtra(vExtraIdx, state.getCounterForRead()[counterIdx] / 10.0);
+                        } else if (isTerminal == 0) {
+                            double vScythe = Math.max(state.getCounterForRead()[counterIdx] / 10.0, v.getVExtra(vExtraIdx));
+                            v.setVExtra(vExtraIdx, vScythe);
+                        }
+                    }
+                    @Override public void updateQValues(GameState state, VArray v) {
+                        double vScythe = Math.max(state.getCounterForRead()[counterIdx] / 10.0, v.getVExtra(vExtraIdx));
+                        v.add(GameState.V_HEALTH_IDX, 10 * vScythe * healthRewardRatio / state.getPlayerForRead().getMaxHealth());
+                    }
+                });
+            }
+        }
+
+        @Override public CounterStat getCounterStat() {
+            return new CounterStat(counterIdx, "The Scythe").setShowFrequency(true);
+        }
+    }
+
+    public static class TheScythe extends _TheScytheT {
+        public TheScythe() { this(13, 2); }
+        public TheScythe(int n, int healthRewardRatio) { super("The Scythe (" + n + ")", n, 3, healthRewardRatio); }
+    }
+
+    public static class TheScytheP extends _TheScytheT {
+        public TheScytheP() { this(13, 2); }
+        public TheScytheP(int n, int healthRewardRatio) { super("The Scythe+ (" + n + ")", n, 4, healthRewardRatio); }
+    }
+
+    private static abstract class _TimesUpT extends Card {
+        public _TimesUpT(String cardName, boolean retain) {
+            super(cardName, Card.ATTACK, 2, Card.RARE);
+            this.retain = retain;
+            entityProperty.selectEnemy = true;
+            exhaustWhenPlayed = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            int doom = state.getEnemiesForRead().get(idx).getDoom();
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), doom, this);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class TimesUp extends _TimesUpT {
+        public TimesUp() { super("Time's Up", false); }
+    }
+
+    public static class TimesUpP extends _TimesUpT {
+        public TimesUpP() { super("Time's Up+", true); }
+    }
+
+    private static abstract class _TransfigureT extends Card {
+        private int[] spiralPlusOneCostTransformIdxes;
+
+        public _TransfigureT(String cardName, boolean exhaust) {
+            super(cardName, Card.SKILL, 1, Card.RARE);
+            this.exhaustWhenPlayed = exhaust;
+            entityProperty.selectFromHand = true;
+            selectFromHandLater = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            if (state.actionCtx == GameActionCtx.PLAY_CARD) {
+                return GameActionCtx.SELECT_CARD_HAND;
+            } else {
+                if (spiralPlusOneCostTransformIdxes != null && spiralPlusOneCostTransformIdxes[idx] >= 0) {
+                    var handArr = state.getHandArrForWrite();
+                    for (int i = 0; i < state.handArrLen; i++) {
+                        if (handArr[i] == idx) {
+                            state.transformCard(handArr, i, spiralPlusOneCostTransformIdxes[idx]);
+                            break;
+                        }
+                    }
+                }
+                return GameActionCtx.PLAY_CARD;
+            }
+        }
+
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            return cards.stream()
+                    .map(c -> c.enchantSpiral(1))
+                    .filter(Objects::nonNull)
+                    .map(c -> c.getPermCostIfPossible(c.energyCost + 1))
+                    .filter(Objects::nonNull)
+                    .toList();
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            spiralPlusOneCostTransformIdxes = new int[state.properties.cardDict.length];
+            Arrays.fill(spiralPlusOneCostTransformIdxes, -1);
+            for (int i = 0; i < state.properties.cardDict.length; i++) {
+                var spiraled = state.properties.cardDict[i].enchantSpiral(1);
+                if (spiraled != null) {
+                    var withCost = spiraled.getPermCostIfPossible(spiraled.energyCost + 1);
+                    if (withCost != null) {
+                        spiralPlusOneCostTransformIdxes[i] = state.properties.findCardIndex(withCost);
+                    }
+                }
+            }
+        }
+    }
+
+    public static class Transfigure extends _TransfigureT {
+        public Transfigure() { super("Transfigure", true); }
+    }
+
+    public static class TransfigureP extends _TransfigureT {
+        public TransfigureP() { super("Transfigure+", false); }
+    }
+
+    private static abstract class _UndeathT extends Card {
+        private final int block;
+
+        public _UndeathT(String cardName, int block) {
+            super(cardName, Card.SKILL, 0, Card.RARE);
+            this.block = block;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.playerGainBlock(block);
+            state.addCardToDiscard(state.currentlyPlayedCardIdx);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Undeath extends _UndeathT {
+        public Undeath() { super("Undeath", 7); }
+    }
+
+    public static class UndeathP extends _UndeathT {
+        public UndeathP() { super("Undeath+", 9); }
+    }
 
     // **************************************************************************************************
     // ********************************************* Ancient *********************************************
     // **************************************************************************************************
 
-    // TODO: Forbidden Grimoire (Ancient) - 2 energy, Power
-    //   Effect: At the end of combat, you may remove a card from your Deck. Eternal.
-    //   Upgraded Effect (1 energy): At the end of combat, you may remove a card from your Deck. Eternal.
+    private static abstract class _ForbiddenGrimoireT extends Card {
+        public _ForbiddenGrimoireT(String cardName, int cost) {
+            super(cardName, Card.POWER, cost, Card.RARE);
+            returnToDeckWhenPlay = true;
+        }
 
-    // TODO: Protector (Ancient) - 1 energy, Attack
-    //   Effect: Osty deals 10 damage. Deals additional damage equal to Osty's Max HP.
-    //   Upgraded Effect (0 energy): Osty deals 15 damage. Deals additional damage equal to Osty's Max HP.
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("ForbiddenGrimoire", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 5.0f;
+                    return idx + 1;
+                }
+                @Override public int getInputLenDelta() { return 1; }
+            });
+        }
+
+        @Override public CounterStat getCounterStat() {
+            return new CounterStat(counterIdx, "Forbidden Grimoire").setShowFrequency(true);
+        }
+    }
+
+    public static class ForbiddenGrimoire extends _ForbiddenGrimoireT {
+        public ForbiddenGrimoire() { super("Forbidden Grimoire", 2); }
+    }
+
+    public static class ForbiddenGrimoireP extends _ForbiddenGrimoireT {
+        public ForbiddenGrimoireP() { super("Forbidden Grimoire+", 1); }
+    }
+
+    private static abstract class _ProtectorT extends Card {
+        private final int damage;
+
+        public _ProtectorT(String cardName, int cost, int damage) {
+            super(cardName, Card.ATTACK, cost, Card.RARE);
+            this.damage = damage;
+            entityProperty.selectEnemy = true;
+            entityProperty.otsyAttack = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            int bonus = state.properties.otsyMaxHPCounterIdx >= 0 ? state.getCounterForRead()[state.properties.otsyMaxHPCounterIdx] : 0;
+            state.otsyDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage + bonus);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Protector extends _ProtectorT {
+        public Protector() { super("Protector", 1, 10); }
+    }
+
+    public static class ProtectorP extends _ProtectorT {
+        public ProtectorP() { super("Protector+", 0, 15); }
+    }
 }
