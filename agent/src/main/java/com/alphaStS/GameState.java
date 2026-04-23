@@ -4301,6 +4301,13 @@ public final class GameState implements State {
             getCounterForWrite()[properties.paelsLegionCounterIdx] = 2;
             n *= 2;
         }
+        if (properties.unmovableCounterIdx >= 0) {
+            int uv = getCounterForRead()[properties.unmovableCounterIdx];
+            if (((uv >> 16) & 0xFF) > ((uv >> 8) & 0xFF) && (uv & 1) == 0) {
+                getCounterForWrite()[properties.unmovableCounterIdx] |= 1;
+                n *= 2;
+            }
+        }
         if (properties.vitruvianMinion != null && properties.vitruvianMinion.isRelicEnabledInScenario(this)
                 && currentAction != null && currentAction.type() == GameActionType.PLAY_CARD
                 && properties.cardDict[currentAction.idx()].cardName.contains("Minion")) {

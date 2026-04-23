@@ -2082,17 +2082,117 @@ public class CardIronclad2 {
 
     // No need to implement Tank: Multiplayer
 
-    // TODO: Tear Asunder (Rare) - 2 energy, Attack
-    //   Effect: Deal 5 damage. Hits an additional time for each time you lost HP this combat.
-    //   Upgraded Effect: Deal 7 damage. Hits an additional time for each time you lost HP this combat.
+    private static abstract class _TearAsunderT extends Card {
+        private final int damage;
+
+        public _TearAsunderT(String cardName, int damage) {
+            super(cardName, Card.ATTACK, 2, Card.RARE);
+            this.damage = damage;
+            entityProperty.selectEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            int hits = 1 + state.getCounterForRead()[counterIdx];
+            for (int i = 0; i < hits; i++) {
+                state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.addOnDamageHandler("TearAsunder", new OnDamageHandler() {
+                @Override public void handle(GameState state, Object source, boolean isAttack, int damageDealt) {
+                    if (damageDealt <= 0) return;
+                    state.getCounterForWrite()[counterIdx]++;
+                }
+            });
+            state.properties.registerCounter("TearAsunder", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 10.0f;
+                    return idx + 1;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+        }
+    }
+
+    public static class TearAsunder extends _TearAsunderT {
+        public TearAsunder() {
+            super("Tear Asunder", 5);
+        }
+    }
+
+    public static class TearAsunderP extends _TearAsunderT {
+        public TearAsunderP() {
+            super("Tear Asunder+", 7);
+        }
+    }
 
     // TODO: Thrash (Rare) - 1 energy, Attack
     //   Effect: Deal 4 damage twice. Exhaust a random Attack in your Hand and add its damage to this card.
     //   Upgraded Effect: Deal 6 damage twice. Exhaust a random Attack in your Hand and add its damage to this card.
 
-    // TODO: Unmovable (Rare) - 2 energy, Power
-    //   Effect: The first time you gain Block from a card each turn, double the amount gained.
-    //   Upgraded Effect (1 energy): The first time you gain Block from a card each turn, double the amount gained.
+    private static abstract class _UnmovableT extends Card {
+        public _UnmovableT(String cardName, int energyCost) {
+            super(cardName, Card.POWER, energyCost, Card.RARE);
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            // Counter layout: bits[23:16] = permanent stacks, bits[15:8] = card-plays used this turn, bit[0] = current-card-triggered flag.
+            state.getCounterForWrite()[counterIdx] += (1 << 16);
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("Unmovable", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    int v = state.getCounterForRead()[counterIdx];
+                    input[idx] = ((v >> 16) & 0xFF) / 5.0f;
+                    input[idx + 1] = ((v >> 8) & 0xFF) / 5.0f;
+                    return idx + 2;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 2;
+                }
+
+                @Override public void onRegister(int counterIdx) {
+                    state.properties.unmovableCounterIdx = counterIdx;
+                }
+            });
+            state.properties.addOnCardPlayedHandler("Unmovable", new GameEventCardHandler() {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                    int v = state.getCounterForRead()[counterIdx];
+                    if ((v & 1) != 0) {
+                        // Card triggered a doubling this turn; count it and clear the per-card flag.
+                        state.getCounterForWrite()[counterIdx] = (v & ~1) + (1 << 8);
+                    }
+                }
+            });
+            state.properties.addStartOfTurnHandler("Unmovable", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    // Keep only permanent stacks, clearing the turn-used count and per-card flag.
+                    int v = state.getCounterForRead()[counterIdx];
+                    state.getCounterForWrite()[counterIdx] = v & ~0xFFFF;
+                }
+            });
+        }
+    }
+
+    public static class Unmovable extends _UnmovableT {
+        public Unmovable() {
+            super("Unmovable", 2);
+        }
+    }
+
+    public static class UnmovableP extends _UnmovableT {
+        public UnmovableP() {
+            super("Unmovable+", 1);
+        }
+    }
 
     // **************************************************************************************************
     // ********************************************* Event  *********************************************

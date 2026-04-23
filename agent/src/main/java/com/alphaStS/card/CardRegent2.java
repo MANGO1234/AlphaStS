@@ -2602,13 +2602,102 @@ public class CardRegent2 {
     //   Effect: Next turn, put 2 cards from your Draw Pile into your Hand.
     //   Upgraded Effect: Next turn, put 3 cards from your Draw Pile into your Hand.
 
-    // TODO: GUARDS!!! (Rare) - 2 energy, Skill
-    //   Effect: Transform any number of cards in your Hand into Minion Sacrifice. Exhaust.
-    //   Upgraded Effect: Transform any number of cards in your Hand into Minion Sacrifice+. Exhaust.
+    private static abstract class _GuardsT extends Card {
+        public _GuardsT(String cardName, int energyCost) {
+            super(cardName, Card.SKILL, energyCost, Card.RARE);
+            exhaustWhenPlayed = true;
+            entityProperty.selectFromHand = true;
+            selectFromHandLater = true;
+        }
 
-    // TODO: Genesis (Rare) - 2 energy, Power
-    //   Effect: At the start of your turn, gain 2 star.
-    //   Upgraded Effect: At the start of your turn, gain 3 star.
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            if (state.actionCtx == GameActionCtx.PLAY_CARD) {
+                return GameActionCtx.SELECT_CARD_HAND;
+            }
+            state.removeCardFromHand(idx);
+            state.getCounterForWrite()[counterIdx]++;
+            return GameActionCtx.SELECT_CARD_HAND;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("Guards", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 5.0f;
+                    return idx + 1;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            state.properties.addStartOfTurnHandler("Guards", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    state.getCounterForWrite()[counterIdx] = 0;
+                }
+            });
+            // TODO: handle END_SELECT_CARD_HAND for Guards — add counterIdx copies of the appropriate
+            //   MinionSacrifice variant to hand, then reset the counter.
+        }
+
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            return isUpgraded() ? List.of(new CardColorless2.MinionSacrificeP()) : List.of(new CardColorless2.MinionSacrifice());
+        }
+
+        protected abstract boolean isUpgraded();
+    }
+
+    public static class Guards extends _GuardsT {
+        public Guards() {
+            super("GUARDS!!!", 2);
+        }
+
+        @Override protected boolean isUpgraded() {
+            return false;
+        }
+    }
+
+    public static class GuardsP extends _GuardsT {
+        public GuardsP() {
+            super("GUARDS!!!+", 2);
+        }
+
+        @Override protected boolean isUpgraded() {
+            return true;
+        }
+    }
+
+    private static abstract class _GenesisT extends Card {
+        private final int starAmount;
+
+        public _GenesisT(String cardName, int energyCost, int starAmount) {
+            super(cardName, Card.POWER, energyCost, Card.RARE);
+            this.starAmount = starAmount;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.addStartOfTurnHandler("Genesis", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    state.gainStar(starAmount);
+                }
+            });
+        }
+    }
+
+    public static class Genesis extends _GenesisT {
+        public Genesis() {
+            super("Genesis", 2, 2);
+        }
+    }
+
+    public static class GenesisP extends _GenesisT {
+        public GenesisP() {
+            super("Genesis+", 2, 3);
+        }
+    }
 
     // No need to implement Hammer Time: Multiplayer
 

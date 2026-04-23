@@ -345,6 +345,7 @@ public class GameProperties implements Cloneable {
     public int currentGoldCounterIdx = -1;
     public Relic vambrace = null;
     public int vambraceCounterIdx = -1;
+    public int unmovableCounterIdx = -1;
     public Relic vitruvianMinion = null;
     public Relic undyingSigil = null;
 
