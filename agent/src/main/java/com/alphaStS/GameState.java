@@ -99,6 +99,9 @@ public final class GameState implements State {
     public boolean isStartOfTurnPhase = false;
     public EnemyEncounter currentEncounter = null;
 
+    // transient execution field
+    public Card currentlyPlayedCard;
+
     // various other buffs/debuffs
     public long buffs;
 
@@ -1280,6 +1283,7 @@ public final class GameState implements State {
             return false;
         }
         if (actionCtx == GameActionCtx.PLAY_CARD) {
+            currentlyPlayedCard = properties.cardDict[cardIdx];
             checkWristBladeBuffForZeroCostAttack(cardIdx);
             if (cloneSource == null && (properties.havocCounterIdx < 0 || getCounterForRead()[properties.havocCounterIdx] == 0)) {
                 removeCardFromHand(cardIdx);
@@ -1557,6 +1561,7 @@ public final class GameState implements State {
                     runActionsInQueueIfNonEmpty();
                 }
             }
+            currentlyPlayedCard = null;
         } else if (actionCtx == GameActionCtx.START_OF_BATTLE) {
             startOfBattleActionIdx++;
             if (startOfBattleActionIdx >= properties.startOfBattleActions.size()) {
@@ -1711,7 +1716,7 @@ public final class GameState implements State {
         if (turnNum == 0) { // start of turn 1
             List<Integer> order = new ArrayList<>();
             for (int i = 0; i < deckArrLen; i++) { // todo: edge case more innate cards than first turn draw
-                if (properties.cardDict[deckArr[i]].innate) {
+                if (properties.cardDict[deckArr[i]].innate()) {
                     order.add((int) deckArr[i]);
                 }
             }
@@ -3365,6 +3370,17 @@ public final class GameState implements State {
             deckArrFixedDrawLen = deckArrLen;
         }
         discardArrLen = 0;
+        // Perfect Fit cards go to the top of the draw pile after every shuffle
+        for (int i = deckArrLen - 1 - deckArrFixedDrawLen; i >= 0; i--) {
+            int idx = deckArr[i];
+            if (properties.cardDict[idx] instanceof Card.CardWrapper cw && cw.mod.perfectFit) {
+                for (int j = i; j < deckArrLen - 1 - deckArrFixedDrawLen; j++) {
+                    deckArr[j] = deckArr[j + 1];
+                }
+                deckArr[deckArrLen - 1 - deckArrFixedDrawLen] = (short) idx;
+                deckArrFixedDrawLen++;
+            }
+        }
     }
 
     public String getActionString(GameAction action) {
@@ -3833,6 +3849,13 @@ public final class GameState implements State {
     public int playerDoDamageToEnemy(Enemy enemy, int dmgInt, Card damageSource) {
         var player = getPlayerForRead();
         double dmg = dmgInt;
+        if (currentlyPlayedCard instanceof Card.CardWrapper cw) {
+            if (cw.mod.instinct) dmg *= 2;
+            if (cw.mod.corrupted) dmg *= 1.5;
+            if (cw.mod.sharp > 0) dmg += cw.mod.sharp;
+            if (cw.mod.inky) dmg += 2;
+            if (cw.mod.vigorous > 0) dmg += cw.mod.vigorous;
+        }
         if ((buffs & PlayerBuff.AKABEKO.mask()) != 0) {
             dmg += 8;
         }
@@ -3913,6 +3936,9 @@ public final class GameState implements State {
 
             if (dmgDone > 0 && (buffs & PlayerBuff.REAPER_FORM.mask()) != 0) {
                 enemy.applyDebuff(this, DebuffType.DOOM, dmgDone);
+            }
+            if (dmgDone > 0 && currentlyPlayedCard instanceof Card.CardWrapper cw && cw.mod.inky) {
+                enemy.applyDebuff(this, DebuffType.WEAK, 1);
             }
             if (enemy.getHealth() == 0) {
                 for (var handler : properties.onEnemyDeathHandlers) {
@@ -4261,6 +4287,9 @@ public final class GameState implements State {
     }
 
     public int playerGainBlock(int n) {
+        if (currentlyPlayedCard instanceof Card.CardWrapper cw && cw.mod.nimble > 0) {
+            n += cw.mod.nimble;
+        }
         if (properties.vambraceCounterIdx >= 0 && properties.vambrace.isRelicEnabledInScenario(this) && getCounterForRead()[properties.vambraceCounterIdx] == 0) {
             getCounterForWrite()[properties.vambraceCounterIdx] = 1;
             n *= 2;

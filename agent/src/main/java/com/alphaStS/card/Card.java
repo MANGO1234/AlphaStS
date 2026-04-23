@@ -1,11 +1,13 @@
 package com.alphaStS.card;
 
 import com.alphaStS.EntityProperty;
+import com.alphaStS.eventHandler.GameEventCardHandler;
 import com.alphaStS.gameAction.GameActionCtx;
 import com.alphaStS.GameProperties;
 import com.alphaStS.GameState;
 import com.alphaStS.GameStateUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -81,6 +83,10 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         return this;
     }
 
+    public boolean innate() {
+        return innate;
+    }
+
     public boolean retain() {
         return retain;
     }
@@ -146,6 +152,96 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         return new Card.CardWrapper(this, mod);
     }
 
+    public Card enchantAdroit(int adroit) {
+        var mod = new CardModification();
+        mod.adroit = adroit;
+        return new CardWrapper(this, mod);
+    }
+
+    public Card enchantCorrupted() {
+        var mod = new CardModification();
+        mod.corrupted = true;
+        return new CardWrapper(this, mod);
+    }
+
+    public Card enchantGlam() {
+        var mod = new CardModification();
+        mod.glam = true;
+        return new CardWrapper(this, mod);
+    }
+
+    public Card enchantInky() {
+        var mod = new CardModification();
+        mod.inky = true;
+        return new CardWrapper(this, mod);
+    }
+
+    public Card enchantInstinct() {
+        var mod = new CardModification();
+        mod.instinct = true;
+        return new CardWrapper(this, mod);
+    }
+
+    public Card enchantNimble(int nimble) {
+        var mod = new CardModification();
+        mod.nimble = nimble;
+        return new CardWrapper(this, mod);
+    }
+
+    public Card enchantPerfectFit() {
+        var mod = new CardModification();
+        mod.perfectFit = true;
+        return new CardWrapper(this, mod);
+    }
+
+    public Card enchantRoyallyApproved() {
+        var mod = new CardModification();
+        mod.royallyApproved = true;
+        return new CardWrapper(this, mod);
+    }
+
+    public Card enchantSharp(int sharp) {
+        var mod = new CardModification();
+        mod.sharp = sharp;
+        return new CardWrapper(this, mod);
+    }
+
+    public Card enchantSoulsPower() {
+        var mod = new CardModification();
+        mod.soulsPower = true;
+        return new CardWrapper(this, mod);
+    }
+
+    public Card enchantSpiral(int spiral) {
+        var mod = new CardModification();
+        mod.spiral = spiral;
+        return new CardWrapper(this, mod);
+    }
+
+    public Card enchantSteady() {
+        var mod = new CardModification();
+        mod.steady = true;
+        return new CardWrapper(this, mod);
+    }
+
+    public Card enchantSwift(int swift) {
+        var mod = new CardModification();
+        mod.swift = swift;
+        return new CardWrapper(this, mod);
+    }
+
+    public Card enchantSown() {
+        var mod = new CardModification();
+        mod.sown = true;
+        return new CardWrapper(this, mod);
+    }
+
+    public Card enchantVigorous(int vigorous) {
+        var mod = new CardModification();
+        mod.vigorous = vigorous;
+        return new CardWrapper(this, mod);
+    }
+
     @Override public String toString() {
         return "Card{" +
                 "cardName='" + cardName + '\'' +
@@ -186,6 +282,21 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         public int tmpUntilPlayedCost = -1;
         public int permChangeCost = -1;
         public boolean tmpRetain = false;
+        public int adroit = 0;
+        public boolean corrupted = false;
+        public boolean glam = false;
+        public boolean inky = false;
+        public boolean instinct = false;
+        public int nimble = 0;
+        public boolean perfectFit = false;
+        public boolean royallyApproved = false;
+        public int sharp = 0;
+        public boolean soulsPower = false;
+        public int spiral = 0;
+        public boolean steady = false;
+        public int swift = 0;
+        public boolean sown = false;
+        public int vigorous = 0;
 
         public CardModification clone() {
             var copy = new CardModification();
@@ -193,13 +304,29 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
             copy.tmpUntilPlayedCost = tmpUntilPlayedCost;
             copy.permChangeCost = permChangeCost;
             copy.tmpRetain = tmpRetain;
+            copy.adroit = adroit;
+            copy.corrupted = corrupted;
+            copy.glam = glam;
+            copy.inky = inky;
+            copy.instinct = instinct;
+            copy.nimble = nimble;
+            copy.perfectFit = perfectFit;
+            copy.royallyApproved = royallyApproved;
+            copy.sharp = sharp;
+            copy.soulsPower = soulsPower;
+            copy.spiral = spiral;
+            copy.steady = steady;
+            copy.swift = swift;
+            copy.sown = sown;
+            copy.vigorous = vigorous;
             return copy;
         }
     }
 
     public static class CardWrapper extends Card {
         private final Card card;
-        private final CardModification mod;
+        public final CardModification mod;
+        private int afterFirstPlayTransformIdx = Integer.MIN_VALUE;
 
         public CardWrapper(Card card, CardModification mod) {
             super(generateCardName(card, mod), card.cardType, getEffectiveEnergyCost(card, mod), card.rarity);
@@ -229,13 +356,58 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
             if (mod.tmpRetain) {
                 sb.append(" (Tmp Retain)");
             }
+            if (mod.adroit > 0) {
+                sb.append(" (Adroit ").append(mod.adroit).append(")");
+            }
+            if (mod.corrupted) {
+                sb.append(" (Corrupted)");
+            }
+            if (mod.inky) {
+                sb.append(" (Inky)");
+            }
+            if (mod.instinct) {
+                sb.append(" (Instinct)");
+            }
+            if (mod.royallyApproved) {
+                sb.append(" (Royally Approved)");
+            }
+            if (mod.sharp > 0) {
+                sb.append(" (Sharp ").append(mod.sharp).append(")");
+            }
+            if (mod.swift > 0) {
+                sb.append(" (Swift ").append(mod.swift).append(")");
+            }
+            if (mod.glam) {
+                sb.append(" (Glam)");
+            }
+            if (mod.nimble > 0) {
+                sb.append(" (Nimble ").append(mod.nimble).append(")");
+            }
+            if (mod.perfectFit) {
+                sb.append(" (Perfect Fit)");
+            }
+            if (mod.soulsPower) {
+                sb.append(" (Soul's Power)");
+            }
+            if (mod.spiral > 0) {
+                sb.append(" (Spiral ").append(mod.spiral).append(")");
+            }
+            if (mod.sown) {
+                sb.append(" (Sown)");
+            }
+            if (mod.steady) {
+                sb.append(" (Steady)");
+            }
+            if (mod.vigorous > 0) {
+                sb.append(" (Vigorous ").append(mod.vigorous).append(")");
+            }
             return sb.toString();
         }
 
         private void copyCardProperties(Card card) {
             ethereal = card.ethereal;
             innate = card.innate;
-            exhaustWhenPlayed = card.exhaustWhenPlayed;
+            exhaustWhenPlayed = mod.soulsPower ? false : card.exhaustWhenPlayed;
             exhaustNonAttacks = card.exhaustNonAttacks;
             alwaysDiscard = card.alwaysDiscard;
             returnToDeckWhenPlay = card.returnToDeckWhenPlay;
@@ -274,7 +446,20 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
         @Override
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            return card.play(state, idx, energyUsed);
+            var result = card.play(state, idx, energyUsed);
+            if (mod.adroit > 0) {
+                state.playerGainBlock(mod.adroit);
+            }
+            if (mod.swift > 0) {
+                state.draw(mod.swift);
+            }
+            if (mod.sown) {
+                state.gainEnergy(1);
+            }
+            if (mod.corrupted) {
+                state.doNonAttackDamageToPlayer(2, false, this);
+            }
+            return result;
         }
 
         @Override
@@ -284,6 +469,13 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
         @Override
         public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            boolean hasTempMods = mod.tmpChangeCost != -1 || mod.tmpUntilPlayedCost != -1
+                    || mod.tmpRetain || mod.swift > 0 || mod.sown || mod.glam || mod.vigorous > 0;
+            if (hasTempMods) {
+                var result = new ArrayList<>(card.getPossibleGeneratedCards(properties, cards));
+                result.add(card);
+                return result;
+            }
             return card.getPossibleGeneratedCards(properties, cards);
         }
 
@@ -299,11 +491,26 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
         @Override
         public int onPlayTransformCardIdx(GameProperties prop, int cardIdx) {
-            if (mod.tmpUntilPlayedCost != -1 || mod.tmpRetain) {
-                int idx = card.onPlayTransformCardIdx(prop, cardIdx);
-                return idx == -1 ? cardIdx : idx;
+            if (afterFirstPlayTransformIdx == Integer.MIN_VALUE) {
+                afterFirstPlayTransformIdx = card.onPlayTransformCardIdx(prop, cardIdx);
+                boolean needsStrip = mod.tmpChangeCost != -1 || mod.tmpUntilPlayedCost != -1
+                        || mod.tmpRetain || mod.swift > 0 || mod.sown || mod.glam || mod.vigorous > 0;
+                if (needsStrip) {
+                    // use the inner-card transform target if available, otherwise the inner card itself
+                    Card baseCard = afterFirstPlayTransformIdx >= 0
+                            ? prop.cardDict[afterFirstPlayTransformIdx] : card;
+                    var newMod = mod.clone();
+                    newMod.tmpChangeCost = -1;
+                    newMod.tmpUntilPlayedCost = -1;
+                    newMod.tmpRetain = false;
+                    newMod.swift = 0;
+                    newMod.sown = false;
+                    newMod.glam = false;
+                    newMod.vigorous = 0;
+                    afterFirstPlayTransformIdx = prop.findCardIndex(wrap(baseCard, newMod));
+                }
             }
-            return card.onPlayTransformCardIdx(prop, cardIdx);
+            return afterFirstPlayTransformIdx;
         }
 
         @Override
@@ -319,6 +526,21 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         @Override
         public void gamePropertiesSetup(GameState state) {
             card.gamePropertiesSetup(state);
+            if (mod.glam || mod.spiral > 0) {
+                state.properties.addOnCardPlayedHandler("Replay", new GameEventCardHandler(GameEventCardHandler.CLONE_CARD_PRIORITY) {
+                    @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                        if (cloneSource != null) return;
+                        if (!(state.properties.cardDict[cardIdx] instanceof CardWrapper cw)) return;
+                        if (!cw.mod.glam && cw.mod.spiral <= 0) return;
+                        state.addGameActionToStartOfDeque(curState -> {
+                            var action = curState.properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][cardIdx];
+                            if (curState.playCard(action, lastIdx, false, CardWrapper.class, false, false, energyUsed, cloneParentLocation)) {
+                                curState.runActionsInQueueIfNonEmpty();
+                            }
+                        });
+                    }
+                });
+            }
         }
 
         @Override
@@ -335,8 +557,13 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         }
 
         @Override
+        public boolean innate() {
+            return mod.royallyApproved || card.innate;
+        }
+
+        @Override
         public boolean retain() {
-            return mod.tmpRetain || card.retain;
+            return mod.tmpRetain || mod.steady || mod.royallyApproved || card.retain;
         }
 
         @Override
@@ -375,6 +602,21 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
                 resultMod.tmpRetain = true;
                 modified = true;
             }
+            if (newMod.adroit > 0) { resultMod.adroit = newMod.adroit; modified = true; }
+            if (newMod.corrupted) { resultMod.corrupted = true; modified = true; }
+            if (newMod.glam) { resultMod.glam = true; modified = true; }
+            if (newMod.inky) { resultMod.inky = true; modified = true; }
+            if (newMod.instinct) { resultMod.instinct = true; modified = true; }
+            if (newMod.nimble > 0) { resultMod.nimble = newMod.nimble; modified = true; }
+            if (newMod.perfectFit) { resultMod.perfectFit = true; modified = true; }
+            if (!newCard.retain && newMod.royallyApproved) { resultMod.royallyApproved = true; modified = true; }
+            if (newMod.sharp > 0) { resultMod.sharp = newMod.sharp; modified = true; }
+            if (newMod.soulsPower) { resultMod.soulsPower = true; modified = true; }
+            if (newMod.spiral > 0) { resultMod.spiral = newMod.spiral; modified = true; }
+            if (!newCard.retain && newMod.steady) { resultMod.steady = true; modified = true; }
+            if (newMod.swift > 0) { resultMod.swift = newMod.swift; modified = true; }
+            if (newMod.sown) { resultMod.sown = true; modified = true; }
+            if (newMod.vigorous > 0) { resultMod.vigorous = newMod.vigorous; modified = true; }
             if (!modified) {
                 return newCard;
             }
@@ -388,8 +630,14 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
         @Override
         public Card wrapAfterPlay(Card newCard) {
-            var newMod = new CardModification();
-            newMod.permChangeCost = mod.permChangeCost;
+            var newMod = mod.clone();
+            newMod.tmpChangeCost = -1;
+            newMod.tmpUntilPlayedCost = -1;
+            newMod.tmpRetain = false;
+            newMod.swift = 0;
+            newMod.sown = false;
+            newMod.glam = false;
+            newMod.vigorous = 0;
             return wrap(newCard, newMod);
         }
 
@@ -419,6 +667,111 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
             var newMod = mod.clone();
             newMod.tmpRetain = true;
             return wrap(card, newMod);
+        }
+
+        @Override
+        public Card enchantAdroit(int adroit) {
+            var newMod = mod.clone();
+            newMod.adroit = adroit;
+            return new CardWrapper(card, newMod);
+        }
+
+        @Override
+        public Card enchantCorrupted() {
+            var newMod = mod.clone();
+            newMod.corrupted = true;
+            return new CardWrapper(card, newMod);
+        }
+
+        @Override
+        public Card enchantGlam() {
+            var newMod = mod.clone();
+            newMod.glam = true;
+            return new CardWrapper(card, newMod);
+        }
+
+        @Override
+        public Card enchantInky() {
+            var newMod = mod.clone();
+            newMod.inky = true;
+            return new CardWrapper(card, newMod);
+        }
+
+        @Override
+        public Card enchantInstinct() {
+            var newMod = mod.clone();
+            newMod.instinct = true;
+            return new CardWrapper(card, newMod);
+        }
+
+        @Override
+        public Card enchantNimble(int nimble) {
+            var newMod = mod.clone();
+            newMod.nimble = nimble;
+            return new CardWrapper(card, newMod);
+        }
+
+        @Override
+        public Card enchantPerfectFit() {
+            var newMod = mod.clone();
+            newMod.perfectFit = true;
+            return new CardWrapper(card, newMod);
+        }
+
+        @Override
+        public Card enchantRoyallyApproved() {
+            var newMod = mod.clone();
+            newMod.royallyApproved = true;
+            return new CardWrapper(card, newMod);
+        }
+
+        @Override
+        public Card enchantSharp(int sharp) {
+            var newMod = mod.clone();
+            newMod.sharp = sharp;
+            return new CardWrapper(card, newMod);
+        }
+
+        @Override
+        public Card enchantSoulsPower() {
+            var newMod = mod.clone();
+            newMod.soulsPower = true;
+            return new CardWrapper(card, newMod);
+        }
+
+        @Override
+        public Card enchantSpiral(int spiral) {
+            var newMod = mod.clone();
+            newMod.spiral = spiral;
+            return new CardWrapper(card, newMod);
+        }
+
+        @Override
+        public Card enchantSteady() {
+            var newMod = mod.clone();
+            newMod.steady = true;
+            return new CardWrapper(card, newMod);
+        }
+
+        @Override
+        public Card enchantSwift(int swift) {
+            var newMod = mod.clone();
+            newMod.swift = swift;
+            return new CardWrapper(card, newMod);
+        }
+
+        @Override
+        public Card enchantSown() {
+            var newMod = mod.clone();
+            newMod.sown = true;
+            return new CardWrapper(card, newMod);
+        }
+
+        @Override
+        public Card enchantVigorous(int vigorous) {
+            var newMod = mod.clone();
+            newMod.vigorous = vigorous;
+            return new CardWrapper(card, newMod);
         }
 
         public boolean isTmpChangeCost() {
