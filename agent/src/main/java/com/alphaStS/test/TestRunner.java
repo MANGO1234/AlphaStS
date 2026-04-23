@@ -870,6 +870,7 @@ public class TestRunner {
             case SILENT   -> RUN_FILE_SILENT;
             case DEFECT   -> RUN_FILE_DEFECT;
             case WATCHER  -> RUN_FILE_WATCHER;
+            case IRONCLAD2, SILENT2, DEFECT2, REGENT, NECROBINDER -> throw new IllegalArgumentException("No run file for " + character);
         };
     }
 

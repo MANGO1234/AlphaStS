@@ -100,7 +100,7 @@ public final class GameState implements State {
     public EnemyEncounter currentEncounter = null;
 
     // transient execution field
-    public Card currentlyPlayedCard;
+    public int currentlyPlayedCardIdx = -1;
 
     // various other buffs/debuffs
     public long buffs;
@@ -581,7 +581,10 @@ public final class GameState implements State {
                 properties.gamblingChipsCardIdx = i;
             }
         }
-        properties.strikeCardIdxes = strikeIdxes.stream().mapToInt(Integer::intValue).toArray();
+        properties.isStrikeCard = new boolean[properties.cardDict.length];
+        for (int i : strikeIdxes) {
+            properties.isStrikeCard[i] = true;
+        }
         properties.healCardsIdxes = findCardThatCanHealIdxes(cards, relics);
         if (properties.healCardsIdxes != null) {
             properties.healCardsBooleanArr = new boolean[properties.cardDict.length];
@@ -816,7 +819,7 @@ public final class GameState implements State {
             if (cards.get(i).cardType == Card.POWER) {
                 l.add(i);
             }
-            if (cards.get(i).ethereal && getCardEnergyCost(i) >= 0) {
+            if (cards.get(i).ethereal() && getCardEnergyCost(i) >= 0) {
                 l.add(i);
             }
             if (cards.get(i).exhaustNonAttacks) {
@@ -1203,7 +1206,7 @@ public final class GameState implements State {
             return 0;
         } else if (properties.unrelentingCounterIdx >= 0 && counter[properties.unrelentingCounterIdx] > 0 && properties.cardDict[cardIdx].cardType == Card.ATTACK) {
             return 0;
-        } else if (properties.nextEtherealCostZeroCounterIdx >= 0 && counter[properties.nextEtherealCostZeroCounterIdx] > 0 && properties.cardDict[cardIdx].ethereal) {
+        } else if (properties.nextEtherealCostZeroCounterIdx >= 0 && counter[properties.nextEtherealCostZeroCounterIdx] > 0 && properties.cardDict[cardIdx].ethereal()) {
             return 0;
         } else if (properties.voidFormCounterIdx >= 0 && (counter[properties.voidFormCounterIdx] & 0xFF) > 0) {
             return 0;
@@ -1283,7 +1286,7 @@ public final class GameState implements State {
             return false;
         }
         if (actionCtx == GameActionCtx.PLAY_CARD) {
-            currentlyPlayedCard = properties.cardDict[cardIdx];
+            currentlyPlayedCardIdx = cardIdx;
             checkWristBladeBuffForZeroCostAttack(cardIdx);
             if (cloneSource == null && (properties.havocCounterIdx < 0 || getCounterForRead()[properties.havocCounterIdx] == 0)) {
                 removeCardFromHand(cardIdx);
@@ -1561,7 +1564,7 @@ public final class GameState implements State {
                     runActionsInQueueIfNonEmpty();
                 }
             }
-            currentlyPlayedCard = null;
+            currentlyPlayedCardIdx = -1;
         } else if (actionCtx == GameActionCtx.START_OF_BATTLE) {
             startOfBattleActionIdx++;
             if (startOfBattleActionIdx >= properties.startOfBattleActions.size()) {
@@ -1980,7 +1983,7 @@ public final class GameState implements State {
 
         // discard cards from hand
         for (int i = handArrLen - 1; i >= 0; i--) {
-            if (properties.cardDict[handArr[i]].ethereal) {
+            if (properties.cardDict[handArr[i]].ethereal()) {
                 exhaustedCardHandle(handArr[i], false);
                 getHandArrForWrite()[i] = -1;
             } else if (properties.cardDict[handArr[i]].alwaysDiscard) {
@@ -2003,7 +2006,7 @@ public final class GameState implements State {
 
         // handle well laid plan cards
         for (int i = 0; i < chosenCardsArrLen; i++) {
-            if (properties.cardDict[chosenCardsArr[i]].ethereal) {
+            if (properties.cardDict[chosenCardsArr[i]].ethereal()) {
                 exhaustedCardHandle(chosenCardsArr[i], false);
             } else if (properties.cardDict[chosenCardsArr[i]].alwaysDiscard) {
                 addCardToDiscard(chosenCardsArr[i]);
@@ -3849,7 +3852,7 @@ public final class GameState implements State {
     public int playerDoDamageToEnemy(Enemy enemy, int dmgInt, Card damageSource) {
         var player = getPlayerForRead();
         double dmg = dmgInt;
-        if (currentlyPlayedCard instanceof Card.CardWrapper cw) {
+        if (currentlyPlayedCardIdx >= 0 && properties.cardDict[currentlyPlayedCardIdx] instanceof Card.CardWrapper cw) {
             if (cw.mod.instinct) dmg *= 2;
             if (cw.mod.corrupted) dmg *= 1.5;
             if (cw.mod.sharp > 0) dmg += cw.mod.sharp;
@@ -3937,7 +3940,7 @@ public final class GameState implements State {
             if (dmgDone > 0 && (buffs & PlayerBuff.REAPER_FORM.mask()) != 0) {
                 enemy.applyDebuff(this, DebuffType.DOOM, dmgDone);
             }
-            if (dmgDone > 0 && currentlyPlayedCard instanceof Card.CardWrapper cw && cw.mod.inky) {
+            if (dmgDone > 0 && currentlyPlayedCardIdx >= 0 && properties.cardDict[currentlyPlayedCardIdx] instanceof Card.CardWrapper cw && cw.mod.inky) {
                 enemy.applyDebuff(this, DebuffType.WEAK, 1);
             }
             if (enemy.getHealth() == 0) {
@@ -4287,7 +4290,7 @@ public final class GameState implements State {
     }
 
     public int playerGainBlock(int n) {
-        if (currentlyPlayedCard instanceof Card.CardWrapper cw && cw.mod.nimble > 0) {
+        if (currentlyPlayedCardIdx >= 0 && properties.cardDict[currentlyPlayedCardIdx] instanceof Card.CardWrapper cw && cw.mod.nimble > 0) {
             n += cw.mod.nimble;
         }
         if (properties.vambraceCounterIdx >= 0 && properties.vambrace.isRelicEnabledInScenario(this) && getCounterForRead()[properties.vambraceCounterIdx] == 0) {

@@ -91,6 +91,10 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         return retain;
     }
 
+    public boolean ethereal() {
+        return ethereal;
+    }
+
     public boolean isTmpModifiedCard() {
         return false;
     }
@@ -131,6 +135,18 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         }
         var mod = new CardModification();
         mod.tmpRetain = true;
+        return new Card.CardWrapper(this, mod);
+    }
+
+    public Card getPermEthereal() {
+        var mod = new CardModification();
+        mod.permEthereal = true;
+        return new Card.CardWrapper(this, mod);
+    }
+
+    public Card getPermRetain() {
+        var mod = new CardModification();
+        mod.permRetain = true;
         return new Card.CardWrapper(this, mod);
     }
 
@@ -282,6 +298,8 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         public int tmpUntilPlayedCost = -1;
         public int permChangeCost = -1;
         public boolean tmpRetain = false;
+        public boolean permEthereal = false;
+        public boolean permRetain = false;
         public int adroit = 0;
         public boolean corrupted = false;
         public boolean glam = false;
@@ -304,6 +322,8 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
             copy.tmpUntilPlayedCost = tmpUntilPlayedCost;
             copy.permChangeCost = permChangeCost;
             copy.tmpRetain = tmpRetain;
+            copy.permEthereal = permEthereal;
+            copy.permRetain = permRetain;
             copy.adroit = adroit;
             copy.corrupted = corrupted;
             copy.glam = glam;
@@ -356,6 +376,12 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
             if (mod.tmpRetain) {
                 sb.append(" (Tmp Retain)");
             }
+            if (mod.permEthereal) {
+                sb.append(" (Ethereal)");
+            }
+            if (mod.permRetain) {
+                sb.append(" (Retain)");
+            }
             if (mod.adroit > 0) {
                 sb.append(" (Adroit ").append(mod.adroit).append(")");
             }
@@ -405,7 +431,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         }
 
         private void copyCardProperties(Card card) {
-            ethereal = card.ethereal;
+            ethereal = card.ethereal();
             innate = card.innate;
             exhaustWhenPlayed = mod.soulsPower ? false : card.exhaustWhenPlayed;
             exhaustNonAttacks = card.exhaustNonAttacks;
@@ -413,7 +439,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
             returnToDeckWhenPlay = card.returnToDeckWhenPlay;
             returnToTopOfDeckWhenPlay = card.returnToTopOfDeckWhenPlay;
             returnToHandWhenPlay = card.returnToHandWhenPlay;
-            retain = card.retain;
+            retain = card.retain();
             delayUseEnergy = card.delayUseEnergy;
             isXCost = card.isXCost;
             selectFromDiscardLater = card.selectFromDiscardLater;
@@ -428,6 +454,8 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
             scry = card.scry;
             select1OutOf3CardEffectCard = card.select1OutOf3CardEffectCard;
         }
+
+        @Override public boolean ethereal() { return super.ethereal() || mod.permEthereal; }
 
         @Override
         public void setCounterIdx(GameProperties gameProperties, int idx) {
@@ -563,7 +591,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
         @Override
         public boolean retain() {
-            return mod.tmpRetain || mod.steady || mod.royallyApproved || card.retain;
+            return mod.tmpRetain || mod.steady || mod.royallyApproved || mod.permRetain || card.retain;
         }
 
         @Override

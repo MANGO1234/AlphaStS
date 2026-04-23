@@ -1801,13 +1801,9 @@ public class CardIronclad2 {
                     return 1;
                 }
             });
-            var isStrike = new boolean[state.properties.cardDict.length];
-            for (int i = 0; i < state.properties.strikeCardIdxes.length; i++) {
-                isStrike[state.properties.strikeCardIdxes[i]] = true;
-            }
             state.properties.addOnCardDrawnHandler("Hellraiser", new GameEventCardHandler() {
                 @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
-                    if (state.getCounterForRead()[counterIdx] > 0 && isStrike[cardIdx]) {
+                    if (state.getCounterForRead()[counterIdx] > 0 && state.properties.isStrikeCard[cardIdx]) {
                         state.addGameActionToStartOfDeque(new GameEnvironmentAction() {
                             @Override public void doAction(GameState state) {
                                 if (!state.removeCardFromHand(cardIdx)) {

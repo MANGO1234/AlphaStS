@@ -22,6 +22,7 @@ public class CardManager {
             case SILENT -> getSilentCards(cardType, generateHealingCard);
             case DEFECT -> getDefectCards(cardType, generateHealingCard);
             case WATCHER -> getWatcherCards(cardType, generateHealingCard);
+            case IRONCLAD2, SILENT2, DEFECT2, REGENT, NECROBINDER -> new ArrayList<>();
         };
     }
 
@@ -544,6 +545,7 @@ public class CardManager {
             case SILENT -> getSilentRareCards(generateHealingCard);
             case DEFECT -> getDefectRareCards(generateHealingCard);
             case WATCHER -> getWatcherRareCards(generateHealingCard);
+            case IRONCLAD2, SILENT2, DEFECT2, REGENT, NECROBINDER -> new ArrayList<>();
         };
     }
 

@@ -517,8 +517,35 @@ public class Potion2 {
     public static class BloodPotion extends Potion.BloodPotion {
     }
 
-    // TODO: Soldier's Stew (Rare)
-    //   Effect: All cards containing Strike gain 1 Replay this combat.
+    public static class SoldiersStew extends Potion {
+        private int[] spiralStrikeTransformIdxes;
+
+        @Override public GameActionCtx use(GameState state, int idx) {
+            if (spiralStrikeTransformIdxes != null) {
+                state.handArrTransform(spiralStrikeTransformIdxes);
+                state.deckArrTransform(spiralStrikeTransformIdxes);
+                state.discardArrTransform(spiralStrikeTransformIdxes);
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            return cards.stream().filter(CardManager::isStrike).map(c -> c.enchantSpiral(1)).toList();
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            spiralStrikeTransformIdxes = new int[state.properties.cardDict.length];
+            java.util.Arrays.fill(spiralStrikeTransformIdxes, -1);
+            for (int i = 0; i < state.properties.cardDict.length; i++) {
+                if (state.properties.isStrikeCard[i]) {
+                    int enchantedIdx = state.properties.findCardIndex(state.properties.cardDict[i].enchantSpiral(1));
+                    if (enchantedIdx >= 0) {
+                        spiralStrikeTransformIdxes[i] = enchantedIdx;
+                    }
+                }
+            }
+        }
+    }
 
     // **************************************************************************************************
     // ********************************************* Silent *********************************************

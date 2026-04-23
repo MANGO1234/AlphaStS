@@ -46,6 +46,7 @@ public class EntityProperty {
     public boolean hasStarCost;
     public boolean canForge;
     public boolean needToKeepTrackOfEnemyHitCount;
+    public boolean otsyAttack;
 
     public void mergeFrom(EntityProperty other) {
         changePlayerArtifact |= other.changePlayerArtifact;
@@ -90,6 +91,7 @@ public class EntityProperty {
         hasStarCost |= other.hasStarCost;
         canForge |= other.canForge;
         needToKeepTrackOfEnemyHitCount |= other.needToKeepTrackOfEnemyHitCount;
+        otsyAttack |= other.otsyAttack;
     }
 
     public static EntityProperty aggregate(List<EntityProperty> list) {

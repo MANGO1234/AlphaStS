@@ -1706,6 +1706,7 @@ public class CardColorless2 {
             this.damage = damage;
             this.ethereal = true;
             this.exhaustWhenPlayed = true;
+            entityProperty.otsyAttack = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {

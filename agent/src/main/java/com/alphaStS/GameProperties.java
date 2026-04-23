@@ -169,7 +169,7 @@ public class GameProperties implements Cloneable {
     public int[] shivUpgradeIdxes;
     public int[] upMySleeveIndexes;
     public int[] upMySleeveIndexesP;
-    public int[] strikeCardIdxes;
+    public boolean[] isStrikeCard;
     public int[] windmillStrikePTransformIndexes;
     public int[] windmillStrikeTransformIndexes;
     public int apotheosisCardIdx = -1;

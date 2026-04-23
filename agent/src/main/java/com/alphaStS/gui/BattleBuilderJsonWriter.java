@@ -91,6 +91,11 @@ public class BattleBuilderJsonWriter {
             case SILENT   -> "Silent";
             case DEFECT   -> "Defect";
             case WATCHER  -> "Watcher";
+            case IRONCLAD2 -> "Ironclad2";
+            case SILENT2   -> "Silent2";
+            case DEFECT2   -> "Defect2";
+            case REGENT    -> "Regent";
+            case NECROBINDER -> "Necrobinder";
         };
     }
 }

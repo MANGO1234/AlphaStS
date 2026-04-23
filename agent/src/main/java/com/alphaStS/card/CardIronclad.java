@@ -449,13 +449,9 @@ public class CardIronclad {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             int count = 1; // 1 because the played card is not in hand anymore
-            var strikes = new boolean[state.properties.cardDict.length];
-            for (int i = 0; i < state.properties.strikeCardIdxes.length; i++) {
-                strikes[state.properties.strikeCardIdxes[i]] = true;
-            }
-            count += GameStateUtils.getCardsCount(state.getHandArrForRead(), state.getNumCardsInHand(), strikes);
-            count += GameStateUtils.getCardsCount(state.getDiscardArrForRead(), state.getNumCardsInDiscard(), strikes);
-            count += GameStateUtils.getCardsCount(state.getDeckArrForRead(), state.getNumCardsInDeck(), strikes);
+            count += GameStateUtils.getCardsCount(state.getHandArrForRead(), state.getNumCardsInHand(), state.properties.isStrikeCard);
+            count += GameStateUtils.getCardsCount(state.getDiscardArrForRead(), state.getNumCardsInDiscard(), state.properties.isStrikeCard);
+            count += GameStateUtils.getCardsCount(state.getDeckArrForRead(), state.getNumCardsInDeck(), state.properties.isStrikeCard);
             int dmg = 6 + 2 * count;
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), dmg, this);
             return GameActionCtx.PLAY_CARD;
@@ -470,13 +466,9 @@ public class CardIronclad {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             int count = 1; // 1 because the played card is not in hand anymore
-            var strikes = new boolean[state.properties.cardDict.length];
-            for (int i = 0; i < state.properties.strikeCardIdxes.length; i++) {
-                strikes[state.properties.strikeCardIdxes[i]] = true;
-            }
-            count += GameStateUtils.getCardsCount(state.getHandArrForRead(), state.getNumCardsInHand(), strikes);
-            count += GameStateUtils.getCardsCount(state.getDiscardArrForRead(), state.getNumCardsInDiscard(), strikes);
-            count += GameStateUtils.getCardsCount(state.getDeckArrForRead(), state.getNumCardsInDeck(), strikes);
+            count += GameStateUtils.getCardsCount(state.getHandArrForRead(), state.getNumCardsInHand(), state.properties.isStrikeCard);
+            count += GameStateUtils.getCardsCount(state.getDiscardArrForRead(), state.getNumCardsInDiscard(), state.properties.isStrikeCard);
+            count += GameStateUtils.getCardsCount(state.getDeckArrForRead(), state.getNumCardsInDeck(), state.properties.isStrikeCard);
             int dmg = 6 + 3 * count;
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), dmg, this);
             return GameActionCtx.PLAY_CARD;

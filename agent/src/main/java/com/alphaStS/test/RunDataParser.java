@@ -993,6 +993,7 @@ public class RunDataParser implements Iterable<BattleEntry> {
             case SILENT   -> "Ring of the Snake";
             case DEFECT   -> "Cracked Core";
             case WATCHER  -> "Pure Water";
+            case IRONCLAD2, SILENT2, DEFECT2, REGENT, NECROBINDER -> throw new IllegalArgumentException("No starter relic for " + character);
         };
         Relic relic = BattleBuilderJsonReader.instantiateRelic(name);
         if (relic == null) {
