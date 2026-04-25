@@ -85,13 +85,17 @@ public class ValidateAllItemsTest {
                 failedCards.add(name + " (" + character + "): " + result.error());
             }
 
-            // Validate upgraded card (name+)
-            String upgradedName = name + "+";
-            String jsonUpgraded = battleJson(character,
-                    "[\"" + escape(upgradedName) + "\"]", "[]", "[]");
-            BattleBuilderJsonReader.ValidationResult upgradedResult = BattleBuilderJsonReader.validate(jsonUpgraded);
-            if (!upgradedResult.valid()) {
-                failedCards.add(upgradedName + " (" + character + "): " + upgradedResult.error());
+            // Validate upgraded card (name+) only when an upgraded form exists.
+            // Searing Blow uses infinite int-parameterized upgrades rather than a separate class.
+            JsonNode upgradedImagePath = entry.get("upgraded_image_path");
+            if (upgradedImagePath != null && !upgradedImagePath.isNull() && !name.equals("Searing Blow")) {
+                String upgradedName = name + "+";
+                String jsonUpgraded = battleJson(character,
+                        "[\"" + escape(upgradedName) + "\"]", "[]", "[]");
+                BattleBuilderJsonReader.ValidationResult upgradedResult = BattleBuilderJsonReader.validate(jsonUpgraded);
+                if (!upgradedResult.valid()) {
+                    failedCards.add(upgradedName + " (" + character + "): " + upgradedResult.error());
+                }
             }
         }
 

@@ -1905,6 +1905,10 @@ public class CardIronclad {
         }
     }
 
+    public static class SearingBlowP extends SearingBlow {
+        public SearingBlowP() { super(1); }
+    }
+
     private static abstract class _SecondWindT extends Card {
         private final int blockPerCard;
 
