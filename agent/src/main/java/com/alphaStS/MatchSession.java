@@ -15,6 +15,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
 import org.apache.commons.compress.compressors.lz4.FramedLZ4CompressorOutputStream;
+import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 
 import java.io.*;
 import java.net.Socket;
@@ -119,6 +120,7 @@ public class MatchSession {
             state.properties.makingRealMove = false;
         }
 
+        var turnSearchDepths = new HashMap<Integer, DescriptiveStatistics>();
         if (false) {
             while (state.isTerminal() == 0) {
                 int upto = nodeCount - (state.total_n + (state.policy == null ? 0 : 1));
@@ -180,6 +182,10 @@ public class MatchSession {
                         break;
                     }
                 }
+                if (state.turnNum > 0) {
+                    turnSearchDepths.computeIfAbsent((int) state.turnNum, k -> new DescriptiveStatistics())
+                            .addValue(GameStateUtils.getSearchDagStats(state).avgDepth());
+                }
 
                 int action = MCTS.getActionWithMaxNodesOrTerminal(state);
                 steps.add(new GameStep(state, action));
@@ -216,7 +222,7 @@ public class MatchSession {
                 steps.get(i - 1).actionDesc = steps.get(i).state().stateDesc;
             }
         }
-        return new Game(steps, state.preBattleRandomizationIdxChosen, state.battleRandomizationIdxChosen, null, 0, 0, null);
+        return new Game(steps, state.preBattleRandomizationIdxChosen, state.battleRandomizationIdxChosen, null, 0, 0, null, turnSearchDepths);
     }
 
     // when comparing game searchRandomGen can get out of sync, make sure it's synced as much as possible
@@ -264,7 +270,7 @@ public class MatchSession {
         return null;
     }
 
-    public static record Game(List<GameStep> steps, int preBattle_r, int battle_r, List<GameStep> augmentedSteps, int noTemperatureTurn, int difficulty, Tuple3<Long, Long, Long> aa) {}
+    public static record Game(List<GameStep> steps, int preBattle_r, int battle_r, List<GameStep> augmentedSteps, int noTemperatureTurn, int difficulty, Tuple3<Long, Long, Long> aa, Map<Integer, DescriptiveStatistics> turnSearchDepths) {}
     public static record GameResult(Game game, int modelCalls, Game game2, int modelCalls2, long seed, List<GameResult> reruns, String remoteServer, int remoteR, ScenarioStats remoteStats, String remoteGameRecord) {}
     public static record TrainingGameResult(Game game, String remoteServer, String remoteTrainingGameRecord, byte[] remoteTrainingData) {}
 
@@ -392,10 +398,10 @@ public class MatchSession {
                         }
                     }
                 }
-                scenarioStats.computeIfAbsent(r, (k) -> new ScenarioStats(origState.properties)).add(game.steps, result.modelCalls);
+                scenarioStats.computeIfAbsent(r, (k) -> new ScenarioStats(origState.properties)).add(game.steps, game.turnSearchDepths, result.modelCalls);
                 scenarioStats.get(r).add(game.steps, steps2, result.modelCalls2, result.reruns);
                 if (scenarioStats.size() == 1 && startingAction >= 0 && game.steps.get(0).state().isStochastic) {
-                    chanceNodeStats.computeIfAbsent(game.steps.get(0).state(), (k) -> new ScenarioStats(origState.properties)).add(game.steps, result.modelCalls);
+                    chanceNodeStats.computeIfAbsent(game.steps.get(0).state(), (k) -> new ScenarioStats(origState.properties)).add(game.steps, game.turnSearchDepths, result.modelCalls);
                     chanceNodeStats.get(game.steps.get(0).state()).add(game.steps, steps2, result.modelCalls2, result.reruns);
                 }
                 game_i.incrementAndGet();
@@ -448,12 +454,7 @@ public class MatchSession {
                 }
                 ScenarioStats.combine(origState.properties, scenarioStats.values().toArray(new ScenarioStats[0])).printStats(origState, printDamageLevel.compareTo(PrintDamageLevel.ALL_SCENARIOS_COMBINED) >= 0 && game_i.get() == numOfGames, 0);
                 System.out.println("Time Taken: " + (System.currentTimeMillis() - start));
-                var modelsPrint = modelExecutor.getExecutorModels();
-                for (int i = 0; i < modelsPrint.size(); i++) {
-                    var m = (ModelPlain) modelsPrint.get(i);
-                    System.out.println("Time Taken (By Model " + i + "): " + m.time_taken);
-                    System.out.println("Model " + i + ": cache_size=" + m.cache.size() + ", " + m.cache_hits + "/" + m.calls + " hits (" + (double) m.cache_hits / m.calls + ")");
-                }
+                printModelStats(modelExecutor.getExecutorModels().stream().map(m -> (ModelPlain) m).toList());
                 System.out.println("--------------------");
             }
         }
@@ -465,6 +466,25 @@ public class MatchSession {
             modelExecutorCmp.stop();
         }
         return games;
+    }
+
+    private static void printModelStats(List<ModelPlain> models) {
+        long totalTimeTaken = 0;
+        long totalCacheSize = 0;
+        long totalCacheHits = 0;
+        long totalCalls = 0;
+        for (int i = 0; i < models.size(); i++) {
+            var m = models.get(i);
+            if (Configuration.STATS_PRINT_PER_MODEL_STATS) {
+                System.out.println("Time Taken (By Model " + i + "): " + m.time_taken);
+                System.out.println("Model " + i + ": cache_size=" + m.cache.size() + ", " + m.cache_hits + "/" + m.calls + " hits (" + (double) m.cache_hits / m.calls + ")");
+            }
+            totalTimeTaken += m.time_taken;
+            totalCacheSize += m.cache.size();
+            totalCacheHits += m.cache_hits;
+            totalCalls += m.calls;
+        }
+        System.out.println("Model Average: time_taken=" + (totalTimeTaken / models.size()) + ", cache_size=" + (totalCacheSize / models.size()) + ", " + totalCacheHits + "/" + totalCalls + " hits (" + (double) totalCacheHits / totalCalls + ")");
     }
 
     private void writeGameRecord(Writer writer, GameResult result, List<GameStep> steps, Map<Integer, GameStateRandomization.Info> combinedInfoMap, int r) throws IOException {
@@ -622,7 +642,7 @@ public class MatchSession {
             throw new RuntimeException(e);
         }
         var stat = new ScenarioStats(origState.properties);
-        stat.add(steps, result.modelCalls);
+        stat.add(steps, game.turnSearchDepths, result.modelCalls);
         stat.add(steps, steps2, result.modelCalls2, result.reruns);
         var ret = getInfoMaps(origState.properties);
         var battleInfoMap = ret.v2();
@@ -980,7 +1000,7 @@ public class MatchSession {
         var postProcessingEnd = System.currentTimeMillis();
 
         state = steps.get(steps.size() - 1).state();
-        return new Game(steps, state.preBattleRandomizationIdxChosen, state.battleRandomizationIdxChosen, augmentedSteps, noTemperatureTurn, state.properties.difficultyChosen, new Tuple3<>(trainingGameStart, trainingGameEnd, postProcessingEnd));
+        return new Game(steps, state.preBattleRandomizationIdxChosen, state.battleRandomizationIdxChosen, augmentedSteps, noTemperatureTurn, state.properties.difficultyChosen, new Tuple3<>(trainingGameStart, trainingGameEnd, postProcessingEnd), null);
     }
 
     private double calcKld(GameState state) {

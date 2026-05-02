@@ -730,7 +730,7 @@ public class InteractiveMode {
                     curGames.addAll(session.playGames(step.state(), numberOfGames - curGames.size(), nodeCount, numberOfThreads, batchSize, true, true));
                     var stats = new ScenarioStats(state.properties);
                     for (MatchSession.Game g : curGames) {
-                        stats.add(g.steps(), 0);
+                        stats.add(g.steps(), g.turnSearchDepths(), 0);
                     }
                     statsArr.add(stats);
                 }
@@ -2269,7 +2269,7 @@ public class InteractiveMode {
                 while (!modelExecutor.producerWaitForClose(_i));
             });
         }
-        waitAndPrintSearchInfo(count, startNodeCount, nodeDoneCount, null, start, "nodes", null, reader);
+        waitAndPrintSearchInfo(count, startNodeCount, nodeDoneCount, null, start, "nodes", null, null, reader);
         modelExecutor.stop();
         state.setMultithreaded(false);
 
@@ -2281,30 +2281,35 @@ public class InteractiveMode {
         out.println("Memory Usage: " + (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) + " bytes");
     }
 
-    private void waitAndPrintSearchInfo(int totalCount, long startCount, AtomicLong doneCount, AtomicLong producersCount, long startTime, String item, Supplier<String> extraDetails, InteractiveReader reader) {
-        long lastPrintTime = System.currentTimeMillis() - 4000; // print after 1 second immediately
+    private void waitAndPrintSearchInfo(int totalCount, long startCount, AtomicLong doneCount, AtomicLong producersCount, long startTime, String item, Supplier<String> extraDetails, Supplier<String> treeStatsDetails, InteractiveReader reader) {
+        long lastPrintTime = System.currentTimeMillis(); // print after 1 second
         long lastSleepDuration = 5;
+        int printCount = 0;
         while (doneCount.get() < totalCount && (producersCount == null || producersCount.get() > 0)) {
             try {
-                // Check for stop command with timeout
                 String command = reader.readLine(lastSleepDuration, TimeUnit.MILLISECONDS);
                 if (command != null && command.trim().equalsIgnoreCase("stop")) {
                     out.println("Search stopped by user command.");
                     stopRequested = true;
                 }
             } catch (IOException e) {
-                // Continue if read fails
             }
-            
             lastSleepDuration = Math.min(lastSleepDuration * 2, 100);
-            if (System.currentTimeMillis() - lastPrintTime > 5000) {
+            if (System.currentTimeMillis() - lastPrintTime > 1000) {
                 double speed = ((double) doneCount.get() - startCount) / (System.currentTimeMillis() - startTime) * 1000;
                 out.println("Time: " + (System.currentTimeMillis() - startTime) + " ms, Speed: " + Utils.formatFloat(speed) + " " + item + "/s (" + doneCount.get() + " " + item + " searched)" + (extraDetails != null ? " " + extraDetails.get() : ""));
+                printCount++;
+                if (treeStatsDetails != null && printCount % 5 == 0) {
+                    out.println(treeStatsDetails.get());
+                }
                 lastPrintTime = System.currentTimeMillis();
             }
         }
         double speed = ((double) Math.max(0, doneCount.get() - startCount)) / (System.currentTimeMillis() - startTime) * 1000;
         out.println("Time: " + (System.currentTimeMillis() - startTime) + " ms, Speed: " + Utils.formatFloat(speed) + " " + item + "/s (" + doneCount.get() + " " + item + " searched)" + (extraDetails != null ? " " + extraDetails.get() : ""));
+        if (treeStatsDetails != null) {
+            out.println(treeStatsDetails.get());
+        }
     }
 
     int nnPVLastNodeCount = 1000;
@@ -2377,7 +2382,7 @@ public class InteractiveMode {
                     }
                 }
                 return o.toString();
-            }, reader);
+            }, () -> { var d = GameStateUtils.getSearchDagStats(_s); return "Search Tree: Avg Depth: " + String.format("%.2f", d.avgDepth()) + ", Max Depth: " + d.maxDepth(); }, reader);
             modelExecutor.stop();
             s.setMultithreaded(false);
 
@@ -2518,7 +2523,7 @@ public class InteractiveMode {
                 while (!modelExecutor.producerWaitForClose(_i));
             });
         }
-        waitAndPrintSearchInfo(cs.cache.size(), 0, doneCount, null, start, "outcomes", null, reader);
+        waitAndPrintSearchInfo(cs.cache.size(), 0, doneCount, null, start, "outcomes", null, null, reader);
         modelExecutor.stop();
 
         var sortedPvs = pvs.entrySet().stream().map(pv -> {
@@ -2585,7 +2590,7 @@ public class InteractiveMode {
                 }
             });
         }
-        waitAndPrintSearchInfo(trialCount, 0, trialsDoneCount, null, start, "trials", null, reader);
+        waitAndPrintSearchInfo(trialCount, 0, trialsDoneCount, null, start, "trials", null, null, reader);
         modelExecutor.stop();
 
         pvs.forEach((_k, v) -> {
@@ -2677,7 +2682,7 @@ public class InteractiveMode {
                 }
             }
             return o.toString();
-        }, reader);
+        }, () -> { var d = GameStateUtils.getSearchDagStats(_s); return "Search Tree: Avg Depth: " + String.format("%.2f", d.avgDepth()) + ", Max Depth: " + d.maxDepth(); }, reader);
         modelExecutor.stop();
 
         state.searchFrontier.lines.values().stream().filter((x) -> {

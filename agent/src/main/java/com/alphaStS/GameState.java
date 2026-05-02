@@ -138,6 +138,7 @@ public final class GameState implements State {
     AtomicInteger virtualLoss;
 
     boolean[] bannedActions;
+    boolean visited;
 
     public void readLock() {
         lock.readLock().lock();

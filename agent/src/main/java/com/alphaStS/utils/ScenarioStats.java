@@ -8,6 +8,7 @@ import org.apache.commons.math3.stat.interval.ClopperPearsonInterval;
 import org.apache.commons.math3.distribution.NormalDistribution;
 
 import java.util.*;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 public class ScenarioStats {
@@ -49,6 +50,7 @@ public class ScenarioStats {
     public List<Double> lossQs = new ArrayList<>();
     public long modelCalls2;
     public long totalTurns2;
+    public Map<Integer, DescriptiveStatistics> turnSearchDepths = new HashMap<>();
 
     public ScenarioStats(GameProperties properties) {
         this.properties = properties;
@@ -166,9 +168,20 @@ public class ScenarioStats {
         lossQs.addAll(stat.lossQs);
         modelCalls2 += stat.modelCalls2;
         totalTurns2 += stat.totalTurns2;
+        addTurnSearchDepths(stat.turnSearchDepths);
     }
 
-    public void add(List<GameStep> steps, int modelCalls) {
+    private void addTurnSearchDepths(Map<Integer, DescriptiveStatistics> depths) {
+        if (depths == null) return;
+        for (var entry : depths.entrySet()) {
+            var ds = turnSearchDepths.computeIfAbsent(entry.getKey(), k -> new DescriptiveStatistics());
+            for (double v : entry.getValue().getValues()) {
+                ds.addValue(v);
+            }
+        }
+    }
+
+    public void add(List<GameStep> steps, Map<Integer, DescriptiveStatistics> depths, int modelCalls) {
         GameState state = steps.get(steps.size() - 1).state();
         this.modelCalls += modelCalls;
         totalTurns += state.realTurnNum;
@@ -240,6 +253,7 @@ public class ScenarioStats {
                 counterStat.add(state);
             }
         }
+        addTurnSearchDepths(depths);
     }
 
     public void add(List<GameStep> steps, List<GameStep> steps2, int modelCalls2, List<GameResult> reruns) {
@@ -377,6 +391,17 @@ public class ScenarioStats {
         System.out.println(indent + "Average Final Progress: " + String.format("%.5f", finalFightProgress / numOfGames));
         System.out.println(indent + "Nodes/Turns: " + modelCalls + "/" + totalTurns + "/" + (((double) modelCalls) / totalTurns));
         System.out.println(indent + "Average Turns: " + String.format("%.2f", ((double) totalTurns) / numOfGames) + "/" + String.format("%.2f", ((double) totalTurnsInWins) / (numOfGames - deathCount)));
+        if (!turnSearchDepths.isEmpty()) {
+            var allDepths = new DescriptiveStatistics();
+            turnSearchDepths.values().forEach(turnDs -> Arrays.stream(turnDs.getValues()).forEach(allDepths::addValue));
+            var perTurnAvg = turnSearchDepths.entrySet().stream().sorted(Map.Entry.comparingByKey())
+                    .map(e -> "Turn " + e.getKey() + ": " + String.format("%.2f", e.getValue().getMean()))
+                    .collect(Collectors.joining(", "));
+            var perTurnMax = turnSearchDepths.entrySet().stream().sorted(Map.Entry.comparingByKey())
+                    .map(e -> "Turn " + e.getKey() + ": " + (long) e.getValue().getMax())
+                    .collect(Collectors.joining(", "));
+            System.out.println(indent + "Average/Max Search Tree Depth: " + String.format("%.2f", allDepths.getMean()) + "/" + (long) allDepths.getMax() + " (Avg: " + perTurnAvg + ") (Max: " + perTurnMax + ")");
+        }
 
         if (hasState2) {
             System.out.println(indent + "Compared Network Nodes/Turns: " + modelCalls2 + "/" + totalTurns2 + "/" + (((double) modelCalls2) / totalTurns2));

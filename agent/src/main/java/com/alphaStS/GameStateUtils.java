@@ -458,4 +458,51 @@ public class GameStateUtils {
 
         return new Tuple3<>(singleCardIdx, forwardIdxes, reverseIdxes);
     }
+
+    public record DagStats(double avgDepth, int maxDepth) {}
+
+    public static DagStats getSearchDagStats(GameState root) {
+        clearVisited(root, new HashSet<>());
+        long[] result = new long[3]; // [sumDepths, leafCount, maxDepth]
+        dfsDepth(root, root.turnNum, result);
+        return new DagStats(result[1] == 0 ? 0 : (double) result[0] / result[1], (int) result[2]);
+    }
+
+    private static void clearVisited(State s, HashSet<GameState> cleared) {
+        if (s instanceof GameState gs) {
+            if (!cleared.add(gs)) return;
+            gs.visited = false;
+            if (gs.ns != null) {
+                for (State child : gs.ns) {
+                    if (child != null) clearVisited(child, cleared);
+                }
+            }
+        } else if (s instanceof ChanceState cs) {
+            for (ChanceState.Node node : cs.cache.values()) {
+                clearVisited(node.state, cleared);
+            }
+        }
+    }
+
+    private static void dfsDepth(State s, int depth, long[] result) {
+        if (s instanceof GameState gs) {
+            if (gs.visited) return;
+            gs.visited = true;
+            if (gs.total_n == 0) {
+                result[0] += gs.turnNum - depth;
+                result[1]++;
+                if (gs.turnNum - depth > result[2]) result[2] = gs.turnNum - depth;
+                return;
+            }
+            if (gs.ns != null) {
+                for (State child : gs.ns) {
+                    if (child != null) dfsDepth(child, depth, result);
+                }
+            }
+        } else if (s instanceof ChanceState cs) {
+            if (cs.cache.isEmpty()) return;
+            // ChanceState is transparent: pick one outcome to follow
+            dfsDepth(cs.cache.values().iterator().next().state, depth, result);
+        }
+    }
 }
