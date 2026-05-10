@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <title>MCTS Tree Explorer</title>
+  <script src="https://unpkg.com/cytoscape/dist/cytoscape.min.js"></script>
+  <script src="https://unpkg.com/dagre/dist/dagre.min.js"></script>
+  <script src="https://unpkg.com/cytoscape-dagre/cytoscape-dagre.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: sans-serif; background: #1a1a2e; color: #eee; display: flex; flex-direction: column; height: 100vh; }
+    #toolbar {
+      display: flex; align-items: center; gap: 10px; padding: 8px 14px;
+      background: #16213e; border-bottom: 1px solid #0f3460;
+    }
+    #toolbar button {
+      padding: 5px 14px; border: none; border-radius: 4px;
+      background: #0f3460; color: #eee; cursor: pointer; font-size: 13px;
+    }
+    #toolbar button:hover:not(:disabled) { background: #e94560; }
+    #toolbar button:disabled { opacity: 0.4; cursor: default; }
+    #toolbar label { font-size: 13px; }
+    #depthInput, #maxChanceInput {
+      width: 54px; padding: 4px 6px; border-radius: 4px; border: 1px solid #0f3460;
+      background: #1a1a2e; color: #eee; font-size: 13px;
+    }
+    #status { font-size: 12px; color: #aaa; margin-left: auto; }
+    #cy { flex: 1; }
+    #tooltip {
+      position: fixed; display: none; max-width: 500px;
+      background: #0d1b2a; border: 1px solid #4a90d9; border-radius: 6px;
+      padding: 10px 13px; font-size: 12px; color: #ddd;
+      white-space: pre-wrap; word-break: break-word;
+      pointer-events: none; z-index: 1000; line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+  <div id="toolbar">
+    <button id="btnBack" disabled>&#8592; Back</button>
+    <button id="btnRoot">Root</button>
+    <label for="depthInput">Depth:</label>
+    <input id="depthInput" type="number" min="1" max="10" value="3"/>
+    <label for="maxChanceInput">Max Chance Children:</label>
+    <input id="maxChanceInput" type="number" min="1" max="100" value="5"/>
+    <span id="status">Loading...</span>
+  </div>
+  <div id="cy"></div>
+  <div id="tooltip"></div>
+  <script>
+    cytoscape.use(cytoscapeDagre);
+
+    const cy = cytoscape({
+      container: document.getElementById('cy'),
+      style: [
+        {
+          selector: 'node[type="game"]',
+          style: {
+            'shape': 'roundrectangle',
+            'background-color': '#0f3460',
+            'border-color': '#4a90d9',
+            'border-width': 2,
+            'label': 'data(label)',
+            'color': '#fff',
+            'font-size': '11px',
+            'text-valign': 'center',
+            'text-halign': 'center',
+            'text-wrap': 'wrap',
+            'width': 'label',
+            'height': 'label',
+            'padding': '10px'
+          }
+        },
+        {
+          selector: 'node[type="chance"]',
+          style: {
+            'shape': 'diamond',
+            'background-color': '#7d4a00',
+            'border-color': '#f0a500',
+            'border-width': 2,
+            'label': 'data(label)',
+            'color': '#fff',
+            'font-size': '11px',
+            'text-valign': 'center',
+            'text-halign': 'center',
+            'text-wrap': 'wrap',
+            'width': 'label',
+            'height': 'label',
+            'min-width': '40px',
+            'min-height': '40px',
+            'padding': '14px'
+          }
+        },
+        {
+          selector: 'node[?terminal]',
+          style: { 'background-color': '#6b0000', 'border-color': '#e94560' }
+        },
+        {
+          selector: 'node:selected',
+          style: { 'border-color': '#fff', 'border-width': 3 }
+        },
+        {
+          selector: 'edge',
+          style: {
+            'width': 2,
+            'line-color': '#4a4a7a',
+            'target-arrow-color': '#4a4a7a',
+            'target-arrow-shape': 'triangle',
+            'curve-style': 'bezier',
+            'label': 'data(label)',
+            'font-size': '10px',
+            'color': '#ccc',
+            'text-background-color': '#1a1a2e',
+            'text-background-opacity': 0.85,
+            'text-background-padding': '2px',
+            'text-wrap': 'wrap',
+            'text-rotation': 'autorotate'
+          }
+        },
+        {
+          selector: 'edge.highlighted',
+          style: {
+            'width': 3,
+            'line-color': '#e94560',
+            'target-arrow-color': '#e94560',
+            'color': '#fff'
+          }
+        }
+      ],
+      elements: []
+    });
+
+    const history = [];
+    let currentNodeId = null;
+    let currentDepth = 3;
+    let currentMaxChance = 5;
+
+    const depthInput = document.getElementById('depthInput');
+    const maxChanceInput = document.getElementById('maxChanceInput');
+    const btnBack = document.getElementById('btnBack');
+    const btnRoot = document.getElementById('btnRoot');
+    const status = document.getElementById('status');
+    const tooltip = document.getElementById('tooltip');
+
+    async function loadTree(nodeId, depth, maxChance, pushHistory) {
+      status.textContent = 'Loading…';
+      try {
+        const url = '/api/tree?depth=' + depth
+          + '&max_chance_children=' + maxChance
+          + (nodeId !== null ? '&node_id=' + nodeId : '');
+        const resp = await fetch(url);
+        const data = await resp.json();
+        if (data.error) { status.textContent = 'Error: ' + data.error; return; }
+
+        if (pushHistory) {
+          history.push({ nodeId: currentNodeId, depth: currentDepth, maxChance: currentMaxChance });
+        }
+
+        currentNodeId = nodeId;
+        currentDepth = depth;
+        currentMaxChance = maxChance;
+        btnBack.disabled = history.length === 0;
+
+        const elements = [];
+        for (const n of data.nodes) {
+          elements.push({ data: { id: String(n.id), label: n.label, tooltip: n.tooltip, type: n.type, terminal: n.terminal, visits: n.visits } });
+        }
+        for (const e of data.edges) {
+          elements.push({ data: { id: 'e' + e.source + '_' + e.target, source: String(e.source), target: String(e.target), label: e.label } });
+        }
+
+        cy.elements().remove();
+        cy.add(elements);
+        const rootId = String(data.root_id);
+        cy.nodes().filter(n => n.id() !== rootId && n.connectedEdges().length === 0).remove();
+        cy.layout({ name: 'dagre', rankDir: 'TB', nodeSep: 60, rankSep: 90, padding: 20 }).run();
+        cy.fit(undefined, 20);
+
+        status.textContent = data.nodes.length + ' nodes, ' + data.edges.length + ' edges';
+      } catch (e) {
+        status.textContent = 'Error: ' + e.message;
+      }
+    }
+
+    cy.on('tap', 'node', function(evt) {
+      const nodeId = parseInt(evt.target.id(), 10);
+      loadTree(nodeId, currentDepth, currentMaxChance, true);
+    });
+
+    cy.on('mouseover', 'node', function(evt) {
+      const node = evt.target;
+      const text = node.data('tooltip');
+      if (text) {
+        tooltip.textContent = text;
+        tooltip.style.display = 'block';
+      }
+      node.outgoers('edge').addClass('highlighted');
+    });
+
+    cy.on('mousemove', 'node', function(evt) {
+      const e = evt.originalEvent;
+      tooltip.style.left = (e.clientX + 14) + 'px';
+      tooltip.style.top = (e.clientY + 14) + 'px';
+    });
+
+    cy.on('mouseout', 'node', function(evt) {
+      tooltip.style.display = 'none';
+      evt.target.outgoers('edge').removeClass('highlighted');
+    });
+
+    btnBack.addEventListener('click', () => {
+      if (history.length === 0) return;
+      const prev = history.pop();
+      loadTree(prev.nodeId, prev.depth, prev.maxChance, false);
+    });
+
+    btnRoot.addEventListener('click', () => {
+      history.push({ nodeId: currentNodeId, depth: currentDepth, maxChance: currentMaxChance });
+      loadTree(null, currentDepth, currentMaxChance, false);
+    });
+
+    depthInput.addEventListener('change', () => {
+      const d = Math.max(1, Math.min(10, parseInt(depthInput.value, 10) || 3));
+      depthInput.value = d;
+      loadTree(currentNodeId, d, currentMaxChance, false);
+    });
+
+    maxChanceInput.addEventListener('change', () => {
+      const m = Math.max(1, parseInt(maxChanceInput.value, 10) || 5);
+      maxChanceInput.value = m;
+      loadTree(currentNodeId, currentDepth, m, false);
+    });
+
+    loadTree(null, 3, 5, false);
+  </script>
+</body>
+</html>

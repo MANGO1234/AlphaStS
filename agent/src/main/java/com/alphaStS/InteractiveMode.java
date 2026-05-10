@@ -2051,142 +2051,16 @@ public class InteractiveMode {
     }
 
     private void exploreTree(GameState root, BufferedReader reader, String modelDir) throws IOException {
-        boolean printAction = true;
-        boolean printState = true;
-        var saves = new ArrayList<ArrayList<State>>();
-        for (int i = 0; i < 10; i++) {
-            saves.add(null);
-        }
-        var hist = new ArrayList<State>();
-        hist.add(root);
+        var treeServer = new TreeExploreServer(root);
+        int port = treeServer.start();
+        out.println("Tree viewer running at http://localhost:" + port + "  (type 'exit' to stop)");
         while (true) {
-            var s = hist.get(hist.size() - 1);
-            if (s instanceof GameState state) {
-                if (printState) {
-                    if (state.getStateDesc().length() > 0) {
-                        out.println(state.getStateDesc());
-                    }
-                    out.println(state);
-                }
-                if (printAction) {
-                    for (int i = 0; i < state.getLegalActions().length; i++) {
-                        if (state.ns == null || state.ns[i] == null) {
-                            continue;
-                        }
-                        if (state.getAction(i).type() == GameActionType.PLAY_CARD ||
-                                state.getAction(i).type() == GameActionType.SELECT_ENEMY ||
-                                state.getAction(i).type() == GameActionType.SELECT_CARD_HAND ||
-                                state.getAction(i).type() == GameActionType.SELECT_CARD_DISCARD ||
-                                state.getAction(i).type() == GameActionType.SELECT_CARD_EXHAUST ||
-                                state.getAction(i).type() == GameActionType.SELECT_CARD_DECK ||
-                                state.getAction(i).type() == GameActionType.BEGIN_TURN ||
-                                state.getAction(i).type() == GameActionType.USE_POTION ||
-                                state.getAction(i).type() == GameActionType.SELECT_SCENARIO ||
-                                state.getAction(i).type() == GameActionType.SELECT_CARD_1_OUT_OF_3 ||
-                                state.getAction(i).type() == GameActionType.BEGIN_BATTLE ||
-                                state.getAction(i).type() == GameActionType.BEGIN_PRE_BATTLE||
-                                state.getAction(i).type() == GameActionType.END_SELECT_CARD_HAND) {
-                            out.println(i + ". " + state.getActionString(i));
-                        } else if (state.getAction(i).type() == GameActionType.END_TURN) {
-                            out.println("e. End Turn");
-                        } else {
-                            out.println(state.getAction(i));
-                            throw new RuntimeException();
-                        }
-                    }
-                    printState = false;
-                    printAction = false;
-                }
-                out.print("> ");
-                String line = reader.readLine();
-                if (line.equals("exit")) {
-                    return;
-                }
-                if (line.equals("tree") || line.startsWith("tree ")) {
-                    printTree(state, line, modelDir);
-                } else if (line.equals("b")) {
-                    if (hist.size() > 1) {
-                        hist.remove(hist.size() - 1);
-                        printState = true;
-                        printAction = true;
-                    }
-                } else if (line.startsWith("save ")) {
-                    int idx = parseInt(line.substring(5), -1);
-                    if (idx >= 0 && idx <= 9) {
-                        saves.set(idx, new ArrayList<>(hist));
-                    }
-                } else if (line.startsWith("restore ")) {
-                    int idx = parseInt(line.substring(8), -1);
-                    if (idx >= 0 && idx <= 9 && saves.get(idx) != null) {
-                        hist = new ArrayList<>(saves.get(idx));
-                        printState = true;
-                        printAction = true;
-                    }
-                } else {
-                    int action = parseInt(line, -1);
-                    if (action < 0 || action >= state.getLegalActions().length) {
-                        var _state = state;
-                        var actionsOrig = IntStream.range(0, state.getLegalActions().length).mapToObj(_state::getActionString).toList();
-                        var actions = actionsOrig.stream().map(String::toLowerCase).toList();
-                        var actionStr = com.alphaStS.utils.FuzzyMatch.getBestFuzzyMatch(line.toLowerCase(), actions);
-                        if (actionStr != null) {
-                            out.println("Fuzzy Match: " + actionsOrig.get(actions.indexOf(actionStr)));
-                            action = actions.indexOf(actionStr);
-                        }
-                    }
-                    if (action >= 0 && action <= state.getLegalActions().length && state.ns[action] != null) {
-                        printState = true;
-                        printAction = true;
-                        hist.add(state.ns[action]);
-                    } else {
-                        out.println("Unknown Command.");
-                    }
-                }
-            } else if (s instanceof ChanceState cs) {
-                var chanceOutcomes = cs.cache.values().stream().map((ss) -> {
-                    var sStr = ss.state.getStateDesc();
-                    return new Tuple<>(ss, sStr.length() == 0 ? ss.state.toString() : sStr.toString());
-                }).sorted(Comparator.comparing(Tuple::v2)).map(Tuple::v1).toList();
-                if (printState) {
-                    for (int i = 0; i < chanceOutcomes.size(); i++) {
-                        var str = chanceOutcomes.get(i).state.getStateDesc();
-                        out.println(i + ". " + (str.length() == 0 ? chanceOutcomes.get(i).state : str) + " (" + chanceOutcomes.get(i).n + "/" + chanceOutcomes.get(i).state.total_n + ")");
-                    }
-                    printAction = false;
-                }
-                out.print("> ");
-                String line = reader.readLine();
-                if (line.equals("exit")) {
-                    return;
-                }
-                if (line.equals("")) {
-                } else if (line.equals("b")) {
-                    if (hist.size() > 1) {
-                        hist.remove(hist.size() - 1);
-                        printState = true;
-                        printAction = true;
-                    }
-                } else {
-                    int outcome = parseInt(line, -1);
-                    if (outcome < 0 || outcome >= chanceOutcomes.size()) {
-                        var outcomesOrig = chanceOutcomes.stream().map((x) -> x.state.getStateDesc().length() == 0 ? x.state.toString() : x.state.getStateDescStr()).toList();
-                        var outcomes = outcomesOrig.stream().map(String::toLowerCase).toList();
-                        var outcomeStr = FuzzyMatch.getBestFuzzyMatch(line.toLowerCase(), outcomes);
-                        if (outcomeStr != null) {
-                            out.println("Fuzzy Match: " + outcomesOrig.get(outcomes.indexOf(outcomeStr)));
-                            outcome = outcomes.indexOf(outcomeStr);
-                        }
-                    }
-                    if (outcome >= 0 && outcome <= chanceOutcomes.size()) {
-                        printState = true;
-                        printAction = true;
-                        hist.add(chanceOutcomes.get(outcome).state);
-                    } else {
-                        out.println("Unknown Command.");
-                    }
-                }
+            String line = reader.readLine();
+            if (line == null || line.equals("exit")) {
+                break;
             }
         }
+        treeServer.stop();
     }
 
     private void printTree(GameState state, String line, String modelDir) {
