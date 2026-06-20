@@ -193,6 +193,7 @@ public class TestStates {
         //        player.gainArtifact(1);
         builder.setPlayer(player);
         builder.addPotion(new Potion.AncientPotion());
+        builder.setPotionsScenarios(new int[]{100});
         return new GameState(builder);
     }
 

@@ -83,7 +83,10 @@ public enum PredefinedEncounter {
 
     // Act 4
     SPEAR_AND_SHIELD("Shield and Spear", 4, () -> List.of(new EnemyEnding.SpireShield(), new EnemyEnding.SpireSpear())),
-    CORRUPT_HEART("The Heart", 4, () -> List.of(new EnemyEnding.CorruptHeart()));
+    CORRUPT_HEART("The Heart", 4, () -> List.of(new EnemyEnding.CorruptHeart())),
+
+    // Slay the Spire 2: Act 1 Underdocks
+    PHANTASMAL_GARDNER("PhantasmalGardner", 1, () -> List.of(new EnemyUnderdock.PhantasmalGardener(32, EnemyUnderdock.PhantasmalGardener.FLAIL), new EnemyUnderdock.PhantasmalGardener(32, EnemyUnderdock.PhantasmalGardener.BITE), new EnemyUnderdock.PhantasmalGardener(32, EnemyUnderdock.PhantasmalGardener.LASH), new EnemyUnderdock.PhantasmalGardener(32, EnemyUnderdock.PhantasmalGardener.ENLARGE)));
 
     public final int act;
     public final String internalKey;

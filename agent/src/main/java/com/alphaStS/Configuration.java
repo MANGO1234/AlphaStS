@@ -1,6 +1,7 @@
 package com.alphaStS;
 
 public class Configuration {
+    public static final boolean SLAY_THE_SPIRE2_SHUFFLE_FORCED = false;
     public static boolean DO_NOT_USE_CACHED_STATE_WHEN_MAKING_REAL_MOVE = false;
 
     // During training, percentage of games played with no temperature
@@ -108,6 +109,9 @@ public class Configuration {
     public static boolean STATS_PRINT_PREDICTION_ERRORS = false;
     public static boolean STATS_PRINT_CARD_USAGE_COUNT = false;
     public static boolean STATS_PRINT_PER_MODEL_STATS = false;
+    public static boolean STATS_PRINT_TREE_DEPTH = true;
+    // when set, writes a JSON map of damage -> occurrence count to this filename inside the iteration folder
+    public static String STATS_WRITE_DAMAGE_DISTRIBUTION_FILE_SUFFIX = "_nosl";
 
     public static boolean USE_NEW_ACTION_SELECTION = false;
 

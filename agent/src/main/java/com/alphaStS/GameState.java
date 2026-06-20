@@ -136,6 +136,10 @@ public final class GameState implements State {
     ReentrantReadWriteLock lock;
     ReentrantLock transpositionsLock;
     AtomicInteger virtualLoss;
+    // filled in search2
+    GameState parentState;
+    int parentAction;
+    int parentCount = 1;
 
     boolean[] bannedActions;
     boolean visited;
@@ -374,7 +378,16 @@ public final class GameState implements State {
         properties.generateCardOptions = builder.getGenerateCardOptions();
         properties.relics = builder.getRelics();
         properties.enemiesEncounters = builder.getEnemiesEncounters();
-        if (properties.potions.size() > 0 && properties.potionsScenarios != null) {
+        if (!properties.potions.isEmpty() && properties.potions.stream().anyMatch((x) -> !x.isGenerated)) {
+            if (properties.potionsScenarios == null) {
+                properties.potionsScenarios = new int[1][(int) properties.potions.stream().filter((x) -> !x.isGenerated).count()] ;
+                int k = 0;
+                for (int i = 0; i < properties.potions.size(); i++) {
+                    if (!properties.potions.get(i).isGenerated) {
+                        properties.potionsScenarios[0][k++] = properties.potions.get(i).basePenaltyRatio;
+                    }
+                }
+            }
             GameStateRandomization p = new GameStateRandomization.PotionsUtilityRandomization(properties.potions, properties.potionsScenarios);
             properties.preBattleRandomization = properties.preBattleRandomization == null ? p : properties.preBattleRandomization.doAfter(p);
             properties.addStartOfBattleHandler(new GameEventHandler() {
@@ -1096,6 +1109,9 @@ public final class GameState implements State {
                 addCardToHand(cardIdx);
                 deckArrLen--;
                 deckArrFixedDrawLen--;
+                if (properties.enableSL != null && properties.isTraining) {
+                    setIsStochastic();
+                }
             } else if (drawOrder.size() > 0) {
                 i = getDrawOrderForWrite().peekTop();
                 int prevLen = drawOrder.size();
@@ -1110,7 +1126,7 @@ public final class GameState implements State {
             } else {
                 i = getSearchRandomGen().nextInt(this.deckArrLen, RandomGenCtx.CardDraw);
                 setIsStochastic();
-                if (properties.makingRealMove || properties.doingComparison) {
+                if (properties.enableSL == null && (properties.makingRealMove || properties.doingComparison)) {
                     Arrays.sort(getDeckArrForWrite(), 0, this.deckArrLen);
                 }
                 cardIdx = deckArr[i];
@@ -3351,20 +3367,28 @@ public final class GameState implements State {
             handler.handle(this);
         }
         // generate a new deck arr with fixed order instead of reusing discard, will help with consistency
-        var discard = GameStateUtils.getCardArrCounts(discardArr, discardArrLen, properties.realCardsLen);
-        if (deckArrLen > 0) {
-            var deck = GameStateUtils.getCardArrCounts(deckArr, deckArrLen, properties.realCardsLen);
-            for (int i = 0; i < discard.length; i++) {
-                discard[i] += deck[i];
+        if (Configuration.SLAY_THE_SPIRE2_SHUFFLE_FORCED || properties.enableSL == null) {
+            var discard = GameStateUtils.getCardArrCounts(discardArr, discardArrLen, properties.realCardsLen);
+            if (deckArrLen > 0) {
+                var deck = GameStateUtils.getCardArrCounts(deckArr, deckArrLen, properties.realCardsLen);
+                for (int i = 0; i < discard.length; i++) {
+                    discard[i] += deck[i];
+                }
+                discardArrLen += deckArrLen;
+                deckArrLen = 0;
             }
-            discardArrLen += deckArrLen;
-            deckArrLen = 0;
-        }
-        getDeckArrForWrite(discardArrLen);
-        for (short i = 0; i < discard.length; i++) {
-            for (int j = 0; j < discard[i]; j++) {
-                getDeckArrForWrite(discardArrLen)[deckArrLen++] = i;
+            getDeckArrForWrite(discardArrLen);
+            for (short i = 0; i < discard.length; i++) {
+                for (int j = 0; j < discard[i]; j++) {
+                    getDeckArrForWrite(discardArrLen)[deckArrLen++] = i;
+                }
             }
+        } else {
+            int newLen = discardArrLen + deckArrLen;
+            for (int i = 0; i < discardArrLen; i++) {
+                getDeckArrForWrite(newLen)[deckArrLen + i] = discardArr[i];
+            }
+            deckArrLen = newLen;
         }
         if (properties.testingReplayMode) {
             com.alphaStS.test.TestReplay.applyShuffleFromQueue(this);
@@ -4360,7 +4384,7 @@ public final class GameState implements State {
     }
 
     public RandomGen getSearchRandomGen(boolean realMove) {
-        if (realMove || searchRandomGen == null) {
+        if ((realMove && properties.enableSL == null) || searchRandomGen == null) {
             return properties.realMoveRandomGen != null ? properties.realMoveRandomGen : properties.random;
         }
         if (Configuration.COMMON_RANDOM_NUMBER_VARIANCE_REDUCTION && !searchRandomGenCloned) {

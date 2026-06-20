@@ -3132,4 +3132,19 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     // No need to implement Circlet
 
     // No need to implement Red Circlet
+
+    public static class EnableSL extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.enableSL = this;
+            Configuration.CPUCT_SCALING = true;
+            Configuration.TRANSPOSITION_ALWAYS_EXPAND_NEW_NODE = true;
+            if (Configuration.STATS_WRITE_DAMAGE_DISTRIBUTION_FILE_SUFFIX != null) {
+                if (Configuration.SLAY_THE_SPIRE2_SHUFFLE_FORCED) {
+                    Configuration.STATS_WRITE_DAMAGE_DISTRIBUTION_FILE_SUFFIX = "_sl_sts2";
+                } else {
+                    Configuration.STATS_WRITE_DAMAGE_DISTRIBUTION_FILE_SUFFIX = "_sl";
+                }
+            }
+        }
+    }
 }

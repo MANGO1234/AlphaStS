@@ -156,18 +156,20 @@ public class InteractiveMode {
         RandomGen prevRandom = null;
         List<String> nnPV = new ArrayList<>();
         modelExecutor = new ModelExecutor(modelDir);
-        if (history.size() > 0) {
+        if (!history.isEmpty()) {
             reader.addCommandsToFrontOfQueue(history);
             isApplyingHistory = true;
             prevSearchRandomGen = state.getSearchRandomGen();
             prevRealMoveRandomGen = state.properties.realMoveRandomGen;
             prevRandom = state.properties.random;
         }
-        state.setSearchRandomGen(state.properties.random);
-        state.properties.random = new RandomGenInteractive(this, reader, history);
-        state.properties.realMoveRandomGen = null;
+        if (state.properties.enableSL == null) {
+            state.setSearchRandomGen(state.properties.random);
+            state.properties.random = new RandomGenInteractive(this, reader, history);
+            state.properties.realMoveRandomGen = null;
+        }
         int lastHistoryIdxAfterPreBattle = 0;
-        if (history.size() == 0) {
+        if (history.isEmpty()) {
             interactiveRecordSeed(state, history);
         }
         try {
@@ -647,14 +649,20 @@ public class InteractiveMode {
     }
 
     private void executeWithRngEnabled(GameState state, List<String> history, RngOperation operation) throws IOException {
-        RandomGenInteractive rng = (RandomGenInteractive) state.properties.random;
-        boolean prevRngOn = rng.rngOn;
-        rng.rngOn = true;
+        RandomGenInteractive rng = null;
+        boolean prevRngOn = false;
+        if (state.properties.enableSL == null) {
+            rng = (RandomGenInteractive) state.properties.random;
+            rng.rngOn = true;
+            prevRngOn = rng.rngOn;
+        }
         try {
             operation.run();
         } finally {
             interactiveRecordSeed(state, history);
-            rng.rngOn = prevRngOn;
+            if (state.properties.enableSL == null) {
+                rng.rngOn = prevRngOn;
+            }
         }
     }
 
@@ -730,7 +738,7 @@ public class InteractiveMode {
                     curGames.addAll(session.playGames(step.state(), numberOfGames - curGames.size(), nodeCount, numberOfThreads, batchSize, true, true));
                     var stats = new ScenarioStats(state.properties);
                     for (MatchSession.Game g : curGames) {
-                        stats.add(g.steps(), g.turnSearchDepths(), 0);
+                        stats.add(g.steps(), g.searchDepthStat(), 0);
                     }
                     statsArr.add(stats);
                 }
@@ -1049,7 +1057,7 @@ public class InteractiveMode {
                     }
                 }
             }
-            if (state.currentEncounter != null) {
+            if (state.currentEncounter != null && state.currentEncounter.encounterEnum != null) {
                 out.println("  - " + state.currentEncounter.encounterEnum.name());
             }
             if (state.getPlayerForRead().isEntangled()) {

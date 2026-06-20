@@ -81,7 +81,9 @@ public class MCTS {
             realV.copyFrom(v);
             state.initSearchInfoLeaf();
             state.getTotalQArray().copyFrom(v);
-            if (v.get(GameState.V_WIN_IDX) > 0.5 && cannotImproveState(state)) {
+            // TODO: reachedGuaranteedWin assumes ChanceNode is where cannotImproveState goes from true to false, but that's not true under SL
+            // also is it true in NOSL either?
+            if (v.get(GameState.V_WIN_IDX) > 0.5 && state.properties.enableSL == null && cannotImproveState(state)) {
                 reachedGuaranteedWin = true;
             }
             return SEARCH_SUCCESS;
@@ -137,7 +139,10 @@ public class MCTS {
         if (nextState == null) {
             state2 = state.clone(true);
             state2 = state2.doAction(action);
+            state2.parentState = state;
+            state2.parentAction = action;
             if (state2.isStochastic) {
+                state2.parentState = null;
                 if (Configuration.isTranspositionAcrossChanceNodeOn(state)) {
                     var s = state.transpositions.get(state2);
                     if (s == null || s instanceof ChanceState) {
@@ -157,6 +162,7 @@ public class MCTS {
                         }
                     } else {
                         state2 = (GameState) s;
+                        state2.parentCount += 1;
                         if (Configuration.UPDATE_TRANSPOSITIONS_ON_ALL_PATH && (!Configuration.TEST_UPDATE_TRANSPOSITIONS_ON_ALL_PATH || state.properties.testNewFeature)) {
                             state.transpositionsParent.get(state2).add(new Tuple<>(state, action));
                         }
@@ -214,6 +220,7 @@ public class MCTS {
                         addBannedAction(state, action);
                         return SEARCH_RETRY;
                     }
+                    ns.parentCount += 1;
                     if (Configuration.UPDATE_TRANSPOSITIONS_ON_ALL_PATH && (!Configuration.TEST_UPDATE_TRANSPOSITIONS_ON_ALL_PATH || state.properties.testNewFeature)) {
                         state.transpositionsParent.get(state2).add(new Tuple<>(state, action));
                     }
@@ -1796,6 +1803,50 @@ public class MCTS {
                 if (state.n[i] > max_n) {
                     max_n = state.n[i];
                     action = i;
+                }
+            }
+            if (state.properties.enableSL != null && !state.properties.isTraining) {
+                // When transpositions exist, the max-n child may be a convergence point with
+                // counts inflated from multiple parent paths. Walk down to the first such node
+                // and reroute via the parentState chain if it traces back to state.
+                GameState cur = state;
+                int curAction = action;
+                while (true) {
+                    State nextRaw = cur.ns[curAction];
+                    if (!(nextRaw instanceof GameState next)) {
+                        break;
+                    }
+                    if (next.parentCount > 1) {
+                        GameState walkCur = next;
+                        while (walkCur.parentState != null && walkCur.parentState != state) {
+                            walkCur = walkCur.parentState;
+                        }
+                        if (walkCur.parentState == state) {
+                            action = walkCur.parentAction;
+                        }
+                        break;
+                    }
+                    if (next.isTerminal() != 0 || next.n == null || next.total_n == 0) {
+                        break;
+                    }
+                    int nextAction;
+                    if (next.terminalAction >= 0) {
+                        nextAction = next.terminalAction;
+                    } else {
+                        nextAction = -1;
+                        int maxN = -1;
+                        for (int i = 0; i < next.n.length; i++) {
+                            if (next.n[i] > maxN) {
+                                maxN = next.n[i];
+                                nextAction = i;
+                            }
+                        }
+                        if (nextAction < 0) {
+                            break;
+                        }
+                    }
+                    curAction = nextAction;
+                    cur = next;
                 }
             }
             return action;

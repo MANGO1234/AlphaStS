@@ -156,9 +156,12 @@ public class ChanceState implements State {
             return queue.remove(0);
         }
 
-        if (useProgressiveWidening && cache.size() >= Math.ceil(Math.pow(total_n, 0.35)) && false) {
+        if ((useProgressiveWidening && cache.size() >= Math.ceil(Math.pow(total_n, 0.35)) && false) || parentState.properties.enableSL != null) {
             // instead of generating new nodes, revisit node, need testing
-            var r = (long) searchRandomGen.nextInt((int) total_node_n, RandomGenCtx.Other, this);
+            int r = 0;
+            if (parentState.properties.enableSL == null) {
+                r = searchRandomGen.nextInt((int) total_node_n, RandomGenCtx.Other, this);
+            }
             var acc = 0;
             for (Map.Entry<GameState, Node> entry : cache.entrySet()) {
                 acc += entry.getValue().n;

@@ -15,7 +15,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
 import org.apache.commons.compress.compressors.lz4.FramedLZ4CompressorOutputStream;
-import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 
 import java.io.*;
 import java.net.Socket;
@@ -120,7 +119,7 @@ public class MatchSession {
             state.properties.makingRealMove = false;
         }
 
-        var turnSearchDepths = new HashMap<Integer, DescriptiveStatistics>();
+        var searchDepthStat = new ScenarioStats.SingleGameSearchDepthStat();
         if (false) {
             while (state.isTerminal() == 0) {
                 int upto = nodeCount - (state.total_n + (state.policy == null ? 0 : 1));
@@ -129,6 +128,10 @@ public class MatchSession {
                     if (mcts.numberOfPossibleActions == 1 && state.total_n > 0) {
                         break;
                     }
+                }
+                if (state.turnNum > 0 && Configuration.STATS_PRINT_TREE_DEPTH) {
+                    var dagStats = GameStateUtils.getSearchDagStats(state);
+                    searchDepthStat.addValue(state.turnNum, dagStats.avgDepth(), dagStats.maxDepth());
                 }
 
                 for (int action : state.searchFrontier.getBestLine().getActions(state)) {
@@ -182,9 +185,9 @@ public class MatchSession {
                         break;
                     }
                 }
-                if (state.turnNum > 0) {
-                    turnSearchDepths.computeIfAbsent((int) state.turnNum, k -> new DescriptiveStatistics())
-                            .addValue(GameStateUtils.getSearchDagStats(state).avgDepth());
+                if (state.turnNum > 0 && Configuration.STATS_PRINT_TREE_DEPTH) {
+                    var dagStats = GameStateUtils.getSearchDagStats(state);
+                    searchDepthStat.addValue(state.turnNum, dagStats.avgDepth(), dagStats.maxDepth());
                 }
 
                 int action = MCTS.getActionWithMaxNodesOrTerminal(state);
@@ -222,7 +225,7 @@ public class MatchSession {
                 steps.get(i - 1).actionDesc = steps.get(i).state().stateDesc;
             }
         }
-        return new Game(steps, state.preBattleRandomizationIdxChosen, state.battleRandomizationIdxChosen, null, 0, 0, null, turnSearchDepths);
+        return new Game(steps, state.preBattleRandomizationIdxChosen, state.battleRandomizationIdxChosen, null, 0, 0, null, searchDepthStat);
     }
 
     // when comparing game searchRandomGen can get out of sync, make sure it's synced as much as possible
@@ -270,7 +273,7 @@ public class MatchSession {
         return null;
     }
 
-    public static record Game(List<GameStep> steps, int preBattle_r, int battle_r, List<GameStep> augmentedSteps, int noTemperatureTurn, int difficulty, Tuple3<Long, Long, Long> aa, Map<Integer, DescriptiveStatistics> turnSearchDepths) {}
+    public static record Game(List<GameStep> steps, int preBattle_r, int battle_r, List<GameStep> augmentedSteps, int noTemperatureTurn, int difficulty, Tuple3<Long, Long, Long> aa, ScenarioStats.SingleGameSearchDepthStat searchDepthStat) {}
     public static record GameResult(Game game, int modelCalls, Game game2, int modelCalls2, long seed, List<GameResult> reruns, String remoteServer, int remoteR, ScenarioStats remoteStats, String remoteGameRecord) {}
     public static record TrainingGameResult(Game game, String remoteServer, String remoteTrainingGameRecord, byte[] remoteTrainingData) {}
 
@@ -398,10 +401,10 @@ public class MatchSession {
                         }
                     }
                 }
-                scenarioStats.computeIfAbsent(r, (k) -> new ScenarioStats(origState.properties)).add(game.steps, game.turnSearchDepths, result.modelCalls);
+                scenarioStats.computeIfAbsent(r, (k) -> new ScenarioStats(origState.properties)).add(game.steps, game.searchDepthStat, result.modelCalls);
                 scenarioStats.get(r).add(game.steps, steps2, result.modelCalls2, result.reruns);
                 if (scenarioStats.size() == 1 && startingAction >= 0 && game.steps.get(0).state().isStochastic) {
-                    chanceNodeStats.computeIfAbsent(game.steps.get(0).state(), (k) -> new ScenarioStats(origState.properties)).add(game.steps, game.turnSearchDepths, result.modelCalls);
+                    chanceNodeStats.computeIfAbsent(game.steps.get(0).state(), (k) -> new ScenarioStats(origState.properties)).add(game.steps, game.searchDepthStat, result.modelCalls);
                     chanceNodeStats.get(game.steps.get(0).state()).add(game.steps, steps2, result.modelCalls2, result.reruns);
                 }
                 game_i.incrementAndGet();
@@ -452,7 +455,15 @@ public class MatchSession {
                     ScenarioStats.printAverageDamageComparisonTable(null, scenarioStats, origState.properties);
                     ScenarioStats.printFinalQValueComparisonTable(null, scenarioStats, origState.properties);
                 }
-                ScenarioStats.combine(origState.properties, scenarioStats.values().toArray(new ScenarioStats[0])).printStats(origState, printDamageLevel.compareTo(PrintDamageLevel.ALL_SCENARIOS_COMBINED) >= 0 && game_i.get() == numOfGames, 0);
+                var combinedStats = ScenarioStats.combine(origState.properties, scenarioStats.values().toArray(new ScenarioStats[0]));
+                combinedStats.printStats(origState, printDamageLevel.compareTo(PrintDamageLevel.ALL_SCENARIOS_COMBINED) >= 0 && game_i.get() == numOfGames, 0);
+                if (game_i.get() == numOfGames && Configuration.STATS_WRITE_DAMAGE_DISTRIBUTION_FILE_SUFFIX != null) {
+                    try {
+                        new ObjectMapper().writeValue(new File(modelDir + "/dmg_dist" + Configuration.STATS_WRITE_DAMAGE_DISTRIBUTION_FILE_SUFFIX + ".json"), combinedStats.damageCount);
+                    } catch (IOException e) {
+                        System.err.println("Failed to write damage distribution: " + e.getMessage());
+                    }
+                }
                 System.out.println("Time Taken: " + (System.currentTimeMillis() - start));
                 printModelStats(modelExecutor.getExecutorModels().stream().map(m -> (ModelPlain) m).toList());
                 System.out.println("--------------------");
@@ -642,7 +653,7 @@ public class MatchSession {
             throw new RuntimeException(e);
         }
         var stat = new ScenarioStats(origState.properties);
-        stat.add(steps, game.turnSearchDepths, result.modelCalls);
+        stat.add(steps, game.searchDepthStat, result.modelCalls);
         stat.add(steps, steps2, result.modelCalls2, result.reruns);
         var ret = getInfoMaps(origState.properties);
         var battleInfoMap = ret.v2();
@@ -807,9 +818,12 @@ public class MatchSession {
 
     private VArray calcExpectedValue(ChanceState cState, GameState generatedState, MCTS mcts, VArray vCur) {
         var stateActual = generatedState == null ? null : cState.addGeneratedState(generatedState);
+        var tmp = cState.parentState.properties.enableSL;
+        cState.parentState.properties.enableSL = null;
         while (cState.total_n < 10000 && cState.cache.size() < 200) {
             cState.getNextState(false, -1);
         }
+        cState.parentState.properties.enableSL = tmp;
 
         VArray est = new VArray(vCur.length());
         for (ChanceState.Node node : cState.cache.values()) {

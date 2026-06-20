@@ -50,7 +50,59 @@ public class ScenarioStats {
     public List<Double> lossQs = new ArrayList<>();
     public long modelCalls2;
     public long totalTurns2;
-    public Map<Integer, DescriptiveStatistics> turnSearchDepths = new HashMap<>();
+    public SearchDepthStat searchDepthStat = new SearchDepthStat();
+
+    public static class SingleGameSearchDepthStat {
+        public DescriptiveStatistics depths = new DescriptiveStatistics();
+        public double maxDepth;
+        public Map<Integer, DescriptiveStatistics> turnDepths = new HashMap<>();
+        public Map<Integer, Double> turnMaxDepth = new HashMap<>();
+
+        public void addValue(int turnNum, double avgDepth, int maxDepth) {
+            depths.addValue(avgDepth);
+            this.maxDepth = Math.max(this.maxDepth, maxDepth);
+            turnDepths.computeIfAbsent(turnNum, k -> new DescriptiveStatistics()).addValue(avgDepth);
+            turnMaxDepth.merge(turnNum, (double) maxDepth, Math::max);
+        }
+    }
+
+    public static class SearchDepthStat {
+        public DescriptiveStatistics gameAverageTurnDepth = new DescriptiveStatistics();
+        public DescriptiveStatistics gameMaxTurnDepth = new DescriptiveStatistics();
+        public Map<Integer, DescriptiveStatistics> turnAverageDepth = new HashMap<>();
+        public Map<Integer, DescriptiveStatistics> turnMaxDepth = new HashMap<>();
+
+        public void addGame(SingleGameSearchDepthStat game) {
+            if (game == null) return;
+            gameAverageTurnDepth.addValue(game.depths.getMean());
+            gameMaxTurnDepth.addValue(game.maxDepth);
+            for (var entry : game.turnDepths.entrySet()) {
+                turnAverageDepth.computeIfAbsent(entry.getKey(), k -> new DescriptiveStatistics())
+                        .addValue(entry.getValue().getMean());
+            }
+            for (var entry : game.turnMaxDepth.entrySet()) {
+                turnMaxDepth.computeIfAbsent(entry.getKey(), k -> new DescriptiveStatistics())
+                        .addValue(entry.getValue());
+            }
+        }
+
+        public void add(SearchDepthStat other) {
+            for (double v : other.gameAverageTurnDepth.getValues()) gameAverageTurnDepth.addValue(v);
+            for (double v : other.gameMaxTurnDepth.getValues()) gameMaxTurnDepth.addValue(v);
+            for (var entry : other.turnAverageDepth.entrySet()) {
+                var ds = turnAverageDepth.computeIfAbsent(entry.getKey(), k -> new DescriptiveStatistics());
+                for (double v : entry.getValue().getValues()) ds.addValue(v);
+            }
+            for (var entry : other.turnMaxDepth.entrySet()) {
+                var ds = turnMaxDepth.computeIfAbsent(entry.getKey(), k -> new DescriptiveStatistics());
+                for (double v : entry.getValue().getValues()) ds.addValue(v);
+            }
+        }
+
+        public boolean isEmpty() {
+            return gameAverageTurnDepth.getN() == 0;
+        }
+    }
 
     public ScenarioStats(GameProperties properties) {
         this.properties = properties;
@@ -168,20 +220,10 @@ public class ScenarioStats {
         lossQs.addAll(stat.lossQs);
         modelCalls2 += stat.modelCalls2;
         totalTurns2 += stat.totalTurns2;
-        addTurnSearchDepths(stat.turnSearchDepths);
+        searchDepthStat.add(stat.searchDepthStat);
     }
 
-    private void addTurnSearchDepths(Map<Integer, DescriptiveStatistics> depths) {
-        if (depths == null) return;
-        for (var entry : depths.entrySet()) {
-            var ds = turnSearchDepths.computeIfAbsent(entry.getKey(), k -> new DescriptiveStatistics());
-            for (double v : entry.getValue().getValues()) {
-                ds.addValue(v);
-            }
-        }
-    }
-
-    public void add(List<GameStep> steps, Map<Integer, DescriptiveStatistics> depths, int modelCalls) {
+    public void add(List<GameStep> steps, SingleGameSearchDepthStat depths, int modelCalls) {
         GameState state = steps.get(steps.size() - 1).state();
         this.modelCalls += modelCalls;
         totalTurns += state.realTurnNum;
@@ -253,7 +295,7 @@ public class ScenarioStats {
                 counterStat.add(state);
             }
         }
-        addTurnSearchDepths(depths);
+        searchDepthStat.addGame(depths);
     }
 
     public void add(List<GameStep> steps, List<GameStep> steps2, int modelCalls2, List<GameResult> reruns) {
@@ -391,16 +433,11 @@ public class ScenarioStats {
         System.out.println(indent + "Average Final Progress: " + String.format("%.5f", finalFightProgress / numOfGames));
         System.out.println(indent + "Nodes/Turns: " + modelCalls + "/" + totalTurns + "/" + (((double) modelCalls) / totalTurns));
         System.out.println(indent + "Average Turns: " + String.format("%.2f", ((double) totalTurns) / numOfGames) + "/" + String.format("%.2f", ((double) totalTurnsInWins) / (numOfGames - deathCount)));
-        if (!turnSearchDepths.isEmpty()) {
-            var allDepths = new DescriptiveStatistics();
-            turnSearchDepths.values().forEach(turnDs -> Arrays.stream(turnDs.getValues()).forEach(allDepths::addValue));
-            var perTurnAvg = turnSearchDepths.entrySet().stream().sorted(Map.Entry.comparingByKey())
-                    .map(e -> "Turn " + e.getKey() + ": " + String.format("%.2f", e.getValue().getMean()))
+        if (!searchDepthStat.isEmpty()) {
+            var perTurnAvg = searchDepthStat.turnAverageDepth.entrySet().stream().sorted(Map.Entry.comparingByKey())
+                    .map(e -> "Turn " + e.getKey() + ": " + String.format("%.2f", e.getValue().getMean()) + "/" + String.format("%.2f", searchDepthStat.turnMaxDepth.get(e.getKey()).getMean()))
                     .collect(Collectors.joining(", "));
-            var perTurnMax = turnSearchDepths.entrySet().stream().sorted(Map.Entry.comparingByKey())
-                    .map(e -> "Turn " + e.getKey() + ": " + (long) e.getValue().getMax())
-                    .collect(Collectors.joining(", "));
-            System.out.println(indent + "Average/Max Search Tree Depth: " + String.format("%.2f", allDepths.getMean()) + "/" + (long) allDepths.getMax() + " (Avg: " + perTurnAvg + ") (Max: " + perTurnMax + ")");
+            System.out.println(indent + "Average/Max Search Tree Depth: " + String.format("%.2f", searchDepthStat.gameAverageTurnDepth.getMean()) + "/" + String.format("%.2f",searchDepthStat.gameMaxTurnDepth.getMean()) + " (Breakdown: " + perTurnAvg + ")");
         }
 
         if (hasState2) {

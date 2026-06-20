@@ -4,7 +4,6 @@ import com.alphaStS.card.Card;
 import com.alphaStS.enemy.EnemyEncounter;
 import com.alphaStS.enemy.EnemyList;
 import com.alphaStS.enemy.EnemyReadOnly;
-import com.alphaStS.enemy.PredefinedEncounter;
 import com.alphaStS.entity.Potion;
 import com.alphaStS.entity.Relic;
 import com.alphaStS.enums.CharacterEnum;
@@ -326,6 +325,7 @@ public class GameProperties implements Cloneable {
     public Relic strikeDummy = null;
     public Relic strikeDummyQQQ = null;
     public Relic sturdyClamp = null;
+    public Relic enableSL = null;
     public Relic tingsha = null;
     public Relic toolbox = null;
     public Relic torii = null;

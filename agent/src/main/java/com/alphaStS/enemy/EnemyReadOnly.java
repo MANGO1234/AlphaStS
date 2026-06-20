@@ -21,6 +21,7 @@ public abstract class EnemyReadOnly implements GameProperties.TrainingTargetRegi
         public boolean isMinion = false;
         public EntityProperty entityProperty = new EntityProperty();
         public boolean canGainStrength = false;
+        public boolean canBeStunned = false;
         public boolean canGainLoseStrengthEot = false;
         public boolean canGainRegeneration = false;
         public boolean canHeal = false;

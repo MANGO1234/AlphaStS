@@ -12,7 +12,6 @@ import com.alphaStS.random.RandomGen;
 import com.alphaStS.random.RandomGenCtx;
 
 import java.util.List;
-import com.alphaStS.utils.Tuple;
 
 public class EnemyEnding {
     public static class SpireShield extends Enemy {
