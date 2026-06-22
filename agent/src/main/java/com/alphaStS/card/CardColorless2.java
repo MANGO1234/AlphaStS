@@ -126,9 +126,6 @@ public class CardColorless2 {
     }
 
     // Discovery (Uncommon) - 1 energy, Skill
-    //   Effect: Choose 1 of 3 random cards to add into your Hand. It costs 0 energy this turn. Exhaust.
-    //   Upgraded Effect: Choose 1 of 3 random cards to add into your Hand. It costs 0 energy this turn.
-    // TODO CHANGED: Discovery (Uncommon) - 1 energy, Skill
     //   Effect: Choose 1 of 3 random cards to add into your Hand. It's free to play this turn. Exhaust.
     //   Upgraded Effect: Choose 1 of 3 random cards to add into your Hand. It's free to play this turn.
     public static class Discovery extends CardColorless.Discovery {
@@ -193,20 +190,17 @@ public class CardColorless2 {
     }
 
     // Fasten (Uncommon) - 1 energy, Power
-    //   Effect: Gain an additional 5 Block from Defend cards.
-    //   Upgraded Effect: Gain an additional 7 Block from Defend cards.
-    // TODO CHANGED: Fasten (Uncommon) - 1 energy, Power
     //   Effect: Gain an additional 4 Block from Defend cards.
     //   Upgraded Effect: Gain an additional 6 Block from Defend cards.
     public static class Fasten extends _FastenT {
         public Fasten() {
-            super("Fasten", 5);
+            super("Fasten", 4);
         }
     }
 
     public static class FastenP extends _FastenT {
         public FastenP() {
-            super("Fasten+", 7);
+            super("Fasten+", 6);
         }
     }
 
@@ -413,32 +407,32 @@ public class CardColorless2 {
     }
 
     private static abstract class _ProductionT extends Card {
-        public _ProductionT(String cardName, boolean exhaust) {
+        private final int energy;
+
+        public _ProductionT(String cardName, int energy) {
             super(cardName, Card.SKILL, 0, Card.UNCOMMON);
-            exhaustWhenPlayed = exhaust;
+            this.energy = energy;
+            exhaustWhenPlayed = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.gainEnergy(2);
+            state.gainEnergy(energy);
             return GameActionCtx.PLAY_CARD;
         }
     }
 
     // Production (Uncommon) - 0 energy, Skill
     //   Effect: Gain 2 energy. Exhaust.
-    //   Upgraded Effect: Gain 2 energy.
-    // TODO CHANGED: Production (Uncommon) - 0 energy, Skill
-    //   Effect: Gain 2 energy. Exhaust.
     //   Upgraded Effect: Gain 3 energy. Exhaust.
     public static class Production extends _ProductionT {
         public Production() {
-            super("Production", true);
+            super("Production", 2);
         }
     }
 
     public static class ProductionP extends _ProductionT {
         public ProductionP() {
-            super("Production+", false);
+            super("Production+", 3);
         }
     }
 
@@ -843,20 +837,17 @@ public class CardColorless2 {
     }
 
     // Eternal Armor (Rare) - 3 energy, Power
-    //   Effect: Gain 7 Plating.
-    //   Upgraded Effect: Gain 9 Plating.
-    // TODO CHANGED: Eternal Armor (Rare) - 3 energy, Power
     //   Effect: Gain 9 Plating.
     //   Upgraded Effect: Gain 12 Plating.
     public static class EternalArmor extends _EternalArmorT {
         public EternalArmor() {
-            super("Eternal Armor", 7);
+            super("Eternal Armor", 9);
         }
     }
 
     public static class EternalArmorP extends _EternalArmorT {
         public EternalArmorP() {
-            super("Eternal Armor+", 9);
+            super("Eternal Armor+", 12);
         }
     }
 
@@ -1728,7 +1719,7 @@ public class CardColorless2 {
         private final int damage;
 
         public _MinionDiveBombT(String cardName, int damage) {
-            super(cardName, Card.ATTACK, 1, Card.COMMON);
+            super(cardName, Card.ATTACK, 0, Card.COMMON);
             this.damage = damage;
             entityProperty.selectEnemy = true;
             exhaustWhenPlayed = true;
@@ -1740,10 +1731,7 @@ public class CardColorless2 {
         }
     }
 
-    // Minion Dive Bomb (Token) - 1 energy, Attack
-    //   Effect: Deal 13 damage. Exhaust.
-    //   Upgraded Effect: Deal 16 damage. Exhaust.
-    // TODO CHANGED: Minion Dive Bomb (Token) - 0 energy, Attack
+    // Minion Dive Bomb (Token) - 0 energy, Attack
     //   Effect: Deal 13 damage. Exhaust.
     //   Upgraded Effect: Deal 16 damage. Exhaust.
     public static class MinionDiveBomb extends _MinionDiveBombT {
@@ -1774,20 +1762,17 @@ public class CardColorless2 {
     }
 
     // Minion Sacrifice (Token) - 0 energy, Skill
-    //   Effect: Gain 9 Block. Exhaust.
-    //   Upgraded Effect: Gain 12 Block. Exhaust.
-    // TODO CHANGED: Minion Sacrifice (Token) - 0 energy, Skill
     //   Effect: Gain 8 Block. Exhaust.
     //   Upgraded Effect: Gain 11 Block. Exhaust.
     public static class MinionSacrifice extends _MinionSacrificeT {
         public MinionSacrifice() {
-            super("Minion Sacrifice", 9);
+            super("Minion Sacrifice", 8);
         }
     }
 
     public static class MinionSacrificeP extends _MinionSacrificeT {
         public MinionSacrificeP() {
-            super("Minion Sacrifice+", 12);
+            super("Minion Sacrifice+", 11);
         }
     }
 
@@ -1809,20 +1794,17 @@ public class CardColorless2 {
     }
 
     // Minion Strike (Token) - 0 energy, Attack
-    //   Effect: Deal 7 damage. Draw 1 card. Exhaust.
-    //   Upgraded Effect: Deal 10 damage. Draw 1 card. Exhaust.
-    // TODO CHANGED: Minion Strike (Token) - 0 energy, Attack
     //   Effect: Deal 6 damage. Draw 1 card. Exhaust.
     //   Upgraded Effect: Deal 9 damage. Draw 1 card. Exhaust.
     public static class MinionStrike extends _MinionStrikeT {
         public MinionStrike() {
-            super("Minion Strike", 7);
+            super("Minion Strike", 6);
         }
     }
 
     public static class MinionStrikeP extends _MinionStrikeT {
         public MinionStrikeP() {
-            super("Minion Strike+", 10);
+            super("Minion Strike+", 9);
         }
     }
 

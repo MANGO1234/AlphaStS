@@ -121,7 +121,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
     public Card getUpgrade() { return CardUpgrade.map.get(this); }
 
     public Card getTemporaryCostIfPossible(int temporaryCost) {
-        if (energyCost <= temporaryCost || isXCost) {
+        if ((energyCost <= temporaryCost && !(temporaryCost == 0 && starCost > 0)) || isXCost) {
             return this;
         }
         var mod = new CardModification();
@@ -151,7 +151,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
     }
 
     public Card getTemporaryCostUntilPlayedIfPossible(int temporaryCost) {
-        if (energyCost <= temporaryCost || isXCost) {
+        if ((energyCost <= temporaryCost && !(temporaryCost == 0 && starCost > 0)) || isXCost) {
             return this;
         }
         var mod = new CardModification();
@@ -431,6 +431,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         }
 
         private void copyCardProperties(Card card) {
+            starCost = isFreeToPlay() ? 0 : card.starCost;
             ethereal = card.ethereal();
             innate = card.innate;
             exhaustWhenPlayed = mod.soulsPower ? false : card.exhaustWhenPlayed;
@@ -453,6 +454,10 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
             healPlayer = card.healPlayer;
             scry = card.scry;
             select1OutOf3CardEffectCard = card.select1OutOf3CardEffectCard;
+        }
+
+        private boolean isFreeToPlay() {
+            return mod.tmpChangeCost == 0 || mod.tmpUntilPlayedCost == 0;
         }
 
         @Override public boolean ethereal() { return super.ethereal() || mod.permEthereal; }
