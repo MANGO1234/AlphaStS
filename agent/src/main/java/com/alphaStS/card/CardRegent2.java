@@ -58,20 +58,17 @@ public class CardRegent2 {
     }
 
     // Falling Star (Basic) - 0 energy, 2 star, Attack
-    //   Effect: Deal 7 damage. Apply 1 Weak. Apply 1 Vulnerable.
-    //   Upgraded Effect: Deal 11 damage. Apply 1 Weak. Apply 1 Vulnerable.
-    // TODO CHANGED: Falling Star (Basic) - 0 energy, 2 star, Attack
     //   Effect: Deal 8 damage. Apply 1 Weak. Apply 1 Vulnerable.
     //   Upgraded Effect: Deal 12 damage. Apply 1 Weak. Apply 1 Vulnerable.
     public static class FallingStar extends _FallingStarT {
         public FallingStar() {
-            super("Falling Star", 7);
+            super("Falling Star", 8);
         }
     }
 
     public static class FallingStarP extends _FallingStarT {
         public FallingStarP() {
-            super("Falling Star+", 11);
+            super("Falling Star+", 12);
         }
     }
 
@@ -151,19 +148,14 @@ public class CardRegent2 {
     }
 
     private static abstract class _BegoneT extends Card {
-        private final int dmg;
-
-        public _BegoneT(String cardName, int dmg) {
-            super(cardName, Card.ATTACK, 1, Card.COMMON);
-            this.dmg = dmg;
-            entityProperty.selectEnemy = true;
+        public _BegoneT(String cardName) {
+            super(cardName, Card.SKILL, 1, Card.COMMON);
             entityProperty.selectFromHand = true;
             selectFromHandLater = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             if (state.actionCtx == GameActionCtx.PLAY_CARD) {
-                state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), dmg, this);
                 return state.getNumCardsInHand() > 0 ? GameActionCtx.SELECT_CARD_HAND : GameActionCtx.PLAY_CARD;
             } else {
                 var hand = state.getHandArrForRead();
@@ -178,44 +170,43 @@ public class CardRegent2 {
         }
     }
 
-    // BEGONE! (Common) - 1 energy, Attack
-    //   Effect: Deal 4 damage. Choose a card in your Hand to Transform into Minion Dive Bomb.
-    //   Upgraded Effect: Deal 5 damage. Choose a card in your Hand to Transform into Minion Dive Bomb+.
-    // TODO CHANGED: BEGONE! (Common) - 1 energy, Skill
+    // BEGONE! (Common) - 1 energy, Skill
     //   Effect: Choose a card in your Hand to Transform into Minion Strike.
     //   Upgraded Effect: Choose a card in your Hand to Transform into Minion Strike+.
     public static class Begone extends _BegoneT {
         public Begone() {
-            super("BEGONE!", 4);
+            super("BEGONE!");
         }
 
         @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
-            return List.of(new CardColorless2.MinionDiveBomb());
+            return List.of(new CardColorless2.MinionStrike());
         }
     }
 
     public static class BegoneP extends _BegoneT {
         public BegoneP() {
-            super("BEGONE!+", 5);
+            super("BEGONE!+");
         }
 
         @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
-            return List.of(new CardColorless2.MinionDiveBombP());
+            return List.of(new CardColorless2.MinionStrikeP());
         }
     }
 
     private static abstract class _CelestialMightT extends Card {
         private final int dmg;
+        private final int hits;
 
-        public _CelestialMightT(String cardName, int dmg) {
+        public _CelestialMightT(String cardName, int dmg, int hits) {
             super(cardName, Card.ATTACK, 2, Card.COMMON);
             this.dmg = dmg;
+            this.hits = hits;
             entityProperty.selectEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             var enemy = state.getEnemiesForWrite().getForWrite(idx);
-            for (int i = 0; i < 3; i++) {
+            for (int i = 0; i < hits; i++) {
                 state.playerDoDamageToEnemy(enemy, dmg, this);
             }
             return GameActionCtx.PLAY_CARD;
@@ -224,19 +215,16 @@ public class CardRegent2 {
 
     // Celestial Might (Common) - 2 energy, Attack
     //   Effect: Deal 6 damage 3 times.
-    //   Upgraded Effect: Deal 8 damage 3 times.
-    // TODO CHANGED: Celestial Might (Common) - 2 energy, Attack
-    //   Effect: Deal 6 damage 3 times.
     //   Upgraded Effect: Deal 6 damage 4 times.
     public static class CelestialMight extends _CelestialMightT {
         public CelestialMight() {
-            super("Celestial Might", 6);
+            super("Celestial Might", 6, 3);
         }
     }
 
     public static class CelestialMightP extends _CelestialMightT {
         public CelestialMightP() {
-            super("Celestial Might+", 8);
+            super("Celestial Might+", 6, 4);
         }
     }
 
@@ -292,20 +280,17 @@ public class CardRegent2 {
     }
 
     // Collision Course (Common) - 0 energy, Attack
-    //   Effect: Deal 9 damage. Add a Debris into your Hand.
-    //   Upgraded Effect: Deal 12 damage. Add a Debris into your Hand.
-    // TODO CHANGED: Collision Course (Common) - 0 energy, Attack
     //   Effect: Deal 11 damage. Add a Debris into your Hand.
     //   Upgraded Effect: Deal 15 damage. Add a Debris into your Hand.
     public static class CollisionCourse extends _CollisionCourseT {
         public CollisionCourse() {
-            super("Collision Course", 9);
+            super("Collision Course", 11);
         }
     }
 
     public static class CollisionCourseP extends _CollisionCourseT {
         public CollisionCourseP() {
-            super("Collision Course+", 12);
+            super("Collision Course+", 15);
         }
     }
 
@@ -380,20 +365,17 @@ public class CardRegent2 {
     }
 
     // Crescent Spear (Common) - 1 energy, 1 star, Attack
-    //   Effect: Deal 6 damage. Deals 2 additional damage for ALL your cards that have a star cost.
-    //   Upgraded Effect: Deal 6 damage. Deals 3 additional damage for ALL your cards that have a star cost.
-    // TODO CHANGED: Crescent Spear (Common) - 1 energy, 1 star, Attack
     //   Effect: Deal 8 damage. Deals 2 additional damage for ALL your cards that have a star cost.
     //   Upgraded Effect: Deal 8 damage. Deals 3 additional damage for ALL your cards that have a star cost.
     public static class CrescentSpear extends _CrescentSpearT {
         public CrescentSpear() {
-            super("Crescent Spear", 6, 2);
+            super("Crescent Spear", 8, 2);
         }
     }
 
     public static class CrescentSpearP extends _CrescentSpearT {
         public CrescentSpearP() {
-            super("Crescent Spear+", 6, 3);
+            super("Crescent Spear+", 8, 3);
         }
     }
 
@@ -449,20 +431,17 @@ public class CardRegent2 {
     }
 
     // Gather Light (Common) - 1 energy, Skill
-    //   Effect: Gain 7 Block. Gain star.
-    //   Upgraded Effect: Gain 10 Block. Gain star.
-    // TODO CHANGED: Gather Light (Common) - 1 energy, Skill
     //   Effect: Gain 8 Block. Gain star.
     //   Upgraded Effect: Gain 11 Block. Gain star.
     public static class GatherLight extends _GatherLightT {
         public GatherLight() {
-            super("Gather Light", 7);
+            super("Gather Light", 8);
         }
     }
 
     public static class GatherLightP extends _GatherLightT {
         public GatherLightP() {
-            super("Gather Light+", 10);
+            super("Gather Light+", 11);
         }
     }
 
@@ -488,20 +467,17 @@ public class CardRegent2 {
     }
 
     // Glitterstream (Common) - 2 energy, Skill
-    //   Effect: Gain 11 Block. Next turn, gain 4 Block.
-    //   Upgraded Effect: Gain 13 Block. Next turn, gain 6 Block.
-    // TODO CHANGED: Glitterstream (Common) - 2 energy, Skill
     //   Effect: Gain 11 Block. Next turn, gain 5 Block.
     //   Upgraded Effect: Gain 13 Block. Next turn, gain 7 Block.
     public static class Glitterstream extends _GlitterstreamT {
         public Glitterstream() {
-            super("Glitterstream", 11, 4);
+            super("Glitterstream", 11, 5);
         }
     }
 
     public static class GlitterstreamP extends _GlitterstreamT {
         public GlitterstreamP() {
-            super("Glitterstream+", 13, 6);
+            super("Glitterstream+", 13, 7);
         }
     }
 
@@ -515,17 +491,19 @@ public class CardRegent2 {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.gainStar(stars);
-            state.draw(2);
+            state.draw(1);
+            state.getCounterForWrite()[counterIdx]++;
             return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerDrawNextTurnCounter(this);
         }
     }
 
     // Glow (Common) - 1 energy, Skill
-    //   Effect: Gain star. Draw 2 cards.
-    //   Upgraded Effect: Gain 2 star. Draw 2 cards.
-    // TODO CHANGED: Glow (Common) - 1 energy, Skill
-    //   Effect: Gain star. Draw 1 card. Next turn, draw 1 card
-    //   Upgraded Effect: Gain 2 star. Draw 1 card. Next turn, draw 1 card
+    //   Effect: Gain star. Draw 1 card. Next turn, draw 1 card.
+    //   Upgraded Effect: Gain 2 star. Draw 1 card. Next turn, draw 1 card.
     public static class Glow extends _GlowT {
         public Glow() {
             super("Glow", 1);
@@ -553,19 +531,12 @@ public class CardRegent2 {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), dmg, this);
-            state.getCounterForWrite()[counterIdx] += drawCount;
+            state.draw(drawCount);
             return GameActionCtx.PLAY_CARD;
-        }
-
-        @Override public void gamePropertiesSetup(GameState state) {
-            state.properties.registerDrawNextTurnCounter(this);
         }
     }
 
     // Guiding Star (Common) - 1 energy, 2 star, Attack
-    //   Effect: Deal 12 damage. Next turn, draw 2 cards.
-    //   Upgraded Effect: Deal 13 damage. Next turn, draw 3 cards.
-    // TODO CHANGED: Guiding Star (Common) - 1 energy, 2 star, Attack
     //   Effect: Deal 12 damage. Draw 2 cards.
     //   Upgraded Effect: Deal 13 damage. Draw 3 cards.
     public static class GuidingStar extends _GuidingStarT {
@@ -775,20 +746,17 @@ public class CardRegent2 {
     }
 
     // Solar Strike (Common) - 1 energy, Attack
-    //   Effect: Deal 8 damage. Gain star.
-    //   Upgraded Effect: Deal 9 damage. Gain 2 star.
-    // TODO CHANGED: Solar Strike (Common) - 1 energy, Attack
     //   Effect: Deal 9 damage. Gain star.
     //   Upgraded Effect: Deal 10 damage. Gain 2 star.
     public static class SolarStrike extends _SolarStrikeT {
         public SolarStrike() {
-            super("Solar Strike", 8, 1);
+            super("Solar Strike", 9, 1);
         }
     }
 
     public static class SolarStrikeP extends _SolarStrikeT {
         public SolarStrikeP() {
-            super("Solar Strike+", 9, 2);
+            super("Solar Strike+", 10, 2);
         }
     }
 
@@ -803,25 +771,23 @@ public class CardRegent2 {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.forge(forgeAmount);
+            state.draw(2);
             return GameActionCtx.PLAY_CARD;
         }
     }
 
     // Spoils of Battle (Common) - 1 energy, Skill
-    //   Effect: Forge 10.
-    //   Upgraded Effect: Forge 15.
-    // TODO CHANGED: Spoils of Battle (Common) - 1 energy, Skill
     //   Effect: Forge 5. Draw 2 cards.
     //   Upgraded Effect: Forge 8. Draw 2 cards.
     public static class SpoilsOfBattle extends _SpoilsOfBattleT {
         public SpoilsOfBattle() {
-            super("Spoils of Battle", 10);
+            super("Spoils of Battle", 5);
         }
     }
 
     public static class SpoilsOfBattleP extends _SpoilsOfBattleT {
         public SpoilsOfBattleP() {
-            super("Spoils of Battle+", 15);
+            super("Spoils of Battle+", 8);
         }
     }
 
@@ -845,20 +811,17 @@ public class CardRegent2 {
     }
 
     // Wrought in War (Common) - 1 energy, Attack
-    //   Effect: Deal 7 damage. Forge 5.
-    //   Upgraded Effect: Deal 9 damage. Forge 7.
-    // TODO CHANGED: Wrought in War (Common) - 1 energy, Attack
     //   Effect: Deal 7 damage. Forge 7.
     //   Upgraded Effect: Deal 9 damage. Forge 9.
     public static class WroughtInWar extends _WroughtInWarT {
         public WroughtInWar() {
-            super("Wrought in War", 7, 5);
+            super("Wrought in War", 7, 7);
         }
     }
 
     public static class WroughtInWarP extends _WroughtInWarT {
         public WroughtInWarP() {
-            super("Wrought in War+", 9, 7);
+            super("Wrought in War+", 9, 9);
         }
     }
 
@@ -872,7 +835,7 @@ public class CardRegent2 {
         public _AlignmentT(String cardName, int energyGain) {
             super(cardName, Card.SKILL, 0, Card.UNCOMMON);
             this.energyGain = energyGain;
-            this.starCost = 2;
+            this.starCost = 3;
             entityProperty.hasStarCost = true;
         }
 
@@ -882,10 +845,7 @@ public class CardRegent2 {
         }
     }
 
-    // Alignment (Uncommon) - 0 energy, 2 star, Skill
-    //   Effect: Gain 2 energy.
-    //   Upgraded Effect: Gain 3 energy.
-    // TODO CHANGED: Alignment (Uncommon) - 0 energy, 3 star, Skill
+    // Alignment (Uncommon) - 0 energy, 3 star, Skill
     //   Effect: Gain 2 energy.
     //   Upgraded Effect: Gain 3 energy.
     public static class Alignment extends _AlignmentT {
@@ -971,20 +931,17 @@ public class CardRegent2 {
     }
 
     // Bulwark (Uncommon) - 2 energy, Skill
-    //   Effect: Gain 13 Block. Forge 10.
-    //   Upgraded Effect: Gain 16 Block. Forge 13.
-    // TODO CHANGED: Bulwark (Uncommon) - 2 energy, Skill
     //   Effect: Gain 12 Block. Forge 10.
     //   Upgraded Effect: Gain 15 Block. Forge 13.
     public static class Bulwark extends _BulwarkT {
         public Bulwark() {
-            super("Bulwark", 13, 10);
+            super("Bulwark", 12, 10);
         }
     }
 
     public static class BulwarkP extends _BulwarkT {
         public BulwarkP() {
-            super("Bulwark+", 16, 13);
+            super("Bulwark+", 15, 13);
         }
     }
 
@@ -1025,9 +982,6 @@ public class CardRegent2 {
     }
 
     // CHARGE!! (Uncommon) - 1 energy, Skill
-    //   Effect: Choose 2 cards in your Draw Pile to Transform into Minion Strikes.
-    //   Upgraded Effect: Choose 2 cards in your Draw Pile to Transform into Minion Strikes+.
-    // TODO CHANGED: CHARGE!! (Uncommon) - 1 energy, Skill
     //   Effect: Choose 2 cards in your Draw Pile to Transform into Minion Dive Bomb.
     //   Upgraded Effect: Choose 2 cards in your Draw Pile to Transform into Minion Dive Bomb+.
     public static class Charge extends _ChargeT {
@@ -1036,7 +990,7 @@ public class CardRegent2 {
         }
 
         @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
-            return List.of(new CardColorless2.MinionStrike());
+            return List.of(new CardColorless2.MinionDiveBomb());
         }
     }
 
@@ -1046,7 +1000,7 @@ public class CardRegent2 {
         }
 
         @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
-            return List.of(new CardColorless2.MinionStrikeP());
+            return List.of(new CardColorless2.MinionDiveBombP());
         }
     }
 
@@ -1260,20 +1214,17 @@ public class CardRegent2 {
     }
 
     // Furnace (Uncommon) - 1 energy, Power
-    //   Effect: At the start of your turn, Forge 4.
-    //   Upgraded Effect: At the start of your turn, Forge 6.
-    // TODO CHANGED: Furnace (Uncommon) - 1 energy, Power
     //   Effect: At the start of your turn, Forge 5.
     //   Upgraded Effect: At the start of your turn, Forge 7.
     public static class Furnace extends _FurnaceT {
         public Furnace() {
-            super("Furnace", 4);
+            super("Furnace", 5);
         }
     }
 
     public static class FurnaceP extends _FurnaceT {
         public FurnaceP() {
-            super("Furnace+", 6);
+            super("Furnace+", 7);
         }
     }
 
@@ -1407,9 +1358,6 @@ public class CardRegent2 {
     }
 
     // Kingly Kick (Uncommon) - 4 energy, Attack
-    //   Effect: Deal 24 damage. Whenever you draw this card, reduce its cost by 1.
-    //   Upgraded Effect: Deal 30 damage. Whenever you draw this card, reduce its cost by 1.
-    // TODO CHANGED: Kingly Kick (Uncommon) - 4 energy, Attack
     //   Effect: Deal 27 damage. Whenever you draw this card, reduce its cost by 1.
     //   Upgraded Effect: Deal 35 damage. Whenever you draw this card, reduce its cost by 1.
     public static class KinglyKick extends _KinglyKickT {
@@ -1418,7 +1366,7 @@ public class CardRegent2 {
         }
 
         public KinglyKick(int cost) {
-            super("Kingly Kick (" + cost + ")", cost, 24);
+            super("Kingly Kick (" + cost + ")", cost, 27);
         }
 
         @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
@@ -1462,7 +1410,7 @@ public class CardRegent2 {
         }
 
         public KinglyKickP(int cost) {
-            super("Kingly Kick+ (" + cost + ")", cost, 30);
+            super("Kingly Kick+ (" + cost + ")", cost, 35);
         }
 
         @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
@@ -1501,9 +1449,6 @@ public class CardRegent2 {
     }
 
     // Kingly Punch (Uncommon) - 1 energy, Attack
-    //   Effect: Deal 8 damage. Whenever you draw this card, increase its damage by 3 this combat.
-    //   Upgraded Effect: Deal 8 damage. Whenever you draw this card, increase its damage by 5 this combat.
-    // TODO CHANGED: Kingly Punch (Uncommon) - 1 energy, Attack
     //   Effect: Deal 8 damage. Whenever you draw this card, increase its damage by 4 this combat.
     //   Upgraded Effect: Deal 10 damage. Whenever you draw this card, increase its damage by 6 this combat.
     public static class KinglyPunch extends Card {
@@ -1526,7 +1471,7 @@ public class CardRegent2 {
 
         @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
             var c = new ArrayList<Card>();
-            for (int i = dmg + 3; i <= properties.kinglyPunchLimit; i += 3) {
+            for (int i = dmg + 4; i <= properties.kinglyPunchLimit; i += 4) {
                 c.add(new KinglyPunch(i));
             }
             return c;
@@ -1539,7 +1484,7 @@ public class CardRegent2 {
                 for (int i = 0; i < state.properties.cardDict.length; i++) {
                     var base = state.properties.cardDict[i].getBaseCard();
                     if (base instanceof KinglyPunch kp && kp.dmg < state.properties.kinglyPunchLimit) {
-                        state.properties.kinglyPunchTransformIndexes[i] = state.properties.findCardIndex(new KinglyPunch(kp.dmg + 3));
+                        state.properties.kinglyPunchTransformIndexes[i] = state.properties.findCardIndex(new KinglyPunch(kp.dmg + 4));
                     }
                 }
             }
@@ -1563,7 +1508,7 @@ public class CardRegent2 {
         final int dmg;
 
         public KinglyPunchP() {
-            this(8);
+            this(10);
         }
 
         public KinglyPunchP(int dmg) {
@@ -1579,7 +1524,7 @@ public class CardRegent2 {
 
         @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
             var c = new ArrayList<Card>();
-            for (int i = dmg + 5; i <= properties.kinglyPPunchLimit; i += 5) {
+            for (int i = dmg + 6; i <= properties.kinglyPPunchLimit; i += 6) {
                 c.add(new KinglyPunchP(i));
             }
             return c;
@@ -1592,7 +1537,7 @@ public class CardRegent2 {
                 for (int i = 0; i < state.properties.cardDict.length; i++) {
                     var base = state.properties.cardDict[i].getBaseCard();
                     if (base instanceof KinglyPunchP kp && kp.dmg < state.properties.kinglyPPunchLimit) {
-                        state.properties.kinglyPPunchTransformIndexes[i] = state.properties.findCardIndex(new KinglyPunchP(kp.dmg + 5));
+                        state.properties.kinglyPPunchTransformIndexes[i] = state.properties.findCardIndex(new KinglyPunchP(kp.dmg + 6));
                     }
                 }
             }
@@ -1706,9 +1651,6 @@ public class CardRegent2 {
     // Manifest Authority (Uncommon) - 1 energy, Skill
     //   Effect: Gain 7 Block. Add 1 random Colorless card into your Hand.
     //   Upgraded Effect: Gain 8 Block. Add 1 random Upgraded Colorless card into your Hand.
-    // TODO CHANGED: Manifest Authority (Uncommon) - 1 energy, Skill
-    //   Effect: Gain 7 Block. Add 1 random Colorless card into your Hand.
-    //   Upgraded Effect: Gain 8 Block. Add 1 randomUpgraded Colorless card into your Hand.
     public static class ManifestAuthority extends _ManifestAuthorityT {
         public ManifestAuthority() {
             super("Manifest Authority", 7);
@@ -1917,20 +1859,17 @@ public class CardRegent2 {
     }
 
     // Parry (Uncommon) - 1 energy, Power
-    //   Effect: Whenever you play Sovereign Blade, gain 6 Block.
-    //   Upgraded Effect: Whenever you play Sovereign Blade, gain 9 Block.
-    // TODO CHANGED: Parry (Uncommon) - 1 energy, Power
     //   Effect: Sovereign Blade now gains 10 Block.
     //   Upgraded Effect: Sovereign Blade now gains 14 Block.
     public static class Parry extends _ParryT {
         public Parry() {
-            super("Parry", 6);
+            super("Parry", 10);
         }
     }
 
     public static class ParryP extends _ParryT {
         public ParryP() {
-            super("Parry+", 9);
+            super("Parry+", 14);
         }
     }
 
@@ -2188,20 +2127,17 @@ public class CardRegent2 {
     }
 
     // Reflect (Uncommon) - 1 energy, 3 star, Skill
-    //   Effect: Gain 17 Block. Blocked attack damage is reflected to your attacker this turn.
-    //   Upgraded Effect: Gain 21 Block. Blocked attack damage is reflected to your attacker this turn.
-    // TODO CHANGED: Reflect (Uncommon) - 1 energy, 3 star, Skill
     //   Effect: Gain 15 Block. Blocked attack damage is reflected to your attacker this turn.
     //   Upgraded Effect: Gain 20 Block. Blocked attack damage is reflected to your attacker this turn.
     public static class Reflect extends _ReflectT {
         public Reflect() {
-            super("Reflect", 17);
+            super("Reflect", 15);
         }
     }
 
     public static class ReflectP extends _ReflectT {
         public ReflectP() {
-            super("Reflect+", 21);
+            super("Reflect+", 20);
         }
     }
 
@@ -2501,22 +2437,32 @@ public class CardRegent2 {
     // **************************************************************************************************
 
     private static abstract class _ArsenalT extends Card {
-        private final int strengthGain;
-
-        public _ArsenalT(String cardName, int strengthGain) {
+        public _ArsenalT(String cardName, boolean innate) {
             super(cardName, Card.POWER, 1, Card.RARE);
-            this.strengthGain = strengthGain;
+            this.innate = innate;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getCounterForWrite()[counterIdx]++;
             return GameActionCtx.PLAY_CARD;
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
-            state.properties.addOnCardPlayedHandler("Arsenal", new GameEventCardHandler() {
-                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
-                    if (CardManager.isColorlessCard(state.properties.cardDict[cardIdx])) {
-                        state.getPlayerForWrite().gainStrength(strengthGain);
+            state.properties.registerCounter("Arsenal", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 3.0f;
+                    return idx + 1;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            state.properties.addOnCardCreationHandler("Arsenal", new OnCardCreationHandler() {
+                @Override public void handle(GameState state, int cardIdx) {
+                    int strength = state.getCounterForRead()[counterIdx];
+                    if (strength > 0) {
+                        state.getPlayerForWrite().gainStrength(strength);
                     }
                 }
             });
@@ -2524,20 +2470,17 @@ public class CardRegent2 {
     }
 
     // Arsenal (Rare) - 1 energy, Power
-    //   Effect: Whenever you play a Colorless card, gain 1 Strength.
-    //   Upgraded Effect: Whenever you play a Colorless card, gain 2 Strength.
-    // TODO CHANGED: Arsenal (Rare) - 1 energy, Power
     //   Effect: Whenever you create a card, gain 1 Strength.
     //   Upgraded Effect: Innate. Whenever you create a card, gain 1 Strength.
     public static class Arsenal extends _ArsenalT {
         public Arsenal() {
-            super("Arsenal", 1);
+            super("Arsenal", false);
         }
     }
 
     public static class ArsenalP extends _ArsenalT {
         public ArsenalP() {
-            super("Arsenal+", 2);
+            super("Arsenal+", true);
         }
     }
 
@@ -2650,9 +2593,6 @@ public class CardRegent2 {
     }
 
     // Bombardment (Rare) - 3 energy, Attack
-    //   Effect: Deal 18 damage. At the start of your turn, plays from the Exhaust Pile. Exhaust.
-    //   Upgraded Effect: Deal 24 damage. At the start of your turn, plays from the Exhaust Pile. Exhaust.
-    // TODO CHANGED: Bombardment (Rare) - 3 energy, Attack
     //   Effect: Deal 18 damage. At the start of your turn, if this is in your Exhaust Pile, play it. Exhaust.
     //   Upgraded Effect: Deal 24 damage. At the start of your turn, if this is in your Exhaust Pile, play it. Exhaust.
     public static class Bombardment extends _BombardmentT {
@@ -2671,7 +2611,7 @@ public class CardRegent2 {
         private final int numCards;
 
         public _BundleOfJoyT(String cardName, int numCards) {
-            super(cardName, Card.SKILL, 2, Card.RARE);
+            super(cardName, Card.SKILL, 1, Card.RARE);
             this.numCards = numCards;
             this.exhaustWhenPlayed = true;
         }
@@ -2689,10 +2629,7 @@ public class CardRegent2 {
         }
     }
 
-    // Bundle of Joy (Rare) - 2 energy, Skill
-    //   Effect: Add 3 random Colorless cards into your Hand. Exhaust.
-    //   Upgraded Effect: Add 4 random Colorless cards into your Hand. Exhaust.
-    // TODO CHANGED: Bundle of Joy (Rare) - 1 energy, Skill
+    // Bundle of Joy (Rare) - 1 energy, Skill
     //   Effect: Add 3 random Colorless cards into your Hand. Exhaust.
     //   Upgraded Effect: Add 4 random Colorless cards into your Hand. Exhaust.
     public static class BundleOfJoy extends _BundleOfJoyT {
@@ -3058,20 +2995,17 @@ public class CardRegent2 {
     }
 
     // Heirloom Hammer (Rare) - 2 energy, Attack
-    //   Effect: Deal 17 damage. Choose a Colorless card in your Hand. Add a copy of that card into your Hand.
-    //   Upgraded Effect: Deal 22 damage. Choose a Colorless card in your Hand. Add a copy of that card into your Hand.
-    // TODO CHANGED: Heirloom Hammer (Rare) - 2 energy, Attack
     //   Effect: Deal 20 damage. Choose a Colorless card in your Hand. Add a copy of that card into your Hand.
     //   Upgraded Effect: Deal 25 damage. Choose a Colorless card in your Hand. Add a copy of that card into your Hand.
     public static class HeirloomHammer extends _HeirloomHammerT {
         public HeirloomHammer() {
-            super("Heirloom Hammer", 17);
+            super("Heirloom Hammer", 20);
         }
     }
 
     public static class HeirloomHammerP extends _HeirloomHammerT {
         public HeirloomHammerP() {
-            super("Heirloom Hammer+", 22);
+            super("Heirloom Hammer+", 25);
         }
     }
 
@@ -3111,20 +3045,17 @@ public class CardRegent2 {
     }
 
     // I Am Invincible (Rare) - 1 energy, Skill
-    //   Effect: Gain 9 Block. At the end of your turn, if this is on top of your Draw Pile, play it.
-    //   Upgraded Effect: Gain 12 Block. At the end of your turn, if this is on top of your Draw Pile, play it.
-    // TODO CHANGED: I Am Invincible (Rare) - 1 energy, Skill
     //   Effect: Gain 10 Block. At the end of your turn, if this is on top of your Draw Pile, play it.
     //   Upgraded Effect: Gain 13 Block. At the end of your turn, if this is on top of your Draw Pile, play it.
     public static class IAmInvincible extends _IAmInvincibleT {
         public IAmInvincible() {
-            super("I Am Invincible", 9);
+            super("I Am Invincible", 10);
         }
     }
 
     public static class IAmInvincibleP extends _IAmInvincibleT {
         public IAmInvincibleP() {
-            super("I Am Invincible+", 12);
+            super("I Am Invincible+", 13);
         }
     }
 
@@ -3217,21 +3148,18 @@ public class CardRegent2 {
         }
     }
 
-    // Monarch's Gaze (Rare) - 3 energy, Power
-    //   Effect: Whenever you attack an enemy, it loses 1 Strength this turn.
-    //   Upgraded Effect (2 energy): Whenever you attack an enemy, it loses 1 Strength this turn.
-    // TODO CHANGED: Monarch's Gaze (Rare) - 2 energy, Power
+    // Monarch's Gaze (Rare) - 2 energy, Power
     //   Effect: Whenever you attack an enemy, it loses 1 Strength this turn.
     //   Upgraded Effect (1 energy): Whenever you attack an enemy, it loses 1 Strength this turn.
     public static class MonarchsGaze extends _MonarchsGazeT {
         public MonarchsGaze() {
-            super("Monarch's Gaze", 3);
+            super("Monarch's Gaze", 2);
         }
     }
 
     public static class MonarchsGazeP extends _MonarchsGazeT {
         public MonarchsGazeP() {
-            super("Monarch's Gaze+", 2);
+            super("Monarch's Gaze+", 1);
         }
     }
 
@@ -3329,9 +3257,6 @@ public class CardRegent2 {
 
     // Royalties (Rare) - 1 energy, Power
     //   Effect: At the end of combat, gain 30 Gold.
-    //   Upgraded Effect: At the end of combat, gain 35 Gold.
-    // TODO CHANGED: Royalties (Rare) - 1 energy, Power
-    //   Effect: At the end of combat, gain 30 Gold.
     //   Upgraded Effect: At the end of combat, gain 40 Gold.
     public static class Royalties extends _RoyaltiesT {
         public Royalties(double healthRewardRatio) {
@@ -3341,7 +3266,7 @@ public class CardRegent2 {
 
     public static class RoyaltiesP extends _RoyaltiesT {
         public RoyaltiesP(double healthRewardRatio) {
-            super("Royalties+", 35, healthRewardRatio);
+            super("Royalties+", 40, healthRewardRatio);
         }
     }
 
@@ -3427,18 +3352,30 @@ public class CardRegent2 {
                 }
                 @Override public int getInputLenDelta() { return 1; }
             });
-        }
-
-        @Override public void setCounterIdx(GameProperties gameProperties, int idx) {
-            counterIdx = idx;
-            gameProperties.swordSageCounterIdx = idx;
+            state.properties.addOnCardPlayedHandler("SwordSage", new GameEventCardHandler(GameEventCardHandler.CLONE_CARD_PRIORITY) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                    if (cloneSource != null) {
+                        return;
+                    }
+                    var base = state.properties.cardDict[cardIdx].getBaseCard();
+                    if (!(base instanceof CardColorless2.SovereignBlade) && !(base instanceof CardColorless2.SovereignBladeP)) {
+                        return;
+                    }
+                    int replays = state.getCounterForRead()[counterIdx];
+                    for (int i = 0; i < replays; i++) {
+                        state.addGameActionToStartOfDeque(curState -> {
+                            var action = curState.properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][cardIdx];
+                            if (curState.playCard(action, lastIdx, false, _SwordSageT.class, false, false, energyUsed, cloneParentLocation)) {
+                                curState.runActionsInQueueIfNonEmpty();
+                            }
+                        });
+                    }
+                }
+            });
         }
     }
 
     // Sword Sage (Rare) - 2 energy, Power
-    //   Effect: Increase the cost of Sovereign Blade by 1. Sovereign Blade now hits an additional time.
-    //   Upgraded Effect (1 energy): Increase the cost of Sovereign Blade by 1. Sovereign Blade now hits an additional time.
-    // TODO CHANGED: Sword Sage (Rare) - 2 energy, Power
     //   Effect: Sovereign Blade gains Replay 1.
     //   Upgraded Effect (1 energy): Sovereign Blade gains Replay 1.
     public static class SwordSage extends _SwordSageT {
@@ -3492,9 +3429,10 @@ public class CardRegent2 {
     private static abstract class _VoidFormT extends Card {
         private final int freeCards;
 
-        public _VoidFormT(String cardName, int freeCards) {
+        public _VoidFormT(String cardName, int freeCards, boolean ethereal) {
             super(cardName, Card.POWER, 3, Card.RARE);
             this.freeCards = freeCards;
+            this.ethereal = ethereal;
             entityProperty.possibleBuffs |= PlayerBuff.END_TURN_IMMEDIATELY.mask();
         }
 
@@ -3540,20 +3478,17 @@ public class CardRegent2 {
     }
 
     // Void Form (Rare) - 3 energy, Power
-    //   Effect: End your turn. The first 2 cards you play each turn are free to play.
-    //   Upgraded Effect: End your turn. The first 3 cards you play each turn are free to play.
-    // TODO CHANGED: Void Form (Rare) - 3 energy, Power
     //   Effect: Ethereal. End your turn. The first 2 cards you play each turn are free to play.
     //   Upgraded Effect: End your turn. The first 2 cards you play each turn are free to play.
     public static class VoidForm extends _VoidFormT {
         public VoidForm() {
-            super("Void Form", 2);
+            super("Void Form", 2, true);
         }
     }
 
     public static class VoidFormP extends _VoidFormT {
         public VoidFormP() {
-            super("Void Form+", 3);
+            super("Void Form+", 2, false);
         }
     }
 
@@ -3599,9 +3534,8 @@ public class CardRegent2 {
     }
 
     private static abstract class _TheSealedThroneT extends Card {
-        public _TheSealedThroneT(String cardName, boolean innate) {
-            super(cardName, Card.POWER, 1, Card.RARE);
-            this.innate = innate;
+        public _TheSealedThroneT(String cardName, int energyCost) {
+            super(cardName, Card.POWER, energyCost, Card.RARE);
             this.starCost = 3;
             entityProperty.hasStarCost = true;
         }
@@ -3621,19 +3555,16 @@ public class CardRegent2 {
 
     // The Sealed Throne (Ancient) - 1 energy, 3 star, Power
     //   Effect: Whenever you play a card, gain star.
-    //   Upgraded Effect: Innate. Whenever you play a card, gain star.
-    // TODO CHANGED: The Sealed Throne (Ancient) - 1 energy, 3 star, Power
-    //   Effect: Whenever you play a card, gain star.
     //   Upgraded Effect (0 energy): Whenever you play a card, gain star.
     public static class TheSealedThrone extends _TheSealedThroneT {
         public TheSealedThrone() {
-            super("The Sealed Throne", false);
+            super("The Sealed Throne", 1);
         }
     }
 
     public static class TheSealedThroneP extends _TheSealedThroneT {
         public TheSealedThroneP() {
-            super("The Sealed Throne+", true);
+            super("The Sealed Throne+", 0);
         }
     }
 }

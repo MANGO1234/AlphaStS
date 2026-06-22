@@ -283,7 +283,6 @@ public class GameProperties implements Cloneable {
     public int brilliantScarfCounterIdx = -1;
     public int conquerorCounterIdx = -1;
     public int reflectCounterIdx = -1;
-    public int swordSageCounterIdx = -1;
     public int voidFormCounterIdx = -1;
     public int royaltiesGoldCounterIdx = -1;
 

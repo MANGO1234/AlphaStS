@@ -4156,11 +4156,12 @@ public final class GameState implements State {
             if (dmgToPlayer <= 0) {
                 continue;
             }
+            int blockedDamage = Math.min(player.getBlock(), dmgToPlayer);
             int dmgDealt = player.damage(this, dmgToPlayer);
             totalDmgDealt += dmgDealt;
-            if (properties.reflectCounterIdx >= 0 && getCounterForRead()[properties.reflectCounterIdx] > 0) {
+            if (blockedDamage > 0 && properties.reflectCounterIdx >= 0 && getCounterForRead()[properties.reflectCounterIdx] > 0) {
                 int enemyIdx = getEnemiesForRead().find(enemy);
-                playerDoNonAttackDamageToEnemy(getEnemiesForWrite().getForWrite(enemyIdx), dmgToPlayer, true);
+                playerDoNonAttackDamageToEnemy(getEnemiesForWrite().getForWrite(enemyIdx), blockedDamage, true);
             }
             if (dmgDealt >= 0) {
                 for (OnDamageHandler handler : properties.onDamageHandlers) {

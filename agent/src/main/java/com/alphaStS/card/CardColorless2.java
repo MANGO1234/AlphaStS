@@ -1854,10 +1854,6 @@ public class CardColorless2 {
             entityProperty.selectEnemy = true;
         }
 
-        @Override public int energyCost(GameState state) {
-            return energyCost + (state.properties.swordSageCounterIdx >= 0 ? state.getCounterForRead()[state.properties.swordSageCounterIdx] : 0);
-        }
-
         @Override public GameActionCtx play(GameState state, int idx, int energyUsed) {
             int dmg = 10 + (state.properties.forgeCounterIdx >= 0
                 ? state.getCounterForRead()[state.properties.forgeCounterIdx]
@@ -1865,18 +1861,12 @@ public class CardColorless2 {
             if (state.properties.conquerorCounterIdx >= 0 && state.getCounterForRead()[state.properties.conquerorCounterIdx] > 0) {
                 dmg <<= state.getCounterForRead()[state.properties.conquerorCounterIdx];
             }
-            int hits = 1 + (state.properties.swordSageCounterIdx >= 0 ? state.getCounterForRead()[state.properties.swordSageCounterIdx] : 0);
             if ((state.buffs & PlayerBuff.SEEKING_EDGE.mask()) != 0) {
-                for (int i = 0; i < hits; i++) {
-                    for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
-                        state.playerDoDamageToEnemy(enemy, dmg, this);
-                    }
-                }
-            } else {
-                var enemy = state.getEnemiesForWrite().getForWrite(idx);
-                for (int i = 0; i < hits; i++) {
+                for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
                     state.playerDoDamageToEnemy(enemy, dmg, this);
                 }
+            } else {
+                state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), dmg, this);
             }
             return GameActionCtx.PLAY_CARD;
         }
