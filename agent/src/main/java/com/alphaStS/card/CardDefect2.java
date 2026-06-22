@@ -1,6 +1,7 @@
 package com.alphaStS.card;
 
 import com.alphaStS.*;
+import com.alphaStS.action.PlayCardAction;
 import com.alphaStS.enums.DebuffType;
 import com.alphaStS.enums.OrbType;
 import com.alphaStS.eventHandler.GameEventCardHandler;
@@ -262,9 +263,10 @@ public class CardDefect2 {
     private static abstract class _HotfixT extends Card {
         private final int focus;
 
-        public _HotfixT(String cardName, int focus) {
+        public _HotfixT(String cardName, int focus, boolean exhaust) {
             super(cardName, Card.SKILL, 0, Card.COMMON);
             this.focus = focus;
+            exhaustWhenPlayed = exhaust;
             entityProperty.changePlayerFocus = true;
             entityProperty.changePlayerFocusEot = true;
         }
@@ -277,20 +279,17 @@ public class CardDefect2 {
     }
 
     // Hotfix (Common) - 0 energy, Skill
-    //   Effect: Gain 2 Focus this turn.
-    //   Upgraded Effect: Gain 3 Focus this turn.
-    // TODO CHANGED: Hotfix (Common) - 0 energy, Skill
     //   Effect: Gain 2 Focus this turn. Exhaust.
     //   Upgraded Effect: Gain 2 Focus this turn.
     public static class Hotfix extends _HotfixT {
         public Hotfix() {
-            super("Hotfix", 2);
+            super("Hotfix", 2, true);
         }
     }
 
     public static class HotfixP extends _HotfixT {
         public HotfixP() {
-            super("Hotfix+", 3);
+            super("Hotfix+", 2, false);
         }
     }
 
@@ -454,7 +453,7 @@ public class CardDefect2 {
                     if (state.properties.cardDict[cardIdx].cardType == Card.ATTACK) {
                         if (count == r) {
                             state.removeCardFromDeck(cardIdx, false);
-                            state.addCardToHand(cardIdx);
+                            state.addGameActionToStartOfDeque(new PlayCardAction(cardIdx, state));
                             break;
                         }
                         count++;
@@ -469,20 +468,17 @@ public class CardDefect2 {
     }
 
     // Uproar (Common) - 2 energy, Attack
-    //   Effect: Deal 5 damage twice. Play a random Attack from your Draw Pile.
-    //   Upgraded Effect: Deal 7 damage twice. Play a random Attack from your Draw Pile.
-    // TODO CHANGED: Uproar (Common) - 2 energy, Attack
     //   Effect: Deal 6 damage twice. Play a random Attack from your Draw Pile.
     //   Upgraded Effect: Deal 8 damage twice. Play a random Attack from your Draw Pile.
     public static class Uproar extends _UproarT {
         public Uproar() {
-            super("Uproar", 5);
+            super("Uproar", 6);
         }
     }
 
     public static class UproarP extends _UproarT {
         public UproarP() {
-            super("Uproar+", 7);
+            super("Uproar+", 8);
         }
     }
 
@@ -727,16 +723,32 @@ public class CardDefect2 {
         }
     }
 
-    // Fusion (Uncommon) - 2 energy, Skill
-    //   Effect: Channel 1 Plasma.
-    //   Upgraded Effect (1 energy): Channel 1 Plasma.
-    // TODO CHANGED: Fusion (Uncommon) - 1 energy, Skill
-    //   Effect: Channel 1 Plasma. Exhaust.
-    //   Upgraded Effect: Channel 1 Plasma.
-    public static class Fusion extends CardDefect.Fusion {
+    private static abstract class _FusionT extends Card {
+        public _FusionT(String cardName, boolean exhaust) {
+            super(cardName, Card.SKILL, 1, Card.UNCOMMON);
+            exhaustWhenPlayed = exhaust;
+            entityProperty.orbGenerationPossible |= OrbType.PLASMA.mask;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.channelOrb(OrbType.PLASMA);
+            return GameActionCtx.PLAY_CARD;
+        }
     }
 
-    public static class FusionP extends CardDefect.FusionP {
+    // Fusion (Uncommon) - 1 energy, Skill
+    //   Effect: Channel 1 Plasma. Exhaust.
+    //   Upgraded Effect: Channel 1 Plasma.
+    public static class Fusion extends _FusionT {
+        public Fusion() {
+            super("Fusion", true);
+        }
+    }
+
+    public static class FusionP extends _FusionT {
+        public FusionP() {
+            super("Fusion+", false);
+        }
     }
 
     // Glacier (Uncommon) - 2 energy, Skill
@@ -983,18 +995,6 @@ public class CardDefect2 {
         }
     }
 
-    // Rip and Tear (Uncommon) - 1 energy, Attack
-    //   Effect: Deal 7 damage to a random enemy twice.
-    //   Upgraded Effect: Deal 9 damage to a random enemy twice.
-    // TODO CHANGED: Rip and Tear (Event) - 1 energy, Attack
-    //   Effect: Deal 7 damage to a random enemy twice.
-    //   Upgraded Effect: Deal 9 damage to a random enemy twice.
-    public static class RipAndTear extends CardDefect.RipAndTear {
-    }
-
-    public static class RipAndTearP extends CardDefect.RipAndTearP {
-    }
-
     private static abstract class _RocketPunchT extends Card {
         private final int damage;
         private final int draw;
@@ -1016,7 +1016,7 @@ public class CardDefect2 {
             var list = new ArrayList<Card>();
             for (Card card : cards) {
                 if (card.getBaseCard() instanceof _RocketPunchT) {
-                    list.add(card.getTemporaryCostIfPossible(0));
+                    list.add(card.getTemporaryCostUntilPlayedIfPossible(0));
                 }
             }
             return list;
@@ -1027,7 +1027,7 @@ public class CardDefect2 {
             Arrays.fill(zeroCostIdx, -1);
             for (int i = 0; i < state.properties.cardDict.length; i++) {
                 if (state.properties.cardDict[i].getBaseCard() instanceof _RocketPunchT) {
-                    zeroCostIdx[i] = state.properties.findCardIndex(state.properties.cardDict[i].getTemporaryCostIfPossible(0));
+                    zeroCostIdx[i] = state.properties.findCardIndex(state.properties.cardDict[i].getTemporaryCostUntilPlayedIfPossible(0));
                 }
             }
             state.properties.addOnCardCreationHandler("RocketPunch", new OnCardCreationHandler() {
@@ -1045,9 +1045,6 @@ public class CardDefect2 {
     }
 
     // Rocket Punch (Uncommon) - 2 energy, Attack
-    //   Effect: Deal 13 damage. Draw 1 card. When a Status card is created, reduce this card's cost to 0 energy this turn.
-    //   Upgraded Effect: Deal 14 damage. Draw 2 cards. When a Status card is created, reduce this card's cost to 0 energy this turn.
-    // TODO CHANGED: Rocket Punch (Uncommon) - 2 energy, Attack
     //   Effect: Deal 13 damage. Draw 1 card. When a Status card is created, reduce this card's cost to 0 energy until played.
     //   Upgraded Effect: Deal 14 damage. Draw 2 cards. When a Status card is created, reduce this card's cost to 0 energy until played.
     public static class RocketPunch extends _RocketPunchT {
@@ -1345,20 +1342,17 @@ public class CardDefect2 {
     }
 
     // Synthesis (Uncommon) - 2 energy, Attack
-    //   Effect: Deal 12 damage. The next Power you play costs 0 energy.
-    //   Upgraded Effect: Deal 18 damage. The next Power you play costs 0 energy.
-    // TODO CHANGED: Synthesis (Uncommon) - 2 energy, Attack
     //   Effect: Deal 14 damage. The next Power you play costs 0 energy.
     //   Upgraded Effect: Deal 20 damage. The next Power you play costs 0 energy.
     public static class Synthesis extends _SynthesisT {
         public Synthesis() {
-            super("Synthesis", 12);
+            super("Synthesis", 14);
         }
     }
 
     public static class SynthesisP extends _SynthesisT {
         public SynthesisP() {
-            super("Synthesis+", 18);
+            super("Synthesis+", 20);
         }
     }
 
@@ -1373,35 +1367,36 @@ public class CardDefect2 {
 
     private static abstract class _TeslaCoilT extends Card {
         private final int damage;
+        private final int triggers;
 
-        public _TeslaCoilT(String cardName, int damage) {
+        public _TeslaCoilT(String cardName, int damage, int triggers) {
             super(cardName, Card.ATTACK, 0, Card.UNCOMMON);
             this.damage = damage;
+            this.triggers = triggers;
             entityProperty.selectEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
-            state.triggerLightningOrbsAgainstEnemy(idx);
+            for (int i = 0; i < triggers; i++) {
+                state.triggerLightningOrbsAgainstEnemy(idx);
+            }
             return GameActionCtx.PLAY_CARD;
         }
     }
 
     // Tesla Coil (Uncommon) - 0 energy, Attack
     //   Effect: Deal 3 damage. Trigger all Lightning against the enemy.
-    //   Upgraded Effect: Deal 6 damage. Trigger all Lightning against the enemy.
-    // TODO CHANGED: Tesla Coil (Uncommon) - 0 energy, Attack
-    //   Effect: Deal 3 damage. Trigger all Lightning against the enemy.
     //   Upgraded Effect: Deal 4 damage. Trigger all Lightning against the enemy twice.
     public static class TeslaCoil extends _TeslaCoilT {
         public TeslaCoil() {
-            super("Tesla Coil", 3);
+            super("Tesla Coil", 3, 1);
         }
     }
 
     public static class TeslaCoilP extends _TeslaCoilT {
         public TeslaCoilP() {
-            super("Tesla Coil+", 6);
+            super("Tesla Coil+", 4, 2);
         }
     }
 
@@ -1795,16 +1790,37 @@ public class CardDefect2 {
         }
     }
 
-    // Hyperbeam (Rare) - 2 energy, Attack
-    //   Effect: Deal 26 damage to ALL enemies. Lose 3 Focus.
-    //   Upgraded Effect: Deal 34 damage to ALL enemies. Lose 3 Focus.
-    // TODO CHANGED: Hyperbeam (Rare) - 2 energy, Attack
-    //   Effect: Deal 28 damage to ALL enemies. Lose 3 Focus.
-    //   Upgraded Effect: Deal 36 damage to ALL enemies. Lose 3 Focus.
-    public static class Hyperbeam extends CardDefect.Hyperbeam {
+    private static abstract class _HyperbeamT extends Card {
+        private final int damage;
+
+        public _HyperbeamT(String cardName, int damage) {
+            super(cardName, Card.ATTACK, 2, Card.RARE);
+            this.damage = damage;
+            entityProperty.changePlayerFocus = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            for (var enemy : state.getEnemiesForWrite().iterateOverAlive()) {
+                state.playerDoDamageToEnemy(enemy, damage, this);
+            }
+            state.getPlayerForWrite().applyDebuff(state, DebuffType.LOSE_FOCUS, 3);
+            return GameActionCtx.PLAY_CARD;
+        }
     }
 
-    public static class HyperbeamP extends CardDefect.HyperbeamP {
+    // Hyperbeam (Rare) - 2 energy, Attack
+    //   Effect: Deal 28 damage to ALL enemies. Lose 3 Focus.
+    //   Upgraded Effect: Deal 36 damage to ALL enemies. Lose 3 Focus.
+    public static class Hyperbeam extends _HyperbeamT {
+        public Hyperbeam() {
+            super("Hyperbeam", 28);
+        }
+    }
+
+    public static class HyperbeamP extends _HyperbeamT {
+        public HyperbeamP() {
+            super("Hyperbeam+", 36);
+        }
     }
 
     private static abstract class _IceLanceT extends Card {
@@ -1968,7 +1984,7 @@ public class CardDefect2 {
             }
             if (state.getOrbs() != null) {
                 while (state.getOrbs()[0] != OrbType.EMPTY.ordinal()) {
-                    state.evokeOrb(1);
+                    state.evokeOrb(2);
                 }
             }
             return GameActionCtx.PLAY_CARD;
@@ -1976,20 +1992,17 @@ public class CardDefect2 {
     }
 
     // Shatter (Rare) - 1 energy, Attack
-    //   Effect: Deal 11 damage to ALL enemies. Evoke all of your Orbs.
-    //   Upgraded Effect: Deal 15 damage to ALL enemies. Evoke all of your Orbs.
-    // TODO CHANGED: Shatter (Rare) - 1 energy, Attack
     //   Effect: Deal 7 damage to ALL enemies. Evoke all of your Orbs twice.
     //   Upgraded Effect: Deal 11 damage to ALL enemies. Evoke all of your Orbs twice.
     public static class Shatter extends _ShatterT {
         public Shatter() {
-            super("Shatter", 11);
+            super("Shatter", 7);
         }
     }
 
     public static class ShatterP extends _ShatterT {
         public ShatterP() {
-            super("Shatter+", 15);
+            super("Shatter+", 11);
         }
     }
 
@@ -2189,7 +2202,7 @@ public class CardDefect2 {
 
     private static abstract class _VoltaicT extends Card {
         public _VoltaicT(String cardName, boolean exhaust) {
-            super(cardName, Card.SKILL, 2, Card.RARE);
+            super(cardName, Card.SKILL, 3, Card.RARE);
             this.exhaustWhenPlayed = exhaust;
         }
 
@@ -2206,10 +2219,7 @@ public class CardDefect2 {
         }
     }
 
-    // Voltaic (Rare) - 2 energy, Skill
-    //   Effect: Channel Lightning equal to the Lightning already Channeled this combat. Exhaust.
-    //   Upgraded Effect: Channel Lightning equal to the Lightning already Channeled this combat.
-    // TODO CHANGED: Voltaic (Rare) - 3 energy, Skill
+    // Voltaic (Rare) - 3 energy, Skill
     //   Effect: Channel Lightning equal to the Lightning already Channeled this combat. Exhaust.
     //   Upgraded Effect: Channel Lightning equal to the Lightning already Channeled this combat.
     public static class Voltaic extends _VoltaicT {
@@ -2227,6 +2237,15 @@ public class CardDefect2 {
     // **************************************************************************************************
     // ********************************************* Event  *********************************************
     // **************************************************************************************************
+
+    // Rip and Tear (Event) - 1 energy, Attack
+    //   Effect: Deal 7 damage to a random enemy twice.
+    //   Upgraded Effect: Deal 9 damage to a random enemy twice.
+    public static class RipAndTear extends CardDefect.RipAndTear {
+    }
+
+    public static class RipAndTearP extends CardDefect.RipAndTearP {
+    }
 
     // Hello World (Event) - 1 energy, Power
     //   Effect: At the start of your turn, add a random Common card into your Hand.

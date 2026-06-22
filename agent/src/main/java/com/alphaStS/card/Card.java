@@ -99,6 +99,10 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         return false;
     }
 
+    public boolean isTmpModifiedUntilEndOfTurnCard() {
+        return false;
+    }
+
     public GameActionCtx play(GameState state, int idx, int energyUsed) { return GameActionCtx.PLAY_CARD; }
     public void onExhaust(GameState state) {}
     public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) { return List.of(); }
@@ -601,7 +605,12 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
         @Override
         public boolean isTmpModifiedCard() {
-            return isTmpChangeCost() || isTmpUntilPlayedCost();
+            return isTmpChangeCost() || isTmpUntilPlayedCost() || isTmpRetain();
+        }
+
+        @Override
+        public boolean isTmpModifiedUntilEndOfTurnCard() {
+            return isTmpChangeCost() || isTmpRetain();
         }
 
         @Override

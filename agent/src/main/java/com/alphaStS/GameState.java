@@ -212,6 +212,14 @@ public final class GameState implements State {
         }
     }
 
+    private void transformCardsModifiedUntilEndOfTurn(short[] arr, int arrLen) {
+        for (int i = 0; i < arrLen; i++) {
+            if (properties.cardDict[arr[i]].isTmpModifiedUntilEndOfTurnCard()) {
+                arr[i] = (short) properties.tmpModifiedCardReverseTransformIdxes[arr[i]];
+            }
+        }
+    }
+
     public void handArrTransform(int[] transformIdxes) {
         transformCardArray(getHandArrForWrite(), handArrLen, transformIdxes);
     }
@@ -1972,19 +1980,8 @@ public final class GameState implements State {
         getPlayerForWrite().preEndTurn(this);
         triggerOrbsPassiveEndOfTurn();
 
-        // set temp cost cards to original cost
-        if (properties.cardDict.length != properties.realCardsLen) {
-            handArrTransform(properties.tmpModifiedCardReverseTransformIdxes);
-        }
         if (chosenCardsArr != null) {
             chosenCardsArr = Arrays.copyOf(chosenCardsArr, chosenCardsArrLen);
-            if (properties.cardDict.length != properties.realCardsLen) {
-                for (int i = 0; i < chosenCardsArrLen; i++) {
-                    if (properties.tmpModifiedCardReverseTransformIdxes[chosenCardsArr[i]] >= 0) {
-                        chosenCardsArr[i] = (short) properties.tmpModifiedCardReverseTransformIdxes[chosenCardsArr[i]];
-                    }
-                }
-            }
         }
 
         // trigger burn, regret etc.
@@ -2021,8 +2018,11 @@ public final class GameState implements State {
         }
         updateHandArr();
 
-        // remove temporary retain from cards (after retain processing is complete)
-        if (properties.tmpModifiedCardReverseTransformIdxes != null) handArrTransform(properties.tmpModifiedCardReverseTransformIdxes);
+        // Remove card modifications that expire at end of turn after retain processing is complete.
+        if (properties.tmpModifiedCardReverseTransformIdxes != null) {
+            transformCardsModifiedUntilEndOfTurn(getHandArrForWrite(), handArrLen);
+            transformCardsModifiedUntilEndOfTurn(chosenCardsArr, chosenCardsArrLen);
+        }
 
         // handle well laid plan cards
         for (int i = 0; i < chosenCardsArrLen; i++) {
@@ -3603,7 +3603,9 @@ public final class GameState implements State {
     }
 
     public void addCardToDiscard(int cardIndex) {
-        cardIndex = cardIndex >= properties.realCardsLen ? properties.tmpModifiedCardReverseTransformIdxes[cardIndex] : cardIndex;
+        if (properties.cardDict[cardIndex].isTmpModifiedUntilEndOfTurnCard()) {
+            cardIndex = properties.tmpModifiedCardReverseTransformIdxes[cardIndex];
+        }
         discardArr = cardIdxArrAdd(discardArr, !discardCloned, discardArrLen, cardIndex);
         discardArrLen++;
         discardCloned = true;
@@ -3782,7 +3784,7 @@ public final class GameState implements State {
     }
 
     public void addCardOnTopOfDeck(int idx) {
-        if (idx >= properties.realCardsLen) {
+        if (properties.cardDict[idx].isTmpModifiedUntilEndOfTurnCard()) {
             idx = properties.tmpModifiedCardReverseTransformIdxes[idx];
         }
         deckArrLen += 1;
