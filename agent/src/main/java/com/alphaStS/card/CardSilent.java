@@ -2692,7 +2692,7 @@ public class CardSilent {
         }
     }
 
-    private static abstract class _GrandFinaleT extends Card {
+    public static abstract class _GrandFinaleT extends Card {
         private final int n;
 
         public _GrandFinaleT(String cardName, int n) {
