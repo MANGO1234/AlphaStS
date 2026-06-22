@@ -60,6 +60,9 @@ public class CardSilent2 {
     // Acrobatics (Common) - 1 energy, Skill
     //   Effect: Draw 3 cards. Discard 1 card.
     //   Upgraded Effect: Draw 4 cards. Discard 1 card.
+    // TODO CHANGED: Acrobatics (Uncommon) - 1 energy, Skill
+    //   Effect: Draw 3 cards. Discard 1 card.
+    //   Upgraded Effect: Draw 4 cards. Discard 1 card.
     public static class Acrobatics extends CardSilent.Acrobatics {
     }
 
@@ -85,6 +88,9 @@ public class CardSilent2 {
     // Anticipate (Common) - 0 energy, Skill
     //   Effect: Gain 3 Dexterity this turn.
     //   Upgraded Effect: Gain 5 Dexterity this turn.
+    // TODO CHANGED: Anticipate (Common) - 0 energy, Skill
+    //   Effect: Gain 2 Dexterity this turn.
+    //   Upgraded Effect: Gain 3 Dexterity this turn.
     public static class Anticipate extends _AnticipateT {
         public Anticipate() {
             super("Anticipate", 3);
@@ -197,6 +203,9 @@ public class CardSilent2 {
     // Flick-Flack (Common) - 1 energy, Attack
     //   Effect: Sly. Deal 7 damage to ALL enemies.
     //   Upgraded Effect: Sly. Deal 9 damage to ALL enemies.
+    // TODO CHANGED: Flick-Flack (Common) - 1 energy, Attack
+    //   Effect: Sly. Deal 6 damage to ALL enemies.
+    //   Upgraded Effect: Sly. Deal 8 damage to ALL enemies.
     public static class FlickFlack extends _FlickFlackT {
         public FlickFlack() {
             super("Flick-Flack", 7);
@@ -232,6 +241,9 @@ public class CardSilent2 {
     // Leading Strike (Common) - 1 energy, Attack
     //   Effect: Deal 7 damage. Add 1 Shiv into your Hand.
     //   Upgraded Effect: Deal 10 damage. Add 1 Shiv into your Hand.
+    // TODO CHANGED: Leading Strike (Common) - 1 energy, Attack
+    //   Effect: Deal 3 damage. Add 2 Shivs into your Hand.
+    //   Upgraded Effect: Deal 6 damage. Add 2 Shivs into your Hand.
     public static class LeadingStrike extends _LeadingStrikeT {
         public LeadingStrike() {
             super("Leading Strike", 7);
@@ -380,6 +392,9 @@ public class CardSilent2 {
     // Untouchable (Common) - 2 energy, Skill
     //   Effect: Sly. Gain 9 Block.
     //   Upgraded Effect: Sly. Gain 12 Block.
+    // TODO CHANGED: Untouchable (Common) - 2 energy, Skill
+    //   Effect: Sly. Gain 6 Block.
+    //   Upgraded Effect: Sly. Gain 9 Block.
     public static class Untouchable extends _UntouchableT {
         public Untouchable() {
             super("Untouchable", 9);
@@ -769,6 +784,9 @@ public class CardSilent2 {
     // Memento Mori (Uncommon) - 1 energy, Attack
     //   Effect: Deal 8 damage. Deals 4 additional damage for each card discarded this turn.
     //   Upgraded Effect: Deal 10 damage. Deals 5 additional damage for each card discarded this turn.
+    // TODO CHANGED: Memento Mori (Uncommon) - 1 energy, Attack
+    //   Effect: Deal 9 damage. Deals 4 additional damage for each card discarded this turn.
+    //   Upgraded Effect: Deal 11 damage. Deals 5 additional damage for each card discarded this turn.
     public static class MementoMori extends _MementoMoriT {
         public MementoMori() {
             super("Memento Mori", 8, 4);
@@ -909,6 +927,9 @@ public class CardSilent2 {
     // Pinpoint (Uncommon) - 3 energy, Attack
     //   Effect: Deal 17 damage. Costs 1 less energy for each Skill played this turn.
     //   Upgraded Effect: Deal 22 damage. Costs 1 less energy for each Skill played this turn.
+    // TODO CHANGED: Pinpoint (Uncommon) - 3 energy, Attack
+    //   Effect: Deal 15 damage. Costs 1 less energy for each Skill played this turn.
+    //   Upgraded Effect: Deal 19 damage. Costs 1 less energy for each Skill played this turn.
     public static class Pinpoint extends _PinpointT {
         public Pinpoint() {
             super("Pinpoint", 17);
@@ -961,6 +982,9 @@ public class CardSilent2 {
     // Pounce (Uncommon) - 2 energy, Attack
     //   Effect: Deal 12 damage. The next Skill you play costs 0 energy.
     //   Upgraded Effect: Deal 18 damage. The next Skill you play costs 0 energy.
+    // TODO CHANGED: Pounce (Uncommon) - 2 energy, Attack
+    //   Effect: Deal 14 damage. The next Skill you play costs 0 energy.
+    //   Upgraded Effect: Deal 20 damage. The next Skill you play costs 0 energy.
     public static class Pounce extends _PounceT {
         public Pounce() {
             super("Pounce", 12);
@@ -1007,6 +1031,9 @@ public class CardSilent2 {
     // Predator (Uncommon) - 2 energy, Attack
     //   Effect: Deal 15 damage. Next turn, draw 2 cards.
     //   Upgraded Effect: Deal 20 damage. Next turn, draw 2 cards.
+    // TODO CHANGED: Predator (Common) - 2 energy, Attack
+    //   Effect: Deal 15 damage. Next turn, draw 2 cards.
+    //   Upgraded Effect: Deal 20 damage. Next turn, draw 2 cards.
     public static class Predator extends CardSilent.Predator {
     }
 
@@ -1046,6 +1073,9 @@ public class CardSilent2 {
     // Skewer (Uncommon) - X energy, Attack
     //   Effect: Deal 7 damage X times.
     //   Upgraded Effect: Deal 10 damage X times.
+    // TODO CHANGED: Skewer (Uncommon) - X energy, Attack
+    //   Effect: Deal 8 damage X times.
+    //   Upgraded Effect: Deal 11 damage X times.
     public static class Skewer extends CardSilent.Skewer {
     }
 
@@ -1093,6 +1123,9 @@ public class CardSilent2 {
     // Speedster (Uncommon) - 2 energy, Power
     //   Effect: Whenever you draw a card during your turn, deal 2 damage to ALL enemies.
     //   Upgraded Effect: Whenever you draw a card during your turn, deal 3 damage to ALL enemies.
+    // TODO CHANGED: Speedster (Uncommon) - 2 energy, Power
+    //   Effect: Whenever you draw a card during your turn, deal 2 damage to ALL enemies.
+    //   Upgraded Effect: Innate. Whenever you draw a card during your turn, deal 2 damage to ALL enemies.
     public static class Speedster extends _SpeedsterT {
         public Speedster() {
             super("Speedster", 2);
@@ -1449,6 +1482,9 @@ public class CardSilent2 {
     // Blade of Ink (Rare) - 1 energy, Skill
     //   Effect: This turn, whenever you play an Attack, gain 2 Strength this turn.
     //   Upgraded Effect: This turn, whenever you play an Attack, gain 3 Strength this turn.
+    // TODO CHANGED: Blade of Ink (Rare) - 1 energy, Skill
+    //   Effect: Add 2 Inky Shivs into your Hand.
+    //   Upgraded Effect: Add 3 Inky Shivs into your Hand.
     public static class BladeOfInk extends _BladeOfInkT {
         public BladeOfInk() {
             super("Blade of Ink", 2);
@@ -1529,6 +1565,9 @@ public class CardSilent2 {
     // Corrosive Wave (Rare) - 1 energy, Skill
     //   Effect: Whenever you draw a card this turn, apply 3 Poison to ALL enemies.
     //   Upgraded Effect: Whenever you draw a card this turn, apply 4 Poison to ALL enemies.
+    // TODO CHANGED: Corrosive Wave (Rare) - 1 energy, Skill
+    //   Effect: Whenever you draw a card this turn, apply 2 Poison to ALL enemies.
+    //   Upgraded Effect: Whenever you draw a card this turn, apply 3 Poison to ALL enemies.
     public static class CorrosiveWave extends _CorrosiveWaveT {
         public CorrosiveWave() {
             super("Corrosive Wave", 3);
@@ -1648,6 +1687,9 @@ public class CardSilent2 {
     // Grand Finale (Rare) - 0 energy, Attack
     //   Effect: Can only be played if there are no cards in your Draw Pile. Deal 50 damage to ALL enemies.
     //   Upgraded Effect: Can only be played if there are no cards in your Draw Pile. Deal 60 damage to ALL enemies.
+    // TODO CHANGED: Grand Finale (Rare) - 0 energy, Attack
+    //   Effect: Can only be played if there are no cards in your Draw Pile. Deal 60 damage to ALL enemies.
+    //   Upgraded Effect: Can only be played if there are no cards in your Draw Pile. Deal 75 damage to ALL enemies.
     public static class GrandFinale extends CardSilent.GrandFinale {
     }
 
@@ -1833,6 +1875,9 @@ public class CardSilent2 {
     // Serpent Form (Rare) - 3 energy, Power
     //   Effect: Whenever you play a card, deal 4 damage to a random enemy.
     //   Upgraded Effect: Whenever you play a card, deal 5 damage to a random enemy.
+    // TODO CHANGED: Serpent Form (Rare) - 3 energy, Power
+    //   Effect: Whenever you play a card, deal 4 damage to a random enemy.
+    //   Upgraded Effect: Whenever you play a card, deal 6 damage to a random enemy.
     public static class SerpentForm extends _SerpentFormT {
         public SerpentForm() {
             super("Serpent Form", 4);
@@ -2134,4 +2179,12 @@ public class CardSilent2 {
 
     public static class WraithFormP extends CardSilent.WraithFormP {
     }
+
+    // **************************************************************************************************
+    // ********************************************* Uncommon *********************************************
+    // **************************************************************************************************
+
+    // TODO: Scare (Uncommon) - 0 energy, Skill
+    //   Effect: Apply 1 Weak to ALL enemies. Exhaust.
+    //   Upgraded Effect: Apply 1 Weak to ALL enemies.
 }

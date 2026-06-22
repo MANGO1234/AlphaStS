@@ -40,6 +40,9 @@ public class CardOther2 {
 
     // Disintegration (Status) - Unplayable, Status
     //   Effect: At the end of your turn, take 6 damage.
+    // TODO CHANGED: Disintegration (Status) - Unplayable, Status
+    //   Effect: At the end of your turn, take 6/7/8 damage.
+    //   No upgrade.
     public static class Disintegration extends Card {
         public Disintegration() {
             super("Disintegration", Card.STATUS, -1, Card.COMMON);
@@ -125,6 +128,10 @@ public class CardOther2 {
     //   Effect: Unplayable.
     public static class Wound extends CardOther.Wound {}
 
+    // TODO: Wither (Status) - Unplayable, Status
+    //   Effect: Unplayable. At the end of your turn, if this is in your Hand, take 3 damage.
+    //   Upgraded Effect: Unplayable. At the end of your turn, if this is in your Hand, take 6 damage.
+
     // **************************************************************************************************
     // ********************************************* Curse  *********************************************
     // **************************************************************************************************
@@ -177,6 +184,9 @@ public class CardOther2 {
 
     // Folly (Curse) - Unplayable, Curse
     //   Effect: Unplayable. Innate. Eternal.
+    // TODO CHANGED: Folly (Curse) - Unplayable, Curse
+    //   Effect: Unplayable. Ethereal. Innate. Eternal.
+    //   No upgrade.
     public static class Folly extends Card {
         public Folly() {
             super("Folly", Card.CURSE, -1, Card.COMMON);

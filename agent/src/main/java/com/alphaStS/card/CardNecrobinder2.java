@@ -229,6 +229,9 @@ public class CardNecrobinder2 {
     // Defy (Common) - 1 energy, Skill
     //   Effect: Ethereal. Gain 6 Block. Apply 1 Weak.
     //   Upgraded Effect: Ethereal. Gain 7 Block. Apply 2 Weak.
+    // TODO CHANGED: Defy (Common) - 1 energy, Skill
+    //   Effect: Ethereal. Gain 6 Block. Apply 1 Weak.
+    //   Upgraded Effect: Ethereal. Gain 9 Block. Apply 1 Weak.
     public static class Defy extends _DefyT {
         public Defy() {
             super("Defy", 6, 1);
@@ -449,6 +452,9 @@ public class CardNecrobinder2 {
     // Grave Warden (Common) - 1 energy, Skill
     //   Effect: Gain 8 Block. Add a Soul into your Draw Pile.
     //   Upgraded Effect: Gain 10 Block. Add a Soul+ into your Draw Pile.
+    // TODO CHANGED: Grave Warden (Common) - 1 energy, Skill
+    //   Effect: Gain 8 Block. Add a Soul into your Draw Pile.
+    //   Upgraded Effect: Gain 11 Block. Add a Soul into your Draw Pile.
     public static class GraveWarden extends _GraveWardenT {
         public GraveWarden() {
             super("Grave Warden", 8);
@@ -764,6 +770,9 @@ public class CardNecrobinder2 {
     // Sculpting Strike (Common) - 1 energy, Attack
     //   Effect: Deal 8 damage. Add Ethereal to a card in your Hand.
     //   Upgraded Effect: Deal 11 damage. Add Ethereal to a card in your Hand.
+    // TODO CHANGED: Sculpting Strike (Common) - 1 energy, Attack
+    //   Effect: Deal 9 damage. Add Ethereal to a card in your Hand.
+    //   Upgraded Effect: Deal 12 damage. Add Ethereal to a card in your Hand.
     public static class SculptingStrike extends _SculptingStrikeT {
         public SculptingStrike() { super("Sculpting Strike", 8); }
     }
@@ -959,6 +968,9 @@ public class CardNecrobinder2 {
     // Borrowed Time (Uncommon) - 0 energy, Skill
     //   Effect: Apply 3 Doom to yourself. Gain energy.
     //   Upgraded Effect: Apply 3 Doom to yourself. Gain 2 energy.
+    // TODO CHANGED: Borrowed Time (Uncommon) - 1 energy, Skill
+    //   Effect: Gain 4 energy. Cards cost an additional energy this turn.
+    //   Upgraded Effect: Gain 6 energy. Cards cost an additional energy this turn.
     public static class BorrowedTime extends _BorrowedTimeT {
         public BorrowedTime() {
             super("Borrowed Time", 1);
@@ -1216,6 +1228,9 @@ public class CardNecrobinder2 {
     // Danse Macabre (Uncommon) - 1 energy, Power
     //   Effect: Whenever you play a card that costs 2 energy or more, gain 3 Block.
     //   Upgraded Effect: Whenever you play a card that costs 2 energy or more, gain 4 Block.
+    // TODO CHANGED: Danse Macabre (Uncommon) - 1 energy, Power
+    //   Effect: Whenever you play a card that costs 2 energy or more, gain 4 Block.
+    //   Upgraded Effect: Whenever you play a card that costs 2 energy or more, gain 6 Block.
     public static class DanseMacabre extends _DanseMacabreT {
         public DanseMacabre() {
             super("Danse Macabre", 3);
@@ -1273,6 +1288,9 @@ public class CardNecrobinder2 {
     // Death March (Uncommon) - 1 energy, Attack
     //   Effect: Deal 8 damage. Deals 3 additional damage for each card drawn during your turn.
     //   Upgraded Effect: Deal 9 damage. Deals 4 additional damage for each card drawn during your turn.
+    // TODO CHANGED: Death March (Uncommon) - 1 energy, Attack
+    //   Effect: Deal 8 damage. Deals 4 additional damage for each card drawn during your turn.
+    //   Upgraded Effect: Deal 9 damage. Deals 6 additional damage for each card drawn during your turn.
     public static class DeathMarch extends _DeathMarchT {
         public DeathMarch() {
             super("Death March", 8, 3);
@@ -1401,6 +1419,9 @@ public class CardNecrobinder2 {
     // Debilitate (Uncommon) - 1 energy, Attack
     //   Effect: Deal 7 damage. Vulnerable and Weak are twice as effective against the enemy for the next 3 turns.
     //   Upgraded Effect: Deal 9 damage. Vulnerable and Weak are twice as effective against the enemy for the next 4 turns.
+    // TODO CHANGED: Debilitate (Uncommon) - 1 energy, Attack
+    //   Effect: Deal 10 damage. Vulnerable and Weak are twice as effective against the enemy for the next 2 turns.
+    //   Upgraded Effect: Deal 12 damage. Vulnerable and Weak are twice as effective against the enemy for the next 3 turns.
     public static class Debilitate extends _DebilitateT {
         public Debilitate() {
             super("Debilitate", 7, 3);
@@ -1479,6 +1500,9 @@ public class CardNecrobinder2 {
     // Dirge (Uncommon) - X energy, Skill
     //   Effect: Summon 3 X times. Add X Souls into your Draw Pile.
     //   Upgraded Effect: Summon 4 X times. Add X Souls+ into your Draw Pile.
+    // TODO CHANGED: Dirge (Uncommon) - X energy, Skill
+    //   Effect: Summon 3 X times. Add X Souls into your Draw Pile. Exhaust.
+    //   Upgraded Effect: Summon 4 X times. Add X Souls+ into your Draw Pile. Exhaust.
     public static class Dirge extends _DirgeT {
         public Dirge() {
             super("Dirge", 3);
@@ -1537,6 +1561,9 @@ public class CardNecrobinder2 {
 
     // Dredge (Uncommon) - 1 energy, Skill
     //   Effect: [etain. ]Put 3 cards from your Discard Pile into your Hand. Exhaust.
+    // TODO CHANGED: Dredge (Uncommon) - 1 energy, Skill
+    //   Effect: Put 3 cards from your Discard Pile into your Hand. Exhaust.
+    //   Upgraded Effect: Retain. Put 3 cards from your Discard Pile into your Hand. Exhaust.
     public static class Dredge extends _DredgeT {
         public Dredge() {
             super("Dredge", false);
@@ -2312,6 +2339,9 @@ public class CardNecrobinder2 {
     // Sic 'Em (Uncommon) - 1 energy, Attack
     //   Effect: Osty deals 5 damage. Whenever Osty hits this enemy this turn, Summon 2.
     //   Upgraded Effect: Osty deals 6 damage. Whenever Osty hits this enemy this turn, Summon 3.
+    // TODO CHANGED: Sic 'Em (Uncommon) - 1 energy, Attack
+    //   Effect: Osty deals 5 damage. Whenever Osty hits this enemy this turn, Summon 3.
+    //   Upgraded Effect: Osty deals 6 damage. Whenever Osty hits this enemy this turn, Summon 4.
     public static class SicEm extends _SicEmT {
         public SicEm() {
             super("Sic 'Em", 5, 2);
@@ -3075,6 +3105,9 @@ public class CardNecrobinder2 {
     // Seance (Rare) - 0 energy, Skill
     //   Effect: Ethereal. Transform a card in your Draw Pile into Soul.
     //   Upgraded Effect: Ethereal. Transform a card in your Draw Pile into Soul+.
+    // TODO CHANGED: Seance (Rare) - 1 energy, Skill
+    //   Effect: Ethereal. Transform a card in your Draw Pile into Soul.
+    //   Upgraded Effect (0 energy): Ethereal. Transform a card in your Draw Pile into Soul.
     public static class Seance extends _SeanceT {
         public Seance() {
             super("Seance");
@@ -3357,6 +3390,9 @@ public class CardNecrobinder2 {
     // The Scythe (Rare) - 2 energy, Attack
     //   Effect: Deal 13 damage. Permanently increase this card's damage by 3. Exhaust.
     //   Upgraded Effect: Deal 13 damage. Permanently increase this card's damage by 4. Exhaust.
+    // TODO CHANGED: The Scythe (Rare) - 2 energy, Attack
+    //   Effect: Deal 13 damage. Permanently increase this card's damage by 4. Exhaust.
+    //   Upgraded Effect: Deal 13 damage. Permanently increase this card's damage by 5. Exhaust.
     public static class TheScythe extends _TheScytheT {
         public TheScythe() { this(13, 2); }
         public TheScythe(int n, int healthRewardRatio) { super("The Scythe (" + n + ")", n, 3, healthRewardRatio); }

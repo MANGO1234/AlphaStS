@@ -413,6 +413,8 @@ public class Potion2 {
 
     // Fairy in a Bottle (Rare)
     //   Effect: When you would die, instead this potion is discarded and you heal to 30% of your Max HP.
+    // TODO CHANGED: Fairy in a Bottle (Rare)
+    //   Effect: When your HP would be reduced to 0, instead this potion is discarded and you heal to 30% of your Max HP.
     public static class FairyInABottle extends Potion.FairyInABottle {
     }
 

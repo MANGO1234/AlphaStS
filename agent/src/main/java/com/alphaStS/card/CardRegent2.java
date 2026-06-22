@@ -60,6 +60,9 @@ public class CardRegent2 {
     // Falling Star (Basic) - 0 energy, 2 star, Attack
     //   Effect: Deal 7 damage. Apply 1 Weak. Apply 1 Vulnerable.
     //   Upgraded Effect: Deal 11 damage. Apply 1 Weak. Apply 1 Vulnerable.
+    // TODO CHANGED: Falling Star (Basic) - 0 energy, 2 star, Attack
+    //   Effect: Deal 8 damage. Apply 1 Weak. Apply 1 Vulnerable.
+    //   Upgraded Effect: Deal 12 damage. Apply 1 Weak. Apply 1 Vulnerable.
     public static class FallingStar extends _FallingStarT {
         public FallingStar() {
             super("Falling Star", 7);
@@ -178,6 +181,9 @@ public class CardRegent2 {
     // BEGONE! (Common) - 1 energy, Attack
     //   Effect: Deal 4 damage. Choose a card in your Hand to Transform into Minion Dive Bomb.
     //   Upgraded Effect: Deal 5 damage. Choose a card in your Hand to Transform into Minion Dive Bomb+.
+    // TODO CHANGED: BEGONE! (Common) - 1 energy, Skill
+    //   Effect: Choose a card in your Hand to Transform into Minion Strike.
+    //   Upgraded Effect: Choose a card in your Hand to Transform into Minion Strike+.
     public static class Begone extends _BegoneT {
         public Begone() {
             super("BEGONE!", 4);
@@ -219,6 +225,9 @@ public class CardRegent2 {
     // Celestial Might (Common) - 2 energy, Attack
     //   Effect: Deal 6 damage 3 times.
     //   Upgraded Effect: Deal 8 damage 3 times.
+    // TODO CHANGED: Celestial Might (Common) - 2 energy, Attack
+    //   Effect: Deal 6 damage 3 times.
+    //   Upgraded Effect: Deal 6 damage 4 times.
     public static class CelestialMight extends _CelestialMightT {
         public CelestialMight() {
             super("Celestial Might", 6);
@@ -285,6 +294,9 @@ public class CardRegent2 {
     // Collision Course (Common) - 0 energy, Attack
     //   Effect: Deal 9 damage. Add a Debris into your Hand.
     //   Upgraded Effect: Deal 12 damage. Add a Debris into your Hand.
+    // TODO CHANGED: Collision Course (Common) - 0 energy, Attack
+    //   Effect: Deal 11 damage. Add a Debris into your Hand.
+    //   Upgraded Effect: Deal 15 damage. Add a Debris into your Hand.
     public static class CollisionCourse extends _CollisionCourseT {
         public CollisionCourse() {
             super("Collision Course", 9);
@@ -370,6 +382,9 @@ public class CardRegent2 {
     // Crescent Spear (Common) - 1 energy, 1 star, Attack
     //   Effect: Deal 6 damage. Deals 2 additional damage for ALL your cards that have a star cost.
     //   Upgraded Effect: Deal 6 damage. Deals 3 additional damage for ALL your cards that have a star cost.
+    // TODO CHANGED: Crescent Spear (Common) - 1 energy, 1 star, Attack
+    //   Effect: Deal 8 damage. Deals 2 additional damage for ALL your cards that have a star cost.
+    //   Upgraded Effect: Deal 8 damage. Deals 3 additional damage for ALL your cards that have a star cost.
     public static class CrescentSpear extends _CrescentSpearT {
         public CrescentSpear() {
             super("Crescent Spear", 6, 2);
@@ -436,6 +451,9 @@ public class CardRegent2 {
     // Gather Light (Common) - 1 energy, Skill
     //   Effect: Gain 7 Block. Gain star.
     //   Upgraded Effect: Gain 10 Block. Gain star.
+    // TODO CHANGED: Gather Light (Common) - 1 energy, Skill
+    //   Effect: Gain 8 Block. Gain star.
+    //   Upgraded Effect: Gain 11 Block. Gain star.
     public static class GatherLight extends _GatherLightT {
         public GatherLight() {
             super("Gather Light", 7);
@@ -472,6 +490,9 @@ public class CardRegent2 {
     // Glitterstream (Common) - 2 energy, Skill
     //   Effect: Gain 11 Block. Next turn, gain 4 Block.
     //   Upgraded Effect: Gain 13 Block. Next turn, gain 6 Block.
+    // TODO CHANGED: Glitterstream (Common) - 2 energy, Skill
+    //   Effect: Gain 11 Block. Next turn, gain 5 Block.
+    //   Upgraded Effect: Gain 13 Block. Next turn, gain 7 Block.
     public static class Glitterstream extends _GlitterstreamT {
         public Glitterstream() {
             super("Glitterstream", 11, 4);
@@ -502,6 +523,9 @@ public class CardRegent2 {
     // Glow (Common) - 1 energy, Skill
     //   Effect: Gain star. Draw 2 cards.
     //   Upgraded Effect: Gain 2 star. Draw 2 cards.
+    // TODO CHANGED: Glow (Common) - 1 energy, Skill
+    //   Effect: Gain star. Draw 1 card. Next turn, draw 1 card
+    //   Upgraded Effect: Gain 2 star. Draw 1 card. Next turn, draw 1 card
     public static class Glow extends _GlowT {
         public Glow() {
             super("Glow", 1);
@@ -541,6 +565,9 @@ public class CardRegent2 {
     // Guiding Star (Common) - 1 energy, 2 star, Attack
     //   Effect: Deal 12 damage. Next turn, draw 2 cards.
     //   Upgraded Effect: Deal 13 damage. Next turn, draw 3 cards.
+    // TODO CHANGED: Guiding Star (Common) - 1 energy, 2 star, Attack
+    //   Effect: Deal 12 damage. Draw 2 cards.
+    //   Upgraded Effect: Deal 13 damage. Draw 3 cards.
     public static class GuidingStar extends _GuidingStarT {
         public GuidingStar() {
             super("Guiding Star", 12, 2);
@@ -750,6 +777,9 @@ public class CardRegent2 {
     // Solar Strike (Common) - 1 energy, Attack
     //   Effect: Deal 8 damage. Gain star.
     //   Upgraded Effect: Deal 9 damage. Gain 2 star.
+    // TODO CHANGED: Solar Strike (Common) - 1 energy, Attack
+    //   Effect: Deal 9 damage. Gain star.
+    //   Upgraded Effect: Deal 10 damage. Gain 2 star.
     public static class SolarStrike extends _SolarStrikeT {
         public SolarStrike() {
             super("Solar Strike", 8, 1);
@@ -780,6 +810,9 @@ public class CardRegent2 {
     // Spoils of Battle (Common) - 1 energy, Skill
     //   Effect: Forge 10.
     //   Upgraded Effect: Forge 15.
+    // TODO CHANGED: Spoils of Battle (Common) - 1 energy, Skill
+    //   Effect: Forge 5. Draw 2 cards.
+    //   Upgraded Effect: Forge 8. Draw 2 cards.
     public static class SpoilsOfBattle extends _SpoilsOfBattleT {
         public SpoilsOfBattle() {
             super("Spoils of Battle", 10);
@@ -814,6 +847,9 @@ public class CardRegent2 {
     // Wrought in War (Common) - 1 energy, Attack
     //   Effect: Deal 7 damage. Forge 5.
     //   Upgraded Effect: Deal 9 damage. Forge 7.
+    // TODO CHANGED: Wrought in War (Common) - 1 energy, Attack
+    //   Effect: Deal 7 damage. Forge 7.
+    //   Upgraded Effect: Deal 9 damage. Forge 9.
     public static class WroughtInWar extends _WroughtInWarT {
         public WroughtInWar() {
             super("Wrought in War", 7, 5);
@@ -847,6 +883,9 @@ public class CardRegent2 {
     }
 
     // Alignment (Uncommon) - 0 energy, 2 star, Skill
+    //   Effect: Gain 2 energy.
+    //   Upgraded Effect: Gain 3 energy.
+    // TODO CHANGED: Alignment (Uncommon) - 0 energy, 3 star, Skill
     //   Effect: Gain 2 energy.
     //   Upgraded Effect: Gain 3 energy.
     public static class Alignment extends _AlignmentT {
@@ -934,6 +973,9 @@ public class CardRegent2 {
     // Bulwark (Uncommon) - 2 energy, Skill
     //   Effect: Gain 13 Block. Forge 10.
     //   Upgraded Effect: Gain 16 Block. Forge 13.
+    // TODO CHANGED: Bulwark (Uncommon) - 2 energy, Skill
+    //   Effect: Gain 12 Block. Forge 10.
+    //   Upgraded Effect: Gain 15 Block. Forge 13.
     public static class Bulwark extends _BulwarkT {
         public Bulwark() {
             super("Bulwark", 13, 10);
@@ -985,6 +1027,9 @@ public class CardRegent2 {
     // CHARGE!! (Uncommon) - 1 energy, Skill
     //   Effect: Choose 2 cards in your Draw Pile to Transform into Minion Strikes.
     //   Upgraded Effect: Choose 2 cards in your Draw Pile to Transform into Minion Strikes+.
+    // TODO CHANGED: CHARGE!! (Uncommon) - 1 energy, Skill
+    //   Effect: Choose 2 cards in your Draw Pile to Transform into Minion Dive Bomb.
+    //   Upgraded Effect: Choose 2 cards in your Draw Pile to Transform into Minion Dive Bomb+.
     public static class Charge extends _ChargeT {
         public Charge() {
             super("CHARGE!!");
@@ -1217,6 +1262,9 @@ public class CardRegent2 {
     // Furnace (Uncommon) - 1 energy, Power
     //   Effect: At the start of your turn, Forge 4.
     //   Upgraded Effect: At the start of your turn, Forge 6.
+    // TODO CHANGED: Furnace (Uncommon) - 1 energy, Power
+    //   Effect: At the start of your turn, Forge 5.
+    //   Upgraded Effect: At the start of your turn, Forge 7.
     public static class Furnace extends _FurnaceT {
         public Furnace() {
             super("Furnace", 4);
@@ -1361,6 +1409,9 @@ public class CardRegent2 {
     // Kingly Kick (Uncommon) - 4 energy, Attack
     //   Effect: Deal 24 damage. Whenever you draw this card, reduce its cost by 1.
     //   Upgraded Effect: Deal 30 damage. Whenever you draw this card, reduce its cost by 1.
+    // TODO CHANGED: Kingly Kick (Uncommon) - 4 energy, Attack
+    //   Effect: Deal 27 damage. Whenever you draw this card, reduce its cost by 1.
+    //   Upgraded Effect: Deal 35 damage. Whenever you draw this card, reduce its cost by 1.
     public static class KinglyKick extends _KinglyKickT {
         public KinglyKick() {
             this(4);
@@ -1452,6 +1503,9 @@ public class CardRegent2 {
     // Kingly Punch (Uncommon) - 1 energy, Attack
     //   Effect: Deal 8 damage. Whenever you draw this card, increase its damage by 3 this combat.
     //   Upgraded Effect: Deal 8 damage. Whenever you draw this card, increase its damage by 5 this combat.
+    // TODO CHANGED: Kingly Punch (Uncommon) - 1 energy, Attack
+    //   Effect: Deal 8 damage. Whenever you draw this card, increase its damage by 4 this combat.
+    //   Upgraded Effect: Deal 10 damage. Whenever you draw this card, increase its damage by 6 this combat.
     public static class KinglyPunch extends Card {
         final int dmg;
 
@@ -1652,6 +1706,9 @@ public class CardRegent2 {
     // Manifest Authority (Uncommon) - 1 energy, Skill
     //   Effect: Gain 7 Block. Add 1 random Colorless card into your Hand.
     //   Upgraded Effect: Gain 8 Block. Add 1 random Upgraded Colorless card into your Hand.
+    // TODO CHANGED: Manifest Authority (Uncommon) - 1 energy, Skill
+    //   Effect: Gain 7 Block. Add 1 random Colorless card into your Hand.
+    //   Upgraded Effect: Gain 8 Block. Add 1 randomUpgraded Colorless card into your Hand.
     public static class ManifestAuthority extends _ManifestAuthorityT {
         public ManifestAuthority() {
             super("Manifest Authority", 7);
@@ -1862,6 +1919,9 @@ public class CardRegent2 {
     // Parry (Uncommon) - 1 energy, Power
     //   Effect: Whenever you play Sovereign Blade, gain 6 Block.
     //   Upgraded Effect: Whenever you play Sovereign Blade, gain 9 Block.
+    // TODO CHANGED: Parry (Uncommon) - 1 energy, Power
+    //   Effect: Sovereign Blade now gains 10 Block.
+    //   Upgraded Effect: Sovereign Blade now gains 14 Block.
     public static class Parry extends _ParryT {
         public Parry() {
             super("Parry", 6);
@@ -2130,6 +2190,9 @@ public class CardRegent2 {
     // Reflect (Uncommon) - 1 energy, 3 star, Skill
     //   Effect: Gain 17 Block. Blocked attack damage is reflected to your attacker this turn.
     //   Upgraded Effect: Gain 21 Block. Blocked attack damage is reflected to your attacker this turn.
+    // TODO CHANGED: Reflect (Uncommon) - 1 energy, 3 star, Skill
+    //   Effect: Gain 15 Block. Blocked attack damage is reflected to your attacker this turn.
+    //   Upgraded Effect: Gain 20 Block. Blocked attack damage is reflected to your attacker this turn.
     public static class Reflect extends _ReflectT {
         public Reflect() {
             super("Reflect", 17);
@@ -2463,6 +2526,9 @@ public class CardRegent2 {
     // Arsenal (Rare) - 1 energy, Power
     //   Effect: Whenever you play a Colorless card, gain 1 Strength.
     //   Upgraded Effect: Whenever you play a Colorless card, gain 2 Strength.
+    // TODO CHANGED: Arsenal (Rare) - 1 energy, Power
+    //   Effect: Whenever you create a card, gain 1 Strength.
+    //   Upgraded Effect: Innate. Whenever you create a card, gain 1 Strength.
     public static class Arsenal extends _ArsenalT {
         public Arsenal() {
             super("Arsenal", 1);
@@ -2586,6 +2652,9 @@ public class CardRegent2 {
     // Bombardment (Rare) - 3 energy, Attack
     //   Effect: Deal 18 damage. At the start of your turn, plays from the Exhaust Pile. Exhaust.
     //   Upgraded Effect: Deal 24 damage. At the start of your turn, plays from the Exhaust Pile. Exhaust.
+    // TODO CHANGED: Bombardment (Rare) - 3 energy, Attack
+    //   Effect: Deal 18 damage. At the start of your turn, if this is in your Exhaust Pile, play it. Exhaust.
+    //   Upgraded Effect: Deal 24 damage. At the start of your turn, if this is in your Exhaust Pile, play it. Exhaust.
     public static class Bombardment extends _BombardmentT {
         public Bombardment() {
             super("Bombardment", 18);
@@ -2621,6 +2690,9 @@ public class CardRegent2 {
     }
 
     // Bundle of Joy (Rare) - 2 energy, Skill
+    //   Effect: Add 3 random Colorless cards into your Hand. Exhaust.
+    //   Upgraded Effect: Add 4 random Colorless cards into your Hand. Exhaust.
+    // TODO CHANGED: Bundle of Joy (Rare) - 1 energy, Skill
     //   Effect: Add 3 random Colorless cards into your Hand. Exhaust.
     //   Upgraded Effect: Add 4 random Colorless cards into your Hand. Exhaust.
     public static class BundleOfJoy extends _BundleOfJoyT {
@@ -2988,6 +3060,9 @@ public class CardRegent2 {
     // Heirloom Hammer (Rare) - 2 energy, Attack
     //   Effect: Deal 17 damage. Choose a Colorless card in your Hand. Add a copy of that card into your Hand.
     //   Upgraded Effect: Deal 22 damage. Choose a Colorless card in your Hand. Add a copy of that card into your Hand.
+    // TODO CHANGED: Heirloom Hammer (Rare) - 2 energy, Attack
+    //   Effect: Deal 20 damage. Choose a Colorless card in your Hand. Add a copy of that card into your Hand.
+    //   Upgraded Effect: Deal 25 damage. Choose a Colorless card in your Hand. Add a copy of that card into your Hand.
     public static class HeirloomHammer extends _HeirloomHammerT {
         public HeirloomHammer() {
             super("Heirloom Hammer", 17);
@@ -3038,6 +3113,9 @@ public class CardRegent2 {
     // I Am Invincible (Rare) - 1 energy, Skill
     //   Effect: Gain 9 Block. At the end of your turn, if this is on top of your Draw Pile, play it.
     //   Upgraded Effect: Gain 12 Block. At the end of your turn, if this is on top of your Draw Pile, play it.
+    // TODO CHANGED: I Am Invincible (Rare) - 1 energy, Skill
+    //   Effect: Gain 10 Block. At the end of your turn, if this is on top of your Draw Pile, play it.
+    //   Upgraded Effect: Gain 13 Block. At the end of your turn, if this is on top of your Draw Pile, play it.
     public static class IAmInvincible extends _IAmInvincibleT {
         public IAmInvincible() {
             super("I Am Invincible", 9);
@@ -3142,6 +3220,9 @@ public class CardRegent2 {
     // Monarch's Gaze (Rare) - 3 energy, Power
     //   Effect: Whenever you attack an enemy, it loses 1 Strength this turn.
     //   Upgraded Effect (2 energy): Whenever you attack an enemy, it loses 1 Strength this turn.
+    // TODO CHANGED: Monarch's Gaze (Rare) - 2 energy, Power
+    //   Effect: Whenever you attack an enemy, it loses 1 Strength this turn.
+    //   Upgraded Effect (1 energy): Whenever you attack an enemy, it loses 1 Strength this turn.
     public static class MonarchsGaze extends _MonarchsGazeT {
         public MonarchsGaze() {
             super("Monarch's Gaze", 3);
@@ -3249,6 +3330,9 @@ public class CardRegent2 {
     // Royalties (Rare) - 1 energy, Power
     //   Effect: At the end of combat, gain 30 Gold.
     //   Upgraded Effect: At the end of combat, gain 35 Gold.
+    // TODO CHANGED: Royalties (Rare) - 1 energy, Power
+    //   Effect: At the end of combat, gain 30 Gold.
+    //   Upgraded Effect: At the end of combat, gain 40 Gold.
     public static class Royalties extends _RoyaltiesT {
         public Royalties(double healthRewardRatio) {
             super("Royalties", 30, healthRewardRatio);
@@ -3354,6 +3438,9 @@ public class CardRegent2 {
     // Sword Sage (Rare) - 2 energy, Power
     //   Effect: Increase the cost of Sovereign Blade by 1. Sovereign Blade now hits an additional time.
     //   Upgraded Effect (1 energy): Increase the cost of Sovereign Blade by 1. Sovereign Blade now hits an additional time.
+    // TODO CHANGED: Sword Sage (Rare) - 2 energy, Power
+    //   Effect: Sovereign Blade gains Replay 1.
+    //   Upgraded Effect (1 energy): Sovereign Blade gains Replay 1.
     public static class SwordSage extends _SwordSageT {
         public SwordSage() {
             super("Sword Sage", 2);
@@ -3455,6 +3542,9 @@ public class CardRegent2 {
     // Void Form (Rare) - 3 energy, Power
     //   Effect: End your turn. The first 2 cards you play each turn are free to play.
     //   Upgraded Effect: End your turn. The first 3 cards you play each turn are free to play.
+    // TODO CHANGED: Void Form (Rare) - 3 energy, Power
+    //   Effect: Ethereal. End your turn. The first 2 cards you play each turn are free to play.
+    //   Upgraded Effect: End your turn. The first 2 cards you play each turn are free to play.
     public static class VoidForm extends _VoidFormT {
         public VoidForm() {
             super("Void Form", 2);
@@ -3532,6 +3622,9 @@ public class CardRegent2 {
     // The Sealed Throne (Ancient) - 1 energy, 3 star, Power
     //   Effect: Whenever you play a card, gain star.
     //   Upgraded Effect: Innate. Whenever you play a card, gain star.
+    // TODO CHANGED: The Sealed Throne (Ancient) - 1 energy, 3 star, Power
+    //   Effect: Whenever you play a card, gain star.
+    //   Upgraded Effect (0 energy): Whenever you play a card, gain star.
     public static class TheSealedThrone extends _TheSealedThroneT {
         public TheSealedThrone() {
             super("The Sealed Throne", false);

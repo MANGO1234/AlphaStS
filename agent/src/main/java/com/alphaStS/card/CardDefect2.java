@@ -279,6 +279,9 @@ public class CardDefect2 {
     // Hotfix (Common) - 0 energy, Skill
     //   Effect: Gain 2 Focus this turn.
     //   Upgraded Effect: Gain 3 Focus this turn.
+    // TODO CHANGED: Hotfix (Common) - 0 energy, Skill
+    //   Effect: Gain 2 Focus this turn. Exhaust.
+    //   Upgraded Effect: Gain 2 Focus this turn.
     public static class Hotfix extends _HotfixT {
         public Hotfix() {
             super("Hotfix", 2);
@@ -468,6 +471,9 @@ public class CardDefect2 {
     // Uproar (Common) - 2 energy, Attack
     //   Effect: Deal 5 damage twice. Play a random Attack from your Draw Pile.
     //   Upgraded Effect: Deal 7 damage twice. Play a random Attack from your Draw Pile.
+    // TODO CHANGED: Uproar (Common) - 2 energy, Attack
+    //   Effect: Deal 6 damage twice. Play a random Attack from your Draw Pile.
+    //   Upgraded Effect: Deal 8 damage twice. Play a random Attack from your Draw Pile.
     public static class Uproar extends _UproarT {
         public Uproar() {
             super("Uproar", 5);
@@ -724,6 +730,9 @@ public class CardDefect2 {
     // Fusion (Uncommon) - 2 energy, Skill
     //   Effect: Channel 1 Plasma.
     //   Upgraded Effect (1 energy): Channel 1 Plasma.
+    // TODO CHANGED: Fusion (Uncommon) - 1 energy, Skill
+    //   Effect: Channel 1 Plasma. Exhaust.
+    //   Upgraded Effect: Channel 1 Plasma.
     public static class Fusion extends CardDefect.Fusion {
     }
 
@@ -977,6 +986,9 @@ public class CardDefect2 {
     // Rip and Tear (Uncommon) - 1 energy, Attack
     //   Effect: Deal 7 damage to a random enemy twice.
     //   Upgraded Effect: Deal 9 damage to a random enemy twice.
+    // TODO CHANGED: Rip and Tear (Event) - 1 energy, Attack
+    //   Effect: Deal 7 damage to a random enemy twice.
+    //   Upgraded Effect: Deal 9 damage to a random enemy twice.
     public static class RipAndTear extends CardDefect.RipAndTear {
     }
 
@@ -1035,6 +1047,9 @@ public class CardDefect2 {
     // Rocket Punch (Uncommon) - 2 energy, Attack
     //   Effect: Deal 13 damage. Draw 1 card. When a Status card is created, reduce this card's cost to 0 energy this turn.
     //   Upgraded Effect: Deal 14 damage. Draw 2 cards. When a Status card is created, reduce this card's cost to 0 energy this turn.
+    // TODO CHANGED: Rocket Punch (Uncommon) - 2 energy, Attack
+    //   Effect: Deal 13 damage. Draw 1 card. When a Status card is created, reduce this card's cost to 0 energy until played.
+    //   Upgraded Effect: Deal 14 damage. Draw 2 cards. When a Status card is created, reduce this card's cost to 0 energy until played.
     public static class RocketPunch extends _RocketPunchT {
         public RocketPunch() {
             super("Rocket Punch", 13, 1);
@@ -1332,6 +1347,9 @@ public class CardDefect2 {
     // Synthesis (Uncommon) - 2 energy, Attack
     //   Effect: Deal 12 damage. The next Power you play costs 0 energy.
     //   Upgraded Effect: Deal 18 damage. The next Power you play costs 0 energy.
+    // TODO CHANGED: Synthesis (Uncommon) - 2 energy, Attack
+    //   Effect: Deal 14 damage. The next Power you play costs 0 energy.
+    //   Upgraded Effect: Deal 20 damage. The next Power you play costs 0 energy.
     public static class Synthesis extends _SynthesisT {
         public Synthesis() {
             super("Synthesis", 12);
@@ -1372,6 +1390,9 @@ public class CardDefect2 {
     // Tesla Coil (Uncommon) - 0 energy, Attack
     //   Effect: Deal 3 damage. Trigger all Lightning against the enemy.
     //   Upgraded Effect: Deal 6 damage. Trigger all Lightning against the enemy.
+    // TODO CHANGED: Tesla Coil (Uncommon) - 0 energy, Attack
+    //   Effect: Deal 3 damage. Trigger all Lightning against the enemy.
+    //   Upgraded Effect: Deal 4 damage. Trigger all Lightning against the enemy twice.
     public static class TeslaCoil extends _TeslaCoilT {
         public TeslaCoil() {
             super("Tesla Coil", 3);
@@ -1777,6 +1798,9 @@ public class CardDefect2 {
     // Hyperbeam (Rare) - 2 energy, Attack
     //   Effect: Deal 26 damage to ALL enemies. Lose 3 Focus.
     //   Upgraded Effect: Deal 34 damage to ALL enemies. Lose 3 Focus.
+    // TODO CHANGED: Hyperbeam (Rare) - 2 energy, Attack
+    //   Effect: Deal 28 damage to ALL enemies. Lose 3 Focus.
+    //   Upgraded Effect: Deal 36 damage to ALL enemies. Lose 3 Focus.
     public static class Hyperbeam extends CardDefect.Hyperbeam {
     }
 
@@ -1954,6 +1978,9 @@ public class CardDefect2 {
     // Shatter (Rare) - 1 energy, Attack
     //   Effect: Deal 11 damage to ALL enemies. Evoke all of your Orbs.
     //   Upgraded Effect: Deal 15 damage to ALL enemies. Evoke all of your Orbs.
+    // TODO CHANGED: Shatter (Rare) - 1 energy, Attack
+    //   Effect: Deal 7 damage to ALL enemies. Evoke all of your Orbs twice.
+    //   Upgraded Effect: Deal 11 damage to ALL enemies. Evoke all of your Orbs twice.
     public static class Shatter extends _ShatterT {
         public Shatter() {
             super("Shatter", 11);
@@ -2180,6 +2207,9 @@ public class CardDefect2 {
     }
 
     // Voltaic (Rare) - 2 energy, Skill
+    //   Effect: Channel Lightning equal to the Lightning already Channeled this combat. Exhaust.
+    //   Upgraded Effect: Channel Lightning equal to the Lightning already Channeled this combat.
+    // TODO CHANGED: Voltaic (Rare) - 3 energy, Skill
     //   Effect: Channel Lightning equal to the Lightning already Channeled this combat. Exhaust.
     //   Upgraded Effect: Channel Lightning equal to the Lightning already Channeled this combat.
     public static class Voltaic extends _VoltaicT {

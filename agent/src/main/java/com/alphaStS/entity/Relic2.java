@@ -107,6 +107,8 @@ public class Relic2 {
 
     // Pendulum (Common)
     //   Effect: Whenever you shuffle your Draw Pile, draw a card.
+    // TODO CHANGED: Pendulum (Common)
+    //   Effect: Every 3 turns, draw 1 card.
     public static class Pendulum extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addOnShuffleHandler("Pendulum", new GameEventHandler() {
@@ -121,6 +123,8 @@ public class Relic2 {
 
     // Permafrost (Common)
     //   Effect: The first time you play a Powers each combat, gain 6 Block.
+    // TODO CHANGED: Permafrost (Uncommon)
+    //   Effect: The first time you play a Power each combat, gain 7 Block.
     public static class Permafrost extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.registerCounter("Permafrost", this, new GameProperties.NetworkInputHandler() {
@@ -201,10 +205,14 @@ public class Relic2 {
 
     // Bag of Marbles (Uncommon)
     //   Effect: At the start of each combat, apply 1 Vulnerable to ALL enemies.
+    // TODO CHANGED: Bag of Marbles (Common)
+    //   Effect: At the start of each combat, apply 1 Vulnerable to ALL enemies.
     public static class BagOfMarbles extends Relic.BagOfMarbles {
     }
 
     // Bellows (Uncommon)
+    //   Effect: The first Hand you draw each combat is Upgraded.
+    // TODO CHANGED: Bellows (Rare)
     //   Effect: The first Hand you draw each combat is Upgraded.
     public static class Bellows extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
@@ -456,11 +464,15 @@ public class Relic2 {
 
     // Red Mask (Uncommon)
     //   Effect: At the start of each combat, apply 1 Weak to ALL enemies.
+    // TODO CHANGED: Red Mask (Common)
+    //   Effect: At the start of each combat, apply 1 Weak to ALL enemies.
     public static class RedMask extends Relic.RedMask {
     }
 
     // Reptile Trinket (Uncommon)
     //   Effect: Whenever you use a potion, gain 3 Strength this turn.
+    // TODO CHANGED: Reptile Trinket (Uncommon)
+    //   Effect: Whenever you use a Potion, gain 3 Strength this turn.
     public static class ReptileTrinket extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addOnPotionUseHandler("ReptileTrinket", new GameEventHandler() {
@@ -539,6 +551,8 @@ public class Relic2 {
 
     // Stone Cracker (Uncommon)
     //   Effect: At the start of Boss combats, Upgrade 3 random cards in your Draw Pile for the rest of combat.
+    // TODO CHANGED: Stone Cracker (Uncommon)
+    //   Effect: At the start of combat, Upgrade 2 random cards in your Draw Pile for the rest of combat.
     public static class StoneCracker extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addStartOfBattleHandler("StoneCracker", new GameEventHandler() {
@@ -766,6 +780,8 @@ public class Relic2 {
 
     // Girya (Rare)
     //   Effect: You can now gain Strength at Rest Sites. (3 times max)
+    // TODO CHANGED: Girya (Rare)
+    //   Effect: You can now gain Strength at Rest Site. (3 times max)
     public static class Girya extends Relic.Girya {
         public Girya(int strength) {
             super(strength);
@@ -800,6 +816,8 @@ public class Relic2 {
 
     // Lizard Tail (Rare)
     //   Effect: When you would die, heal to 50% of your Max HP instead (works once).
+    // TODO CHANGED: Lizard Tail (Rare)
+    //   Effect: When your HP would be reduced to 0, heal to 50% of your Max HP instead (works once).
     public static class LizardTail extends Relic.LizardTail {
     }
 
@@ -828,6 +846,8 @@ public class Relic2 {
 
     // Rainbow Ring (Rare)
     //   Effect: The first time you play an Attack, Skill, and Powers each turn, gain 1 Strength and 1 Dexterity.
+    // TODO CHANGED: Rainbow Ring (Rare)
+    //   Effect: The first time you play an Attack, Skill, and Power each turn, gain 1 Strength and 1 Dexterity.
     public static class RainbowRing extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.registerCounter("RainbowRing", this, new GameProperties.NetworkInputHandler() {
@@ -934,7 +954,7 @@ public class Relic2 {
     }
 
     // TODO: Vexing Puzzlebox (Rare)
-    //   Effect: At the start of each combat, add a random card into your Hand. It costs 0 energy.
+    //   Effect: At the start of each combat, add a random card into your Hand. It's free to play this turn.
 
     // No need to implement White Beast Statue: Potions always appear in combat rewards.
 
@@ -946,6 +966,8 @@ public class Relic2 {
 
     // Belt Buckle (Shop)
     //   Effect: While you have no potions, you have 2 additional Dexterity.
+    // TODO CHANGED: Belt Buckle (Shop)
+    //   Effect: While you have no Potion, you have 2 additional Dexterity.
     public static class BeltBuckle extends Relic {
         public BeltBuckle() {
             entityProperty.changePlayerDexterity = true;
@@ -1600,6 +1622,8 @@ public class Relic2 {
 
     // Crossbow (Ancient)
     //   Effect: At the start of your turn, add a random Attack into your Hand. It costs 0 energy this turn.
+    // TODO CHANGED: Crossbow (Ancient)
+    //   Effect: At the start of your turn, add a random Attack into your Hand. It's free to play this turn.
     public static class Crossbow extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addStartOfTurnHandler("Crossbow", new GameEventHandler() {
@@ -1621,7 +1645,7 @@ public class Relic2 {
     // No need to implement Cursed Pearl: Upon pickup, receive Greed. Gain 333 Gold.
 
     // TODO: Delicate Frond (Ancient)
-    //   Effect: At the start of each combat, fill all empty potion slots with random potions.
+    //   Effect: At the start of each combat, fill all empty Potion slots with random Potion.
 
     // Diamond Diadem (Ancient)
     //   Effect: Whenever you play 2 or fewer cards in a turn, take half damage from enemies.
@@ -1740,6 +1764,8 @@ public class Relic2 {
 
     // Jeweled Mask (Ancient)
     //   Effect: At the start of combat put a random Powers from your Draw Pile into your Hand, it's free to play.
+    // TODO CHANGED: Jeweled Mask (Ancient)
+    //   Effect: At the start of combat put a random Power from your Draw Pile into your Hand, it's free to play.
     public static class JeweledMask extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addStartOfBattleHandler("JeweledMask", new GameEventHandler() {
@@ -1975,6 +2001,8 @@ public class Relic2 {
 
     // Pumpkin Candle (Ancient)
     //   Effect: Gain energy at the start of each turn. Extinguishes at the start of Act 3.
+    // TODO CHANGED: Pumpkin Candle (Ancient)
+    //   Effect: Gain energy at the start of each turn. Extinguishes after 5 combats. Can be Kindled at Rest Sites.
     public static class PumpkinCandle extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addStartOfBattleHandler("PumpkinCandle", new GameEventHandler() {
@@ -2094,6 +2122,8 @@ public class Relic2 {
 
     // Sozu (Ancient)
     //   Effect: Gain energy at the start of each turn. You can no longer obtain potions.
+    // TODO CHANGED: Sozu (Ancient)
+    //   Effect: Gain energy at the start of each turn. You can no longer obtain Potion.
     public static class Sozu extends Relic.Sozu {
     }
 
@@ -2172,6 +2202,30 @@ public class Relic2 {
     //   Effect: Gain energy at the start of each turn. Vakuu plays your first turn for you.
 
     // No need to implement Yummy Cookie: Upon pickup, Upgrade 4 cards.
+
+    // TODO: Fishing Rod (Ancient)
+    //   Effect: Every 3 normal combats, Upgrade a random card in your Deck.
+
+    // TODO: Hefty Tablet (Ancient)
+    //   Effect: Choose 1 of 3 Rare cards to add to your Deck. Add 1 Injury to your Deck.
+
+    // TODO: Kaleidoscope (Ancient)
+    //   Effect: Upon pickup, obtain 2 card rewards from other characters.
+
+    // TODO: Neow's Bones (Ancient)
+    //   Effect: Upon pickup, gain 2 random Neow Relics. Add 1 random Curse to your Deck.
+
+    // TODO: Neow's Talisman (Ancient)
+    //   Effect: Upon pickup, Upgrade 1 of your Strikes and 1 of your Defends.
+
+    // TODO: Phial Holster (Ancient)
+    //   Effect: Upon pickup, gain 1 potion slot and procure 2 random Potion.
+
+    // TODO: Silken Tress (Ancient)
+    //   Effect: Upon pickup, lose all Gold. Enchant all cards in the first card reward with Glam.
+
+    // TODO: Winged Boots (Ancient)
+    //   Effect: You may ignore paths when choosing the next rooms to travel to 3 times.
 
     // **************************************************************************************************
     // ********************************************* Special *********************************************
@@ -2343,6 +2397,8 @@ public class Relic2 {
 
     // Infused Core (Starter)
     //   Effect: At the start of each combat, Channel 3 Lightning.
+    // TODO CHANGED: Infused Core (Starter)
+    //   Effect: At the start of each combat, Channel 3 Lightning. Lightning Orbs deal 1 additional damage.
     public static class InfusedCore extends Relic {
         public InfusedCore() {
             entityProperty.orbGenerationPossible |= OrbType.LIGHTNING.mask;
@@ -2575,6 +2631,8 @@ public class Relic2 {
 
     // Regalite (Uncommon)
     //   Effect: Whenever you create a Colorless card, gain 2 Block.
+    // TODO CHANGED: Regalite (Uncommon)
+    //   Effect: Whenever you create a card, gain 2 Block.
     public static class Regalite extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addOnCardCreationHandler("Regalite", new OnCardCreationHandler() {

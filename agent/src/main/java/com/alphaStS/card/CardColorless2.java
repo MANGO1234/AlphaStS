@@ -128,6 +128,9 @@ public class CardColorless2 {
     // Discovery (Uncommon) - 1 energy, Skill
     //   Effect: Choose 1 of 3 random cards to add into your Hand. It costs 0 energy this turn. Exhaust.
     //   Upgraded Effect: Choose 1 of 3 random cards to add into your Hand. It costs 0 energy this turn.
+    // TODO CHANGED: Discovery (Uncommon) - 1 energy, Skill
+    //   Effect: Choose 1 of 3 random cards to add into your Hand. It's free to play this turn. Exhaust.
+    //   Upgraded Effect: Choose 1 of 3 random cards to add into your Hand. It's free to play this turn.
     public static class Discovery extends CardColorless.Discovery {
     }
 
@@ -192,6 +195,9 @@ public class CardColorless2 {
     // Fasten (Uncommon) - 1 energy, Power
     //   Effect: Gain an additional 5 Block from Defend cards.
     //   Upgraded Effect: Gain an additional 7 Block from Defend cards.
+    // TODO CHANGED: Fasten (Uncommon) - 1 energy, Power
+    //   Effect: Gain an additional 4 Block from Defend cards.
+    //   Upgraded Effect: Gain an additional 6 Block from Defend cards.
     public static class Fasten extends _FastenT {
         public Fasten() {
             super("Fasten", 5);
@@ -421,6 +427,9 @@ public class CardColorless2 {
     // Production (Uncommon) - 0 energy, Skill
     //   Effect: Gain 2 energy. Exhaust.
     //   Upgraded Effect: Gain 2 energy.
+    // TODO CHANGED: Production (Uncommon) - 0 energy, Skill
+    //   Effect: Gain 2 energy. Exhaust.
+    //   Upgraded Effect: Gain 3 energy. Exhaust.
     public static class Production extends _ProductionT {
         public Production() {
             super("Production", true);
@@ -545,8 +554,8 @@ public class CardColorless2 {
     }
 
     // TODO: Seeker Strike (Uncommon) - 1 energy, Attack
-    //   Effect: Deal 6 damage. Choose 1 of 3 cards in your Draw Pile to add into your Hand.
-    //   Upgraded Effect: Deal 9 damage. Choose 1 of 3 cards in your Draw Pile to add into your Hand.
+    //   Effect: Deal 9 damage. Choose 1 of 3 cards in your Draw Pile to add into your Hand.
+    //   Upgraded Effect: Deal 12 damage. Choose 1 of 3 cards in your Draw Pile to add into your Hand.
 
     // Shockwave (Uncommon) - 2 energy, Skill
     //   Effect: Apply 3 Weak and Vulnerable to ALL enemies. Exhaust.
@@ -836,6 +845,9 @@ public class CardColorless2 {
     // Eternal Armor (Rare) - 3 energy, Power
     //   Effect: Gain 7 Plating.
     //   Upgraded Effect: Gain 9 Plating.
+    // TODO CHANGED: Eternal Armor (Rare) - 3 energy, Power
+    //   Effect: Gain 9 Plating.
+    //   Upgraded Effect: Gain 12 Plating.
     public static class EternalArmor extends _EternalArmorT {
         public EternalArmor() {
             super("Eternal Armor", 7);
@@ -911,8 +923,8 @@ public class CardColorless2 {
     }
 
     // TODO: Hidden Gem (Rare) - 1 energy, Skill
-    //   Effect: A random card in your Draw Pile gains Replay 2.
-    //   Upgraded Effect: A random card in your Draw Pile gains Replay 3.
+    //   Effect: A random card in your Draw Pile without Replay gains Replay 2.
+    //   Upgraded Effect: A random card in your Draw Pile without Replay gains Replay 3.
 
     // TODO: Jackpot (Rare) - 3 energy, Attack
     //   Effect: Deal 25 damage. Add 3 random 0 energy cards into your Hand.
@@ -1395,6 +1407,10 @@ public class CardColorless2 {
         }
     }
 
+    // TODO: Mad Science (Event) - 1 energy, Skill
+    //   Effect: This card can be created and customized at the event Tinker Time.
+    //   Upgraded Effect: Innate This card can be created and customized at the event Tinker Time.
+
     // **************************************************************************************************
     // ********************************************* Ancient *********************************************
     // **************************************************************************************************
@@ -1523,6 +1539,9 @@ public class CardColorless2 {
     // Neow's Fury (Ancient) - 1 energy, Attack
     //   Effect: Deal 10 damage. Put 2 random cards from your Discard Pile into your Hand. Exhaust.
     //   Upgraded Effect: Deal 14 damage. Put 2 random cards from your Discard Pile into your Hand. Exhaust.
+    // TODO CHANGED: Neow's Fury (Ancient) - 1 energy, Attack
+    //   Effect: Deal 10 damage. Put 2 random cards from your Discard Pile into your Hand. Exhaust.
+    //   Upgraded Effect: Deal 14 damage. Put 3 random cards from your Discard Pile into your Hand. Exhaust.
     public static class NeowsFury extends _NeowsFuryT {
         public NeowsFury() {
             super("Neow's Fury", 10);
@@ -1724,6 +1743,9 @@ public class CardColorless2 {
     // Minion Dive Bomb (Token) - 1 energy, Attack
     //   Effect: Deal 13 damage. Exhaust.
     //   Upgraded Effect: Deal 16 damage. Exhaust.
+    // TODO CHANGED: Minion Dive Bomb (Token) - 0 energy, Attack
+    //   Effect: Deal 13 damage. Exhaust.
+    //   Upgraded Effect: Deal 16 damage. Exhaust.
     public static class MinionDiveBomb extends _MinionDiveBombT {
         public MinionDiveBomb() {
             super("Minion Dive Bomb", 13);
@@ -1754,6 +1776,9 @@ public class CardColorless2 {
     // Minion Sacrifice (Token) - 0 energy, Skill
     //   Effect: Gain 9 Block. Exhaust.
     //   Upgraded Effect: Gain 12 Block. Exhaust.
+    // TODO CHANGED: Minion Sacrifice (Token) - 0 energy, Skill
+    //   Effect: Gain 8 Block. Exhaust.
+    //   Upgraded Effect: Gain 11 Block. Exhaust.
     public static class MinionSacrifice extends _MinionSacrificeT {
         public MinionSacrifice() {
             super("Minion Sacrifice", 9);
@@ -1786,6 +1811,9 @@ public class CardColorless2 {
     // Minion Strike (Token) - 0 energy, Attack
     //   Effect: Deal 7 damage. Draw 1 card. Exhaust.
     //   Upgraded Effect: Deal 10 damage. Draw 1 card. Exhaust.
+    // TODO CHANGED: Minion Strike (Token) - 0 energy, Attack
+    //   Effect: Deal 6 damage. Draw 1 card. Exhaust.
+    //   Upgraded Effect: Deal 9 damage. Draw 1 card. Exhaust.
     public static class MinionStrike extends _MinionStrikeT {
         public MinionStrike() {
             super("Minion Strike", 7);

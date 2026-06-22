@@ -179,6 +179,9 @@ public class CardIronclad2 {
     // Cinder (Common) - 2 energy, Attack
     //   Effect: Deal 17 damage. Exhaust the top card of your Draw Pile.
     //   Upgraded Effect: Deal 22 damage. Exhaust the top card of your Draw Pile.
+    // TODO CHANGED: Cinder (Common) - 2 energy, Attack
+    //   Effect: Deal 18 damage. Exhaust a random card in your Hand.
+    //   Upgraded Effect: Deal 24 damage. Exhaust a random card in your Hand.
     public static class Cinder extends _CinderT {
         public Cinder() {
             super("Cinder", 17);
@@ -352,6 +355,9 @@ public class CardIronclad2 {
     // Tremble (Common) - 1 energy, Skill
     //   Effect: Apply 2 Vulnerable.
     //   Upgraded Effect: Apply 3 Vulnerable.
+    // TODO CHANGED: Tremble (Common) - 1 energy, Skill
+    //   Effect: Apply 3 Vulnerable. Exhaust.
+    //   Upgraded Effect: Apply 4 Vulnerable. Exhaust.
     public static class Tremble extends _TrembleT {
         public Tremble() {
             super("Tremble", 2);
@@ -533,6 +539,9 @@ public class CardIronclad2 {
     // Dominate (Uncommon) - 1 energy, Skill
     //   Effect: Gain 1 Strength for each Vulnerable on the enemy. Exhaust.
     //   Upgraded Effect: Gain 1 Strength for each Vulnerable on the enemy.
+    // TODO CHANGED: Dominate (Uncommon) - 1 energy, Skill
+    //   Effect: Apply 1 Vulnerable. Gain 1 Strength for each Vulnerable on the enemy. Exhaust.
+    //   Upgraded Effect: Apply 2 Vulnerable. Gain 1 Strength for each Vulnerable on the enemy. Exhaust.
     public static class Dominate extends _DominateT {
         public Dominate() {
             super("Dominate", true);
@@ -587,6 +596,9 @@ public class CardIronclad2 {
     // Drum of Battle (Uncommon) - 0 energy, Power
     //   Effect: Draw 2 cards. At the start of your turn, Exhaust the top card of your Draw Pile.
     //   Upgraded Effect: Draw 3 cards. At the start of your turn, Exhaust the top card of your Draw Pile.
+    // TODO CHANGED: Drum of Battle (Uncommon) - 1 energy, Skill
+    //   Effect: Draw 2 cards. When this card is Exhausted, gain 2 energy
+    //   Upgraded Effect: Draw 2 cards. When this card is Exhausted, gain 3 energy
     public static class DrumOfBattle extends _DrumOfBattleT {
         public DrumOfBattle() {
             super("Drum of Battle", 2);
@@ -655,6 +667,9 @@ public class CardIronclad2 {
     // Expect a Fight (Uncommon) - 2 energy, Skill
     //   Effect: Gain energy for each Attack in your Hand.
     //   Upgraded Effect (1 energy): Gain energy for each Attack in your Hand.
+    // TODO CHANGED: Expect a Fight (Uncommon) - 2 energy, Skill
+    //   Effect: Gain energy for each Attack in your Hand. You cannot gain additional energy this turn.
+    //   Upgraded Effect (1 energy): Gain energy for each Attack in your Hand. You cannot gain additional energy this turn.
     public static class ExpectAFight extends _ExpectAFightT {
         public ExpectAFight() {
             super("Expect a Fight", 2);
@@ -702,6 +717,9 @@ public class CardIronclad2 {
     // Fight Me! (Uncommon) - 2 energy, Attack
     //   Effect: Deal 5 damage twice. Gain 2 Strength. The enemy gains 1 Strength.
     //   Upgraded Effect: Deal 6 damage twice. Gain 3 Strength. The enemy gains 1 Strength.
+    // TODO CHANGED: Fight Me! (Uncommon) - 2 energy, Attack
+    //   Effect: Deal 5 damage twice. Gain 3 Strength. The enemy gains 1 Strength.
+    //   Upgraded Effect: Deal 6 damage twice. Gain 4 Strength. The enemy gains 1 Strength.
     public static class FightMe extends _FightMeT {
         public FightMe() {
             super("Fight Me!", 5, 2);
@@ -746,6 +764,9 @@ public class CardIronclad2 {
     // Forgotten Ritual (Uncommon) - 1 energy, Skill
     //   Effect: If you Exhausted a card this turn, gain 3 energy.
     //   Upgraded Effect: If you Exhausted a card this turn, gain 4 energy.
+    // TODO CHANGED: Forgotten Ritual (Uncommon) - 1 energy, Skill
+    //   Effect: If you Exhausted a card this turn, gain 3 energy. Exhaust.
+    //   Upgraded Effect: If you Exhausted a card this turn, gain 4 energy. Exhaust.
     public static class ForgottenRitual extends _ForgottenRitualT {
         public ForgottenRitual() {
             super("Forgotten Ritual", 3);
@@ -831,6 +852,9 @@ public class CardIronclad2 {
     // Hemokinesis (Uncommon) - 1 energy, Attack
     //   Effect: Lose 2 HP. Deal 14 damage.
     //   Upgraded Effect: Lose 2 HP. Deal 19 damage.
+    // TODO CHANGED: Hemokinesis (Uncommon) - 1 energy, Attack
+    //   Effect: Lose 2 HP. Deal 15 damage.
+    //   Upgraded Effect: Lose 2 HP. Deal 20 damage.
     public static class Hemokinesis extends CardIronclad._HemokinesisT {
         public Hemokinesis() {
             super("Hemokinesis", 14);
@@ -882,6 +906,9 @@ public class CardIronclad2 {
     // Howl from Beyond (Uncommon) - 3 energy, Attack
     //   Effect: Deal 16 damage to ALL enemies. At the start of your turn, plays from the Exhaust Pile.
     //   Upgraded Effect: Deal 21 damage to ALL enemies. At the start of your turn, plays from the Exhaust Pile.
+    // TODO CHANGED: Howl from Beyond (Uncommon) - 3 energy, Attack
+    //   Effect: Deal 16 damage to ALL enemies. At the end of your turn, if this is in your Exhaust Pile, play it.
+    //   Upgraded Effect: Deal 21 damage to ALL enemies. At the end of your turn, if this is in your Exhaust Pile, play it.
     public static class HowlFromBeyond extends _HowlFromBeyondT {
         public HowlFromBeyond() {
             super("Howl from Beyond", 16);
@@ -1286,6 +1313,9 @@ public class CardIronclad2 {
     // Spite (Uncommon) - 0 energy, Attack
     //   Effect: Deal 6 damage. If you lost HP this turn, draw 1 card.
     //   Upgraded Effect: Deal 9 damage. If you lost HP this turn, draw 1 card.
+    // TODO CHANGED: Spite (Uncommon) - 0 energy, Attack
+    //   Effect: Deal 5 damage. If you lost HP this turn, hits 2 times.
+    //   Upgraded Effect: Deal 5 damage. If you lost HP this turn, hits 3 times.
     public static class Spite extends _SpiteT {
         public Spite() {
             super("Spite", 6);
@@ -1526,6 +1556,9 @@ public class CardIronclad2 {
     // Unrelenting (Uncommon) - 2 energy, Attack
     //   Effect: Deal 12 damage. The next Attack you play costs 0 energy.
     //   Upgraded Effect: Deal 18 damage. The next Attack you play costs 0 energy.
+    // TODO CHANGED: Unrelenting (Uncommon) - 2 energy, Attack
+    //   Effect: Deal 14 damage. The next Attack you play costs 0 energy.
+    //   Upgraded Effect: Deal 20 damage. The next Attack you play costs 0 energy.
     public static class Unrelenting extends _UnrelentingT {
         public Unrelenting() {
             super("Unrelenting", 12);
@@ -1801,6 +1834,9 @@ public class CardIronclad2 {
     // Colossus (Rare) - 1 energy, Skill
     //   Effect: Gain 5 Block. You receive 50% less damage from Vulnerable enemies this turn.
     //   Upgraded Effect: Gain 8 Block. You receive 50% less damage from Vulnerable enemies this turn.
+    // TODO CHANGED: Colossus (Uncommon) - 1 energy, Skill
+    //   Effect: Gain 5 Block. You receive 50% less damage from Vulnerable enemies this turn.
+    //   Upgraded Effect: Gain 8 Block. You receive 50% less damage from Vulnerable enemies this turn.
     public static class Colossus extends _ColossusT {
         public Colossus() {
             super("Colossus", 5);
@@ -1840,6 +1876,9 @@ public class CardIronclad2 {
     // Conflagration (Rare) - 1 energy, Attack
     //   Effect: Deal 8 damage to ALL enemies. Deals 2 additional damage for each other Attack you've played this turn.
     //   Upgraded Effect: Deal 9 damage to ALL enemies. Deals 3 additional damage for each other Attack you've played this turn.
+    // TODO CHANGED: Conflagration (Rare) - 1 energy, Attack
+    //   Effect: Deal 2 damage to ALL enemies 4 times.
+    //   Upgraded Effect: Deal 2 damage to ALL enemies 5 times.
     public static class Conflagration extends _ConflagrationT {
         public Conflagration() {
             super("Conflagration", 8, 2);
@@ -2308,6 +2347,9 @@ public class CardIronclad2 {
     // Stoke (Rare) - 1 energy, Skill
     //   Effect: Exhaust your Hand. Draw a card for each card Exhausted. Exhaust.
     //   Upgraded Effect (0 energy): Exhaust your Hand. Draw a card for each card Exhausted. Exhaust.
+    // TODO CHANGED: Stoke (Rare) - 1 energy, Skill
+    //   Effect: Exhaust your Hand. Add 1 random card into your Hand for each card Exhausted.
+    //   Upgraded Effect: Exhaust your Hand. Add 1 random Upgraded card into your Hand for each card Exhausted.
     public static class Stoke extends _StokeT {
         public Stoke() {
             super("Stoke", 1);
@@ -2440,6 +2482,10 @@ public class CardIronclad2 {
         }
     }
 
+    // TODO: Not Yet (Rare) - 2 energy, Skill
+    //   Effect: Heal 10 HP. Exhaust.
+    //   Upgraded Effect: Heal 13 HP. Exhaust.
+
     // **************************************************************************************************
     // ********************************************* Event  *********************************************
     // **************************************************************************************************
@@ -2498,6 +2544,9 @@ public class CardIronclad2 {
     // Break (Ancient) - 2 energy, Attack
     //   Effect: Deal 20 damage. Apply 5 Vulnerable.
     //   Upgraded Effect: Deal 25 damage. Apply 7 Vulnerable.
+    // TODO CHANGED: Break (Ancient) - 1 energy, Attack
+    //   Effect: Deal 20 damage. Apply 5 Vulnerable.
+    //   Upgraded Effect: Deal 30 damage. Apply 7 Vulnerable.
     public static class Break extends _BreakT {
         public Break() {
             super("Break", 20, 5);
