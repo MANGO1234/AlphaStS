@@ -168,29 +168,30 @@ public class CardIronclad2 {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
-            int cardIdx = state.drawOneCardSpecial();
-            if (cardIdx >= 0) {
-                state.exhaustedCardHandle(cardIdx, true);
+            if (state.handArrLen > 0) {
+                int randomIdx = 0;
+                if (state.handArrLen > 1) {
+                    state.setIsStochastic();
+                    randomIdx = state.getSearchRandomGen().nextInt(state.handArrLen, RandomGenCtx.RandomCardHand, state);
+                }
+                state.exhaustCardFromHand(state.getHandArrForRead()[randomIdx]);
             }
             return GameActionCtx.PLAY_CARD;
         }
     }
 
     // Cinder (Common) - 2 energy, Attack
-    //   Effect: Deal 17 damage. Exhaust the top card of your Draw Pile.
-    //   Upgraded Effect: Deal 22 damage. Exhaust the top card of your Draw Pile.
-    // TODO CHANGED: Cinder (Common) - 2 energy, Attack
     //   Effect: Deal 18 damage. Exhaust a random card in your Hand.
     //   Upgraded Effect: Deal 24 damage. Exhaust a random card in your Hand.
     public static class Cinder extends _CinderT {
         public Cinder() {
-            super("Cinder", 17);
+            super("Cinder", 18);
         }
     }
 
     public static class CinderP extends _CinderT {
         public CinderP() {
-            super("Cinder+", 22);
+            super("Cinder+", 24);
         }
     }
 
@@ -344,6 +345,7 @@ public class CardIronclad2 {
             this.vulnerable = vulnerable;
             entityProperty.selectEnemy = true;
             entityProperty.vulnEnemy = true;
+            exhaustWhenPlayed = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -353,20 +355,17 @@ public class CardIronclad2 {
     }
 
     // Tremble (Common) - 1 energy, Skill
-    //   Effect: Apply 2 Vulnerable.
-    //   Upgraded Effect: Apply 3 Vulnerable.
-    // TODO CHANGED: Tremble (Common) - 1 energy, Skill
     //   Effect: Apply 3 Vulnerable. Exhaust.
     //   Upgraded Effect: Apply 4 Vulnerable. Exhaust.
     public static class Tremble extends _TrembleT {
         public Tremble() {
-            super("Tremble", 2);
+            super("Tremble", 3);
         }
     }
 
     public static class TrembleP extends _TrembleT {
         public TrembleP() {
-            super("Tremble+", 3);
+            super("Tremble+", 4);
         }
     }
 
@@ -522,83 +521,63 @@ public class CardIronclad2 {
     }
 
     private static abstract class _DominateT extends Card {
-        public _DominateT(String cardName, boolean exhaust) {
+        private final int vulnerable;
+
+        public _DominateT(String cardName, int vulnerable) {
             super(cardName, Card.SKILL, 1, Card.UNCOMMON);
+            this.vulnerable = vulnerable;
             entityProperty.selectEnemy = true;
             entityProperty.changePlayerStrength = true;
-            exhaustWhenPlayed = exhaust;
+            entityProperty.vulnEnemy = true;
+            exhaustWhenPlayed = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             var enemy = state.getEnemiesForWrite().getForWrite(idx);
+            enemy.applyDebuff(state, DebuffType.VULNERABLE, vulnerable);
             state.getPlayerForWrite().gainStrength(enemy.getVulnerable());
             return GameActionCtx.PLAY_CARD;
         }
     }
 
     // Dominate (Uncommon) - 1 energy, Skill
-    //   Effect: Gain 1 Strength for each Vulnerable on the enemy. Exhaust.
-    //   Upgraded Effect: Gain 1 Strength for each Vulnerable on the enemy.
-    // TODO CHANGED: Dominate (Uncommon) - 1 energy, Skill
     //   Effect: Apply 1 Vulnerable. Gain 1 Strength for each Vulnerable on the enemy. Exhaust.
     //   Upgraded Effect: Apply 2 Vulnerable. Gain 1 Strength for each Vulnerable on the enemy. Exhaust.
     public static class Dominate extends _DominateT {
         public Dominate() {
-            super("Dominate", true);
+            super("Dominate", 1);
         }
     }
 
     public static class DominateP extends _DominateT {
         public DominateP() {
-            super("Dominate+", false);
+            super("Dominate+", 2);
         }
     }
 
     private static abstract class _DrumOfBattleT extends Card {
         private final int drawCount;
+        private final int energy;
 
-        public _DrumOfBattleT(String cardName, int drawCount) {
-            super(cardName, Card.POWER, 0, Card.UNCOMMON);
-            this.drawCount = drawCount;
+        public _DrumOfBattleT(String cardName, int energy) {
+            super(cardName, Card.SKILL, 1, Card.UNCOMMON);
+            this.energy = energy;
+            this.drawCount = 2;
+        }
+
+        public void onExhaust(GameState state) {
+            state.gainEnergy(energy);
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.draw(drawCount);
-            state.getCounterForWrite()[counterIdx]++;
             return GameActionCtx.PLAY_CARD;
-        }
-
-        @Override public void gamePropertiesSetup(GameState state) {
-            state.properties.registerCounter("DrumOfBattle", this, new GameProperties.NetworkInputHandler() {
-                @Override public int addToInput(GameState state, float[] input, int idx) {
-                    input[idx] = state.getCounterForRead()[counterIdx] / 10.0f;
-                    return idx + 1;
-                }
-
-                @Override public int getInputLenDelta() {
-                    return 1;
-                }
-            });
-            state.properties.addStartOfTurnHandler("DrumOfBattle", new GameEventHandler() {
-                @Override public void handle(GameState state) {
-                    int n = state.getCounterForRead()[counterIdx];
-                    for (int i = 0; i < n; i++) {
-                        int cardIdx = state.drawOneCardSpecial();
-                        if (cardIdx >= 0) {
-                            state.exhaustedCardHandle(cardIdx, false);
-                        }
-                    }
-                }
-            });
         }
     }
 
-    // Drum of Battle (Uncommon) - 0 energy, Power
-    //   Effect: Draw 2 cards. At the start of your turn, Exhaust the top card of your Draw Pile.
-    //   Upgraded Effect: Draw 3 cards. At the start of your turn, Exhaust the top card of your Draw Pile.
-    // TODO CHANGED: Drum of Battle (Uncommon) - 1 energy, Skill
-    //   Effect: Draw 2 cards. When this card is Exhausted, gain 2 energy
-    //   Upgraded Effect: Draw 2 cards. When this card is Exhausted, gain 3 energy
+    // Drum of Battle (Uncommon) - 1 energy, Skill
+    //   Effect: Draw 2 cards. When this card is Exhausted, gain 2 energy.
+    //   Upgraded Effect: Draw 2 cards. When this card is Exhausted, gain 3 energy.
     public static class DrumOfBattle extends _DrumOfBattleT {
         public DrumOfBattle() {
             super("Drum of Battle", 2);
@@ -660,14 +639,35 @@ public class CardIronclad2 {
                 }
             }
             state.gainEnergy(attackCount);
+            state.getCounterForWrite()[counterIdx] = 1;
             return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("ExpectAFight", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx];
+                    return idx + 1;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            state.properties.addEndOfTurnHandler("ExpectAFight", new GameEventHandler(100) {
+                @Override public void handle(GameState state) {
+                    state.getCounterForWrite()[counterIdx] = 0;
+                }
+            });
+        }
+
+        @Override public void setCounterIdx(GameProperties gameProperties, int idx) {
+            super.setCounterIdx(gameProperties, idx);
+            gameProperties.expectAFightCounterIdx = idx;
         }
     }
 
     // Expect a Fight (Uncommon) - 2 energy, Skill
-    //   Effect: Gain energy for each Attack in your Hand.
-    //   Upgraded Effect (1 energy): Gain energy for each Attack in your Hand.
-    // TODO CHANGED: Expect a Fight (Uncommon) - 2 energy, Skill
     //   Effect: Gain energy for each Attack in your Hand. You cannot gain additional energy this turn.
     //   Upgraded Effect (1 energy): Gain energy for each Attack in your Hand. You cannot gain additional energy this turn.
     public static class ExpectAFight extends _ExpectAFightT {
@@ -715,20 +715,17 @@ public class CardIronclad2 {
     }
 
     // Fight Me! (Uncommon) - 2 energy, Attack
-    //   Effect: Deal 5 damage twice. Gain 2 Strength. The enemy gains 1 Strength.
-    //   Upgraded Effect: Deal 6 damage twice. Gain 3 Strength. The enemy gains 1 Strength.
-    // TODO CHANGED: Fight Me! (Uncommon) - 2 energy, Attack
     //   Effect: Deal 5 damage twice. Gain 3 Strength. The enemy gains 1 Strength.
     //   Upgraded Effect: Deal 6 damage twice. Gain 4 Strength. The enemy gains 1 Strength.
     public static class FightMe extends _FightMeT {
         public FightMe() {
-            super("Fight Me!", 5, 2);
+            super("Fight Me!", 5, 3);
         }
     }
 
     public static class FightMeP extends _FightMeT {
         public FightMeP() {
-            super("Fight Me!+", 6, 3);
+            super("Fight Me!+", 6, 4);
         }
     }
 
@@ -747,6 +744,7 @@ public class CardIronclad2 {
         public _ForgottenRitualT(String cardName, int gainEnergy) {
             super(cardName, Card.SKILL, 1, Card.UNCOMMON);
             this.gainEnergy = gainEnergy;
+            exhaustWhenPlayed = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -762,9 +760,6 @@ public class CardIronclad2 {
     }
 
     // Forgotten Ritual (Uncommon) - 1 energy, Skill
-    //   Effect: If you Exhausted a card this turn, gain 3 energy.
-    //   Upgraded Effect: If you Exhausted a card this turn, gain 4 energy.
-    // TODO CHANGED: Forgotten Ritual (Uncommon) - 1 energy, Skill
     //   Effect: If you Exhausted a card this turn, gain 3 energy. Exhaust.
     //   Upgraded Effect: If you Exhausted a card this turn, gain 4 energy. Exhaust.
     public static class ForgottenRitual extends _ForgottenRitualT {
@@ -850,20 +845,17 @@ public class CardIronclad2 {
     }
 
     // Hemokinesis (Uncommon) - 1 energy, Attack
-    //   Effect: Lose 2 HP. Deal 14 damage.
-    //   Upgraded Effect: Lose 2 HP. Deal 19 damage.
-    // TODO CHANGED: Hemokinesis (Uncommon) - 1 energy, Attack
     //   Effect: Lose 2 HP. Deal 15 damage.
     //   Upgraded Effect: Lose 2 HP. Deal 20 damage.
     public static class Hemokinesis extends CardIronclad._HemokinesisT {
         public Hemokinesis() {
-            super("Hemokinesis", 14);
+            super("Hemokinesis", 15);
         }
     }
 
     public static class HemokinesisP extends CardIronclad._HemokinesisT {
         public HemokinesisP() {
-            super("Hemokinesis+", 19);
+            super("Hemokinesis+", 20);
         }
     }
 
@@ -884,7 +876,7 @@ public class CardIronclad2 {
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
-            state.properties.addStartOfTurnHandler("HowlFromBeyond", new GameEventHandler() {
+            state.properties.addEndOfTurnHandler("HowlFromBeyond", new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     for (int i = 0; i < state.exhaustArrLen; i++) {
                         int cardIdx = state.exhaustArr[i];
@@ -904,9 +896,6 @@ public class CardIronclad2 {
     }
 
     // Howl from Beyond (Uncommon) - 3 energy, Attack
-    //   Effect: Deal 16 damage to ALL enemies. At the start of your turn, plays from the Exhaust Pile.
-    //   Upgraded Effect: Deal 21 damage to ALL enemies. At the start of your turn, plays from the Exhaust Pile.
-    // TODO CHANGED: Howl from Beyond (Uncommon) - 3 energy, Attack
     //   Effect: Deal 16 damage to ALL enemies. At the end of your turn, if this is in your Exhaust Pile, play it.
     //   Upgraded Effect: Deal 21 damage to ALL enemies. At the end of your turn, if this is in your Exhaust Pile, play it.
     public static class HowlFromBeyond extends _HowlFromBeyondT {
@@ -1269,10 +1258,12 @@ public class CardIronclad2 {
 
     private static abstract class _SpiteT extends Card {
         private final int damage;
+        private final int hits;
 
-        public _SpiteT(String cardName, int damage) {
+        public _SpiteT(String cardName, int damage, int hits) {
             super(cardName, Card.ATTACK, 0, Card.UNCOMMON);
             this.damage = damage;
+            this.hits = hits;
             entityProperty.selectEnemy = true;
         }
 
@@ -1280,7 +1271,9 @@ public class CardIronclad2 {
             var enemy = state.getEnemiesForWrite().getForWrite(idx);
             state.playerDoDamageToEnemy(enemy, damage, this);
             if (state.getCounterForRead()[counterIdx] > 0) {
-                state.draw(1);
+                for (int i = 1; i < hits; i++) {
+                    state.playerDoDamageToEnemy(enemy, damage, this);
+                }
             }
             return GameActionCtx.PLAY_CARD;
         }
@@ -1311,20 +1304,17 @@ public class CardIronclad2 {
     }
 
     // Spite (Uncommon) - 0 energy, Attack
-    //   Effect: Deal 6 damage. If you lost HP this turn, draw 1 card.
-    //   Upgraded Effect: Deal 9 damage. If you lost HP this turn, draw 1 card.
-    // TODO CHANGED: Spite (Uncommon) - 0 energy, Attack
     //   Effect: Deal 5 damage. If you lost HP this turn, hits 2 times.
     //   Upgraded Effect: Deal 5 damage. If you lost HP this turn, hits 3 times.
     public static class Spite extends _SpiteT {
         public Spite() {
-            super("Spite", 6);
+            super("Spite", 5, 2);
         }
     }
 
     public static class SpiteP extends _SpiteT {
         public SpiteP() {
-            super("Spite+", 9);
+            super("Spite+", 5, 3);
         }
     }
 
@@ -1554,20 +1544,17 @@ public class CardIronclad2 {
     }
 
     // Unrelenting (Uncommon) - 2 energy, Attack
-    //   Effect: Deal 12 damage. The next Attack you play costs 0 energy.
-    //   Upgraded Effect: Deal 18 damage. The next Attack you play costs 0 energy.
-    // TODO CHANGED: Unrelenting (Uncommon) - 2 energy, Attack
     //   Effect: Deal 14 damage. The next Attack you play costs 0 energy.
     //   Upgraded Effect: Deal 20 damage. The next Attack you play costs 0 energy.
     public static class Unrelenting extends _UnrelentingT {
         public Unrelenting() {
-            super("Unrelenting", 12);
+            super("Unrelenting", 14);
         }
     }
 
     public static class UnrelentingP extends _UnrelentingT {
         public UnrelentingP() {
-            super("Unrelenting+", 18);
+            super("Unrelenting+", 20);
         }
     }
 
@@ -1811,7 +1798,7 @@ public class CardIronclad2 {
         private final int block;
 
         public _ColossusT(String cardName, int block) {
-            super(cardName, Card.SKILL, 1, Card.RARE);
+            super(cardName, Card.SKILL, 1, Card.UNCOMMON);
             this.block = block;
             entityProperty.possibleBuffs |= PlayerBuff.COLOSSUS.mask();
         }
@@ -1831,10 +1818,7 @@ public class CardIronclad2 {
         }
     }
 
-    // Colossus (Rare) - 1 energy, Skill
-    //   Effect: Gain 5 Block. You receive 50% less damage from Vulnerable enemies this turn.
-    //   Upgraded Effect: Gain 8 Block. You receive 50% less damage from Vulnerable enemies this turn.
-    // TODO CHANGED: Colossus (Uncommon) - 1 energy, Skill
+    // Colossus (Uncommon) - 1 energy, Skill
     //   Effect: Gain 5 Block. You receive 50% less damage from Vulnerable enemies this turn.
     //   Upgraded Effect: Gain 8 Block. You receive 50% less damage from Vulnerable enemies this turn.
     public static class Colossus extends _ColossusT {
@@ -1850,44 +1834,35 @@ public class CardIronclad2 {
     }
 
     private static abstract class _ConflagrationT extends Card {
-        private final int baseDamage;
-        private final int bonusPerAttack;
+        private final int hits;
 
-        public _ConflagrationT(String cardName, int baseDamage, int bonusPerAttack) {
+        public _ConflagrationT(String cardName, int hits) {
             super(cardName, Card.ATTACK, 1, Card.RARE);
-            this.baseDamage = baseDamage;
-            this.bonusPerAttack = bonusPerAttack;
+            this.hits = hits;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            int attacksPlayed = state.getCounterForRead()[state.properties.attacksPlayedThisTurnCounterIdx];
-            int damage = baseDamage + bonusPerAttack * attacksPlayed;
-            for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
-                state.playerDoDamageToEnemy(enemy, damage, this);
+            for (int i = 0; i < hits; i++) {
+                for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
+                    state.playerDoDamageToEnemy(enemy, 2, this);
+                }
             }
             return GameActionCtx.PLAY_CARD;
-        }
-
-        @Override public void gamePropertiesSetup(GameState state) {
-            state.properties.registerAttacksPlayedThisTurnCounter();
         }
     }
 
     // Conflagration (Rare) - 1 energy, Attack
-    //   Effect: Deal 8 damage to ALL enemies. Deals 2 additional damage for each other Attack you've played this turn.
-    //   Upgraded Effect: Deal 9 damage to ALL enemies. Deals 3 additional damage for each other Attack you've played this turn.
-    // TODO CHANGED: Conflagration (Rare) - 1 energy, Attack
     //   Effect: Deal 2 damage to ALL enemies 4 times.
     //   Upgraded Effect: Deal 2 damage to ALL enemies 5 times.
     public static class Conflagration extends _ConflagrationT {
         public Conflagration() {
-            super("Conflagration", 8, 2);
+            super("Conflagration", 4);
         }
     }
 
     public static class ConflagrationP extends _ConflagrationT {
         public ConflagrationP() {
-            super("Conflagration+", 9, 3);
+            super("Conflagration+", 5);
         }
     }
 
@@ -2526,7 +2501,7 @@ public class CardIronclad2 {
         private final int vulnerable;
 
         public _BreakT(String cardName, int damage, int vulnerable) {
-            super(cardName, Card.ATTACK, 2, Card.RARE);
+            super(cardName, Card.ATTACK, 1, Card.RARE);
             this.damage = damage;
             this.vulnerable = vulnerable;
             entityProperty.selectEnemy = true;
@@ -2541,10 +2516,7 @@ public class CardIronclad2 {
         }
     }
 
-    // Break (Ancient) - 2 energy, Attack
-    //   Effect: Deal 20 damage. Apply 5 Vulnerable.
-    //   Upgraded Effect: Deal 25 damage. Apply 7 Vulnerable.
-    // TODO CHANGED: Break (Ancient) - 1 energy, Attack
+    // Break (Ancient) - 1 energy, Attack
     //   Effect: Deal 20 damage. Apply 5 Vulnerable.
     //   Upgraded Effect: Deal 30 damage. Apply 7 Vulnerable.
     public static class Break extends _BreakT {
@@ -2555,7 +2527,7 @@ public class CardIronclad2 {
 
     public static class BreakP extends _BreakT {
         public BreakP() {
-            super("Break+", 25, 7);
+            super("Break+", 30, 7);
         }
     }
 

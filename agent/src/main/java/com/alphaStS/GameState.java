@@ -3511,6 +3511,10 @@ public final class GameState implements State {
     }
 
     public void gainEnergy(int n) {
+        if (n > 0 && properties.expectAFightCounterIdx >= 0
+                && getCounterForRead()[properties.expectAFightCounterIdx] > 0) {
+            return;
+        }
         energy = Math.max(energy + n, 0);
     }
 

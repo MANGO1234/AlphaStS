@@ -1120,7 +1120,7 @@ public class CardIronclad {
             var enemy = state.getEnemiesForWrite().getForWrite(idx);
             state.playerDoDamageToEnemy(enemy, damage, this);
             if (enemy.getVulnerable() > 0) {
-                state.energy += 1;
+                state.gainEnergy(1);
                 state.draw(1);
             }
             return GameActionCtx.PLAY_CARD;
@@ -1986,7 +1986,7 @@ public class CardIronclad {
         }
 
         public void onExhaust(GameState state) {
-            state.energy += energy;
+            state.gainEnergy(energy);
         }
     }
 
