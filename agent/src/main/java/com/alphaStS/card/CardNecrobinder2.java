@@ -40,6 +40,9 @@ public class CardNecrobinder2 {
         }
     }
 
+    // Bodyguard (Basic) - 1 energy, Skill
+    //   Effect: Summon 5.
+    //   Upgraded Effect: Summon 7.
     public static class Bodyguard extends _BodyguardT {
         public Bodyguard() {
             super("Bodyguard", 5);
@@ -52,12 +55,18 @@ public class CardNecrobinder2 {
         }
     }
 
+    // Defend (Necrobinder) (Basic) - 1 energy, Skill
+    //   Effect: Gain 5 Block.
+    //   Upgraded Effect: Gain 8 Block.
     public static class Defend extends Card.Defend {
     }
 
     public static class DefendP extends Card.DefendP {
     }
 
+    // Strike (Necrobinder) (Basic) - 1 energy, Attack
+    //   Effect: Deal 6 damage.
+    //   Upgraded Effect: Deal 9 damage.
     public static class Strike extends Card.Strike {
     }
 
@@ -81,6 +90,9 @@ public class CardNecrobinder2 {
         }
     }
 
+    // Unleash (Basic) - 1 energy, Attack
+    //   Effect: Osty deals 6 damage. Deals additional damage equal to Osty's current HP.
+    //   Upgraded Effect: Osty deals 9 damage. Deals additional damage equal to Osty's current HP.
     public static class Unleash extends _UnleashT {
         public Unleash() {
             super("Unleash", 6);
@@ -113,6 +125,9 @@ public class CardNecrobinder2 {
         }
     }
 
+    // Afterlife (Common) - 1 energy, Skill
+    //   Effect: Summon 6. Exhaust.
+    //   Upgraded Effect: Summon 9. Exhaust.
     public static class Afterlife extends _AfterlifeT {
         public Afterlife() {
             super("Afterlife", 6);
@@ -145,6 +160,9 @@ public class CardNecrobinder2 {
         }
     }
 
+    // Blight Strike (Common) - 1 energy, Attack
+    //   Effect: Deal 8 damage. Apply Doom equal to damage dealt.
+    //   Upgraded Effect: Deal 10 damage. Apply Doom equal to damage dealt.
     public static class BlightStrike extends _BlightStrikeT {
         public BlightStrike() {
             super("Blight Strike", 8);
@@ -173,6 +191,9 @@ public class CardNecrobinder2 {
         }
     }
 
+    // Defile (Common) - 1 energy, Attack
+    //   Effect: Ethereal. Deal 13 damage.
+    //   Upgraded Effect: Ethereal. Deal 17 damage.
     public static class Defile extends _DefileT {
         public Defile() {
             super("Defile", 13);
@@ -205,6 +226,9 @@ public class CardNecrobinder2 {
         }
     }
 
+    // Defy (Common) - 1 energy, Skill
+    //   Effect: Ethereal. Gain 6 Block. Apply 1 Weak.
+    //   Upgraded Effect: Ethereal. Gain 7 Block. Apply 2 Weak.
     public static class Defy extends _DefyT {
         public Defy() {
             super("Defy", 6, 1);
@@ -275,6 +299,9 @@ public class CardNecrobinder2 {
         }
     }
 
+    // Drain Power (Common) - 1 energy, Attack
+    //   Effect: Deal 10 damage. Upgrade 2 random cards in your Discard Pile.
+    //   Upgraded Effect: Deal 12 damage. Upgrade 3 random cards in your Discard Pile.
     public static class DrainPower extends _DrainPowerT {
         public DrainPower() {
             super("Drain Power", 10, 2);
@@ -308,6 +335,9 @@ public class CardNecrobinder2 {
         }
     }
 
+    // Fear (Common) - 1 energy, Attack
+    //   Effect: Ethereal. Deal 7 damage. Apply 1 Vulnerable.
+    //   Upgraded Effect: Ethereal. Deal 8 damage. Apply 2 Vulnerable.
     public static class Fear extends _FearT {
         public Fear() {
             super("Fear", 7, 1);
@@ -345,6 +375,9 @@ public class CardNecrobinder2 {
         }
     }
 
+    // Flatten (Common) - 2 energy, Attack
+    //   Effect: Osty deals 12 damage. This card costs 0 energy if Osty has attacked this turn.
+    //   Upgraded Effect: Osty deals 16 damage. This card costs 0 energy if Osty has attacked this turn.
     public static class Flatten extends _FlattenT {
         public Flatten() {
             super("Flatten", 12);
@@ -383,6 +416,9 @@ public class CardNecrobinder2 {
         }
     }
 
+    // Graveblast (Common) - 1 energy, Attack
+    //   Effect: Deal 4 damage. Put a card from your Discard Pile into your Hand. Exhaust.
+    //   Upgraded Effect: Deal 6 damage. Put a card from your Discard Pile into your Hand.
     public static class Graveblast extends _GraveblastT {
         public Graveblast() {
             super("Graveblast", 4, true);
@@ -410,6 +446,9 @@ public class CardNecrobinder2 {
         }
     }
 
+    // Grave Warden (Common) - 1 energy, Skill
+    //   Effect: Gain 8 Block. Add a Soul into your Draw Pile.
+    //   Upgraded Effect: Gain 10 Block. Add a Soul+ into your Draw Pile.
     public static class GraveWarden extends _GraveWardenT {
         public GraveWarden() {
             super("Grave Warden", 8);
@@ -452,6 +491,9 @@ public class CardNecrobinder2 {
         }
     }
 
+    // Invoke (Common) - 1 energy, Skill
+    //   Effect: Next turn, Summon 2 and gain 2 energy.
+    //   Upgraded Effect: Next turn, Summon 3 and gain 3 energy.
     public static class Invoke extends _InvokeT {
         public Invoke() {
             super("Invoke", 2);
@@ -484,6 +526,9 @@ public class CardNecrobinder2 {
         }
     }
 
+    // Negative Pulse (Common) - 1 energy, Skill
+    //   Effect: Gain 5 Block. Apply 7 Doom to ALL enemies.
+    //   Upgraded Effect: Gain 6 Block. Apply 11 Doom to ALL enemies.
     public static class NegativePulse extends _NegativePulseT {
         public NegativePulse() {
             super("Negative Pulse", 5, 7);
@@ -512,6 +557,9 @@ public class CardNecrobinder2 {
         }
     }
 
+    // Poke (Common) - 0 energy, Attack
+    //   Effect: Osty deals 6 damage.
+    //   Upgraded Effect: Osty deals 9 damage.
     public static class Poke extends _PokeT {
         public Poke() {
             super("Poke", 6);
@@ -542,6 +590,9 @@ public class CardNecrobinder2 {
         }
     }
 
+    // Pull Aggro (Common) - 2 energy, Skill
+    //   Effect: Summon 4. Gain 7 Block.
+    //   Upgraded Effect: Summon 5. Gain 9 Block.
     public static class PullAggro extends _PullAggroT {
         public PullAggro() {
             super("Pull Aggro", 4, 7);
@@ -570,6 +621,9 @@ public class CardNecrobinder2 {
         }
     }
 
+    // Reap (Common) - 3 energy, Attack
+    //   Effect: Retain. Deal 27 damage.
+    //   Upgraded Effect: Retain. Deal 33 damage.
     public static class Reap extends _ReapT {
         public Reap() {
             super("Reap", 27);
@@ -598,6 +652,9 @@ public class CardNecrobinder2 {
         }
     }
 
+    // Reave (Common) - 1 energy, Attack
+    //   Effect: Deal 9 damage. Add a Soul into your Draw Pile.
+    //   Upgraded Effect: Deal 11 damage. Add a Soul+ into your Draw Pile.
     public static class Reave extends _ReaveT {
         public Reave() {
             super("Reave", 9);
@@ -637,6 +694,9 @@ public class CardNecrobinder2 {
         }
     }
 
+    // Scourge (Common) - 1 energy, Skill
+    //   Effect: Apply 13 Doom. Draw 1 card.
+    //   Upgraded Effect: Apply 16 Doom. Draw 2 cards.
     public static class Scourge extends _ScourgeT {
         public Scourge() {
             super("Scourge", 13, 1);
@@ -701,6 +761,9 @@ public class CardNecrobinder2 {
         }
     }
 
+    // Sculpting Strike (Common) - 1 energy, Attack
+    //   Effect: Deal 8 damage. Add Ethereal to a card in your Hand.
+    //   Upgraded Effect: Deal 11 damage. Add Ethereal to a card in your Hand.
     public static class SculptingStrike extends _SculptingStrikeT {
         public SculptingStrike() { super("Sculpting Strike", 8); }
     }
@@ -762,6 +825,9 @@ public class CardNecrobinder2 {
         }
     }
 
+    // Snap (Common) - 1 energy, Attack
+    //   Effect: Osty deals 7 damage. Add Retain to a card in your Hand.
+    //   Upgraded Effect: Osty deals 10 damage. Add Retain to a card in your Hand.
     public static class Snap extends _SnapT {
         public Snap() { super("Snap", 7); }
     }
@@ -787,6 +853,9 @@ public class CardNecrobinder2 {
         }
     }
 
+    // Sow (Common) - 1 energy, Attack
+    //   Effect: Retain. Deal 8 damage to ALL enemies.
+    //   Upgraded Effect: Retain. Deal 11 damage to ALL enemies.
     public static class Sow extends _SowT {
         public Sow() {
             super("Sow", 8);
@@ -812,6 +881,9 @@ public class CardNecrobinder2 {
         }
     }
 
+    // Wisp (Common) - 0 energy, Skill
+    //   Effect: Gain energy. Exhaust.
+    //   Upgraded Effect: Retain. Gain energy. Exhaust.
     public static class Wisp extends _WispT {
         public Wisp() {
             super("Wisp", false);
@@ -850,6 +922,9 @@ public class CardNecrobinder2 {
         }
     }
 
+    // Bone Shards (Uncommon) - 1 energy, Attack
+    //   Effect: If Osty is alive, he deals 9 damage to ALL enemies and you gain 9 Block. Osty dies.
+    //   Upgraded Effect: If Osty is alive, he deals 12 damage to ALL enemies and you gain 12 Block. Osty dies.
     public static class BoneShards extends _BoneShardsT {
         public BoneShards() {
             super("Bone Shards", 9);
@@ -881,6 +956,9 @@ public class CardNecrobinder2 {
         }
     }
 
+    // Borrowed Time (Uncommon) - 0 energy, Skill
+    //   Effect: Apply 3 Doom to yourself. Gain energy.
+    //   Upgraded Effect: Apply 3 Doom to yourself. Gain 2 energy.
     public static class BorrowedTime extends _BorrowedTimeT {
         public BorrowedTime() {
             super("Borrowed Time", 1);
@@ -908,6 +986,9 @@ public class CardNecrobinder2 {
         }
     }
 
+    // Bury (Uncommon) - 4 energy, Attack
+    //   Effect: Deal 52 damage.
+    //   Upgraded Effect: Deal 63 damage.
     public static class Bury extends _BuryT {
         public Bury() {
             super("Bury", 52);
@@ -952,6 +1033,9 @@ public class CardNecrobinder2 {
         }
     }
 
+    // Calcify (Uncommon) - 1 energy, Power
+    //   Effect: Osty's attacks deal 4 additional damage.
+    //   Upgraded Effect: Osty's attacks deal 6 additional damage.
     public static class Calcify extends _CalcifyT {
         public Calcify() {
             super("Calcify", 4);
@@ -984,6 +1068,9 @@ public class CardNecrobinder2 {
         }
     }
 
+    // Capture Spirit (Uncommon) - 1 energy, Skill
+    //   Effect: Enemy loses 3 HP. Add 3 Souls into your Draw Pile.
+    //   Upgraded Effect: Enemy loses 4 HP. Add 4 Souls into your Draw Pile.
     public static class CaptureSpirit extends _CaptureSpiritT {
         public CaptureSpirit() {
             super("Capture Spirit", 3, 3);
@@ -1022,6 +1109,9 @@ public class CardNecrobinder2 {
         }
     }
 
+    // Cleanse (Uncommon) - 1 energy, Skill
+    //   Effect: Summon 3. Exhaust 1 card from your Draw Pile.
+    //   Upgraded Effect: Summon 5. Exhaust 1 card from your Draw Pile.
     public static class Cleanse extends _CleanseT {
         public Cleanse() {
             super("Cleanse", 3);
@@ -1073,6 +1163,9 @@ public class CardNecrobinder2 {
         }
     }
 
+    // Countdown (Uncommon) - 1 energy, Power
+    //   Effect: At the start of your turn, apply 6 Doom to a random enemy.
+    //   Upgraded Effect: At the start of your turn, apply 9 Doom to a random enemy.
     public static class Countdown extends _CountdownT {
         public Countdown() {
             super("Countdown", 6);
@@ -1120,6 +1213,9 @@ public class CardNecrobinder2 {
         }
     }
 
+    // Danse Macabre (Uncommon) - 1 energy, Power
+    //   Effect: Whenever you play a card that costs 2 energy or more, gain 3 Block.
+    //   Upgraded Effect: Whenever you play a card that costs 2 energy or more, gain 4 Block.
     public static class DanseMacabre extends _DanseMacabreT {
         public DanseMacabre() {
             super("Danse Macabre", 3);
@@ -1174,6 +1270,9 @@ public class CardNecrobinder2 {
         }
     }
 
+    // Death March (Uncommon) - 1 energy, Attack
+    //   Effect: Deal 8 damage. Deals 3 additional damage for each card drawn during your turn.
+    //   Upgraded Effect: Deal 9 damage. Deals 4 additional damage for each card drawn during your turn.
     public static class DeathMarch extends _DeathMarchT {
         public DeathMarch() {
             super("Death March", 8, 3);
@@ -1230,6 +1329,9 @@ public class CardNecrobinder2 {
         }
     }
 
+    // Death's Door (Uncommon) - 1 energy, Skill
+    //   Effect: Gain 6 Block. If you applied Doom this turn, gain Block 2 additional times.
+    //   Upgraded Effect: Gain 7 Block. If you applied Doom this turn, gain Block 2 additional times.
     public static class DeathsDoor extends _DeathsDoorT {
         public DeathsDoor() {
             super("Death's Door", 6);
@@ -1261,6 +1363,9 @@ public class CardNecrobinder2 {
         }
     }
 
+    // Deathbringer (Uncommon) - 2 energy, Skill
+    //   Effect: Apply 21 Doom and 1 Weak to ALL enemies.
+    //   Upgraded Effect: Apply 26 Doom and 1 Weak to ALL enemies.
     public static class Deathbringer extends _DeathbringerT {
         public Deathbringer() {
             super("Deathbringer", 21);
@@ -1293,6 +1398,9 @@ public class CardNecrobinder2 {
         }
     }
 
+    // Debilitate (Uncommon) - 1 energy, Attack
+    //   Effect: Deal 7 damage. Vulnerable and Weak are twice as effective against the enemy for the next 3 turns.
+    //   Upgraded Effect: Deal 9 damage. Vulnerable and Weak are twice as effective against the enemy for the next 4 turns.
     public static class Debilitate extends _DebilitateT {
         public Debilitate() {
             super("Debilitate", 7, 3);
@@ -1327,6 +1435,9 @@ public class CardNecrobinder2 {
         }
     }
 
+    // Delay (Uncommon) - 2 energy, Skill
+    //   Effect: Gain 11 Block. Next turn, gain energy.
+    //   Upgraded Effect: Gain 13 Block. Next turn, gain 2 energy.
     public static class Delay extends _DelayT {
         public Delay() {
             super("Delay", 11, 1);
@@ -1365,6 +1476,9 @@ public class CardNecrobinder2 {
         }
     }
 
+    // Dirge (Uncommon) - X energy, Skill
+    //   Effect: Summon 3 X times. Add X Souls into your Draw Pile.
+    //   Upgraded Effect: Summon 4 X times. Add X Souls+ into your Draw Pile.
     public static class Dirge extends _DirgeT {
         public Dirge() {
             super("Dirge", 3);
@@ -1421,6 +1535,8 @@ public class CardNecrobinder2 {
         }
     }
 
+    // Dredge (Uncommon) - 1 energy, Skill
+    //   Effect: [etain. ]Put 3 cards from your Discard Pile into your Hand. Exhaust.
     public static class Dredge extends _DredgeT {
         public Dredge() {
             super("Dredge", false);
@@ -1450,6 +1566,9 @@ public class CardNecrobinder2 {
         }
     }
 
+    // Enfeebling Touch (Uncommon) - 1 energy, Skill
+    //   Effect: Ethereal. Enemy loses 8 Strength this turn.
+    //   Upgraded Effect: Ethereal. Enemy loses 11 Strength this turn.
     public static class EnfeeblingTouch extends _EnfeeblingTouchT {
         public EnfeeblingTouch() {
             super("Enfeebling Touch", 8);
@@ -1483,6 +1602,9 @@ public class CardNecrobinder2 {
         }
     }
 
+    // Fetch (Uncommon) - 0 energy, Attack
+    //   Effect: Osty deals 3 damage. If this is the first time this card has been played this turn, draw 1 card.
+    //   Upgraded Effect: Osty deals 6 damage. If this is the first time this card has been played this turn, draw 1 card.
     public static class Fetch extends _FetchT {
         public Fetch() { super("Fetch", 3); }
 
@@ -1560,6 +1682,9 @@ public class CardNecrobinder2 {
         }
     }
 
+    // Friendship (Uncommon) - 1 energy, Power
+    //   Effect: Lose 2 Strength. Gain energy at the start of each turn.
+    //   Upgraded Effect: Lose 1 Strength. Gain energy at the start of each turn.
     public static class Friendship extends _FriendshipT {
         public Friendship() {
             super("Friendship", 2);
@@ -1615,6 +1740,9 @@ public class CardNecrobinder2 {
         }
     }
 
+    // Haunt (Uncommon) - 1 energy, Power
+    //   Effect: Whenever you play a Soul, a random enemy loses 6 HP.
+    //   Upgraded Effect: Whenever you play a Soul, a random enemy loses 8 HP.
     public static class Haunt extends _HauntT {
         public Haunt() {
             super("Haunt", 6);
@@ -1648,6 +1776,9 @@ public class CardNecrobinder2 {
         }
     }
 
+    // High Five (Uncommon) - 2 energy, Attack
+    //   Effect: Osty deals 11 damage and applies 2 Vulnerable to ALL enemies.
+    //   Upgraded Effect: Osty deals 13 damage and applies 3 Vulnerable to ALL enemies.
     public static class HighFive extends _HighFiveT {
         public HighFive() {
             super("High Five", 11, 2);
@@ -1696,6 +1827,9 @@ public class CardNecrobinder2 {
         }
     }
 
+    // Lethality (Uncommon) - 1 energy, Power
+    //   Effect: Ethereal. The first Attack each turn deals 50% additional damage.
+    //   Upgraded Effect: Ethereal. The first Attack each turn deals 75% additional damage.
     public static class Lethality extends _LethalityT {
         public Lethality() {
             super("Lethality", 50);
@@ -1750,6 +1884,9 @@ public class CardNecrobinder2 {
         }
     }
 
+    // Melancholy (Uncommon) - 3 energy, Skill
+    //   Effect: Gain 13 Block. Reduce this card's cost by energy whenever ANYONE dies.
+    //   Upgraded Effect: Gain 17 Block. Reduce this card's cost by energy whenever ANYONE dies.
     public static class Melancholy extends _MelancholyT {
         public Melancholy() {
             super("Melancholy", 13);
@@ -1780,6 +1917,9 @@ public class CardNecrobinder2 {
         }
     }
 
+    // No Escape (Uncommon) - 1 energy, Skill
+    //   Effect: Apply 10 Doom, plus an additional 5 Doom for every 10 Doom already on this enemy.
+    //   Upgraded Effect: Apply 15 Doom, plus an additional 5 Doom for every 10 Doom already on this enemy.
     public static class NoEscape extends _NoEscapeT {
         public NoEscape() {
             super("No Escape", 10);
@@ -1824,6 +1964,9 @@ public class CardNecrobinder2 {
         }
     }
 
+    // Pagestorm (Uncommon) - 1 energy, Power
+    //   Effect: Whenever you draw an Ethereal card, draw 1 card.
+    //   Upgraded Effect (0 energy): Whenever you draw an Ethereal card, draw 1 card.
     public static class Pagestorm extends _PagestormT {
         public Pagestorm() {
             super("Pagestorm", 1);
@@ -1851,6 +1994,9 @@ public class CardNecrobinder2 {
         }
     }
 
+    // Parse (Uncommon) - 1 energy, Skill
+    //   Effect: Ethereal. Draw 3 cards.
+    //   Upgraded Effect: Ethereal. Draw 4 cards.
     public static class Parse extends _ParseT {
         public Parse() {
             super("Parse", 3);
@@ -1900,6 +2046,9 @@ public class CardNecrobinder2 {
         }
     }
 
+    // Pull from Below (Uncommon) - 1 energy, Attack
+    //   Effect: Deal 5 damage for each Ethereal card played this combat.
+    //   Upgraded Effect: Deal 7 damage for each Ethereal card played this combat.
     public static class PullFromBelow extends _PullFromBelowT {
         public PullFromBelow() {
             super("Pull from Below", 5);
@@ -1932,6 +2081,9 @@ public class CardNecrobinder2 {
         }
     }
 
+    // Putrefy (Uncommon) - 1 energy, Skill
+    //   Effect: Apply 2 Weak. Apply 2 Vulnerable. Exhaust.
+    //   Upgraded Effect: Apply 3 Weak. Apply 3 Vulnerable. Exhaust.
     public static class Putrefy extends _PutrefyT {
         public Putrefy() {
             super("Putrefy", 2);
@@ -1969,6 +2121,9 @@ public class CardNecrobinder2 {
         }
     }
 
+    // Rattle (Uncommon) - 1 energy, Attack
+    //   Effect: Osty deals 7 damage. Hits an additional time for each other time he has attacked this turn.
+    //   Upgraded Effect: Osty deals 9 damage. Hits an additional time for each other time he has attacked this turn.
     public static class Rattle extends _RattleT {
         public Rattle() {
             super("Rattle", 7);
@@ -2014,6 +2169,9 @@ public class CardNecrobinder2 {
         }
     }
 
+    // Right Hand Hand (Uncommon) - 0 energy, Attack
+    //   Effect: Osty deals 4 damage. Whenever you play a card that costs 2 energy or more, return this to your Hand from the Discard Pile.
+    //   Upgraded Effect: Osty deals 6 damage. Whenever you play a card that costs 2 energy or more, return this to your Hand from the Discard Pile.
     public static class RightHandHand extends _RightHandHandT {
         public RightHandHand() {
             super("Right Hand Hand", 4);
@@ -2044,6 +2202,9 @@ public class CardNecrobinder2 {
         }
     }
 
+    // Severance (Uncommon) - 2 energy, Attack
+    //   Effect: Deal 13 damage. Add a Soul into your Draw Pile, Hand, and Discard Pile.
+    //   Upgraded Effect: Deal 18 damage. Add a Soul into your Draw Pile, Hand, and Discard Pile.
     public static class Severance extends _SeveranceT {
         public Severance() {
             super("Severance", 13);
@@ -2101,6 +2262,9 @@ public class CardNecrobinder2 {
         }
     }
 
+    // Shroud (Uncommon) - 1 energy, Power
+    //   Effect: Whenever you apply Doom, gain 2 Block.
+    //   Upgraded Effect: Whenever you apply Doom, gain 3 Block.
     public static class Shroud extends _ShroudT {
         public Shroud() {
             super("Shroud", 2);
@@ -2145,6 +2309,9 @@ public class CardNecrobinder2 {
         }
     }
 
+    // Sic 'Em (Uncommon) - 1 energy, Attack
+    //   Effect: Osty deals 5 damage. Whenever Osty hits this enemy this turn, Summon 2.
+    //   Upgraded Effect: Osty deals 6 damage. Whenever Osty hits this enemy this turn, Summon 3.
     public static class SicEm extends _SicEmT {
         public SicEm() {
             super("Sic 'Em", 5, 2);
@@ -2157,6 +2324,9 @@ public class CardNecrobinder2 {
         }
     }
 
+    // Sleight of Flesh (Uncommon) - 2 energy, Power
+    //   Effect: Whenever you apply a debuff to an enemy, they take 9 damage.
+    //   Upgraded Effect: Whenever you apply a debuff to an enemy, they take 13 damage.
     public static class SleightOfFlesh extends CardColorless._SadisticNatureT {
         public SleightOfFlesh() {
             super("Sleight of Flesh", 2, Card.UNCOMMON, 9);
@@ -2192,6 +2362,9 @@ public class CardNecrobinder2 {
         }
     }
 
+    // Spur (Uncommon) - 1 energy, Skill
+    //   Effect: Retain. Summon 3. Osty heals 5 HP.
+    //   Upgraded Effect: Retain. Summon 5. Osty heals 7 HP.
     public static class Spur extends _SpurT {
         public Spur() {
             super("Spur", 3, 5);
@@ -2245,6 +2418,9 @@ public class CardNecrobinder2 {
         }
     }
 
+    // Veilpiercer (Uncommon) - 1 energy, Attack
+    //   Effect: Deal 10 damage. The next Ethereal card you play costs 0 energy.
+    //   Upgraded Effect: Deal 13 damage. The next Ethereal card you play costs 0 energy.
     public static class Veilpiercer extends _VeilpiercerT {
         public Veilpiercer() {
             super("Veilpiercer", 10);
@@ -2341,6 +2517,9 @@ public class CardNecrobinder2 {
         }
     }
 
+    // Call of the Void (Rare) - 1 energy, Power
+    //   Effect: At the start of your turn, add 1 random card into your Hand. It gains Ethereal.
+    //   Upgraded Effect: Innate. At the start of your turn, add 1 random card into your Hand. It gains Ethereal.
     public static class CallOfTheVoid extends _CallOfTheVoidT {
         public CallOfTheVoid() { super("Call of the Void", false); }
     }
@@ -2383,6 +2562,9 @@ public class CardNecrobinder2 {
         }
     }
 
+    // Demesne (Rare) - 3 energy, Power
+    //   Effect: Ethereal. At the start of your turn, gain energy and draw 1 additional card.
+    //   Upgraded Effect (2 energy): Ethereal. At the start of your turn, gain energy and draw 1 additional card.
     public static class Demesne extends _DemesneT {
         public Demesne() {
             super("Demesne", 3);
@@ -2434,6 +2616,9 @@ public class CardNecrobinder2 {
         }
     }
 
+    // Devour Life (Rare) - 1 energy, Power
+    //   Effect: Whenever you play a Soul, Summon 1.
+    //   Upgraded Effect: Whenever you play a Soul, Summon 2.
     public static class DevourLife extends _DevourLifeT {
         public DevourLife() {
             super("Devour Life", 1);
@@ -2468,6 +2653,9 @@ public class CardNecrobinder2 {
         }
     }
 
+    // Eidolon (Rare) - 2 energy, Skill
+    //   Effect: Exhaust your Hand. If 9 cards were Exhausted this way, gain 1 Intangible.
+    //   Upgraded Effect (1 energy): Exhaust your Hand. If 9 cards were Exhausted this way, gain 1 Intangible.
     public static class Eidolon extends _EidolonT {
         public Eidolon() {
             super("Eidolon", 2);
@@ -2503,6 +2691,9 @@ public class CardNecrobinder2 {
         }
     }
 
+    // End of Days (Rare) - 3 energy, Skill
+    //   Effect: Apply 29 Doom to ALL enemies. Kill enemies with at least as much Doom as HP.
+    //   Upgraded Effect: Apply 37 Doom to ALL enemies. Kill enemies with at least as much Doom as HP.
     public static class EndOfDays extends _EndOfDaysT {
         public EndOfDays() {
             super("End of Days", 29);
@@ -2539,6 +2730,9 @@ public class CardNecrobinder2 {
         }
     }
 
+    // Eradicate (Rare) - X energy, Attack
+    //   Effect: Retain. Deal 11 damage X times.
+    //   Upgraded Effect: Retain. Deal 14 damage X times.
     public static class Eradicate extends _EradicateT {
         public Eradicate() {
             super("Eradicate", 11);
@@ -2572,6 +2766,9 @@ public class CardNecrobinder2 {
         }
     }
 
+    // Hang (Rare) - 1 energy, Attack
+    //   Effect: Deal 10 damage. Double the damage ALL Hang cards deal to this enemy.
+    //   Upgraded Effect: Deal 13 damage. Double the damage ALL Hang cards deal to this enemy.
     public static class Hang extends _HangT {
         public Hang() {
             super("Hang", 10);
@@ -2605,6 +2802,9 @@ public class CardNecrobinder2 {
         }
     }
 
+    // Misery (Rare) - 0 energy, Attack
+    //   Effect: Deal 7 damage. Apply any debuffs on the enemy to ALL other enemies.
+    //   Upgraded Effect: Retain. Deal 9 damage. Apply any debuffs on the enemy to ALL other enemies.
     public static class Misery extends _MiseryT {
         public Misery() {
             super("Misery", 7, false);
@@ -2642,6 +2842,9 @@ public class CardNecrobinder2 {
         }
     }
 
+    // Necro Mastery (Rare) - 2 energy, Power
+    //   Effect: Summon 5. Whenever Osty loses HP, ALL enemies lose that much HP as well.
+    //   Upgraded Effect: Summon 8. Whenever Osty loses HP, ALL enemies lose that much HP as well.
     public static class NecroMastery extends _NecroMasteryT {
         public NecroMastery() {
             super("Necro Mastery", 5);
@@ -2697,6 +2900,9 @@ public class CardNecrobinder2 {
         }
     }
 
+    // Neurosurge (Rare) - 0 energy, Power
+    //   Effect: Gain 3 energy. Draw 2 cards. At the start of your turn, apply 3 Doom to yourself.
+    //   Upgraded Effect: Gain 4 energy. Draw 2 cards. At the start of your turn, apply 3 Doom to yourself.
     public static class Neurosurge extends _NeurosurgeT {
         public Neurosurge() {
             super("Neurosurge", 3);
@@ -2739,6 +2945,9 @@ public class CardNecrobinder2 {
         }
     }
 
+    // Oblivion (Rare) - 0 energy, Skill
+    //   Effect: Whenever you play a card this turn, apply 3 Doom to the enemy.
+    //   Upgraded Effect: Whenever you play a card this turn, apply 4 Doom to the enemy.
     public static class Oblivion extends _OblivionT {
         public Oblivion() {
             super("Oblivion", 3);
@@ -2767,6 +2976,9 @@ public class CardNecrobinder2 {
         }
     }
 
+    // Reanimate (Rare) - 3 energy, Skill
+    //   Effect: Summon 20. Exhaust.
+    //   Upgraded Effect: Summon 25. Exhaust.
     public static class Reanimate extends _ReanimateT {
         public Reanimate() {
             super("Reanimate", 20);
@@ -2793,6 +3005,9 @@ public class CardNecrobinder2 {
         }
     }
 
+    // Reaper Form (Rare) - 3 energy, Power
+    //   Effect: Whenever Attacks deal damage, they also apply that much Doom.
+    //   Upgraded Effect: Retain. Whenever Attacks deal damage, they also apply that much Doom.
     public static class ReaperForm extends _ReaperFormT {
         public ReaperForm() {
             super("Reaper Form", false);
@@ -2824,6 +3039,9 @@ public class CardNecrobinder2 {
         }
     }
 
+    // Sacrifice (Rare) - 1 energy, Skill
+    //   Effect: Retain. If Osty is alive, he dies and you gain Block equal to double his Max HP.
+    //   Upgraded Effect (0 energy): Retain. If Osty is alive, he dies and you gain Block equal to double his Max HP.
     public static class Sacrifice extends _SacrificeT {
         public Sacrifice() {
             super("Sacrifice", 1);
@@ -2854,6 +3072,9 @@ public class CardNecrobinder2 {
         }
     }
 
+    // Seance (Rare) - 0 energy, Skill
+    //   Effect: Ethereal. Transform a card in your Draw Pile into Soul.
+    //   Upgraded Effect: Ethereal. Transform a card in your Draw Pile into Soul+.
     public static class Seance extends _SeanceT {
         public Seance() {
             super("Seance");
@@ -2896,6 +3117,9 @@ public class CardNecrobinder2 {
         }
     }
 
+    // Sentry Mode (Rare) - 2 energy, Power
+    //   Effect: At the start of your turn, add 1 Sweeping Gaze into your Hand.
+    //   Upgraded Effect (1 energy): At the start of your turn, add 1 Sweeping Gaze into your Hand.
     public static class SentryMode extends _SentryModeT {
         public SentryMode() {
             super("Sentry Mode", 2);
@@ -2926,6 +3150,9 @@ public class CardNecrobinder2 {
         }
     }
 
+    // Shared Fate (Rare) - 0 energy, Skill
+    //   Effect: Lose 2 Strength. Enemy loses 2 Strength. Exhaust.
+    //   Upgraded Effect: Lose 2 Strength. Enemy loses 3 Strength. Exhaust.
     public static class SharedFate extends _SharedFateT {
         public SharedFate() {
             super("Shared Fate", 2);
@@ -2962,6 +3189,9 @@ public class CardNecrobinder2 {
         }
     }
 
+    // Soul Storm (Rare) - 1 energy, Attack
+    //   Effect: Deal 9 damage. Deals 2 additional damage for each Soul in your Exhaust Pile.
+    //   Upgraded Effect: Deal 9 damage. Deals 3 additional damage for each Soul in your Exhaust Pile.
     public static class SoulStorm extends _SoulStormT {
         public SoulStorm() {
             super("Soul Storm", 9, 2);
@@ -3009,6 +3239,9 @@ public class CardNecrobinder2 {
         }
     }
 
+    // Spirit of Ash (Rare) - 1 energy, Power
+    //   Effect: Whenever you play an Ethereal card, gain 4 Block.
+    //   Upgraded Effect: Whenever you play an Ethereal card, gain 5 Block.
     public static class SpiritOfAsh extends _SpiritOfAshT {
         public SpiritOfAsh() {
             super("Spirit of Ash", 4);
@@ -3058,6 +3291,9 @@ public class CardNecrobinder2 {
         }
     }
 
+    // Squeeze (Rare) - 3 energy, Attack
+    //   Effect: Osty deals 25 damage. Deals 5 additional damage for ALL your other Osty Attacks.
+    //   Upgraded Effect: Osty deals 30 damage. Deals 6 additional damage for ALL your other Osty Attacks.
     public static class Squeeze extends _SqueezeT {
         public Squeeze() { super("Squeeze", 25, 5); }
     }
@@ -3118,6 +3354,9 @@ public class CardNecrobinder2 {
         }
     }
 
+    // The Scythe (Rare) - 2 energy, Attack
+    //   Effect: Deal 13 damage. Permanently increase this card's damage by 3. Exhaust.
+    //   Upgraded Effect: Deal 13 damage. Permanently increase this card's damage by 4. Exhaust.
     public static class TheScythe extends _TheScytheT {
         public TheScythe() { this(13, 2); }
         public TheScythe(int n, int healthRewardRatio) { super("The Scythe (" + n + ")", n, 3, healthRewardRatio); }
@@ -3143,6 +3382,9 @@ public class CardNecrobinder2 {
         }
     }
 
+    // Time's Up (Rare) - 2 energy, Attack
+    //   Effect: Deal damage equal to the enemy's Doom. Exhaust.
+    //   Upgraded Effect: Retain. Deal damage equal to the enemy's Doom. Exhaust.
     public static class TimesUp extends _TimesUpT {
         public TimesUp() { super("Time's Up", false); }
     }
@@ -3202,6 +3444,9 @@ public class CardNecrobinder2 {
         }
     }
 
+    // Transfigure (Rare) - 1 energy, Skill
+    //   Effect: Add Replay to a card in your Hand. It costs an extra energy. Exhaust.
+    //   Upgraded Effect: Add Replay to a card in your Hand. It costs an extra energy.
     public static class Transfigure extends _TransfigureT {
         public Transfigure() { super("Transfigure", true); }
     }
@@ -3225,6 +3470,9 @@ public class CardNecrobinder2 {
         }
     }
 
+    // Undeath (Rare) - 0 energy, Skill
+    //   Effect: Gain 7 Block. Add a copy of this card into your Discard Pile.
+    //   Upgraded Effect: Gain 9 Block. Add a copy of this card into your Discard Pile.
     public static class Undeath extends _UndeathT {
         public Undeath() { super("Undeath", 7); }
     }
@@ -3262,6 +3510,9 @@ public class CardNecrobinder2 {
         }
     }
 
+    // Forbidden Grimoire (Ancient) - 2 energy, Power
+    //   Effect: At the end of combat, you may remove a card from your Deck. Eternal.
+    //   Upgraded Effect (1 energy): At the end of combat, you may remove a card from your Deck. Eternal.
     public static class ForbiddenGrimoire extends _ForbiddenGrimoireT {
         public ForbiddenGrimoire() { super("Forbidden Grimoire", 2); }
     }
@@ -3287,6 +3538,9 @@ public class CardNecrobinder2 {
         }
     }
 
+    // Protector (Ancient) - 1 energy, Attack
+    //   Effect: Osty deals 10 damage. Deals additional damage equal to Osty's Max HP.
+    //   Upgraded Effect (0 energy): Osty deals 15 damage. Deals additional damage equal to Osty's Max HP.
     public static class Protector extends _ProtectorT {
         public Protector() { super("Protector", 1, 10); }
     }

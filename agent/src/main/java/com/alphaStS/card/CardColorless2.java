@@ -50,6 +50,9 @@ public class CardColorless2 {
         }
     }
 
+    // Automation (Uncommon) - 1 energy, Power
+    //   Effect: Every 10 cards you draw, gain energy.
+    //   Upgraded Effect (0 energy): Every 10 cards you draw, gain energy.
     public static class Automation extends _AutomationT {
         public Automation() {
             super("Automation", 1);
@@ -96,6 +99,9 @@ public class CardColorless2 {
         }
     }
 
+    // Catastrophe (Uncommon) - 2 energy, Skill
+    //   Effect: Play 2 random cards from your Draw Pile.
+    //   Upgraded Effect: Play 3 random cards from your Draw Pile.
     public static class Catastrophe extends _CatastropheT {
         public Catastrophe() {
             super("Catastrophe", 2);
@@ -110,18 +116,27 @@ public class CardColorless2 {
 
     // No need to implement Coordinate: Multiplayer
 
+    // Dark Shackles (Uncommon) - 0 energy, Skill
+    //   Effect: Enemy loses 9 Strength this turn. Exhaust.
+    //   Upgraded Effect: Enemy loses 15 Strength this turn. Exhaust.
     public static class DarkShackles extends CardColorless.DarkShackles {
     }
 
     public static class DarkShacklesP extends CardColorless.DarkShacklesP {
     }
 
+    // Discovery (Uncommon) - 1 energy, Skill
+    //   Effect: Choose 1 of 3 random cards to add into your Hand. It costs 0 energy this turn. Exhaust.
+    //   Upgraded Effect: Choose 1 of 3 random cards to add into your Hand. It costs 0 energy this turn.
     public static class Discovery extends CardColorless.Discovery {
     }
 
     public static class DiscoveryP extends CardColorless.DiscoveryP {
     }
 
+    // Dramatic Entrance (Uncommon) - 0 energy, Attack
+    //   Effect: Innate. Deal 11 damage to ALL enemies. Exhaust.
+    //   Upgraded Effect: Innate. Deal 15 damage to ALL enemies. Exhaust.
     public static class DramaticEntrance extends CardColorless._DramaticEntranceT {
         public DramaticEntrance() {
             super("Dramatic Entrance", 11);
@@ -134,6 +149,9 @@ public class CardColorless2 {
         }
     }
 
+    // Equilibrium (Uncommon) - 2 energy, Skill
+    //   Effect: Gain 13 Block. Retain your Hand this turn.
+    //   Upgraded Effect: Gain 16 Block. Retain your Hand this turn.
     public static class Equilibrium extends CardDefect.Equilibrium {
     }
 
@@ -171,6 +189,9 @@ public class CardColorless2 {
         }
     }
 
+    // Fasten (Uncommon) - 1 energy, Power
+    //   Effect: Gain an additional 5 Block from Defend cards.
+    //   Upgraded Effect: Gain an additional 7 Block from Defend cards.
     public static class Fasten extends _FastenT {
         public Fasten() {
             super("Fasten", 5);
@@ -183,6 +204,9 @@ public class CardColorless2 {
         }
     }
 
+    // Finesse (Uncommon) - 0 energy, Skill
+    //   Effect: Gain 4 Block. Draw 1 card.
+    //   Upgraded Effect: Gain 7 Block. Draw 1 card.
     public static class Finesse extends CardColorless._FinesseT {
         public Finesse() {
             super("Finesse", 4);
@@ -214,6 +238,9 @@ public class CardColorless2 {
         }
     }
 
+    // Fisticuffs (Uncommon) - 1 energy, Attack
+    //   Effect: Deal 7 damage. Gain Block equal to damage dealt.
+    //   Upgraded Effect: Deal 9 damage. Gain Block equal to damage dealt.
     public static class Fisticuffs extends _FisticuffsT {
         public Fisticuffs() {
             super("Fisticuffs", 7);
@@ -226,6 +253,9 @@ public class CardColorless2 {
         }
     }
 
+    // Flash of Steel (Uncommon) - 0 energy, Attack
+    //   Effect: Deal 5 damage. Draw 1 card.
+    //   Upgraded Effect: Deal 8 damage. Draw 1 card.
     public static class FlashOfSteel extends CardColorless._FlashOfSteelT {
         public FlashOfSteel() {
             super("Flash of Steel", 5);
@@ -242,6 +272,9 @@ public class CardColorless2 {
 
     // No need to implement Huddle Up: Multiplayer
 
+    // Impatience (Uncommon) - 0 energy, Skill
+    //   Effect: If you have no Attacks in your Hand, draw 2 cards.
+    //   Upgraded Effect: If you have no Attacks in your Hand, draw 3 cards.
     public static class Impatience extends CardColorless.Impatience {
     }
 
@@ -250,6 +283,9 @@ public class CardColorless2 {
 
     // No need to implement Intercept: Multiplayer
 
+    // Jack of All Trades (Uncommon) - 0 energy, Skill
+    //   Effect: Add 1 random Colorless card into your Hand. Exhaust.
+    //   Upgraded Effect: Add 2 random Colorless cards into your Hand. Exhaust.
     public static class JackOfAllTrades extends CardColorless.JackOfAllTrades {
     }
 
@@ -258,6 +294,9 @@ public class CardColorless2 {
 
     // No need to implement Lift: Multiplayer
 
+    // Mind Blast (Uncommon) - 1 energy, Attack
+    //   Effect: Innate. Deal damage equal to the number of cards in your Draw Pile.
+    //   Upgraded Effect (0 energy): Innate. Deal damage equal to the number of cards in your Draw Pile.
     public static class MindBlast extends CardColorless._MindBlastT {
         public MindBlast() {
             super("Mind Blast", 1);
@@ -297,6 +336,9 @@ public class CardColorless2 {
         }
     }
 
+    // Omnislice (Uncommon) - 0 energy, Attack
+    //   Effect: Deal 8 damage. Damage ALL other enemies equal to the damage dealt.
+    //   Upgraded Effect: Deal 11 damage. Damage ALL other enemies equal to the damage dealt.
     public static class Omnislice extends _OmnisliceT {
         public Omnislice() {
             super("Omnislice", 8);
@@ -309,12 +351,18 @@ public class CardColorless2 {
         }
     }
 
+    // Panache (Uncommon) - 0 energy, Power
+    //   Effect: Every time you play 5 cards in a single turn, deal 10 damage to ALL enemies.
+    //   Upgraded Effect: Every time you play 5 cards in a single turn, deal 14 damage to ALL enemies.
     public static class Panache extends CardColorless.Panache {
     }
 
     public static class PanacheP extends CardColorless.PanacheP {
     }
 
+    // Panic Button (Uncommon) - 0 energy, Skill
+    //   Effect: Gain 30 Block. You cannot gain Block from cards for 2 turns. Exhaust.
+    //   Upgraded Effect: Gain 40 Block. You cannot gain Block from cards for 2 turns. Exhaust.
     public static class PanicButton extends CardColorless.PanicButton {
     }
 
@@ -343,6 +391,9 @@ public class CardColorless2 {
         }
     }
 
+    // Prep Time (Uncommon) - 1 energy, Power
+    //   Effect: At the start of your turn, gain 4 Vigor.
+    //   Upgraded Effect: At the start of your turn, gain 6 Vigor.
     public static class PrepTime extends _PrepTimeT {
         public PrepTime() {
             super("Prep Time", 4);
@@ -367,6 +418,9 @@ public class CardColorless2 {
         }
     }
 
+    // Production (Uncommon) - 0 energy, Skill
+    //   Effect: Gain 2 energy. Exhaust.
+    //   Upgraded Effect: Gain 2 energy.
     public static class Production extends _ProductionT {
         public Production() {
             super("Production", true);
@@ -395,6 +449,9 @@ public class CardColorless2 {
         }
     }
 
+    // Prolong (Uncommon) - 0 energy, Skill
+    //   Effect: Next turn, gain Block equal to your current Block. Exhaust.
+    //   Upgraded Effect: Next turn, gain Block equal to your current Block.
     public static class Prolong extends _ProlongT {
         public Prolong() {
             super("Prolong", true);
@@ -424,6 +481,9 @@ public class CardColorless2 {
         }
     }
 
+    // Prowess (Uncommon) - 1 energy, Power
+    //   Effect: Gain 1 Strength. Gain 1 Dexterity.
+    //   Upgraded Effect: Gain 2 Strength. Gain 2 Dexterity.
     public static class Prowess extends _ProwessT {
         public Prowess() {
             super("Prowess", 1);
@@ -436,6 +496,9 @@ public class CardColorless2 {
         }
     }
 
+    // Purity (Uncommon) - 0 energy, Skill
+    //   Effect: Retain. Exhaust up to 3 cards in your Hand. Exhaust.
+    //   Upgraded Effect: Retain. Exhaust up to 5 cards in your Hand. Exhaust.
     public static class Purity extends CardColorless.Purity {
         public Purity() {
             retain = true;
@@ -466,6 +529,9 @@ public class CardColorless2 {
         }
     }
 
+    // Restlessness (Uncommon) - 0 energy, Skill
+    //   Effect: Retain. If your Hand is empty, draw 2 cards and gain 2 energy.
+    //   Upgraded Effect: Retain. If your Hand is empty, draw 3 cards and gain 3 energy.
     public static class Restlessness extends _RestlessnessT {
         public Restlessness() {
             super("Restlessness", 2);
@@ -482,6 +548,9 @@ public class CardColorless2 {
     //   Effect: Deal 6 damage. Choose 1 of 3 cards in your Draw Pile to add into your Hand.
     //   Upgraded Effect: Deal 9 damage. Choose 1 of 3 cards in your Draw Pile to add into your Hand.
 
+    // Shockwave (Uncommon) - 2 energy, Skill
+    //   Effect: Apply 3 Weak and Vulnerable to ALL enemies. Exhaust.
+    //   Upgraded Effect: Apply 5 Weak and Vulnerable to ALL enemies. Exhaust.
     public static class Shockwave extends CardIronclad.Shockwave {
     }
 
@@ -498,12 +567,18 @@ public class CardColorless2 {
 
     // No need to implement Tag Team: Multiplayer
 
+    // The Bomb (Uncommon) - 2 energy, Skill
+    //   Effect: At the end of 3 turns, deal 40 damage to ALL enemies.
+    //   Upgraded Effect: At the end of 3 turns, deal 50 damage to ALL enemies.
     public static class TheBomb extends CardColorless.TheBomb {
     }
 
     public static class TheBombP extends CardColorless.TheBombP {
     }
 
+    // Thinking Ahead (Uncommon) - 0 energy, Skill
+    //   Effect: Draw 2 cards. Put 1 card from your Hand on top of your Draw Pile. Exhaust.
+    //   Upgraded Effect: Draw 2 cards. Put 1 card from your Hand on top of your Draw Pile.
     public static class ThinkingAhead extends CardColorless.ThinkingAhead {
     }
 
@@ -528,6 +603,9 @@ public class CardColorless2 {
         }
     }
 
+    // Ultimate Defend (Uncommon) - 1 energy, Skill
+    //   Effect: Gain 11 Block.
+    //   Upgraded Effect: Gain 15 Block.
     public static class UltimateDefend extends _UltimateDefendT {
         public UltimateDefend() {
             super("Ultimate Defend", 11);
@@ -555,6 +633,9 @@ public class CardColorless2 {
         }
     }
 
+    // Ultimate Strike (Uncommon) - 1 energy, Attack
+    //   Effect: Deal 14 damage.
+    //   Upgraded Effect: Deal 20 damage.
     public static class UltimateStrike extends _UltimateStrikeT {
         public UltimateStrike() {
             super("Ultimate Strike", 14);
@@ -592,6 +673,9 @@ public class CardColorless2 {
         }
     }
 
+    // Volley (Uncommon) - X energy, Attack
+    //   Effect: Deal 10 damage to a random enemy X times.
+    //   Upgraded Effect: Deal 14 damage to a random enemy X times.
     public static class Volley extends _VolleyT {
         public Volley() {
             super("Volley", 10);
@@ -608,6 +692,9 @@ public class CardColorless2 {
     // *********************************************  Rare  *********************************************
     // **************************************************************************************************
 
+    // Alchemize (Rare) - 1 energy, Skill
+    //   Effect: Procure a random potion. Exhaust.
+    //   Upgraded Effect (0 energy): Procure a random potion. Exhaust.
     public static class Alchemize extends CardSilent._AlchemizeT {
         public Alchemize(int basePenaltyRatio, int possibleGeneratedPotions, int healthReward) {
             super("Alchemize", 1, basePenaltyRatio, possibleGeneratedPotions, healthReward);
@@ -651,6 +738,9 @@ public class CardColorless2 {
         }
     }
 
+    // Anointed (Rare) - 1 energy, Skill
+    //   Effect: Put every Rare card from your Draw Pile into your Hand. Exhaust.
+    //   Upgraded Effect: Retain. Put every Rare card from your Draw Pile into your Hand. Exhaust.
     public static class Anointed extends _AnointedT {
         public Anointed() {
             super("Anointed", false);
@@ -698,6 +788,9 @@ public class CardColorless2 {
         }
     }
 
+    // Beat Down (Rare) - 3 energy, Skill
+    //   Effect: Play 3 random Attacks from your Discard Pile.
+    //   Upgraded Effect: Play 4 random Attacks from your Discard Pile.
     public static class BeatDown extends _BeatDownT {
         public BeatDown() {
             super("Beat Down", 3);
@@ -740,6 +833,9 @@ public class CardColorless2 {
         }
     }
 
+    // Eternal Armor (Rare) - 3 energy, Power
+    //   Effect: Gain 7 Plating.
+    //   Upgraded Effect: Gain 9 Plating.
     public static class EternalArmor extends _EternalArmorT {
         public EternalArmor() {
             super("Eternal Armor", 7);
@@ -784,6 +880,9 @@ public class CardColorless2 {
         }
     }
 
+    // Gold Axe (Rare) - 1 energy, Attack
+    //   Effect: Deal damage equal to the number of cards played this combat.
+    //   Upgraded Effect: Retain. Deal damage equal to the number of cards played this combat.
     public static class GoldAxe extends _GoldAxeT {
         public GoldAxe() {
             super("Gold Axe", false);
@@ -796,6 +895,9 @@ public class CardColorless2 {
         }
     }
 
+    // Hand of Greed (Rare) - 2 energy, Attack
+    //   Effect: Deal 20 damage. If Fatal, gain 20 Gold.
+    //   Upgraded Effect: Deal 25 damage. If Fatal, gain 25 Gold.
     public static class HandOfGreed extends CardColorless.HandOfGreed {
         public HandOfGreed(double healthRewardRatio) {
             super(healthRewardRatio);
@@ -818,12 +920,18 @@ public class CardColorless2 {
 
     // No need to implement Knockdown: Multiplayer
 
+    // Master of Strategy (Rare) - 0 energy, Skill
+    //   Effect: Draw 3 cards. Exhaust.
+    //   Upgraded Effect: Draw 4 cards. Exhaust.
     public static class MasterOfStrategy extends CardColorless.MasterOfStrategy {
     }
 
     public static class MasterOfStrategyP extends CardColorless.MasterOfStrategyP {
     }
 
+    // Mayhem (Rare) - 2 energy, Power
+    //   Effect: At the start of your turn, play the top card of your Draw Pile.
+    //   Upgraded Effect (1 energy): At the start of your turn, play the top card of your Draw Pile.
     public static class Mayhem extends CardColorless.Mayhem {
     }
 
@@ -866,6 +974,9 @@ public class CardColorless2 {
         }
     }
 
+    // Nostalgia (Rare) - 1 energy, Power
+    //   Effect: The first Attack or Skill you play each turn is placed on top of your Draw Pile.
+    //   Upgraded Effect (0 energy): The first Attack or Skill you play each turn is placed on top of your Draw Pile.
     public static class Nostalgia extends _NostalgiaT {
         public Nostalgia() {
             super("Nostalgia", 1);
@@ -922,6 +1033,9 @@ public class CardColorless2 {
         }
     }
 
+    // Rolling Boulder (Rare) - 3 energy, Power
+    //   Effect: At the start of your turn, deal 5 damage to ALL enemies and increase this damage by 5.
+    //   Upgraded Effect: At the start of your turn, deal 10 damage to ALL enemies and increase this damage by 5.
     public static class RollingBoulder extends _RollingBoulderT {
         public RollingBoulder() {
             super("Rolling Boulder", 5);
@@ -954,6 +1068,9 @@ public class CardColorless2 {
         }
     }
 
+    // Salvo (Rare) - 1 energy, Attack
+    //   Effect: Deal 12 damage. Retain your Hand this turn.
+    //   Upgraded Effect: Deal 16 damage. Retain your Hand this turn.
     public static class Salvo extends _SalvoT {
         public Salvo() {
             super("Salvo", 12);
@@ -966,6 +1083,9 @@ public class CardColorless2 {
         }
     }
 
+    // Scrawl (Rare) - 1 energy, Skill
+    //   Effect: Draw cards until your Hand is full. Exhaust.
+    //   Upgraded Effect: Retain. Draw cards until your Hand is full. Exhaust.
     public static class Scrawl extends CardWatcher._ScrawlT {
         public Scrawl() {
             super("Scrawl", 1);
@@ -979,12 +1099,18 @@ public class CardColorless2 {
         }
     }
 
+    // Secret Technique (Rare) - 0 energy, Skill
+    //   Effect: Put a Skill from your Draw Pile into your Hand. Exhaust.
+    //   Upgraded Effect: Put a Skill from your Draw Pile into your Hand.
     public static class SecretTechnique extends CardColorless.SecretTechnique {
     }
 
     public static class SecretTechniqueP extends CardColorless.SecretTechniqueP {
     }
 
+    // Secret Weapon (Rare) - 0 energy, Skill
+    //   Effect: Put an Attack from your Draw Pile into your Hand. Exhaust.
+    //   Upgraded Effect: Put an Attack from your Draw Pile into your Hand.
     public static class SecretWeapon extends CardColorless.SecretWeapon {
     }
 
@@ -1026,6 +1152,9 @@ public class CardColorless2 {
         }
     }
 
+    // The Gambit (Rare) - 0 energy, Skill
+    //   Effect: Gain 50 Block. If you take unblocked attack damage this combat, die.
+    //   Upgraded Effect: Gain 75 Block. If you take unblocked attack damage this combat, die.
     public static class TheGambit extends _TheGambitT {
         public TheGambit() {
             super("The Gambit", 50);
@@ -1057,6 +1186,9 @@ public class CardColorless2 {
         }
     }
 
+    // Byrd Swoop (Event) - 0 energy, Attack
+    //   Effect: Deal 14 damage.
+    //   Upgraded Effect: Deal 18 damage.
     public static class ByrdSwoop extends _ByrdSwoopT {
         public ByrdSwoop() {
             super("Byrd Swoop", 14);
@@ -1069,6 +1201,9 @@ public class CardColorless2 {
         }
     }
 
+    // Enlightenment (Event) - 0 energy, Skill
+    //   Effect: Reduce the cost of ALL cards in your Hand to 1 this turn. Exhaust.
+    //   Upgraded Effect: Reduce the cost of ALL cards in your Hand to 1 this combat. Exhaust.
     public static class Enlightenment extends CardColorless.Enlightenment {
     }
 
@@ -1093,6 +1228,9 @@ public class CardColorless2 {
         }
     }
 
+    // Exterminate (Event) - 1 energy, Attack
+    //   Effect: Deal 3 damage 4 times to ALL enemies.
+    //   Upgraded Effect: Deal 4 damage 4 times to ALL enemies.
     public static class Exterminate extends _ExterminateT {
         public Exterminate() {
             super("Exterminate", 3);
@@ -1122,6 +1260,9 @@ public class CardColorless2 {
         }
     }
 
+    // Feeding Frenzy (Event) - 0 energy, Skill
+    //   Effect: Gain 5 Strength this turn.
+    //   Upgraded Effect: Gain 7 Strength this turn.
     public static class FeedingFrenzy extends _FeedingFrenzyT {
         public FeedingFrenzy() {
             super("Feeding Frenzy", 5);
@@ -1134,6 +1275,9 @@ public class CardColorless2 {
         }
     }
 
+    // Metamorphosis (Event) - 2 energy, Skill
+    //   Effect: Add 3 random Attacks into your Draw Pile. They're free to play this combat. Exhaust.
+    //   Upgraded Effect: Add 5 random Attacks into your Draw Pile. They're free to play this combat. Exhaust.
     public static class Metamorphosis extends CardColorless.Metamorphosis {
     }
 
@@ -1160,6 +1304,9 @@ public class CardColorless2 {
         }
     }
 
+    // Peck (Event) - 1 energy, Attack
+    //   Effect: Deal 2 damage 3 times.
+    //   Upgraded Effect: Deal 2 damage 4 times.
     public static class Peck extends _PeckT {
         public Peck() {
             super("Peck", 2, 3);
@@ -1192,6 +1339,9 @@ public class CardColorless2 {
         }
     }
 
+    // Squash (Event) - 1 energy, Attack
+    //   Effect: Deal 10 damage. Apply 2 Vulnerable.
+    //   Upgraded Effect: Deal 12 damage. Apply 3 Vulnerable.
     public static class Squash extends _SquashT {
         public Squash() {
             super("Squash", 10, 2);
@@ -1230,6 +1380,9 @@ public class CardColorless2 {
         }
     }
 
+    // Toric Toughness (Event) - 2 energy, Skill
+    //   Effect: Gain 5 Block. Gain 5 Block at the start of the next 2 turns.
+    //   Upgraded Effect: Gain 7 Block. Gain 7 Block at the start of the next 2 turns.
     public static class ToricToughness extends _ToricToughnessT {
         public ToricToughness() {
             super("Toric Toughness", 5);
@@ -1246,6 +1399,9 @@ public class CardColorless2 {
     // ********************************************* Ancient *********************************************
     // **************************************************************************************************
 
+    // Apotheosis (Ancient) - 2 energy, Skill
+    //   Effect: Innate. Upgrade ALL your cards. Exhaust.
+    //   Upgraded Effect (1 energy): Innate. Upgrade ALL your cards. Exhaust.
     public static class Apotheosis extends CardColorless.Apotheosis {
         public Apotheosis() {
             innate = true;
@@ -1258,6 +1414,9 @@ public class CardColorless2 {
         }
     }
 
+    // Apparition (Ancient) - 1 energy, Skill
+    //   Effect: Ethereal. Gain 1 Intangible. Exhaust.
+    //   Upgraded Effect: Gain 1 Intangible. Exhaust.
     public static class Apparition extends CardColorless.Apparition {
     }
 
@@ -1315,6 +1474,9 @@ public class CardColorless2 {
         }
     }
 
+    // Brightest Flame (Ancient) - 0 energy, Skill
+    //   Effect: Gain 2 energy. Draw 2 cards. Lose 1 Max HP.
+    //   Upgraded Effect: Gain 3 energy. Draw 3 cards. Lose 1 Max HP.
     public static class BrightestFlame extends _BrightestFlameT {
         public BrightestFlame() {
             super("Brightest Flame", 2);
@@ -1358,6 +1520,9 @@ public class CardColorless2 {
         }
     }
 
+    // Neow's Fury (Ancient) - 1 energy, Attack
+    //   Effect: Deal 10 damage. Put 2 random cards from your Discard Pile into your Hand. Exhaust.
+    //   Upgraded Effect: Deal 14 damage. Put 2 random cards from your Discard Pile into your Hand. Exhaust.
     public static class NeowsFury extends _NeowsFuryT {
         public NeowsFury() {
             super("Neow's Fury", 10);
@@ -1395,6 +1560,9 @@ public class CardColorless2 {
         }
     }
 
+    // Relax (Ancient) - 3 energy, Skill
+    //   Effect: Gain 15 Block. Next turn, draw 2 cards and gain 2 energy. Exhaust.
+    //   Upgraded Effect: Gain 17 Block. Next turn, draw 3 cards and gain 3 energy. Exhaust.
     public static class Relax extends _RelaxT {
         public Relax() {
             super("Relax", 15, 2);
@@ -1426,6 +1594,9 @@ public class CardColorless2 {
         }
     }
 
+    // Wish (Ancient) - 0 energy, Skill
+    //   Effect: Put a card from your Draw Pile into your Hand. Exhaust.
+    //   Upgraded Effect: Retain. Put a card from your Draw Pile into your Hand. Exhaust.
     public static class Wish extends _WishT {
         public Wish() {
             super("Wish", false, true);
@@ -1458,6 +1629,9 @@ public class CardColorless2 {
         }
     }
 
+    // Fuel (Token) - 0 energy, Skill
+    //   Effect: Gain energy. Draw 1 card. Exhaust.
+    //   Upgraded Effect: Gain energy. Draw 2 cards. Exhaust.
     public static class Fuel extends _FuelT {
         public Fuel() {
             super("Fuel", 1);
@@ -1485,6 +1659,9 @@ public class CardColorless2 {
         }
     }
 
+    // Giant Rock (Token) - 1 energy, Attack
+    //   Effect: Deal 16 damage.
+    //   Upgraded Effect: Deal 20 damage.
     public static class GiantRock extends _GiantRockT {
         public GiantRock() {
             super("Giant Rock", 16);
@@ -1513,6 +1690,9 @@ public class CardColorless2 {
         }
     }
 
+    // Luminesce (Token) - 0 energy, Skill
+    //   Effect: Retain. Gain 2 energy. Exhaust.
+    //   Upgraded Effect: Retain. Gain 3 energy. Exhaust.
     public static class Luminesce extends _LuminesceT {
         public Luminesce() {
             super("Luminesce", 2);
@@ -1541,6 +1721,9 @@ public class CardColorless2 {
         }
     }
 
+    // Minion Dive Bomb (Token) - 1 energy, Attack
+    //   Effect: Deal 13 damage. Exhaust.
+    //   Upgraded Effect: Deal 16 damage. Exhaust.
     public static class MinionDiveBomb extends _MinionDiveBombT {
         public MinionDiveBomb() {
             super("Minion Dive Bomb", 13);
@@ -1568,6 +1751,9 @@ public class CardColorless2 {
         }
     }
 
+    // Minion Sacrifice (Token) - 0 energy, Skill
+    //   Effect: Gain 9 Block. Exhaust.
+    //   Upgraded Effect: Gain 12 Block. Exhaust.
     public static class MinionSacrifice extends _MinionSacrificeT {
         public MinionSacrifice() {
             super("Minion Sacrifice", 9);
@@ -1597,6 +1783,9 @@ public class CardColorless2 {
         }
     }
 
+    // Minion Strike (Token) - 0 energy, Attack
+    //   Effect: Deal 7 damage. Draw 1 card. Exhaust.
+    //   Upgraded Effect: Deal 10 damage. Draw 1 card. Exhaust.
     public static class MinionStrike extends _MinionStrikeT {
         public MinionStrike() {
             super("Minion Strike", 7);
@@ -1609,6 +1798,9 @@ public class CardColorless2 {
         }
     }
 
+    // Shiv (Token) - 0 energy, Attack
+    //   Effect: Deal 4 damage. Exhaust.
+    //   Upgraded Effect: Deal 6 damage. Exhaust.
     public static class Shiv extends CardColorless.Shiv {
     }
 
@@ -1630,6 +1822,9 @@ public class CardColorless2 {
         }
     }
 
+    // Soul (Token) - 0 energy, Skill
+    //   Effect: Draw 2 cards. Exhaust.
+    //   Upgraded Effect: Draw 3 cards. Exhaust.
     public static class Soul extends _SoulT {
         public Soul() {
             super("Soul", 2);
@@ -1677,6 +1872,9 @@ public class CardColorless2 {
         }
     }
 
+    // Sovereign Blade (Token) - 2 energy, Attack
+    //   Effect: Retain. Deal 10 damage.
+    //   Upgraded Effect (1 energy): Retain. Deal 10 damage.
     public static class SovereignBlade extends _SovereignBladeT {
         public SovereignBlade() {
             super("Sovereign Blade", 2);
@@ -1718,6 +1916,9 @@ public class CardColorless2 {
         }
     }
 
+    // Sweeping Gaze (Token) - 0 energy, Attack
+    //   Effect: Ethereal. Osty deals 10 damage to a random enemy. Exhaust.
+    //   Upgraded Effect: Ethereal. Osty deals 15 damage to a random enemy. Exhaust.
     public static class SweepingGaze extends _SweepingGazeT {
         public SweepingGaze() {
             super("Sweeping Gaze", 10);

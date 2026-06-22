@@ -20,24 +20,36 @@ public class CardDefect2 {
     // ********************************************* Basic  *********************************************
     // **************************************************************************************************
 
+    // Defend (Defect) (Basic) - 1 energy, Skill
+    //   Effect: Gain 5 Block.
+    //   Upgraded Effect: Gain 8 Block.
     public static class Defend extends Card.Defend {
     }
 
     public static class DefendP extends Card.DefendP {
     }
 
+    // Dualcast (Basic) - 1 energy, Skill
+    //   Effect: Evoke your rightmost Orb twice.
+    //   Upgraded Effect (0 energy): Evoke your rightmost Orb twice.
     public static class Dualcast extends CardDefect.Dualcast {
     }
 
     public static class DualCastP extends CardDefect.DualcastP {
     }
 
+    // Strike (Defect) (Basic) - 1 energy, Attack
+    //   Effect: Deal 6 damage.
+    //   Upgraded Effect: Deal 9 damage.
     public static class Strike extends Card.Strike {
     }
 
     public static class StrikeP extends Card.StrikeP {
     }
 
+    // Zap (Basic) - 1 energy, Skill
+    //   Effect: Channel 1 Lightning.
+    //   Upgraded Effect (0 energy): Channel 1 Lightning.
     public static class Zap extends CardDefect.Zap {
     }
 
@@ -48,12 +60,18 @@ public class CardDefect2 {
     // ********************************************* Common *********************************************
     // **************************************************************************************************
 
+    // Ball Lightning (Common) - 1 energy, Attack
+    //   Effect: Deal 7 damage. Channel 1 Lightning.
+    //   Upgraded Effect: Deal 10 damage. Channel 1 Lightning.
     public static class BallLightning extends CardDefect.BallLightning {
     }
 
     public static class BallLightningP extends CardDefect.BallLightningP {
     }
 
+    // Barrage (Common) - 1 energy, Attack
+    //   Effect: Deal 5 damage for each Channeled Orb.
+    //   Upgraded Effect: Deal 7 damage for each Channeled Orb.
     public static class Barrage extends CardDefect._BarrageT {
         public Barrage() {
             super("Barrage", 5);
@@ -66,6 +84,9 @@ public class CardDefect2 {
         }
     }
 
+    // Beam Cell (Common) - 0 energy, Attack
+    //   Effect: Deal 3 damage. Apply 1 Vulnerable.
+    //   Upgraded Effect: Deal 4 damage. Apply 2 Vulnerable.
     public static class BeamCell extends CardDefect.BeamCell {
     }
 
@@ -91,6 +112,9 @@ public class CardDefect2 {
         }
     }
 
+    // Boost Away (Common) - 0 energy, Skill
+    //   Effect: Gain 6 Block. Add a Dazed into your Discard Pile.
+    //   Upgraded Effect: Gain 9 Block. Add a Dazed into your Discard Pile.
     public static class BoostAway extends _BoostAwayT {
         public BoostAway() {
             super("Boost Away", 6);
@@ -103,6 +127,9 @@ public class CardDefect2 {
         }
     }
 
+    // Charge Battery (Common) - 1 energy, Skill
+    //   Effect: Gain 7 Block. Next turn, gain energy.
+    //   Upgraded Effect: Gain 10 Block. Next turn, gain energy.
     public static class ChargeBattery extends CardDefect.ChargeBattery {
     }
 
@@ -113,18 +140,27 @@ public class CardDefect2 {
     //   Effect: Deal 3 damage. Increase the damage of ALL Claw cards by 2 this combat.
     //   Upgraded Effect: Deal 4 damage. Increase the damage of ALL Claw cards by 3 this combat.
 
+    // Cold Snap (Common) - 1 energy, Attack
+    //   Effect: Deal 6 damage. Channel 1 Frost.
+    //   Upgraded Effect: Deal 9 damage. Channel 1 Frost.
     public static class ColdSnap extends CardDefect.ColdSnap {
     }
 
     public static class ColdSnapP extends CardDefect.ColdSnapP {
     }
 
+    // Compile Driver (Common) - 1 energy, Attack
+    //   Effect: Deal 7 damage. Draw 1 card for each unique Orb you have.
+    //   Upgraded Effect: Deal 10 damage. Draw 1 card for each unique Orb you have.
     public static class CompileDriver extends CardDefect.CompileDriver {
     }
 
     public static class CompileDriverP extends CardDefect.CompileDriverP {
     }
 
+    // Coolheaded (Common) - 1 energy, Skill
+    //   Effect: Channel 1 Frost. Draw 1 card.
+    //   Upgraded Effect: Channel 1 Frost. Draw 2 cards.
     public static class Coolheaded extends CardDefect.Coolheaded {
     }
 
@@ -152,6 +188,9 @@ public class CardDefect2 {
         }
     }
 
+    // Focused Strike (Common) - 1 energy, Attack
+    //   Effect: Deal 9 damage. Gain 1 Focus this turn.
+    //   Upgraded Effect: Deal 11 damage. Gain 2 Focus this turn.
     public static class FocusedStrike extends _FocusedStrikeT {
         public FocusedStrike() {
             super("Focused Strike", 9, 1);
@@ -164,6 +203,9 @@ public class CardDefect2 {
         }
     }
 
+    // Go for the Eyes (Common) - 0 energy, Attack
+    //   Effect: Deal 3 damage. If the enemy intends to attack, apply 1 Weak.
+    //   Upgraded Effect: Deal 4 damage. If the enemy intends to attack, apply 2 Weak.
     public static class GoForTheEyes extends CardDefect.GoForTheEyes {
     }
 
@@ -193,6 +235,9 @@ public class CardDefect2 {
         }
     }
 
+    // Gunk Up (Common) - 1 energy, Attack
+    //   Effect: Deal 4 damage 3 times. Add a Slimed into your Discard Pile.
+    //   Upgraded Effect: Deal 5 damage 3 times. Add a Slimed into your Discard Pile.
     public static class GunkUp extends _GunkUpT {
         public GunkUp() {
             super("Gunk Up", 4);
@@ -205,6 +250,9 @@ public class CardDefect2 {
         }
     }
 
+    // Hologram (Common) - 1 energy, Skill
+    //   Effect: Gain 3 Block. Put a card from your Discard Pile into your Hand. Exhaust.
+    //   Upgraded Effect: Gain 5 Block. Put a card from your Discard Pile into your Hand.
     public static class Hologram extends CardDefect.Hologram {
     }
 
@@ -228,6 +276,9 @@ public class CardDefect2 {
         }
     }
 
+    // Hotfix (Common) - 0 energy, Skill
+    //   Effect: Gain 2 Focus this turn.
+    //   Upgraded Effect: Gain 3 Focus this turn.
     public static class Hotfix extends _HotfixT {
         public Hotfix() {
             super("Hotfix", 2);
@@ -240,6 +291,9 @@ public class CardDefect2 {
         }
     }
 
+    // Leap (Common) - 1 energy, Skill
+    //   Effect: Gain 9 Block.
+    //   Upgraded Effect: Gain 12 Block.
     public static class Leap extends CardDefect.Leap {
     }
 
@@ -283,6 +337,9 @@ public class CardDefect2 {
         }
     }
 
+    // Lightning Rod (Common) - 1 energy, Skill
+    //   Effect: Gain 4 Block. At the start of the next 2 turns, Channel 1 Lightning.
+    //   Upgraded Effect: Gain 7 Block. At the start of the next 2 turns, Channel 1 Lightning.
     public static class LightningRod extends _LightningRodT {
         public LightningRod() {
             super("Lightning Rod", 4);
@@ -334,6 +391,9 @@ public class CardDefect2 {
         }
     }
 
+    // Momentum Strike (Common) - 1 energy, Attack
+    //   Effect: Deal 10 damage. Reduce this card's cost to 0 energy.
+    //   Upgraded Effect: Deal 13 damage. Reduce this card's cost to 0 energy.
     public static class MomentumStrike extends _MomentumStrikeT {
         public MomentumStrike() {
             super("Momentum Strike", 10);
@@ -346,12 +406,18 @@ public class CardDefect2 {
         }
     }
 
+    // Sweeping Beam (Common) - 1 energy, Attack
+    //   Effect: Deal 6 damage to ALL enemies. Draw 1 card.
+    //   Upgraded Effect: Deal 9 damage to ALL enemies. Draw 1 card.
     public static class SweepingBeam extends CardDefect.SweepingBeam {
     }
 
     public static class SweepingBeamP extends CardDefect.SweepingBeamP {
     }
 
+    // TURBO (Common) - 0 energy, Skill
+    //   Effect: Gain 2 energy. Add a Void into your Discard Pile.
+    //   Upgraded Effect: Gain 3 energy. Add a Void into your Discard Pile.
     public static class Turbo extends CardDefect.Turbo {
     }
 
@@ -399,6 +465,9 @@ public class CardDefect2 {
         }
     }
 
+    // Uproar (Common) - 2 energy, Attack
+    //   Effect: Deal 5 damage twice. Play a random Attack from your Draw Pile.
+    //   Upgraded Effect: Deal 7 damage twice. Play a random Attack from your Draw Pile.
     public static class Uproar extends _UproarT {
         public Uproar() {
             super("Uproar", 5);
@@ -415,6 +484,9 @@ public class CardDefect2 {
     // ********************************************* Uncommon *********************************************
     // **************************************************************************************************
 
+    // Boot Sequence (Uncommon) - 0 energy, Skill
+    //   Effect: Innate. Gain 10 Block. Exhaust.
+    //   Upgraded Effect: Innate. Gain 13 Block. Exhaust.
     public static class BootSequence extends CardDefect.BootSequence {
     }
 
@@ -439,6 +511,9 @@ public class CardDefect2 {
         }
     }
 
+    // Bulk Up (Uncommon) - 2 energy, Power
+    //   Effect: Lose 1 Orb Slot. Gain 2 Strength. Gain 2 Dexterity.
+    //   Upgraded Effect: Lose 1 Orb Slot. Gain 3 Strength. Gain 3 Dexterity.
     public static class BulkUp extends _BulkUpT {
         public BulkUp() {
             super("Bulk Up", 2);
@@ -451,18 +526,27 @@ public class CardDefect2 {
         }
     }
 
+    // Capacitor (Uncommon) - 1 energy, Power
+    //   Effect: Gain 2 Orb Slots.
+    //   Upgraded Effect: Gain 3 Orb Slots.
     public static class Capacitor extends CardDefect.Capacitor {
     }
 
     public static class CapacitorP extends CardDefect.CapacitorP {
     }
 
+    // Chaos (Uncommon) - 1 energy, Skill
+    //   Effect: Channel 1 random Orb.
+    //   Upgraded Effect: Channel 2 random Orbs.
     public static class Chaos extends CardDefect.Chaos {
     }
 
     public static class ChaosP extends CardDefect.ChaosP {
     }
 
+    // Chill (Uncommon) - 0 energy, Skill
+    //   Effect: Channel 1 Frost for each enemy. Exhaust.
+    //   Upgraded Effect: Channel 1 Frost for each enemy.
     public static class Chill extends CardDefect.Chill {
     }
 
@@ -492,6 +576,9 @@ public class CardDefect2 {
         }
     }
 
+    // Compact (Uncommon) - 1 energy, Skill
+    //   Effect: Gain 6 Block. Transform all Status cards in your Hand into Fuel.
+    //   Upgraded Effect: Gain 7 Block. Transform all Status cards in your Hand into Fuel+.
     public static class Compact extends _CompactT {
         public Compact() {
             super("Compact", 6);
@@ -512,6 +599,9 @@ public class CardDefect2 {
         }
     }
 
+    // Darkness (Uncommon) - 1 energy, Skill
+    //   Effect: Channel 1 Dark. Trigger the passive ability of all Dark Orbs.
+    //   Upgraded Effect: Channel 1 Dark. Trigger the passive ability of all Dark Orbs twice.
     public static class Darkness extends CardDefect._DarknessT {
         public Darkness() {
             super("Darkness", 1);
@@ -524,6 +614,9 @@ public class CardDefect2 {
         }
     }
 
+    // Double Energy (Uncommon) - 1 energy, Skill
+    //   Effect: Double your Energy. Exhaust.
+    //   Upgraded Effect (0 energy): Double your Energy. Exhaust.
     public static class DoubleEnergy extends CardDefect.DoubleEnergy {
     }
 
@@ -532,6 +625,9 @@ public class CardDefect2 {
 
     // No need to implement Energy Surge: Multiplayer
 
+    // FTL (Uncommon) - 0 energy, Attack
+    //   Effect: Deal 5 damage. If you have played fewer than 3 cards this turn, draw 1 card.
+    //   Upgraded Effect: Deal 6 damage. If you have played fewer than 4 cards this turn, draw 1 card.
     public static class FTL extends CardDefect.FTL {
     }
 
@@ -575,6 +671,9 @@ public class CardDefect2 {
         }
     }
 
+    // Feral (Uncommon) - 2 energy, Power
+    //   Effect: The first time you play a 0 energy Attack each turn, return it to your Hand.
+    //   Upgraded Effect (1 energy): The first time you play a 0 energy Attack each turn, return it to your Hand.
     public static class Feral extends _FeralT {
         public Feral() {
             super("Feral", 2);
@@ -607,6 +706,9 @@ public class CardDefect2 {
         }
     }
 
+    // Fight Through (Uncommon) - 1 energy, Skill
+    //   Effect: Gain 13 Block. Add 2 Wounds into your Discard Pile.
+    //   Upgraded Effect: Gain 17 Block. Add 2 Wounds into your Discard Pile.
     public static class FightThrough extends _FightThroughT {
         public FightThrough() {
             super("Fight Through", 13);
@@ -619,12 +721,18 @@ public class CardDefect2 {
         }
     }
 
+    // Fusion (Uncommon) - 2 energy, Skill
+    //   Effect: Channel 1 Plasma.
+    //   Upgraded Effect (1 energy): Channel 1 Plasma.
     public static class Fusion extends CardDefect.Fusion {
     }
 
     public static class FusionP extends CardDefect.FusionP {
     }
 
+    // Glacier (Uncommon) - 2 energy, Skill
+    //   Effect: Gain 6 Block. Channel 2 Frost.
+    //   Upgraded Effect: Gain 9 Block. Channel 2 Frost.
     public static class Glacier extends CardDefect._GlacierT {
         public Glacier() {
             super("Glacier", 6);
@@ -653,6 +761,9 @@ public class CardDefect2 {
         }
     }
 
+    // Glasswork (Uncommon) - 1 energy, Skill
+    //   Effect: Gain 5 Block. Channel 1 Glass.
+    //   Upgraded Effect: Gain 8 Block. Channel 1 Glass.
     public static class Glasswork extends _GlassworkT {
         public Glasswork() {
             super("Glasswork", 5);
@@ -695,6 +806,9 @@ public class CardDefect2 {
         }
     }
 
+    // Hailstorm (Uncommon) - 1 energy, Power
+    //   Effect: At the end of your turn, if you have Frost, deal 6 damage to ALL enemies.
+    //   Upgraded Effect: At the end of your turn, if you have Frost, deal 8 damage to ALL enemies.
     public static class Hailstorm extends _HailstormT {
         public Hailstorm() {
             super("Hailstorm", 6);
@@ -756,6 +870,9 @@ public class CardDefect2 {
         }
     }
 
+    // Iteration (Uncommon) - 1 energy, Power
+    //   Effect: The first time you draw a Status card each turn, draw 2 cards.
+    //   Upgraded Effect: The first time you draw a Status card each turn, draw 3 cards.
     public static class Iteration extends _IterationT {
         public Iteration() {
             super("Iteration", 2);
@@ -768,6 +885,9 @@ public class CardDefect2 {
         }
     }
 
+    // Loop (Uncommon) - 1 energy, Power
+    //   Effect: At the start of your turn, trigger the passive ability of your rightmost Orb.
+    //   Upgraded Effect: At the start of your turn, trigger the passive ability of your rightmost Orb 2 times.
     public static class Loop extends CardDefect.Loop {
     }
 
@@ -795,6 +915,9 @@ public class CardDefect2 {
         }
     }
 
+    // Null (Uncommon) - 2 energy, Attack
+    //   Effect: Deal 10 damage. Apply 2 Weak. Channel 1 Dark.
+    //   Upgraded Effect: Deal 13 damage. Apply 3 Weak. Channel 1 Dark.
     public static class Null extends _NullT {
         public Null() {
             super("Null", 10, 2);
@@ -807,6 +930,9 @@ public class CardDefect2 {
         }
     }
 
+    // Overclock (Uncommon) - 0 energy, Skill
+    //   Effect: Draw 2 cards. Add a Burn into your Discard Pile.
+    //   Upgraded Effect: Draw 3 cards. Add a Burn into your Discard Pile.
     public static class Overclock extends CardDefect.Overclock {
     }
 
@@ -833,6 +959,9 @@ public class CardDefect2 {
         }
     }
 
+    // Refract (Uncommon) - 3 energy, Attack
+    //   Effect: Deal 9 damage twice. Channel 2 Glass.
+    //   Upgraded Effect: Deal 12 damage twice. Channel 2 Glass.
     public static class Refract extends _RefractT {
         public Refract() {
             super("Refract", 9);
@@ -845,6 +974,9 @@ public class CardDefect2 {
         }
     }
 
+    // Rip and Tear (Uncommon) - 1 energy, Attack
+    //   Effect: Deal 7 damage to a random enemy twice.
+    //   Upgraded Effect: Deal 9 damage to a random enemy twice.
     public static class RipAndTear extends CardDefect.RipAndTear {
     }
 
@@ -900,6 +1032,9 @@ public class CardDefect2 {
         }
     }
 
+    // Rocket Punch (Uncommon) - 2 energy, Attack
+    //   Effect: Deal 13 damage. Draw 1 card. When a Status card is created, reduce this card's cost to 0 energy this turn.
+    //   Upgraded Effect: Deal 14 damage. Draw 2 cards. When a Status card is created, reduce this card's cost to 0 energy this turn.
     public static class RocketPunch extends _RocketPunchT {
         public RocketPunch() {
             super("Rocket Punch", 13, 1);
@@ -933,6 +1068,9 @@ public class CardDefect2 {
         }
     }
 
+    // Scavenge (Uncommon) - 1 energy, Skill
+    //   Effect: Exhaust a card. Next turn, gain 2 energy.
+    //   Upgraded Effect: Exhaust a card. Next turn, gain 3 energy.
     public static class Scavenge extends _ScavengeT {
         public Scavenge() {
             super("Scavenge", 2);
@@ -945,6 +1083,9 @@ public class CardDefect2 {
         }
     }
 
+    // Scrape (Uncommon) - 1 energy, Attack
+    //   Effect: Deal 7 damage. Draw 4 cards. Discard all cards drawn this way that do not cost 0 energy.
+    //   Upgraded Effect: Deal 10 damage. Draw 5 cards. Discard all cards drawn this way that do not cost 0 energy.
     public static class Scrape extends CardDefect.Scrape {
     }
 
@@ -967,6 +1108,9 @@ public class CardDefect2 {
         }
     }
 
+    // Shadow Shield (Uncommon) - 2 energy, Skill
+    //   Effect: Gain 11 Block. Channel 1 Dark.
+    //   Upgraded Effect: Gain 15 Block. Channel 1 Dark.
     public static class ShadowShield extends _ShadowShieldT {
         public ShadowShield() {
             super("Shadow Shield", 11);
@@ -979,6 +1123,9 @@ public class CardDefect2 {
         }
     }
 
+    // Skim (Uncommon) - 1 energy, Skill
+    //   Effect: Draw 3 cards.
+    //   Upgraded Effect: Draw 4 cards.
     public static class Skim extends CardDefect.Skim {
     }
 
@@ -1024,6 +1171,9 @@ public class CardDefect2 {
         }
     }
 
+    // Smokestack (Uncommon) - 1 energy, Power
+    //   Effect: Whenever you create a Status, deal 5 damage to ALL enemies.
+    //   Upgraded Effect: Whenever you create a Status, deal 7 damage to ALL enemies.
     public static class Smokestack extends _SmokestackT {
         public Smokestack() {
             super("Smokestack", 5);
@@ -1036,6 +1186,9 @@ public class CardDefect2 {
         }
     }
 
+    // Storm (Uncommon) - 1 energy, Power
+    //   Effect: Whenever you play a Power, Channel 1 Lightning.
+    //   Upgraded Effect: Whenever you play a Power, Channel 2 Lightning.
     public static class Storm extends CardDefect.Storm {
     }
 
@@ -1065,6 +1218,9 @@ public class CardDefect2 {
         }
     }
 
+    // Subroutine (Uncommon) - 1 energy, Power
+    //   Effect: Whenever you play a Power, gain energy.
+    //   Upgraded Effect (0 energy): Whenever you play a Power, gain energy.
     public static class Subroutine extends _SubroutineT {
         public Subroutine() {
             super("Subroutine", 1);
@@ -1077,6 +1233,9 @@ public class CardDefect2 {
         }
     }
 
+    // Sunder (Uncommon) - 3 energy, Attack
+    //   Effect: Deal 24 damage. If this kills an enemy, gain 3 energy.
+    //   Upgraded Effect: Deal 32 damage. If this kills an enemy, gain 3 energy.
     public static class Sunder extends CardDefect.Sunder {
     }
 
@@ -1112,6 +1271,9 @@ public class CardDefect2 {
         }
     }
 
+    // Synchronize (Uncommon) - 1 energy, Skill
+    //   Effect: Gain 2 Focus this turn for each unique Orb you have. Exhaust.
+    //   Upgraded Effect: Gain 2 Focus this turn for each unique Orb you have.
     public static class Synchronize extends _SynchronizeT {
         public Synchronize() {
             super("Synchronize", true);
@@ -1167,6 +1329,9 @@ public class CardDefect2 {
         }
     }
 
+    // Synthesis (Uncommon) - 2 energy, Attack
+    //   Effect: Deal 12 damage. The next Power you play costs 0 energy.
+    //   Upgraded Effect: Deal 18 damage. The next Power you play costs 0 energy.
     public static class Synthesis extends _SynthesisT {
         public Synthesis() {
             super("Synthesis", 12);
@@ -1179,6 +1344,9 @@ public class CardDefect2 {
         }
     }
 
+    // Tempest (Uncommon) - X energy, Skill
+    //   Effect: Channel X Lightning.
+    //   Upgraded Effect: Channel X+1 Lightning.
     public static class Tempest extends CardDefect.Tempest {
     }
 
@@ -1201,6 +1369,9 @@ public class CardDefect2 {
         }
     }
 
+    // Tesla Coil (Uncommon) - 0 energy, Attack
+    //   Effect: Deal 3 damage. Trigger all Lightning against the enemy.
+    //   Upgraded Effect: Deal 6 damage. Trigger all Lightning against the enemy.
     public static class TeslaCoil extends _TeslaCoilT {
         public TeslaCoil() {
             super("Tesla Coil", 3);
@@ -1245,6 +1416,9 @@ public class CardDefect2 {
         }
     }
 
+    // Thunder (Uncommon) - 1 energy, Power
+    //   Effect: Whenever you Evoke Lightning, deal 6 damage to each enemy hit.
+    //   Upgraded Effect: Whenever you Evoke Lightning, deal 8 damage to each enemy hit.
     public static class Thunder extends _ThunderT {
         public Thunder() {
             super("Thunder", 6);
@@ -1257,6 +1431,9 @@ public class CardDefect2 {
         }
     }
 
+    // White Noise (Uncommon) - 1 energy, Skill
+    //   Effect: Add a random Power into your Hand. It's free to play this turn. Exhaust.
+    //   Upgraded Effect (0 energy): Add a random Power into your Hand. It's free to play this turn. Exhaust.
     public static class WhiteNoise extends CardDefect.WhiteNoise {
     }
 
@@ -1287,6 +1464,9 @@ public class CardDefect2 {
         }
     }
 
+    // Adaptive Strike (Rare) - 2 energy, Attack
+    //   Effect: Deal 18 damage. Add a 0 energy copy of this card into your Discard Pile.
+    //   Upgraded Effect: Deal 23 damage. Add a 0 energy copy of this card into your Discard Pile.
     public static class AdaptiveStrike extends _AdaptiveStrikeT {
         public AdaptiveStrike() {
             super("Adaptive Strike", 18);
@@ -1299,6 +1479,9 @@ public class CardDefect2 {
         }
     }
 
+    // All for One (Rare) - 2 energy, Attack
+    //   Effect: Deal 10 damage. Put ALL 0 energy cards from your Discard Pile into your Hand.
+    //   Upgraded Effect: Deal 14 damage. Put ALL 0 energy cards from your Discard Pile into your Hand.
     public static class AllForOne extends CardDefect.AllForOne {
         public AllForOne(int discardOrderMaxKeepTrackIn10s, int discardOrder0CardMaxCopies) {
             super(discardOrderMaxKeepTrackIn10s, discardOrder0CardMaxCopies);
@@ -1311,6 +1494,9 @@ public class CardDefect2 {
         }
     }
 
+    // Buffer (Rare) - 2 energy, Power
+    //   Effect: Prevent the next time you would lose HP.
+    //   Upgraded Effect: Prevent the next 2 times you would lose HP.
     public static class Buffer extends CardDefect.Buffer {
     }
 
@@ -1356,6 +1542,9 @@ public class CardDefect2 {
         }
     }
 
+    // Consuming Shadow (Rare) - 2 energy, Power
+    //   Effect: Channel 2 Dark. At the end of your turn, Evoke your leftmost Orb.
+    //   Upgraded Effect: Channel 3 Dark. At the end of your turn, Evoke your leftmost Orb.
     public static class ConsumingShadow extends _ConsumingShadowT {
         public ConsumingShadow() {
             super("Consuming Shadow", 2);
@@ -1413,6 +1602,9 @@ public class CardDefect2 {
         }
     }
 
+    // Coolant (Rare) - 1 energy, Power
+    //   Effect: At the start of your turn, gain 2 Block for each unique Orb you have.
+    //   Upgraded Effect: At the start of your turn, gain 3 Block for each unique Orb you have.
     public static class Coolant extends _CoolantT {
         public Coolant() {
             super("Coolant", 2);
@@ -1425,18 +1617,27 @@ public class CardDefect2 {
         }
     }
 
+    // Creative AI (Rare) - 3 energy, Power
+    //   Effect: At the start of your turn, add a random Power into your Hand.
+    //   Upgraded Effect (2 energy): At the start of your turn, add a random Power into your Hand.
     public static class CreativeAI extends CardDefect.CreativeAI {
     }
 
     public static class CreativeAIP extends CardDefect.CreativeAIP {
     }
 
+    // Defragment (Rare) - 1 energy, Power
+    //   Effect: Gain 1 Focus.
+    //   Upgraded Effect: Gain 2 Focus.
     public static class Defragment extends CardDefect.Defragment {
     }
 
     public static class DefragmentP extends CardDefect.DefragmentP {
     }
 
+    // Echo Form (Rare) - 3 energy, Power
+    //   Effect: Ethereal. The first card you play each turn is played an extra time.
+    //   Upgraded Effect: The first card you play each turn is played an extra time.
     public static class EchoForm extends CardDefect.EchoForm {
     }
 
@@ -1489,6 +1690,9 @@ public class CardDefect2 {
         }
     }
 
+    // Flak Cannon (Rare) - 2 energy, Attack
+    //   Effect: Exhaust ALL your Status cards. Deal 8 damage to a random enemy for each card Exhausted.
+    //   Upgraded Effect: Exhaust ALL your Status cards. Deal 11 damage to a random enemy for each card Exhausted.
     public static class FlakCannon extends _FlakCannonT {
         public FlakCannon() {
             super("Flak Cannon", 8);
@@ -1501,6 +1705,9 @@ public class CardDefect2 {
         }
     }
 
+    // Genetic Algorithm (Rare) - 1 energy, Skill
+    //   Effect: Gain 1 Block. Permanently increase this card's Block by 3. Exhaust.
+    //   Upgraded Effect: Gain 1 Block. Permanently increase this card's Block by 4. Exhaust.
     public static class GeneticAlgorithm extends CardDefect.GeneticAlgorithm {
         public GeneticAlgorithm() {
             super(1);
@@ -1552,6 +1759,9 @@ public class CardDefect2 {
         }
     }
 
+    // Helix Drill (Rare) - 0 energy, Attack
+    //   Effect: Deal 3 damage for each energy previously spent this turn.
+    //   Upgraded Effect: Deal 5 damage for each energy previously spent this turn.
     public static class HelixDrill extends _HelixDrillT {
         public HelixDrill() {
             super("Helix Drill", 3);
@@ -1564,6 +1774,9 @@ public class CardDefect2 {
         }
     }
 
+    // Hyperbeam (Rare) - 2 energy, Attack
+    //   Effect: Deal 26 damage to ALL enemies. Lose 3 Focus.
+    //   Upgraded Effect: Deal 34 damage to ALL enemies. Lose 3 Focus.
     public static class Hyperbeam extends CardDefect.Hyperbeam {
     }
 
@@ -1589,6 +1802,9 @@ public class CardDefect2 {
         }
     }
 
+    // Ice Lance (Rare) - 3 energy, Attack
+    //   Effect: Deal 19 damage. Channel 3 Frost.
+    //   Upgraded Effect: Deal 24 damage. Channel 3 Frost.
     public static class IceLance extends _IceLanceT {
         public IceLance() {
             super("Ice Lance", 19);
@@ -1603,12 +1819,18 @@ public class CardDefect2 {
 
     // No need to implement Ignition: Multiplayer
 
+    // Machine Learning (Rare) - 1 energy, Power
+    //   Effect: At the start of your turn, draw 1 additional card.
+    //   Upgraded Effect: Innate. At the start of your turn, draw 1 additional card.
     public static class MachineLearning extends CardDefect.MachineLearning {
     }
 
     public static class MachineLearningP extends CardDefect.MachineLearningP {
     }
 
+    // Meteor Strike (Rare) - 5 energy, Attack
+    //   Effect: Deal 24 damage. Channel 3 Plasma.
+    //   Upgraded Effect: Deal 30 damage. Channel 3 Plasma.
     public static class MeteorStrike extends CardDefect.MeteorStrike {
     }
 
@@ -1658,6 +1880,9 @@ public class CardDefect2 {
         }
     }
 
+    // Modded (Rare) - 0 energy, Skill
+    //   Effect: Gain 1 Orb Slot. Draw 1 card. Increase this card's cost by 1.
+    //   Upgraded Effect: Gain 1 Orb Slot. Draw 2 cards. Increase this card's cost by 1.
     public static class Modded extends _ModdedT {
         public Modded() {
             this(0);
@@ -1678,18 +1903,27 @@ public class CardDefect2 {
         }
     }
 
+    // Multi-Cast (Rare) - X energy, Skill
+    //   Effect: Evoke your rightmost Orb X times.
+    //   Upgraded Effect: Evoke your rightmost Orb X+1 times.
     public static class MultiCast extends CardDefect.MultiCast {
     }
 
     public static class MultiCastP extends CardDefect.MultiCastP {
     }
 
+    // Rainbow (Rare) - 2 energy, Skill
+    //   Effect: Channel 1 Lightning. Channel 1 Frost. Channel 1 Dark. Exhaust.
+    //   Upgraded Effect: Channel 1 Lightning. Channel 1 Frost. Channel 1 Dark.
     public static class Rainbow extends CardDefect.Rainbow {
     }
 
     public static class RainbowP extends CardDefect.RainbowP {
     }
 
+    // Reboot (Rare) - 0 energy, Skill
+    //   Effect: Shuffle ALL your cards into your Draw Pile. Draw 4 cards. Exhaust.
+    //   Upgraded Effect: Shuffle ALL your cards into your Draw Pile. Draw 6 cards. Exhaust.
     public static class Reboot extends CardDefect.Reboot {
     }
 
@@ -1717,6 +1951,9 @@ public class CardDefect2 {
         }
     }
 
+    // Shatter (Rare) - 1 energy, Attack
+    //   Effect: Deal 11 damage to ALL enemies. Evoke all of your Orbs.
+    //   Upgraded Effect: Deal 15 damage to ALL enemies. Evoke all of your Orbs.
     public static class Shatter extends _ShatterT {
         public Shatter() {
             super("Shatter", 11);
@@ -1776,6 +2013,9 @@ public class CardDefect2 {
         }
     }
 
+    // Signal Boost (Rare) - 1 energy, Skill
+    //   Effect: The next Power you play is played an additional time. Exhaust.
+    //   Upgraded Effect (0 energy): The next Power you play is played an additional time. Exhaust.
     public static class SignalBoost extends _SignalBoostT {
         public SignalBoost() {
             super("Signal Boost", 1);
@@ -1826,6 +2066,9 @@ public class CardDefect2 {
         }
     }
 
+    // Spinner (Rare) - 1 energy, Power
+    //   Effect: At the start of your turn, Channel 1 Glass.
+    //   Upgraded Effect: Channel 1 Glass. At the start of your turn, Channel 1 Glass.
     public static class Spinner extends _SpinnerT {
         public Spinner() {
             super("Spinner", false);
@@ -1853,6 +2096,9 @@ public class CardDefect2 {
         }
     }
 
+    // Supercritical (Rare) - 0 energy, Skill
+    //   Effect: Gain 4 energy. Exhaust.
+    //   Upgraded Effect: Gain 6 energy. Exhaust.
     public static class Supercritical extends _SupercriticalT {
         public Supercritical() {
             super("Supercritical", 4);
@@ -1899,6 +2145,9 @@ public class CardDefect2 {
         }
     }
 
+    // Trash to Treasure (Rare) - 1 energy, Power
+    //   Effect: Whenever you create a Status card, Channel 1 random Orb.
+    //   Upgraded Effect: Innate. Whenever you create a Status card, Channel 1 random Orb.
     public static class TrashToTreasure extends _TrashToTreasureT {
         public TrashToTreasure() {
             super("Trash to Treasure");
@@ -1930,6 +2179,9 @@ public class CardDefect2 {
         }
     }
 
+    // Voltaic (Rare) - 2 energy, Skill
+    //   Effect: Channel Lightning equal to the Lightning already Channeled this combat. Exhaust.
+    //   Upgraded Effect: Channel Lightning equal to the Lightning already Channeled this combat.
     public static class Voltaic extends _VoltaicT {
         public Voltaic() {
             super("Voltaic", true);
@@ -1946,18 +2198,27 @@ public class CardDefect2 {
     // ********************************************* Event  *********************************************
     // **************************************************************************************************
 
+    // Hello World (Event) - 1 energy, Power
+    //   Effect: At the start of your turn, add a random Common card into your Hand.
+    //   Upgraded Effect: Innate. At the start of your turn, add a random Common card into your Hand.
     public static class HelloWorld extends CardDefect.HelloWorld {
     }
 
     public static class HelloWorldP extends CardDefect.HelloWorldP {
     }
 
+    // Rebound (Event) - 1 energy, Attack
+    //   Effect: Deal 9 damage. Put the next card you play this turn on top of your Draw Pile.
+    //   Upgraded Effect: Deal 12 damage. Put the next card you play this turn on top of your Draw Pile.
     public static class Rebound extends CardDefect.Rebound {
     }
 
     public static class ReboundP extends CardDefect.ReboundP {
     }
 
+    // Stack (Event) - 1 energy, Skill
+    //   Effect: Gain Block equal to the number of cards in your Discard Pile.
+    //   Upgraded Effect: Gain Block equal to the number of cards in your Discard Pile +3.
     public static class Stack extends CardDefect.Stack {
     }
 
@@ -1968,6 +2229,9 @@ public class CardDefect2 {
     // ********************************************* Ancient *********************************************
     // **************************************************************************************************
 
+    // Biased Cognition (Ancient) - 1 energy, Power
+    //   Effect: Gain 4 Focus. At the start of your turn, lose 1 Focus.
+    //   Upgraded Effect: Gain 5 Focus. At the start of your turn, lose 1 Focus.
     public static class BiasedCognition extends CardDefect.BiasedCognition {
     }
 
@@ -1985,6 +2249,9 @@ public class CardDefect2 {
         }
     }
 
+    // Quadcast (Ancient) - 1 energy, Skill
+    //   Effect: Evoke your rightmost Orb 4 times.
+    //   Upgraded Effect (0 energy): Evoke your rightmost Orb 4 times.
     public static class Quadcast extends _QuadcastT {
         public Quadcast() {
             super("Quadcast", 1);

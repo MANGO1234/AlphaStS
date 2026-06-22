@@ -21,18 +21,27 @@ public class CardIronclad2 {
     // ********************************************* Basic  *********************************************
     // **************************************************************************************************
 
+    // Bash (Basic) - 2 energy, Attack
+    //   Effect: Deal 8 damage. Apply 2 Vulnerable.
+    //   Upgraded Effect: Deal 10 damage. Apply 3 Vulnerable.
     public static class Bash extends CardIronclad.Bash {
     }
 
     public static class BashP extends CardIronclad.BashP {
     }
 
+    // Defend (Ironclad) (Basic) - 1 energy, Skill
+    //   Effect: Gain 5 Block.
+    //   Upgraded Effect: Gain 8 Block.
     public static class Defend extends Card.Defend {
     }
 
     public static class DefendP extends Card.DefendP {
     }
 
+    // Strike (Ironclad) (Basic) - 1 energy, Attack
+    //   Effect: Deal 6 damage.
+    //   Upgraded Effect: Deal 9 damage.
     public static class Strike extends Card.Strike {
     }
 
@@ -43,12 +52,18 @@ public class CardIronclad2 {
     // ********************************************* Common *********************************************
     // **************************************************************************************************
 
+    // Anger (Common) - 0 energy, Attack
+    //   Effect: Deal 6 damage. Add a copy of this card into your Discard Pile.
+    //   Upgraded Effect: Deal 8 damage. Add a copy of this card into your Discard Pile.
     public static class Anger extends CardIronclad.Anger {
     }
 
     public static class AngerP extends CardIronclad.AngerP {
     }
 
+    // Armaments (Common) - 1 energy, Skill
+    //   Effect: Gain 5 Block. Upgrade a card in your Hand.
+    //   Upgraded Effect: Gain 5 Block. Upgrade ALL cards in your Hand.
     public static class Armaments extends CardIronclad.Armaments {
     }
 
@@ -70,6 +85,9 @@ public class CardIronclad2 {
         }
     }
 
+    // Blood Wall (Common) - 2 energy, Skill
+    //   Effect: Lose 2 HP. Gain 16 Block.
+    //   Upgraded Effect: Lose 2 HP. Gain 20 Block.
     public static class BloodWall extends _BloodWallT {
         public BloodWall() {
             super("Blood Wall", 16);
@@ -82,6 +100,9 @@ public class CardIronclad2 {
         }
     }
 
+    // Bloodletting (Common) - 0 energy, Skill
+    //   Effect: Lose 3 HP. Gain 2 energy.
+    //   Upgraded Effect: Lose 3 HP. Gain 3 energy.
     public static class Bloodletting extends CardIronclad._BloodlettingT {
         public Bloodletting() {
             super("Bloodletting", 2, Card.COMMON);
@@ -94,6 +115,9 @@ public class CardIronclad2 {
         }
     }
 
+    // Body Slam (Common) - 1 energy, Attack
+    //   Effect: Deal damage equal to your Block.
+    //   Upgraded Effect (0 energy): Deal damage equal to your Block.
     public static class BodySlam extends CardIronclad.BodySlam {
     }
 
@@ -117,6 +141,9 @@ public class CardIronclad2 {
         }
     }
 
+    // Breakthrough (Common) - 1 energy, Attack
+    //   Effect: Lose 1 HP. Deal 9 damage to ALL enemies.
+    //   Upgraded Effect: Lose 1 HP. Deal 13 damage to ALL enemies.
     public static class Breakthrough extends _BreakthroughT {
         public Breakthrough() {
             super("Breakthrough", 9);
@@ -149,6 +176,9 @@ public class CardIronclad2 {
         }
     }
 
+    // Cinder (Common) - 2 energy, Attack
+    //   Effect: Deal 17 damage. Exhaust the top card of your Draw Pile.
+    //   Upgraded Effect: Deal 22 damage. Exhaust the top card of your Draw Pile.
     public static class Cinder extends _CinderT {
         public Cinder() {
             super("Cinder", 17);
@@ -161,18 +191,27 @@ public class CardIronclad2 {
         }
     }
 
+    // Havoc (Common) - 1 energy, Skill
+    //   Effect: Play the top card of your Draw Pile and Exhaust it.
+    //   Upgraded Effect (0 energy): Play the top card of your Draw Pile and Exhaust it.
     public static class Havoc extends CardIronclad.Havoc {
     }
 
     public static class HavocP extends CardIronclad.HavocP {
     }
 
+    // Headbutt (Common) - 1 energy, Attack
+    //   Effect: Deal 9 damage. Put a card from your Discard Pile on top of your Draw Pile.
+    //   Upgraded Effect: Deal 12 damage. Put a card from your Discard Pile on top of your Draw Pile.
     public static class Headbutt extends CardIronclad.Headbutt {
     }
 
     public static class HeadbuttP extends CardIronclad.HeadbuttP {
     }
 
+    // Iron Wave (Common) - 1 energy, Attack
+    //   Effect: Gain 5 Block. Deal 5 damage.
+    //   Upgraded Effect: Gain 7 Block. Deal 7 damage.
     public static class IronWave extends CardIronclad.IronWave {
     }
 
@@ -197,6 +236,9 @@ public class CardIronclad2 {
         }
     }
 
+    // Molten Fist (Common) - 1 energy, Attack
+    //   Effect: Deal 10 damage. Double the enemy's Vulnerable. Exhaust.
+    //   Upgraded Effect: Deal 14 damage. Double the enemy's Vulnerable. Exhaust.
     public static class MoltenFist extends _MoltenFistT {
         public MoltenFist() {
             super("Molten Fist", 10);
@@ -209,12 +251,18 @@ public class CardIronclad2 {
         }
     }
 
+    // Perfected Strike (Common) - 2 energy, Attack
+    //   Effect: Deal 6 damage. Deals 2 additional damage for ALL your cards containing “Strike”.
+    //   Upgraded Effect: Deal 6 damage. Deals 3 additional damage for ALL your cards containing “Strike”.
     public static class PerfectedStrike extends CardIronclad.PerfectedStrike {
     }
 
     public static class PerfectedStrikeP extends CardIronclad.PerfectedStrikeP {
     }
 
+    // Pommel Strike (Common) - 1 energy, Attack
+    //   Effect: Deal 9 damage. Draw 1 card.
+    //   Upgraded Effect: Deal 10 damage. Draw 2 cards.
     public static class PommelStrike extends CardIronclad.PommelStrike {
     }
 
@@ -243,6 +291,9 @@ public class CardIronclad2 {
         }
     }
 
+    // Setup Strike (Common) - 1 energy, Attack
+    //   Effect: Deal 7 damage. Gain 2 Strength this turn.
+    //   Upgraded Effect: Deal 9 damage. Gain 3 Strength this turn.
     public static class SetupStrike extends _SetupStrikeT {
         public SetupStrike() {
             super("Setup Strike", 7, 2);
@@ -255,18 +306,27 @@ public class CardIronclad2 {
         }
     }
 
+    // Shrug It Off (Common) - 1 energy, Skill
+    //   Effect: Gain 8 Block. Draw 1 card.
+    //   Upgraded Effect: Gain 11 Block. Draw 1 card.
     public static class ShrugItOff extends CardIronclad.ShrugItOff {
     }
 
     public static class ShrugItOffP extends CardIronclad.ShrugItOffP {
     }
 
+    // Sword Boomerang (Common) - 1 energy, Attack
+    //   Effect: Deal 3 damage to a random enemy 3 times.
+    //   Upgraded Effect: Deal 3 damage to a random enemy 4 times.
     public static class SwordBoomerang extends CardIronclad.SwordBoomerang {
     }
 
     public static class SwordBoomerangP extends CardIronclad.SwordBoomerangP {
     }
 
+    // Thunderclap (Common) - 1 energy, Attack
+    //   Effect: Deal 4 damage and apply 1 Vulnerable to ALL enemies.
+    //   Upgraded Effect: Deal 7 damage and apply 1 Vulnerable to ALL enemies.
     public static class Thunderclap extends CardIronclad.Thunderclap {
     }
 
@@ -289,6 +349,9 @@ public class CardIronclad2 {
         }
     }
 
+    // Tremble (Common) - 1 energy, Skill
+    //   Effect: Apply 2 Vulnerable.
+    //   Upgraded Effect: Apply 3 Vulnerable.
     public static class Tremble extends _TrembleT {
         public Tremble() {
             super("Tremble", 2);
@@ -301,12 +364,18 @@ public class CardIronclad2 {
         }
     }
 
+    // True Grit (Common) - 1 energy, Skill
+    //   Effect: Gain 7 Block. Exhaust 1 card at random.
+    //   Upgraded Effect: Gain 9 Block. Exhaust 1 card.
     public static class TrueGrit extends CardIronclad.TrueGrit {
     }
 
     public static class TrueGritP extends CardIronclad.TrueGritP {
     }
 
+    // Twin Strike (Common) - 1 energy, Attack
+    //   Effect: Deal 5 damage twice.
+    //   Upgraded Effect: Deal 7 damage twice.
     public static class TwinStrike extends CardIronclad.TwinStrike {
     }
 
@@ -335,6 +404,9 @@ public class CardIronclad2 {
         }
     }
 
+    // Ashen Strike (Uncommon) - 1 energy, Attack
+    //   Effect: Deal 6 damage. Deals 3 additional damage for each card in your Exhaust Pile.
+    //   Upgraded Effect: Deal 6 damage. Deals 4 additional damage for each card in your Exhaust Pile.
     public static class AshenStrike extends _AshenStrikeT {
         public AshenStrike() {
             super("Ashen Strike", 6, 3);
@@ -347,12 +419,18 @@ public class CardIronclad2 {
         }
     }
 
+    // Battle Trance (Uncommon) - 0 energy, Skill
+    //   Effect: Draw 3 cards. You cannot draw additional cards this turn.
+    //   Upgraded Effect: Draw 4 cards. You cannot draw additional cards this turn.
     public static class BattleTrance extends CardIronclad.BattleTrance {
     }
 
     public static class BattleTranceP extends CardIronclad.BattleTranceP {
     }
 
+    // Bludgeon (Uncommon) - 3 energy, Attack
+    //   Effect: Deal 32 damage.
+    //   Upgraded Effect: Deal 42 damage.
     public static class Bludgeon extends CardIronclad.Bludgeon {
     }
 
@@ -377,6 +455,9 @@ public class CardIronclad2 {
         }
     }
 
+    // Bully (Uncommon) - 0 energy, Attack
+    //   Effect: Deal 4 damage. Deals 2 additional damage for each Vulnerable on the enemy.
+    //   Upgraded Effect: Deal 4 damage. Deals 3 additional damage for each Vulnerable on the enemy.
     public static class Bully extends _BullyT {
         public Bully() {
             super("Bully", 4, 2);
@@ -389,6 +470,9 @@ public class CardIronclad2 {
         }
     }
 
+    // Burning Pact (Uncommon) - 1 energy, Skill
+    //   Effect: Exhaust 1 card. Draw 2 cards.
+    //   Upgraded Effect: Exhaust 1 card. Draw 3 cards.
     public static class BurningPact extends CardIronclad.BurningPact {
     }
 
@@ -416,6 +500,9 @@ public class CardIronclad2 {
         }
     }
 
+    // Dismantle (Uncommon) - 1 energy, Attack
+    //   Effect: Deal 8 damage. If the enemy is Vulnerable, hits twice.
+    //   Upgraded Effect: Deal 10 damage. If the enemy is Vulnerable, hits twice.
     public static class Dismantle extends _DismantleT {
         public Dismantle() {
             super("Dismantle", 8);
@@ -443,6 +530,9 @@ public class CardIronclad2 {
         }
     }
 
+    // Dominate (Uncommon) - 1 energy, Skill
+    //   Effect: Gain 1 Strength for each Vulnerable on the enemy. Exhaust.
+    //   Upgraded Effect: Gain 1 Strength for each Vulnerable on the enemy.
     public static class Dominate extends _DominateT {
         public Dominate() {
             super("Dominate", true);
@@ -494,6 +584,9 @@ public class CardIronclad2 {
         }
     }
 
+    // Drum of Battle (Uncommon) - 0 energy, Power
+    //   Effect: Draw 2 cards. At the start of your turn, Exhaust the top card of your Draw Pile.
+    //   Upgraded Effect: Draw 3 cards. At the start of your turn, Exhaust the top card of your Draw Pile.
     public static class DrumOfBattle extends _DrumOfBattleT {
         public DrumOfBattle() {
             super("Drum of Battle", 2);
@@ -527,6 +620,9 @@ public class CardIronclad2 {
         }
     }
 
+    // Evil Eye (Uncommon) - 1 energy, Skill
+    //   Effect: Gain 8 Block. Gain another 8 Block if you have Exhausted a card this turn.
+    //   Upgraded Effect: Gain 11 Block. Gain another 11 Block if you have Exhausted a card this turn.
     public static class EvilEye extends _EvilEyeT {
         public EvilEye() {
             super("Evil Eye", 8);
@@ -556,6 +652,9 @@ public class CardIronclad2 {
         }
     }
 
+    // Expect a Fight (Uncommon) - 2 energy, Skill
+    //   Effect: Gain energy for each Attack in your Hand.
+    //   Upgraded Effect (1 energy): Gain energy for each Attack in your Hand.
     public static class ExpectAFight extends _ExpectAFightT {
         public ExpectAFight() {
             super("Expect a Fight", 2);
@@ -568,6 +667,9 @@ public class CardIronclad2 {
         }
     }
 
+    // Feel No Pain (Uncommon) - 1 energy, Power
+    //   Effect: Whenever a card is Exhausted, gain 3 Block.
+    //   Upgraded Effect: Whenever a card is Exhausted, gain 4 Block.
     public static class FeelNoPain extends CardIronclad.FeelNoPain {
     }
 
@@ -597,6 +699,9 @@ public class CardIronclad2 {
         }
     }
 
+    // Fight Me! (Uncommon) - 2 energy, Attack
+    //   Effect: Deal 5 damage twice. Gain 2 Strength. The enemy gains 1 Strength.
+    //   Upgraded Effect: Deal 6 damage twice. Gain 3 Strength. The enemy gains 1 Strength.
     public static class FightMe extends _FightMeT {
         public FightMe() {
             super("Fight Me!", 5, 2);
@@ -609,6 +714,9 @@ public class CardIronclad2 {
         }
     }
 
+    // Flame Barrier (Uncommon) - 2 energy, Skill
+    //   Effect: Gain 12 Block. Whenever you are attacked this turn, deal 4 damage back.
+    //   Upgraded Effect: Gain 16 Block. Whenever you are attacked this turn, deal 6 damage back.
     public static class FlameBarrier extends CardIronclad.FlameBarrier {
     }
 
@@ -635,6 +743,9 @@ public class CardIronclad2 {
         }
     }
 
+    // Forgotten Ritual (Uncommon) - 1 energy, Skill
+    //   Effect: If you Exhausted a card this turn, gain 3 energy.
+    //   Upgraded Effect: If you Exhausted a card this turn, gain 4 energy.
     public static class ForgottenRitual extends _ForgottenRitualT {
         public ForgottenRitual() {
             super("Forgotten Ritual", 3);
@@ -702,6 +813,9 @@ public class CardIronclad2 {
         }
     }
 
+    // Grapple (Uncommon) - 1 energy, Attack
+    //   Effect: Deal 7 damage. Whenever you gain Block this turn, deal 5 damage to the enemy.
+    //   Upgraded Effect: Deal 9 damage. Whenever you gain Block this turn, deal 7 damage to the enemy.
     public static class Grapple extends _GrappleT {
         public Grapple() {
             super("Grapple", 7, 5);
@@ -714,6 +828,9 @@ public class CardIronclad2 {
         }
     }
 
+    // Hemokinesis (Uncommon) - 1 energy, Attack
+    //   Effect: Lose 2 HP. Deal 14 damage.
+    //   Upgraded Effect: Lose 2 HP. Deal 19 damage.
     public static class Hemokinesis extends CardIronclad._HemokinesisT {
         public Hemokinesis() {
             super("Hemokinesis", 14);
@@ -762,6 +879,9 @@ public class CardIronclad2 {
         }
     }
 
+    // Howl from Beyond (Uncommon) - 3 energy, Attack
+    //   Effect: Deal 16 damage to ALL enemies. At the start of your turn, plays from the Exhaust Pile.
+    //   Upgraded Effect: Deal 21 damage to ALL enemies. At the start of your turn, plays from the Exhaust Pile.
     public static class HowlFromBeyond extends _HowlFromBeyondT {
         public HowlFromBeyond() {
             super("Howl from Beyond", 16);
@@ -774,6 +894,9 @@ public class CardIronclad2 {
         }
     }
 
+    // Infernal Blade (Uncommon) - 1 energy, Skill
+    //   Effect: Add a random Attack into your Hand. It's free to play this turn. Exhaust.
+    //   Upgraded Effect (0 energy): Add a random Attack into your Hand. It's free to play this turn. Exhaust.
     public static class InfernalBlade extends CardIronclad.InfernalBlade {
     }
 
@@ -831,6 +954,9 @@ public class CardIronclad2 {
         }
     }
 
+    // Inferno (Uncommon) - 1 energy, Power
+    //   Effect: At the start of your turn, lose 1 HP. Whenever you lose HP on your turn, deal 6 damage to ALL enemies.
+    //   Upgraded Effect: At the start of your turn, lose 1 HP. Whenever you lose HP on your turn, deal 9 damage to ALL enemies.
     public static class Inferno extends _InfernoT {
         public Inferno() {
             super("Inferno", 6);
@@ -843,6 +969,9 @@ public class CardIronclad2 {
         }
     }
 
+    // Inflame (Uncommon) - 1 energy, Power
+    //   Effect: Gain 2 Strength.
+    //   Upgraded Effect: Gain 3 Strength.
     public static class Inflame extends CardIronclad.Inflame {
     }
 
@@ -893,6 +1022,9 @@ public class CardIronclad2 {
         }
     }
 
+    // Juggling (Uncommon) - 1 energy, Power
+    //   Effect: Add a copy of the third Attack you play each turn into your Hand.
+    //   Upgraded Effect: Innate. Add a copy of the third Attack you play each turn into your Hand.
     public static class Juggling extends _JugglingT {
         public Juggling() {
             super("Juggling", false);
@@ -927,6 +1059,9 @@ public class CardIronclad2 {
         }
     }
 
+    // Pillage (Uncommon) - 1 energy, Attack
+    //   Effect: Deal 6 damage. Draw cards until you draw a non-Attack card.
+    //   Upgraded Effect: Deal 9 damage. Draw cards until you draw a non-Attack card.
     public static class Pillage extends _PillageT {
         public Pillage() {
             super("Pillage", 6);
@@ -939,6 +1074,9 @@ public class CardIronclad2 {
         }
     }
 
+    // Rage (Uncommon) - 0 energy, Skill
+    //   Effect: Whenever you play an Attack this turn, gain 3 Block.
+    //   Upgraded Effect: Whenever you play an Attack this turn, gain 5 Block.
     public static class Rage extends CardIronclad.Rage {
     }
 
@@ -963,6 +1101,9 @@ public class CardIronclad2 {
         }
     }
 
+    // Rampage (Uncommon) - 1 energy, Attack
+    //   Effect: Deal 9 damage. Increase this card's damage by 5 this combat.
+    //   Upgraded Effect: Deal 9 damage. Increase this card's damage by 9 this combat.
     public static class Rampage extends _RampageT {
         public Rampage() {
             this(9, 34);
@@ -1075,6 +1216,9 @@ public class CardIronclad2 {
         }
     }
 
+    // Rupture (Uncommon) - 1 energy, Power
+    //   Effect: Whenever you lose HP on your turn, gain 1 Strength.
+    //   Upgraded Effect: Whenever you lose HP on your turn, gain 2 Strength.
     public static class Rupture extends _Rupture2T {
         public Rupture() {
             super("Rupture", 1);
@@ -1087,6 +1231,9 @@ public class CardIronclad2 {
         }
     }
 
+    // Second Wind (Uncommon) - 1 energy, Skill
+    //   Effect: Exhaust all non-Attack cards in your Hand. Gain 5 Block for each card Exhausted.
+    //   Upgraded Effect: Exhaust all non-Attack cards in your Hand. Gain 7 Block for each card Exhausted.
     public static class SecondWind extends CardIronclad.SecondWind {
     }
 
@@ -1136,6 +1283,9 @@ public class CardIronclad2 {
         }
     }
 
+    // Spite (Uncommon) - 0 energy, Attack
+    //   Effect: Deal 6 damage. If you lost HP this turn, draw 1 card.
+    //   Upgraded Effect: Deal 9 damage. If you lost HP this turn, draw 1 card.
     public static class Spite extends _SpiteT {
         public Spite() {
             super("Spite", 6);
@@ -1210,6 +1360,9 @@ public class CardIronclad2 {
         }
     }
 
+    // Stampede (Uncommon) - 2 energy, Power
+    //   Effect: At the end of your turn, 1 random Attack in your Hand is played against a random enemy.
+    //   Upgraded Effect (1 energy): At the end of your turn, 1 random Attack in your Hand is played against a random enemy.
     public static class Stampede extends _StampedeT {
         public Stampede() {
             super("Stampede", 2);
@@ -1247,6 +1400,9 @@ public class CardIronclad2 {
         }
     }
 
+    // Stomp (Uncommon) - 3 energy, Attack
+    //   Effect: Deal 12 damage to ALL enemies. Costs 1 less energy for each Attack played this turn.
+    //   Upgraded Effect: Deal 15 damage to ALL enemies. Costs 1 less energy for each Attack played this turn.
     public static class Stomp extends _StompT {
         public Stomp() {
             super("Stomp", 12);
@@ -1277,6 +1433,9 @@ public class CardIronclad2 {
         }
     }
 
+    // Stone Armor (Uncommon) - 1 energy, Power
+    //   Effect: Gain 4 Plating.
+    //   Upgraded Effect: Gain 6 Plating.
     public static class StoneArmor extends _StoneArmorT {
         public StoneArmor() {
             super("Stone Armor", 4);
@@ -1308,6 +1467,9 @@ public class CardIronclad2 {
         }
     }
 
+    // Taunt (Uncommon) - 1 energy, Skill
+    //   Effect: Gain 7 Block. Apply 1 Vulnerable.
+    //   Upgraded Effect: Gain 8 Block. Apply 2 Vulnerable.
     public static class Taunt extends _TauntT {
         public Taunt() {
             super("Taunt", 7, 1);
@@ -1361,6 +1523,9 @@ public class CardIronclad2 {
         }
     }
 
+    // Unrelenting (Uncommon) - 2 energy, Attack
+    //   Effect: Deal 12 damage. The next Attack you play costs 0 energy.
+    //   Upgraded Effect: Deal 18 damage. The next Attack you play costs 0 energy.
     public static class Unrelenting extends _UnrelentingT {
         public Unrelenting() {
             super("Unrelenting", 12);
@@ -1373,6 +1538,9 @@ public class CardIronclad2 {
         }
     }
 
+    // Uppercut (Uncommon) - 2 energy, Attack
+    //   Effect: Deal 13 damage. Apply 1 Weak. Apply 1 Vulnerable.
+    //   Upgraded Effect: Deal 13 damage. Apply 2 Weak. Apply 2 Vulnerable.
     public static class Uppercut extends CardIronclad.Uppercut {
     }
 
@@ -1412,6 +1580,9 @@ public class CardIronclad2 {
         }
     }
 
+    // Vicious (Uncommon) - 1 energy, Power
+    //   Effect: Whenever you apply Vulnerable, draw 1 card.
+    //   Upgraded Effect: Whenever you apply Vulnerable, draw 2 cards.
     public static class Vicious extends _ViciousT {
         public Vicious() {
             super("Vicious", 1);
@@ -1424,6 +1595,9 @@ public class CardIronclad2 {
         }
     }
 
+    // Whirlwind (Uncommon) - X energy, Attack
+    //   Effect: Deal 5 damage to ALL enemies X times.
+    //   Upgraded Effect: Deal 8 damage to ALL enemies X times.
     public static class Whirlwind extends CardIronclad.Whirlwind {
     }
 
@@ -1500,6 +1674,9 @@ public class CardIronclad2 {
         }
     }
 
+    // Aggression (Rare) - 1 energy, Power
+    //   Effect: At the start of your turn, put a random Attack from your Discard Pile into your Hand and Upgrade it.
+    //   Upgraded Effect: Innate. At the start of your turn, put a random Attack from your Discard Pile into your Hand and Upgrade it.
     public static class Aggression extends _AggressionT {
         public Aggression() {
             super("Aggression", false);
@@ -1512,6 +1689,9 @@ public class CardIronclad2 {
         }
     }
 
+    // Barricade (Rare) - 3 energy, Power
+    //   Effect: Block is not removed at the start of your turn.
+    //   Upgraded Effect (2 energy): Block is not removed at the start of your turn.
     public static class Barricade extends CardIronclad.Barricade {
     }
 
@@ -1541,6 +1721,9 @@ public class CardIronclad2 {
         }
     }
 
+    // Brand (Rare) - 0 energy, Skill
+    //   Effect: Lose 1 HP. Exhaust 1 card. Gain 1 Strength.
+    //   Upgraded Effect: Lose 1 HP. Exhaust 1 card. Gain 2 Strength.
     public static class Brand extends _BrandT {
         public Brand() {
             super("Brand", 1);
@@ -1576,6 +1759,9 @@ public class CardIronclad2 {
         }
     }
 
+    // Cascade (Rare) - X energy, Skill
+    //   Effect: Play the top X cards of your Draw Pile.
+    //   Upgraded Effect: Play the top X+1 cards of your Draw Pile.
     public static class Cascade extends _CascadeT {
         public Cascade() {
             super("Cascade", 0);
@@ -1612,6 +1798,9 @@ public class CardIronclad2 {
         }
     }
 
+    // Colossus (Rare) - 1 energy, Skill
+    //   Effect: Gain 5 Block. You receive 50% less damage from Vulnerable enemies this turn.
+    //   Upgraded Effect: Gain 8 Block. You receive 50% less damage from Vulnerable enemies this turn.
     public static class Colossus extends _ColossusT {
         public Colossus() {
             super("Colossus", 5);
@@ -1648,6 +1837,9 @@ public class CardIronclad2 {
         }
     }
 
+    // Conflagration (Rare) - 1 energy, Attack
+    //   Effect: Deal 8 damage to ALL enemies. Deals 2 additional damage for each other Attack you've played this turn.
+    //   Upgraded Effect: Deal 9 damage to ALL enemies. Deals 3 additional damage for each other Attack you've played this turn.
     public static class Conflagration extends _ConflagrationT {
         public Conflagration() {
             super("Conflagration", 8, 2);
@@ -1703,6 +1895,9 @@ public class CardIronclad2 {
         }
     }
 
+    // Crimson Mantle (Rare) - 1 energy, Power
+    //   Effect: At the start of your turn, lose 1 HP and gain 8 Block.
+    //   Upgraded Effect: At the start of your turn, lose 1 HP and gain 10 Block.
     public static class CrimsonMantle extends _CrimsonMantleT {
         public CrimsonMantle() {
             super("Crimson Mantle", 8);
@@ -1744,6 +1939,9 @@ public class CardIronclad2 {
         }
     }
 
+    // Cruelty (Rare) - 1 energy, Power
+    //   Effect: Vulnerable enemies take an additional 25% damage.
+    //   Upgraded Effect: Vulnerable enemies take an additional 50% damage.
     public static class Cruelty extends _CrueltyT {
         public Cruelty() {
             super("Cruelty", 25);
@@ -1756,24 +1954,36 @@ public class CardIronclad2 {
         }
     }
 
+    // Dark Embrace (Rare) - 2 energy, Power
+    //   Effect: Whenever a card is Exhausted, draw 1 card.
+    //   Upgraded Effect (1 energy): Whenever a card is Exhausted, draw 1 card.
     public static class DarkEmbrace extends CardIronclad.DarkEmbrace {
     }
 
     public static class DarkEmbraceP extends CardIronclad.DarkEmbraceP {
     }
 
+    // Demon Form (Rare) - 3 energy, Power
+    //   Effect: At the start of your turn, gain 2 Strength.
+    //   Upgraded Effect: At the start of your turn, gain 3 Strength.
     public static class DemonForm extends CardIronclad.DemonForm {
     }
 
     public static class DemonFormP extends CardIronclad.DemonFormP {
     }
 
+    // Feed (Rare) - 1 energy, Attack
+    //   Effect: Deal 10 damage. If Fatal, raise your Max HP by 3. Exhaust.
+    //   Upgraded Effect: Deal 12 damage. If Fatal, raise your Max HP by 4. Exhaust.
     public static class Feed extends CardIronclad.Feed {
     }
 
     public static class FeedP extends CardIronclad.FeedP {
     }
 
+    // Fiend Fire (Rare) - 2 energy, Attack
+    //   Effect: Exhaust your Hand. Deal 7 damage for each card Exhausted. Exhaust.
+    //   Upgraded Effect: Exhaust your Hand. Deal 10 damage for each card Exhausted. Exhaust.
     public static class FiendFire extends CardIronclad.FiendFire {
     }
 
@@ -1830,6 +2040,9 @@ public class CardIronclad2 {
         }
     }
 
+    // Hellraiser (Rare) - 2 energy, Power
+    //   Effect: Whenever you draw a card containing “Strike”, it is played against a random enemy.
+    //   Upgraded Effect (1 energy): Whenever you draw a card containing “Strike”, it is played against a random enemy.
     public static class Hellraiser extends _HellraiserT {
         public Hellraiser() {
             super("Hellraiser", 2);
@@ -1842,12 +2055,18 @@ public class CardIronclad2 {
         }
     }
 
+    // Impervious (Rare) - 2 energy, Skill
+    //   Effect: Gain 30 Block. Exhaust.
+    //   Upgraded Effect: Gain 40 Block. Exhaust.
     public static class Impervious extends CardIronclad.Impervious {
     }
 
     public static class ImperviousP extends CardIronclad.ImperviousP {
     }
 
+    // Juggernaut (Rare) - 2 energy, Power
+    //   Effect: Whenever you gain Block, deal 5 damage to a random enemy.
+    //   Upgraded Effect: Whenever you gain Block, deal 7 damage to a random enemy.
     public static class Juggernaut extends CardIronclad.Juggernaut {
     }
 
@@ -1875,6 +2094,9 @@ public class CardIronclad2 {
         }
     }
 
+    // Mangle (Rare) - 3 energy, Attack
+    //   Effect: Deal 15 damage. Enemy loses 10 Strength this turn.
+    //   Upgraded Effect: Deal 20 damage. Enemy loses 15 Strength this turn.
     public static class Mangle extends _MangleT {
         public Mangle() {
             super("Mangle", 15, 10);
@@ -1887,6 +2109,9 @@ public class CardIronclad2 {
         }
     }
 
+    // Offering (Rare) - 0 energy, Skill
+    //   Effect: Lose 6 HP. Gain 2 energy. Draw 3 cards. Exhaust.
+    //   Upgraded Effect: Lose 6 HP. Gain 2 energy. Draw 5 cards. Exhaust.
     public static class Offering extends CardIronclad.Offering {
     }
 
@@ -1942,6 +2167,9 @@ public class CardIronclad2 {
         }
     }
 
+    // One-Two Punch (Rare) - 1 energy, Skill
+    //   Effect: This turn, your next Attack is played an extra time.
+    //   Upgraded Effect: This turn, your next 2 Attacks are played an extra time.
     public static class OneTwoPunch extends _OneTwoPunchT {
         public OneTwoPunch() {
             super("One-Two Punch", 1);
@@ -1975,6 +2203,9 @@ public class CardIronclad2 {
         }
     }
 
+    // Pact's End (Rare) - 0 energy, Attack
+    //   Effect: Can only be played if you have 3 or more cards in your Exhaust Pile. Deal 17 damage to ALL enemies.
+    //   Upgraded Effect: Can only be played if you have 3 or more cards in your Exhaust Pile. Deal 23 damage to ALL enemies.
     public static class PactsEnd extends _PactsEndT {
         public PactsEnd() {
             super("Pact's End", 17);
@@ -2003,6 +2234,9 @@ public class CardIronclad2 {
         }
     }
 
+    // Primal Force (Rare) - 0 energy, Skill
+    //   Effect: Transform all Attacks in your Hand into Giant Rock.
+    //   Upgraded Effect: Transform all Attacks in your Hand into Giant Rock+.
     public static class PrimalForce extends _PrimalForceT {
         public PrimalForce() {
             super("Primal Force");
@@ -2038,6 +2272,9 @@ public class CardIronclad2 {
         }
     }
 
+    // Pyre (Rare) - 2 energy, Power
+    //   Effect: Gain energy at the start of each turn.
+    //   Upgraded Effect: Gain 2 energy at the start of each turn.
     public static class Pyre extends _PyreT {
         public Pyre() {
             super("Pyre", 1);
@@ -2068,6 +2305,9 @@ public class CardIronclad2 {
         }
     }
 
+    // Stoke (Rare) - 1 energy, Skill
+    //   Effect: Exhaust your Hand. Draw a card for each card Exhausted. Exhaust.
+    //   Upgraded Effect (0 energy): Exhaust your Hand. Draw a card for each card Exhausted. Exhaust.
     public static class Stoke extends _StokeT {
         public Stoke() {
             super("Stoke", 1);
@@ -2119,6 +2359,9 @@ public class CardIronclad2 {
         }
     }
 
+    // Tear Asunder (Rare) - 2 energy, Attack
+    //   Effect: Deal 5 damage. Hits an additional time for each time you lost HP this combat.
+    //   Upgraded Effect: Deal 7 damage. Hits an additional time for each time you lost HP this combat.
     public static class TearAsunder extends _TearAsunderT {
         public TearAsunder() {
             super("Tear Asunder", 5);
@@ -2182,6 +2425,9 @@ public class CardIronclad2 {
         }
     }
 
+    // Unmovable (Rare) - 2 energy, Power
+    //   Effect: The first time you gain Block from a card each turn, double the amount gained.
+    //   Upgraded Effect (1 energy): The first time you gain Block from a card each turn, double the amount gained.
     public static class Unmovable extends _UnmovableT {
         public Unmovable() {
             super("Unmovable", 2);
@@ -2198,18 +2444,27 @@ public class CardIronclad2 {
     // ********************************************* Event  *********************************************
     // **************************************************************************************************
 
+    // Clash (Event) - 0 energy, Attack
+    //   Effect: Can only be played if every card in your Hand is an Attack. Deal 14 damage.
+    //   Upgraded Effect: Can only be played if every card in your Hand is an Attack. Deal 18 damage.
     public static class Clash extends CardIronclad.Clash {
     }
 
     public static class ClashP extends CardIronclad.ClashP {
     }
 
+    // Dual Wield (Event) - 1 energy, Skill
+    //   Effect: Choose an Attack or Power card. Add a copy of that card into your Hand.
+    //   Upgraded Effect: Choose an Attack or Power card. Add 2 copies of that card into your Hand.
     public static class DualWield extends CardIronclad.DualWield {
     }
 
     public static class DualWieldP extends CardIronclad.DualWieldP {
     }
 
+    // Entrench (Event) - 2 energy, Skill
+    //   Effect: Double your Block.
+    //   Upgraded Effect (1 energy): Double your Block.
     public static class Entrench extends CardIronclad.Entrench {
     }
 
@@ -2240,6 +2495,9 @@ public class CardIronclad2 {
         }
     }
 
+    // Break (Ancient) - 2 energy, Attack
+    //   Effect: Deal 20 damage. Apply 5 Vulnerable.
+    //   Upgraded Effect: Deal 25 damage. Apply 7 Vulnerable.
     public static class Break extends _BreakT {
         public Break() {
             super("Break", 20, 5);
@@ -2252,6 +2510,9 @@ public class CardIronclad2 {
         }
     }
 
+    // Corruption (Ancient) - 3 energy, Power
+    //   Effect: Skills cost 0 energy. Whenever you play a Skill, Exhaust it.
+    //   Upgraded Effect (2 energy): Skills cost 0 energy. Whenever you play a Skill, Exhaust it.
     public static class Corruption extends CardIronclad.Corruption {
     }
 

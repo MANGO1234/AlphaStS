@@ -17,24 +17,36 @@ public class CardSilent2 {
     // ********************************************* Basic  *********************************************
     // **************************************************************************************************
 
+    // Defend (Silent) (Basic) - 1 energy, Skill
+    //   Effect: Gain 5 Block.
+    //   Upgraded Effect: Gain 8 Block.
     public static class Defend extends Card.Defend {
     }
 
     public static class DefendP extends Card.DefendP {
     }
 
+    // Neutralize (Basic) - 0 energy, Attack
+    //   Effect: Deal 3 damage. Apply 1 Weak.
+    //   Upgraded Effect: Deal 4 damage. Apply 2 Weak.
     public static class Neutralize extends CardSilent.Neutralize {
     }
 
     public static class NeutralizeP extends CardSilent.NeutralizeP {
     }
 
+    // Strike (Silent) (Basic) - 1 energy, Attack
+    //   Effect: Deal 6 damage.
+    //   Upgraded Effect: Deal 9 damage.
     public static class Strike extends Card.Strike {
     }
 
     public static class StrikeP extends Card.StrikeP {
     }
 
+    // Survivor (Basic) - 1 energy, Skill
+    //   Effect: Gain 8 Block. Discard 1 card.
+    //   Upgraded Effect: Gain 11 Block. Discard 1 card.
     public static class Survivor extends CardSilent.Survivor {
     }
 
@@ -45,6 +57,9 @@ public class CardSilent2 {
     // ********************************************* Common *********************************************
     // **************************************************************************************************
 
+    // Acrobatics (Common) - 1 energy, Skill
+    //   Effect: Draw 3 cards. Discard 1 card.
+    //   Upgraded Effect: Draw 4 cards. Discard 1 card.
     public static class Acrobatics extends CardSilent.Acrobatics {
     }
 
@@ -67,6 +82,9 @@ public class CardSilent2 {
         }
     }
 
+    // Anticipate (Common) - 0 energy, Skill
+    //   Effect: Gain 3 Dexterity this turn.
+    //   Upgraded Effect: Gain 5 Dexterity this turn.
     public static class Anticipate extends _AnticipateT {
         public Anticipate() {
             super("Anticipate", 3);
@@ -79,12 +97,18 @@ public class CardSilent2 {
         }
     }
 
+    // Backflip (Common) - 1 energy, Skill
+    //   Effect: Gain 5 Block. Draw 2 cards.
+    //   Upgraded Effect: Gain 8 Block. Draw 2 cards.
     public static class Backflip extends CardSilent.Backflip {
     }
 
     public static class BackflipP extends CardSilent.BackflipP {
     }
 
+    // Blade Dance (Common) - 1 energy, Skill
+    //   Effect: Add 3 Shivs into your Hand. Exhaust.
+    //   Upgraded Effect: Add 4 Shivs into your Hand. Exhaust.
     public static class BladeDance extends CardSilent._BladeDanceT {
         public BladeDance() {
             super("Blade Dance", 3);
@@ -99,36 +123,54 @@ public class CardSilent2 {
         }
     }
 
+    // Cloak and Dagger (Common) - 1 energy, Skill
+    //   Effect: Gain 6 Block. Add 1 Shiv into your Hand.
+    //   Upgraded Effect: Gain 6 Block. Add 2 Shivs into your Hand.
     public static class CloakAndDagger extends CardSilent.CloakAndDagger {
     }
 
     public static class CloakAndDaggerP extends CardSilent.CloakAndDaggerP {
     }
 
+    // Dagger Spray (Common) - 1 energy, Attack
+    //   Effect: Deal 4 damage to ALL enemies twice.
+    //   Upgraded Effect: Deal 6 damage to ALL enemies twice.
     public static class DaggerSpray extends CardSilent.DaggerSpray {
     }
 
     public static class DaggerSprayP extends CardSilent.DaggerSprayP {
     }
 
+    // Dagger Throw (Common) - 1 energy, Attack
+    //   Effect: Deal 9 damage. Draw 1 card. Discard 1 card.
+    //   Upgraded Effect: Deal 12 damage. Draw 1 card. Discard 1 card.
     public static class DaggerThrow extends CardSilent.DaggerThrow {
     }
 
     public static class DaggerThrowP extends CardSilent.DaggerThrowP {
     }
 
+    // Deadly Poison (Common) - 1 energy, Skill
+    //   Effect: Apply 5 Poison.
+    //   Upgraded Effect: Apply 7 Poison.
     public static class DeadlyPoison extends CardSilent.DeadlyPoison {
     }
 
     public static class DeadlyPoisonP extends CardSilent.DeadlyPoisonP {
     }
 
+    // Deflect (Common) - 0 energy, Skill
+    //   Effect: Gain 4 Block.
+    //   Upgraded Effect: Gain 7 Block.
     public static class Deflect extends CardSilent.Deflect {
     }
 
     public static class DeflectP extends CardSilent.DeflectP {
     }
 
+    // Dodge and Roll (Common) - 1 energy, Skill
+    //   Effect: Gain 4 Block. Next turn, gain 4 Block.
+    //   Upgraded Effect: Gain 6 Block. Next turn, gain 6 Block.
     public static class DodgeAndRoll extends CardSilent.DodgeAndRoll {
     }
 
@@ -152,6 +194,9 @@ public class CardSilent2 {
         }
     }
 
+    // Flick-Flack (Common) - 1 energy, Attack
+    //   Effect: Sly. Deal 7 damage to ALL enemies.
+    //   Upgraded Effect: Sly. Deal 9 damage to ALL enemies.
     public static class FlickFlack extends _FlickFlackT {
         public FlickFlack() {
             super("Flick-Flack", 7);
@@ -184,6 +229,9 @@ public class CardSilent2 {
         }
     }
 
+    // Leading Strike (Common) - 1 energy, Attack
+    //   Effect: Deal 7 damage. Add 1 Shiv into your Hand.
+    //   Upgraded Effect: Deal 10 damage. Add 1 Shiv into your Hand.
     public static class LeadingStrike extends _LeadingStrikeT {
         public LeadingStrike() {
             super("Leading Strike", 7);
@@ -196,18 +244,27 @@ public class CardSilent2 {
         }
     }
 
+    // Piercing Wail (Common) - 1 energy, Skill
+    //   Effect: ALL enemies lose 6 Strength this turn. Exhaust.
+    //   Upgraded Effect: ALL enemies lose 8 Strength this turn. Exhaust.
     public static class PiercingWail extends CardSilent.PiercingWail {
     }
 
     public static class PiercingWailP extends CardSilent.PiercingWailP {
     }
 
+    // Poisoned Stab (Common) - 1 energy, Attack
+    //   Effect: Deal 6 damage. Apply 3 Poison.
+    //   Upgraded Effect: Deal 8 damage. Apply 4 Poison.
     public static class PoisonedStab extends CardSilent.PoisonedStab {
     }
 
     public static class PoisonedStabP extends CardSilent.PoisonedStabP {
     }
 
+    // Prepared (Common) - 0 energy, Skill
+    //   Effect: Draw 1 card. Discard 1 card.
+    //   Upgraded Effect: Draw 2 cards. Discard 2 cards.
     public static class Prepared extends CardSilent.Prepared {
     }
 
@@ -234,6 +291,9 @@ public class CardSilent2 {
         }
     }
 
+    // Ricochet (Common) - 2 energy, Attack
+    //   Effect: Sly. Deal 3 damage to a random enemy 4 times.
+    //   Upgraded Effect: Sly. Deal 3 damage to a random enemy 5 times.
     public static class Ricochet extends _RicochetT {
         public Ricochet() {
             super("Ricochet", 4);
@@ -246,6 +306,9 @@ public class CardSilent2 {
         }
     }
 
+    // Slice (Common) - 0 energy, Attack
+    //   Effect: Deal 6 damage.
+    //   Upgraded Effect: Deal 9 damage.
     public static class Slice extends CardSilent.Slice {
     }
 
@@ -269,6 +332,9 @@ public class CardSilent2 {
         }
     }
 
+    // Snakebite (Common) - 2 energy, Skill
+    //   Effect: Retain. Apply 7 Poison.
+    //   Upgraded Effect: Retain. Apply 10 Poison.
     public static class Snakebite extends _SnakebiteT {
         public Snakebite() {
             super("Snakebite", 7);
@@ -281,6 +347,9 @@ public class CardSilent2 {
         }
     }
 
+    // Sucker Punch (Common) - 1 energy, Attack
+    //   Effect: Deal 8 damage. Apply 1 Weak.
+    //   Upgraded Effect: Deal 10 damage. Apply 2 Weak.
     public static class SuckerPunch extends CardSilent._SuckerPunchT {
         public SuckerPunch() {
             super("Sucker Punch", 8, 1);
@@ -308,6 +377,9 @@ public class CardSilent2 {
         }
     }
 
+    // Untouchable (Common) - 2 energy, Skill
+    //   Effect: Sly. Gain 9 Block.
+    //   Upgraded Effect: Sly. Gain 12 Block.
     public static class Untouchable extends _UntouchableT {
         public Untouchable() {
             super("Untouchable", 9);
@@ -324,24 +396,36 @@ public class CardSilent2 {
     // ********************************************* Uncommon *******************************************
     // **************************************************************************************************
 
+    // Accuracy (Uncommon) - 1 energy, Power
+    //   Effect: Shivs deal 4 additional damage.
+    //   Upgraded Effect: Shivs deal 6 additional damage.
     public static class Accuracy extends CardSilent.Accuracy {
     }
 
     public static class AccuracyP extends CardSilent.AccuracyP {
     }
 
+    // Backstab (Uncommon) - 0 energy, Attack
+    //   Effect: Innate. Deal 11 damage. Exhaust.
+    //   Upgraded Effect: Innate. Deal 15 damage. Exhaust.
     public static class Backstab extends CardSilent.Backstab {
     }
 
     public static class BackstabP extends CardSilent.BackstabP {
     }
 
+    // Blur (Uncommon) - 1 energy, Skill
+    //   Effect: Gain 5 Block. Block is not removed at the start of your next turn.
+    //   Upgraded Effect: Gain 8 Block. Block is not removed at the start of your next turn.
     public static class Blur extends CardSilent.Blur {
     }
 
     public static class BlurP extends CardSilent.BlurP {
     }
 
+    // Bouncing Flask (Uncommon) - 2 energy, Skill
+    //   Effect: Apply 3 Poison to a random enemy 3 times.
+    //   Upgraded Effect: Apply 3 Poison to a random enemy 4 times.
     public static class BouncingFlask extends CardSilent.BouncingFlask {
     }
 
@@ -366,6 +450,9 @@ public class CardSilent2 {
         }
     }
 
+    // Bubble Bubble (Uncommon) - 1 energy, Skill
+    //   Effect: If the enemy has Poison, apply 9 Poison.
+    //   Upgraded Effect: If the enemy has Poison, apply 12 Poison.
     public static class BubbleBubble extends _BubbleBubbleT {
         public BubbleBubble() {
             super("Bubble Bubble", 9);
@@ -378,6 +465,9 @@ public class CardSilent2 {
         }
     }
 
+    // Calculated Gamble (Uncommon) - 0 energy, Skill
+    //   Effect: Discard your Hand, then draw that many cards. Exhaust.
+    //   Upgraded Effect: Retain. Discard your Hand, then draw that many cards. Exhaust.
     public static class CalculatedGamble extends CardSilent.CalculatedGamble {
     }
 
@@ -388,18 +478,27 @@ public class CardSilent2 {
         }
     }
 
+    // Dash (Uncommon) - 2 energy, Attack
+    //   Effect: Gain 10 Block. Deal 10 damage.
+    //   Upgraded Effect: Gain 13 Block. Deal 13 damage.
     public static class Dash extends CardSilent.Dash {
     }
 
     public static class DashP extends CardSilent.DashP {
     }
 
+    // Escape Plan (Uncommon) - 0 energy, Skill
+    //   Effect: Draw 1 card. If you draw a Skill, gain 3 Block.
+    //   Upgraded Effect: Draw 1 card. If you draw a Skill, gain 5 Block.
     public static class EscapePlan extends CardSilent.EscapePlan {
     }
 
     public static class EscapePlanP extends CardSilent.EscapePlanP {
     }
 
+    // Expertise (Uncommon) - 1 energy, Skill
+    //   Effect: Draw cards until you have 6 in your Hand.
+    //   Upgraded Effect: Draw cards until you have 7 in your Hand.
     public static class Expertise extends CardSilent.Expertise {
     }
 
@@ -426,6 +525,9 @@ public class CardSilent2 {
         }
     }
 
+    // Expose (Uncommon) - 0 energy, Skill
+    //   Effect: Remove all Artifact and Block from the enemy. Apply 2 Vulnerable. Exhaust.
+    //   Upgraded Effect: Remove all Artifact and Block from the enemy. Apply 3 Vulnerable. Exhaust.
     public static class Expose extends _ExposeT {
         public Expose() {
             super("Expose", 2);
@@ -438,6 +540,9 @@ public class CardSilent2 {
         }
     }
 
+    // Finisher (Uncommon) - 1 energy, Attack
+    //   Effect: Deal 6 damage for each Attack already played this turn.
+    //   Upgraded Effect: Deal 8 damage for each Attack already played this turn.
     public static class Finisher extends CardSilent.Finisher {
     }
 
@@ -446,6 +551,9 @@ public class CardSilent2 {
 
     // No need to implement Flanking: Multiplayer
 
+    // Flechettes (Uncommon) - 1 energy, Attack
+    //   Effect: Deal 5 damage for each Skill in your Hand.
+    //   Upgraded Effect: Deal 7 damage for each Skill in your Hand.
     public static class Flechettes extends CardSilent._FlechettesT {
         public Flechettes() {
             super("Flechettes", 5);
@@ -483,6 +591,9 @@ public class CardSilent2 {
         }
     }
 
+    // Follow Through (Uncommon) - 1 energy, Attack
+    //   Effect: Deal 6 damage to ALL enemies. If the last card you played this turn was a Skill, apply 1 Weak to ALL enemies.
+    //   Upgraded Effect: Deal 8 damage to ALL enemies. If the last card you played this turn was a Skill, apply 2 Weak to ALL enemies.
     public static class FollowThrough extends _FollowThroughT {
         public FollowThrough() {
             super("Follow Through", 6, 1);
@@ -495,6 +606,9 @@ public class CardSilent2 {
         }
     }
 
+    // Footwork (Uncommon) - 1 energy, Power
+    //   Effect: Gain 2 Dexterity.
+    //   Upgraded Effect: Gain 3 Dexterity.
     public static class Footwork extends CardSilent.Footwork {
     }
 
@@ -523,6 +637,9 @@ public class CardSilent2 {
         }
     }
 
+    // Haze (Uncommon) - 3 energy, Skill
+    //   Effect: Sly. Apply 4 Poison to ALL enemies.
+    //   Upgraded Effect: Sly. Apply 6 Poison to ALL enemies.
     public static class Haze extends _HazeT {
         public Haze() {
             super("Haze", 4);
@@ -568,6 +685,9 @@ public class CardSilent2 {
         }
     }
 
+    // Hidden Daggers (Uncommon) - 0 energy, Skill
+    //   Effect: Discard 2 cards. Add 2 Shivs into your Hand.
+    //   Upgraded Effect: Discard 2 cards. Add 2 Shivs+ into your Hand.
     public static class HiddenDaggers extends _HiddenDaggersT {
         public HiddenDaggers() {
             super("Hidden Daggers");
@@ -588,12 +708,18 @@ public class CardSilent2 {
         }
     }
 
+    // Infinite Blades (Uncommon) - 1 energy, Power
+    //   Effect: At the start of your turn, add 1 Shiv into your Hand.
+    //   Upgraded Effect: Innate. At the start of your turn, add 1 Shiv into your Hand.
     public static class InfiniteBlades extends CardSilent.InfiniteBlades {
     }
 
     public static class InfiniteBladesP extends CardSilent.InfiniteBladesP {
     }
 
+    // Leg Sweep (Uncommon) - 2 energy, Skill
+    //   Effect: Apply 2 Weak. Gain 11 Block.
+    //   Upgraded Effect: Apply 3 Weak. Gain 14 Block.
     public static class LegSweep extends CardSilent.LegSweep {
     }
 
@@ -640,6 +766,9 @@ public class CardSilent2 {
         }
     }
 
+    // Memento Mori (Uncommon) - 1 energy, Attack
+    //   Effect: Deal 8 damage. Deals 4 additional damage for each card discarded this turn.
+    //   Upgraded Effect: Deal 10 damage. Deals 5 additional damage for each card discarded this turn.
     public static class MementoMori extends _MementoMoriT {
         public MementoMori() {
             super("Memento Mori", 8, 4);
@@ -671,6 +800,9 @@ public class CardSilent2 {
         }
     }
 
+    // Mirage (Uncommon) - 1 energy, Skill
+    //   Effect: Gain Block equal to Poison on ALL enemies. Exhaust.
+    //   Upgraded Effect (0 energy): Gain Block equal to Poison on ALL enemies. Exhaust.
     public static class Mirage extends _MirageT {
         public Mirage() {
             super("Mirage", 1);
@@ -683,6 +815,9 @@ public class CardSilent2 {
         }
     }
 
+    // Noxious Fumes (Uncommon) - 1 energy, Power
+    //   Effect: At the start of your turn, apply 2 Poison to ALL enemies.
+    //   Upgraded Effect: At the start of your turn, apply 3 Poison to ALL enemies.
     public static class NoxiousFumes extends CardSilent.NoxiousFumes {
     }
 
@@ -728,6 +863,9 @@ public class CardSilent2 {
         }
     }
 
+    // Outbreak (Uncommon) - 1 energy, Power
+    //   Effect: Every 3 times you apply Poison, deal 11 damage to ALL enemies.
+    //   Upgraded Effect: Every 3 times you apply Poison, deal 15 damage to ALL enemies.
     public static class Outbreak extends _OutbreakT {
         public Outbreak() {
             super("Outbreak", 11);
@@ -768,6 +906,9 @@ public class CardSilent2 {
         }
     }
 
+    // Pinpoint (Uncommon) - 3 energy, Attack
+    //   Effect: Deal 17 damage. Costs 1 less energy for each Skill played this turn.
+    //   Upgraded Effect: Deal 22 damage. Costs 1 less energy for each Skill played this turn.
     public static class Pinpoint extends _PinpointT {
         public Pinpoint() {
             super("Pinpoint", 17);
@@ -817,6 +958,9 @@ public class CardSilent2 {
         }
     }
 
+    // Pounce (Uncommon) - 2 energy, Attack
+    //   Effect: Deal 12 damage. The next Skill you play costs 0 energy.
+    //   Upgraded Effect: Deal 18 damage. The next Skill you play costs 0 energy.
     public static class Pounce extends _PounceT {
         public Pounce() {
             super("Pounce", 12);
@@ -845,6 +989,9 @@ public class CardSilent2 {
         }
     }
 
+    // Precise Cut (Uncommon) - 0 energy, Attack
+    //   Effect: Deal 13 damage. Deals 2 less damage for each other card in your Hand.
+    //   Upgraded Effect: Deal 16 damage. Deals 2 less damage for each other card in your Hand.
     public static class PreciseCut extends _PreciseCutT {
         public PreciseCut() {
             super("Precise Cut", 13);
@@ -857,6 +1004,9 @@ public class CardSilent2 {
         }
     }
 
+    // Predator (Uncommon) - 2 energy, Attack
+    //   Effect: Deal 15 damage. Next turn, draw 2 cards.
+    //   Upgraded Effect: Deal 20 damage. Next turn, draw 2 cards.
     public static class Predator extends CardSilent.Predator {
     }
 
@@ -878,6 +1028,9 @@ public class CardSilent2 {
         }
     }
 
+    // Reflex (Uncommon) - 3 energy, Skill
+    //   Effect: Sly. Draw 2 cards.
+    //   Upgraded Effect: Sly. Draw 3 cards.
     public static class Reflex extends _ReflexT {
         public Reflex() {
             super("Reflex", 2);
@@ -890,6 +1043,9 @@ public class CardSilent2 {
         }
     }
 
+    // Skewer (Uncommon) - X energy, Attack
+    //   Effect: Deal 7 damage X times.
+    //   Upgraded Effect: Deal 10 damage X times.
     public static class Skewer extends CardSilent.Skewer {
     }
 
@@ -934,6 +1090,9 @@ public class CardSilent2 {
         }
     }
 
+    // Speedster (Uncommon) - 2 energy, Power
+    //   Effect: Whenever you draw a card during your turn, deal 2 damage to ALL enemies.
+    //   Upgraded Effect: Whenever you draw a card during your turn, deal 3 damage to ALL enemies.
     public static class Speedster extends _SpeedsterT {
         public Speedster() {
             super("Speedster", 2);
@@ -978,6 +1137,9 @@ public class CardSilent2 {
         }
     }
 
+    // Strangle (Uncommon) - 1 energy, Attack
+    //   Effect: Deal 8 damage. Whenever you play a card this turn, the enemy loses 2 HP.
+    //   Upgraded Effect: Deal 10 damage. Whenever you play a card this turn, the enemy loses 3 HP.
     public static class Strangle extends _StrangleT {
         public Strangle() {
             super("Strangle", 8, 2);
@@ -1005,6 +1167,9 @@ public class CardSilent2 {
         }
     }
 
+    // Tactician (Uncommon) - 3 energy, Skill
+    //   Effect: Sly. Gain energy.
+    //   Upgraded Effect: Sly. Gain 2 energy.
     public static class Tactician extends _TacticianT {
         public Tactician() {
             super("Tactician", 1);
@@ -1017,6 +1182,9 @@ public class CardSilent2 {
         }
     }
 
+    // Up My Sleeve (Uncommon) - 2 energy, Skill
+    //   Effect: Add 3 Shivs into your Hand. Reduce this card's cost by 1.
+    //   Upgraded Effect: Add 4 Shivs into your Hand. Reduce this card's cost by 1.
     public static class UpMySleeve extends Card {
         public UpMySleeve(int energyCost) {
             super("Up My Sleeve (" + energyCost + ")", Card.SKILL, energyCost, Card.UNCOMMON);
@@ -1089,6 +1257,9 @@ public class CardSilent2 {
         }
     }
 
+    // Well-Laid Plans (Uncommon) - 1 energy, Power
+    //   Effect: At the end of your turn, Retain up to 1 card.
+    //   Upgraded Effect: At the end of your turn, Retain up to 2 cards.
     public static class WellLaidPlans extends CardSilent.WellLaidPlans {
     }
 
@@ -1120,6 +1291,9 @@ public class CardSilent2 {
         }
     }
 
+    // Abrasive (Rare) - 3 energy, Power
+    //   Effect: Sly. Gain 1 Dexterity. Gain 4 Thorns.
+    //   Upgraded Effect: Sly. Gain 1 Dexterity. Gain 6 Thorns.
     public static class Abrasive extends _AbrasiveT {
         public Abrasive() {
             super("Abrasive", 4);
@@ -1163,6 +1337,9 @@ public class CardSilent2 {
         }
     }
 
+    // Accelerant (Rare) - 1 energy, Power
+    //   Effect: Poison is triggered 1 additional time.
+    //   Upgraded Effect: Poison is triggered 2 additional times.
     public static class Accelerant extends _AccelerantT {
         public Accelerant() {
             super("Accelerant", 1);
@@ -1175,12 +1352,18 @@ public class CardSilent2 {
         }
     }
 
+    // Adrenaline (Rare) - 0 energy, Skill
+    //   Effect: Gain energy. Draw 2 cards. Exhaust.
+    //   Upgraded Effect: Gain 2 energy. Draw 2 cards. Exhaust.
     public static class Adrenaline extends CardSilent.Adrenaline {
     }
 
     public static class AdrenalineP extends CardSilent.AdrenalineP {
     }
 
+    // Afterimage (Rare) - 1 energy, Power
+    //   Effect: Whenever you play a card, gain 1 Block.
+    //   Upgraded Effect: Innate. Whenever you play a card, gain 1 Block.
     public static class AfterImage extends CardSilent.AfterImage {
     }
 
@@ -1209,6 +1392,9 @@ public class CardSilent2 {
         }
     }
 
+    // Assassinate (Rare) - 0 energy, Attack
+    //   Effect: Innate. Deal 10 damage. Apply 1 Vulnerable. Exhaust.
+    //   Upgraded Effect: Innate. Deal 13 damage. Apply 2 Vulnerable. Exhaust.
     public static class Assassinate extends _AssassinateT {
         public Assassinate() {
             super("Assassinate", 10, 1);
@@ -1260,6 +1446,9 @@ public class CardSilent2 {
         }
     }
 
+    // Blade of Ink (Rare) - 1 energy, Skill
+    //   Effect: This turn, whenever you play an Attack, gain 2 Strength this turn.
+    //   Upgraded Effect: This turn, whenever you play an Attack, gain 3 Strength this turn.
     public static class BladeOfInk extends _BladeOfInkT {
         public BladeOfInk() {
             super("Blade of Ink", 2);
@@ -1272,12 +1461,18 @@ public class CardSilent2 {
         }
     }
 
+    // Bullet Time (Rare) - 3 energy, Skill
+    //   Effect: You cannot draw additional cards this turn. ALL cards in your Hand are free to play this turn.
+    //   Upgraded Effect (2 energy): You cannot draw additional cards this turn. ALL cards in your Hand are free to play this turn.
     public static class BulletTime extends CardSilent.BulletTime {
     }
 
     public static class BulletTimeP extends CardSilent.BulletTimeP {
     }
 
+    // Burst (Rare) - 1 energy, Skill
+    //   Effect: This turn, your next Skill is played an extra time.
+    //   Upgraded Effect: This turn, your next 2 Skills are played an extra time.
     public static class Burst extends CardSilent.Burst {
     }
 
@@ -1331,6 +1526,9 @@ public class CardSilent2 {
         }
     }
 
+    // Corrosive Wave (Rare) - 1 energy, Skill
+    //   Effect: Whenever you draw a card this turn, apply 3 Poison to ALL enemies.
+    //   Upgraded Effect: Whenever you draw a card this turn, apply 4 Poison to ALL enemies.
     public static class CorrosiveWave extends _CorrosiveWaveT {
         public CorrosiveWave() {
             super("Corrosive Wave", 3);
@@ -1367,6 +1565,9 @@ public class CardSilent2 {
         }
     }
 
+    // Echoing Slash (Rare) - 1 energy, Attack
+    //   Effect: Deal 10 damage to ALL enemies. Repeat this effect for each enemy killed.
+    //   Upgraded Effect: Deal 13 damage to ALL enemies. Repeat this effect for each enemy killed.
     public static class EchoingSlash extends _EchoingSlashT {
         public EchoingSlash() {
             super("Echoing Slash", 10);
@@ -1379,6 +1580,9 @@ public class CardSilent2 {
         }
     }
 
+    // Envenom (Rare) - 2 energy, Power
+    //   Effect: Whenever an Attack deals unblocked damage, apply 1 Poison.
+    //   Upgraded Effect: Whenever an Attack deals unblocked damage, apply 2 Poison.
     public static class Envenom extends CardSilent.Envenom {
     }
 
@@ -1426,6 +1630,9 @@ public class CardSilent2 {
         }
     }
 
+    // Fan of Knives (Rare) - 2 energy, Power
+    //   Effect: Shivs now hit ALL enemies. Add 4 Shivs into your Hand.
+    //   Upgraded Effect: Shivs now hit ALL enemies. Add 5 Shivs into your Hand.
     public static class FanOfKnives extends _FanOfKnivesT {
         public FanOfKnives() {
             super("Fan of Knives", 4);
@@ -1438,6 +1645,9 @@ public class CardSilent2 {
         }
     }
 
+    // Grand Finale (Rare) - 0 energy, Attack
+    //   Effect: Can only be played if there are no cards in your Draw Pile. Deal 50 damage to ALL enemies.
+    //   Upgraded Effect: Can only be played if there are no cards in your Draw Pile. Deal 60 damage to ALL enemies.
     public static class GrandFinale extends CardSilent.GrandFinale {
     }
 
@@ -1494,6 +1704,9 @@ public class CardSilent2 {
         }
     }
 
+    // Knife Trap (Rare) - 2 energy, Skill
+    //   Effect: Play every Shiv in your Exhaust Pile on the enemy.
+    //   Upgraded Effect: Upgrade and play every Shiv in your Exhaust Pile on the enemy.
     public static class KnifeTrap extends _KnifeTrapT {
         public KnifeTrap() {
             super("Knife Trap", false);
@@ -1506,6 +1719,9 @@ public class CardSilent2 {
         }
     }
 
+    // Malaise (Rare) - X energy, Skill
+    //   Effect: Enemy loses X Strength. Apply X Weak. Exhaust.
+    //   Upgraded Effect: Enemy loses X+1 Strength. Apply X+1 Weak. Exhaust.
     public static class Malaise extends CardSilent.Malaise {
     }
 
@@ -1550,6 +1766,9 @@ public class CardSilent2 {
         }
     }
 
+    // Murder (Rare) - 3 energy, Attack
+    //   Effect: Deal 1 damage. Deals 1 additional damage for each card drawn this combat.
+    //   Upgraded Effect (2 energy): Deal 1 damage. Deals 1 additional damage for each card drawn this combat.
     public static class Murder extends _MurderT {
         public Murder() {
             super("Murder", 3);
@@ -1562,6 +1781,9 @@ public class CardSilent2 {
         }
     }
 
+    // Nightmare (Rare) - 3 energy, Skill
+    //   Effect: Choose a card. Next turn, add 3 copies of that card into your Hand. Exhaust.
+    //   Upgraded Effect (2 energy): Choose a card. Next turn, add 3 copies of that card into your Hand. Exhaust.
     public static class Nightmare extends CardSilent.Nightmare {
     }
 
@@ -1608,6 +1830,9 @@ public class CardSilent2 {
         }
     }
 
+    // Serpent Form (Rare) - 3 energy, Power
+    //   Effect: Whenever you play a card, deal 4 damage to a random enemy.
+    //   Upgraded Effect: Whenever you play a card, deal 5 damage to a random enemy.
     public static class SerpentForm extends _SerpentFormT {
         public SerpentForm() {
             super("Serpent Form", 4);
@@ -1637,6 +1862,9 @@ public class CardSilent2 {
         }
     }
 
+    // Shadow Step (Rare) - 1 energy, Skill
+    //   Effect: Discard your Hand. Next turn, Attacks deal double damage.
+    //   Upgraded Effect (0 energy): Discard your Hand. Next turn, Attacks deal double damage.
     public static class ShadowStep extends _ShadowStepT {
         public ShadowStep() {
             super("Shadow Step", 1);
@@ -1684,6 +1912,9 @@ public class CardSilent2 {
         }
     }
 
+    // Shadowmeld (Rare) - 1 energy, Skill
+    //   Effect: Double your Block gain this turn.
+    //   Upgraded Effect (0 energy): Double your Block gain this turn.
     public static class Shadowmeld extends _ShadowmeldT {
         public Shadowmeld() {
             super("Shadowmeld", 1);
@@ -1698,6 +1929,9 @@ public class CardSilent2 {
 
     // No need to implement Sneaky: Multiplayer
 
+    // Storm of Steel (Rare) - 1 energy, Skill
+    //   Effect: Discard your Hand. Add 1 Shiv into your Hand for each card discarded.
+    //   Upgraded Effect: Discard your Hand. Add 1 Shiv+ into your Hand for each card discarded.
     public static class StormOfSteel extends CardSilent.StormOfSteel {
     }
 
@@ -1753,6 +1987,9 @@ public class CardSilent2 {
         }
     }
 
+    // The Hunt (Rare) - 1 energy, Attack
+    //   Effect: Deal 10 damage. If Fatal, gain an additional card reward. Exhaust.
+    //   Upgraded Effect: Deal 15 damage. If Fatal, gain an additional card reward. Exhaust.
     public static class TheHunt extends _TheHuntT {
         public TheHunt(double healthRewardRatio) {
             super("The Hunt", 10, healthRewardRatio);
@@ -1765,6 +2002,9 @@ public class CardSilent2 {
         }
     }
 
+    // Tools of the Trade (Rare) - 1 energy, Power
+    //   Effect: At the start of your turn, draw 1 card and discard 1 card.
+    //   Upgraded Effect (0 energy): At the start of your turn, draw 1 card and discard 1 card.
     public static class ToolsOfTheTrade extends CardSilent.ToolsOfTheTrade {
     }
 
@@ -1800,6 +2040,9 @@ public class CardSilent2 {
         }
     }
 
+    // Tracking (Rare) - 2 energy, Power
+    //   Effect: Weak enemies take double damage from Attacks.
+    //   Upgraded Effect (1 energy): Weak enemies take double damage from Attacks.
     public static class Tracking extends _TrackingT {
         public Tracking() {
             super("Tracking", 2);
@@ -1816,18 +2059,27 @@ public class CardSilent2 {
     // ********************************************* Event  *********************************************
     // **************************************************************************************************
 
+    // Caltrops (Event) - 1 energy, Power
+    //   Effect: Whenever you are attacked, deal 3 damage back.
+    //   Upgraded Effect: Whenever you are attacked, deal 5 damage back.
     public static class Caltrops extends CardSilent.Caltrops {
     }
 
     public static class CaltropsP extends CardSilent.CaltropsP {
     }
 
+    // Distraction (Event) - 1 energy, Skill
+    //   Effect: Add a random Skill into your Hand. It's free to play this turn. Exhaust.
+    //   Upgraded Effect (0 energy): Add a random Skill into your Hand. It's free to play this turn. Exhaust.
     public static class Distraction extends CardSilent.Distraction {
     }
 
     public static class DistractionP extends CardSilent.DistractionP {
     }
 
+    // Outmaneuver (Event) - 1 energy, Skill
+    //   Effect: Next turn, gain 2 energy.
+    //   Upgraded Effect: Next turn, gain 3 energy.
     public static class Outmaneuver extends CardSilent.Outmaneuver {
     }
 
@@ -1859,6 +2111,9 @@ public class CardSilent2 {
         }
     }
 
+    // Suppress (Ancient) - 0 energy, Attack
+    //   Effect: Innate. Deal 11 damage. Apply 3 Weak.
+    //   Upgraded Effect: Innate. Deal 17 damage. Apply 5 Weak.
     public static class Suppress extends _SuppressT {
         public Suppress() {
             super("Suppress", 11, 3);
@@ -1871,6 +2126,9 @@ public class CardSilent2 {
         }
     }
 
+    // Wraith Form (Ancient) - 3 energy, Power
+    //   Effect: Gain 2 Intangible. At the start of your turn, lose 1 Dexterity.
+    //   Upgraded Effect: Gain 3 Intangible. At the start of your turn, lose 1 Dexterity.
     public static class WraithForm extends CardSilent.WraithForm {
     }
 

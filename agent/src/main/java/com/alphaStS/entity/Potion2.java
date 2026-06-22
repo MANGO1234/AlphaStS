@@ -20,48 +20,78 @@ public class Potion2 {
     // ********************************************* Common *********************************************
     // **************************************************************************************************
 
+    // Attack Potion (Common)
+    //   Effect: Choose 1 of 3 random Attack cards to add into your Hand. It's free to play this turn.
     public static class AttackPotion extends Potion.AttackPotion {
     }
 
+    // Block Potion (Common)
+    //   Effect: Gain 12 Block.
     public static class BlockPotion extends Potion.BlockPotion {
     }
 
+    // Colorless Potion (Common)
+    //   Effect: Choose 1 of 3 random Colorless cards to add into your Hand. It's free to play this turn.
     public static class ColorlessPotion extends Potion.ColorlessPotion {
     }
 
+    // Dexterity Potion (Common)
+    //   Effect: Gain 2 Dexterity.
     public static class DexterityPotion extends Potion.DexterityPotion {
     }
 
+    // Energy Potion (Common)
+    //   Effect: Gain 2 energy.
     public static class EnergyPotion extends Potion.EnergyPotion {
     }
 
+    // Explosive Ampoule (Common)
+    //   Effect: Deal 10 damage to ALL enemies.
     public static class ExplosiveAmpoule extends Potion.ExplosivePotion {
     }
 
+    // Fire Potion (Common)
+    //   Effect: Deal 20 damage.
     public static class FirePotion extends Potion.FirePotion {
     }
 
+    // Flex Potion (Common)
+    //   Effect: Gain 5 Strength. At the end of your turn, lose 5 Strength.
     public static class FlexPotion extends Potion.FlexPotion {
     }
 
+    // Power Potion (Common)
+    //   Effect: Choose 1 of 3 random Power cards to add into your Hand. It's free to play this turn.
     public static class PowerPotion extends Potion.PowerPotion {
     }
 
+    // Skill Potion (Common)
+    //   Effect: Choose 1 of 3 random Skill cards to add into your Hand. It's free to play this turn.
     public static class SkillPotion extends Potion.SkillPotion {
     }
 
+    // Speed Potion (Common)
+    //   Effect: Gain 5 Dexterity. At the end of your turn, lose 5 Dexterity.
     public static class SpeedPotion extends Potion.SpeedPotion {
     }
 
+    // Strength Potion (Common)
+    //   Effect: Gain 2 Strength.
     public static class StrengthPotion extends Potion.StrengthPotion {
     }
 
+    // Swift Potion (Common)
+    //   Effect: Draw 3 cards.
     public static class SwiftPotion extends Potion.SwiftPotion {
     }
 
+    // Vulnerable Potion (Common)
+    //   Effect: Apply 3 Vulnerable.
     public static class VulnerablePotion extends Potion.FearPotion {
     }
 
+    // Weak Potion (Common)
+    //   Effect: Apply 3 Weak.
     public static class WeakPotion extends Potion.WeakPotion {
     }
 
@@ -69,9 +99,13 @@ public class Potion2 {
     // ********************************************* Uncommon *********************************************
     // **************************************************************************************************
 
+    // Blessing of the Forge (Uncommon)
+    //   Effect: Upgrade all cards in your Hand for the rest of combat.
     public static class BlessingOfTheForge extends Potion.BlessingOfTheForge {
     }
 
+    // Clarity Extract (Uncommon)
+    //   Effect: Draw 1 card. At the start of your next 3 turns, draw 1 additional card.
     public static class ClarityExtract extends Potion {
         @Override public GameActionCtx use(GameState state, int idx) {
             int n = state.properties.sacredBark != null && state.properties.sacredBark.isRelicEnabledInScenario(state) ? 2 : 1;
@@ -102,6 +136,8 @@ public class Potion2 {
         }
     }
 
+    // Cure All (Uncommon)
+    //   Effect: Gain energy. Draw 2 cards.
     public static class CureAll extends Potion {
         @Override public GameActionCtx use(GameState state, int idx) {
             int n = state.properties.sacredBark != null && state.properties.sacredBark.isRelicEnabledInScenario(state) ? 2 : 1;
@@ -111,9 +147,13 @@ public class Potion2 {
         }
     }
 
+    // Duplicator (Uncommon)
+    //   Effect: This turn, your next card is played an extra time.
     public static class Duplicator extends Potion.DuplicationPotion {
     }
 
+    // Fortifier (Uncommon)
+    //   Effect: Triple your Block.
     public static class Fortifier extends Potion {
         @Override public GameActionCtx use(GameState state, int idx) {
             int multiplier = state.properties.sacredBark != null && state.properties.sacredBark.isRelicEnabledInScenario(state) ? 5 : 2;
@@ -123,6 +163,8 @@ public class Potion2 {
         }
     }
 
+    // Fysh Oil (Uncommon)
+    //   Effect: Gain 1 Strength and 1 Dexterity.
     public static class FyshOil extends Potion {
         public FyshOil() {
             entityProperty.changePlayerStrength = true;
@@ -137,9 +179,13 @@ public class Potion2 {
         }
     }
 
+    // Gambler's Brew (Uncommon)
+    //   Effect: Discard any number of cards, then draw that many.
     public static class GamblersBrew extends Potion.GamblersBrew {
     }
 
+    // Heart of Iron (Uncommon)
+    //   Effect: Gain 7 Plating.
     public static class HeartOfIron extends Potion {
         @Override public GameActionCtx use(GameState state, int idx) {
             int platingAmount = state.properties.sacredBark != null && state.properties.sacredBark.isRelicEnabledInScenario(state) ? 14 : 7;
@@ -152,9 +198,13 @@ public class Potion2 {
         }
     }
 
+    // Liquid Bronze (Uncommon)
+    //   Effect: Gain 3 Thorns.
     public static class LiquidBronze extends Potion.LiquidBronze {
     }
 
+    // Potion of Binding (Uncommon)
+    //   Effect: Apply 1 Weak and 1 Vulnerable to ALL enemies.
     public static class PotionOfBinding extends Potion {
         public PotionOfBinding() {
             entityProperty.weakEnemy = true;
@@ -171,6 +221,8 @@ public class Potion2 {
         }
     }
 
+    // Powdered Demise (Uncommon)
+    //   Effect: Enemy loses 9 HP at the end of each of its turns.
     public static class PowderedDemise extends Potion {
         public PowderedDemise() {
             entityProperty.selectEnemy = true;
@@ -184,6 +236,8 @@ public class Potion2 {
         }
     }
 
+    // Radiant Tincture (Uncommon)
+    //   Effect: Gain energy. Gain an additional energy at the start of your next 3 turns.
     public static class RadiantTincture extends Potion {
         @Override public GameActionCtx use(GameState state, int idx) {
             int n = state.properties.sacredBark != null && state.properties.sacredBark.isRelicEnabledInScenario(state) ? 2 : 1;
@@ -214,9 +268,13 @@ public class Potion2 {
         }
     }
 
+    // Regen Potion (Uncommon)
+    //   Effect: Gain 5 Regen.
     public static class RegenPotion extends Potion.RegenPotion {
     }
 
+    // Stable Serum (Uncommon)
+    //   Effect: Retain your Hand for 2 turns.
     public static class StableSerum extends Potion {
         @Override public GameActionCtx use(GameState state, int idx) {
             int n = state.properties.sacredBark != null && state.properties.sacredBark.isRelicEnabledInScenario(state) ? 4 : 2;
@@ -229,6 +287,8 @@ public class Potion2 {
         }
     }
 
+    // Touch of Insanity (Uncommon)
+    //   Effect: Choose a card in your Hand. It is free to play this combat.
     public static class TouchOfInsanity extends Potion {
         public TouchOfInsanity() {
             entityProperty.selectFromHand = true;
@@ -275,6 +335,8 @@ public class Potion2 {
     // *********************************************  Rare  *********************************************
     // **************************************************************************************************
 
+    // Beetle Juice (Rare)
+    //   Effect: Enemy's attacks deal 30% less damage for the next 4 turns.
     public static class BeetleJuice extends Potion {
         public BeetleJuice() {
             entityProperty.selectEnemy = true;
@@ -288,6 +350,8 @@ public class Potion2 {
         }
     }
 
+    // Bottled Potential (Rare)
+    //   Effect: Shuffle ALL your cards into your Draw Pile. Draw 5 cards.
     public static class BottledPotential extends Potion {
         @Override public GameActionCtx use(GameState state, int idx) {
             int n = state.properties.sacredBark != null && state.properties.sacredBark.isRelicEnabledInScenario(state) ? 10 : 5;
@@ -298,9 +362,13 @@ public class Potion2 {
         }
     }
 
+    // Distilled Chaos (Rare)
+    //   Effect: Play the top 3 cards of your Draw Pile.
     public static class DistilledChaos extends Potion.DistilledChaos {
     }
 
+    // Droplet of Precognition (Rare)
+    //   Effect: Choose a card in your Draw Pile and add it into your Hand.
     public static class DropletOfPrecognition extends Potion {
         public DropletOfPrecognition() {
             entityProperty.selectFromDeck = true;
@@ -338,14 +406,20 @@ public class Potion2 {
         }
     }
 
+    // Entropic Brew (Rare)
+    //   Effect: Fill all your empty potion slots with random potions.
     public static class EntropicBrew extends Potion.EntropicBrew {
     }
 
+    // Fairy in a Bottle (Rare)
+    //   Effect: When you would die, instead this potion is discarded and you heal to 30% of your Max HP.
     public static class FairyInABottle extends Potion.FairyInABottle {
     }
 
     // No need to implement Fruit Juice
 
+    // Gigantification Potion (Rare)
+    //   Effect: The next Attack you play deals triple damage.
     public static class GigantificationPotion extends Potion {
         @Override public GameActionCtx use(GameState state, int idx) {
             state.getCounterForWrite()[state.properties.gigantificationCounterIdx]++;
@@ -370,9 +444,13 @@ public class Potion2 {
         }
     }
 
+    // Liquid Memories (Rare)
+    //   Effect: Put a card from your Discard Pile into your Hand. It costs 0 energy this turn.
     public static class LiquidMemories extends Potion.LiquidMemories {
     }
 
+    // Lucky Tonic (Rare)
+    //   Effect: Gain 1 Buffer.
     public static class LuckyTonic extends Potion {
         @Override public GameActionCtx use(GameState state, int idx) {
             state.getCounterForWrite()[state.properties.bufferCounterIdx]++;
@@ -384,9 +462,13 @@ public class Potion2 {
         }
     }
 
+    // Mazaleth's Gift (Rare)
+    //   Effect: Gain 1 Ritual.
     public static class MazalethsGift extends Potion.CultistPotion {
     }
 
+    // Orobic Acid (Rare)
+    //   Effect: Add a random Attack, Skill, and Power into your Hand. They're free to play this turn.
     public static class OrobicAcid extends Potion {
         private int[] attackIdxes;
         private int[] skillIdxes;
@@ -427,6 +509,8 @@ public class Potion2 {
         }
     }
 
+    // Shackling Potion (Rare)
+    //   Effect: ALL enemies lose 7 Strength this turn.
     public static class ShacklingPotion extends Potion {
         public ShacklingPotion() {
             entityProperty.affectEnemyStrength = true;
@@ -441,6 +525,8 @@ public class Potion2 {
         }
     }
 
+    // Ship in a Bottle (Rare)
+    //   Effect: Gain 10 Block. Next turn, gain 10 Block.
     public static class ShipInABottle extends Potion {
         @Override public GameActionCtx use(GameState state, int idx) {
             state.playerGainBlockNotFromCardPlay(10);
@@ -454,6 +540,8 @@ public class Potion2 {
     }
 
     // STS2 Snecko Oil draws 7 cards (up from 5 in STS1).
+    // Snecko Oil (Rare)
+    //   Effect: Draw 7 cards. Randomize the cost of cards in your Hand this turn.
     public static class SneckoOil extends Potion.SneckoOil {
         @Override public GameActionCtx use(GameState state, int idx) {
             state.draw(7);
@@ -471,6 +559,8 @@ public class Potion2 {
     // ********************************************* Event  *********************************************
     // **************************************************************************************************
 
+    // Foul Potion (Event)
+    //   Effect: Deal 12 damage to EVERYONE. Can be thrown at the Merchant for 100 Gold instead.
     public static class FoulPotion extends Potion {
         @Override public GameActionCtx use(GameState state, int idx) {
             for (var enemy : state.getEnemiesForWrite().iterateOverAlive()) {
@@ -481,6 +571,8 @@ public class Potion2 {
         }
     }
 
+    // Glowwater Potion (Event)
+    //   Effect: Exhaust your Hand. Draw 10 cards.
     public static class GlowwaterPotion extends Potion {
         @Override public GameActionCtx use(GameState state, int idx) {
             for (int i = state.handArrLen - 1; i >= 0; i--) {
@@ -496,6 +588,8 @@ public class Potion2 {
     // ********************************************* Token  *********************************************
     // **************************************************************************************************
 
+    // Potion-Shaped Rock (Token)
+    //   Effect: Deal 15 damage.
     public static class PotionShapedRock extends Potion {
         public PotionShapedRock() {
             entityProperty.selectEnemy = true;
@@ -511,12 +605,18 @@ public class Potion2 {
     // ********************************************* Ironclad *********************************************
     // **************************************************************************************************
 
+    // Ashwater (Uncommon)
+    //   Effect: Exhaust any number of cards in your Hand.
     public static class Ashwater extends Potion.Elixir {
     }
 
+    // Blood Potion (Common)
+    //   Effect: Heal for 20% of your Max HP.
     public static class BloodPotion extends Potion.BloodPotion {
     }
 
+    // Soldier's Stew (Rare)
+    //   Effect: All cards containing Strike gain 1 Replay this combat.
     public static class SoldiersStew extends Potion {
         private int[] spiralStrikeTransformIdxes;
 
@@ -551,12 +651,18 @@ public class Potion2 {
     // ********************************************* Silent *********************************************
     // **************************************************************************************************
 
+    // Cunning Potion (Uncommon)
+    //   Effect: Add 3 Upgraded Shivs into your Hand.
     public static class CunningPotion extends Potion.CunningPotion {
     }
 
+    // Ghost in a Jar (Rare)
+    //   Effect: Gain 1 Intangible.
     public static class GhostInAJar extends Potion.GhostInAJar {
     }
 
+    // Poison Potion (Common)
+    //   Effect: Apply 6 Poison.
     public static class PoisonPotion extends Potion.PoisonPotion {
     }
 
@@ -564,12 +670,18 @@ public class Potion2 {
     // ********************************************* Defect *********************************************
     // **************************************************************************************************
 
+    // Essence of Darkness (Rare)
+    //   Effect: Channel a Dark for each of your Orb Slots.
     public static class EssenceOfDarkness extends Potion.EssenceOfDarkness {
     }
 
+    // Focus Potion (Common)
+    //   Effect: Gain 2 Focus.
     public static class FocusPotion extends Potion.FocusPotion {
     }
 
+    // Potion of Capacity (Uncommon)
+    //   Effect: Gain 2 Orb Slots.
     public static class PotionOfCapacity extends Potion.PotionOfCapacity {
     }
 
@@ -577,6 +689,8 @@ public class Potion2 {
     // ********************************************* Regent *********************************************
     // **************************************************************************************************
 
+    // Cosmic Concoction (Rare)
+    //   Effect: Add 3 Upgraded Colorless cards into your Hand.
     public static class CosmicConcoction extends Potion {
         @Override public GameActionCtx use(GameState state, int idx) {
             state.setIsStochastic();
@@ -593,6 +707,8 @@ public class Potion2 {
         }
     }
 
+    // King's Courage (Uncommon)
+    //   Effect: Forge 15.
     public static class KingsCourage extends Potion {
         public KingsCourage() {
             entityProperty.canForge = true;
@@ -604,6 +720,8 @@ public class Potion2 {
         }
     }
 
+    // Star Potion (Common)
+    //   Effect: Gain 3 star
     public static class StarPotion extends Potion {
         @Override public GameActionCtx use(GameState state, int idx) {
             state.gainStar(3);
@@ -615,6 +733,8 @@ public class Potion2 {
     // ********************************************* Necrobinder *********************************************
     // **************************************************************************************************
 
+    // Bone Brew (Uncommon)
+    //   Effect: Summon 15.
     public static class BoneBrew extends Potion {
         public BoneBrew() {
             entityProperty.canSummon = true;
@@ -626,6 +746,8 @@ public class Potion2 {
         }
     }
 
+    // Pot of Ghouls (Rare)
+    //   Effect: Add 2 Souls into your Hand.
     public static class PotOfGhouls extends Potion {
         @Override public GameActionCtx use(GameState state, int idx) {
             state.addCardToHand(generatedCardIdx);
@@ -638,6 +760,8 @@ public class Potion2 {
         }
     }
 
+    // Potion of Doom (Common)
+    //   Effect: Apply 33 Doom.
     public static class PotionOfDoom extends Potion {
         public PotionOfDoom() {
             entityProperty.selectEnemy = true;
