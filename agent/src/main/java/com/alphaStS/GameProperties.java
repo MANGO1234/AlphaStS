@@ -308,6 +308,7 @@ public class GameProperties implements Cloneable {
     public Relic handDrill = null;
     public Relic hoveringKite = null;
     public Relic iceCream = null;
+    public Relic infusedCore = null;
     public Relic magicFlower = null;
     public Relic markOfTheBloom = null;
     public Relic meatOnTheBone = null;

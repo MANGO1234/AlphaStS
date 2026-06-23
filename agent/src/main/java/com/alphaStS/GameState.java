@@ -4592,7 +4592,7 @@ public final class GameState implements State {
         } else if (orbs[i] == OrbType.LIGHTNING.ordinal()) {
             if (properties.electrodynamicsCounterIdx >= 0 && getCounterForRead()[properties.electrodynamicsCounterIdx] != 0) {
                 for (Enemy enemy : getEnemiesForWrite().iterateOverAlive()) {
-                    int dmg = 8 + focus + (enemy.getLockOn() > 0 ? (8 + focus) / 2 : 0);
+                    int dmg = getLightningOrbDamage(8, enemy);
                     playerDoNonAttackDamageToEnemy(enemy, dmg, true);
                     if (properties.thunderDamageCounterIdx >= 0) {
                         playerDoNonAttackDamageToEnemy(enemy, getCounterForRead()[properties.thunderDamageCounterIdx], true);
@@ -4605,7 +4605,7 @@ public final class GameState implements State {
                     if ((properties.makingRealMove || properties.stateDescOn) && enemiesAlive > 1) {
                         getStateDesc().append(getStateDesc().length() > 0 ? "; " : "").append("Lightning Orb evoke hit ").append(enemy.getName() + " (" + idx + ")");
                     }
-                    int dmg = 8 + focus + (enemy.getLockOn() > 0 ? (8 + focus) / 2 : 0);
+                    int dmg = getLightningOrbDamage(8, enemy);
                     playerDoNonAttackDamageToEnemy(enemy, dmg, true);
                     if (properties.thunderDamageCounterIdx >= 0) {
                         playerDoNonAttackDamageToEnemy(enemy, getCounterForRead()[properties.thunderDamageCounterIdx], true);
@@ -4641,7 +4641,7 @@ public final class GameState implements State {
         var enemy = getEnemiesForWrite().getForWrite(targetIdx);
         for (int i = 0; i < orbs.length; i += 2) {
             if (orbs[i] == OrbType.LIGHTNING.ordinal()) {
-                int dmg = 8 + focus + (enemy.getLockOn() > 0 ? (8 + focus) / 2 : 0);
+                int dmg = getLightningOrbDamage(8, enemy);
                 playerDoNonAttackDamageToEnemy(enemy, dmg, true);
             }
         }
@@ -4705,7 +4705,7 @@ public final class GameState implements State {
         } else if (orbs[i] == OrbType.LIGHTNING.ordinal()) {
             if (properties.electrodynamicsCounterIdx >= 0 && getCounterForRead()[properties.electrodynamicsCounterIdx] != 0) {
                 for (Enemy enemy : getEnemiesForWrite().iterateOverAlive()) {
-                    int dmg = 3 + focus + (enemy.getLockOn() > 0 ? (3 + focus) / 2 : 0);
+                    int dmg = getLightningOrbDamage(3, enemy);
                     playerDoNonAttackDamageToEnemy(enemy, dmg, true);
                 }
             } else {
@@ -4715,7 +4715,7 @@ public final class GameState implements State {
                     if ((properties.makingRealMove || properties.stateDescOn) && enemiesAlive > 1) {
                         getStateDesc().append(getStateDesc().length() > 0 ? "; " : "").append("Lightning Orb passive hit ").append(enemy.getName() + " (" + idx + ")");
                     }
-                    int dmg = 3 + focus + (enemy.getLockOn() > 0 ? (3 + focus) / 2 : 0);
+                    int dmg = getLightningOrbDamage(3, enemy);
                     playerDoNonAttackDamageToEnemy(enemy, dmg, true);
                 }
             }
@@ -4724,6 +4724,14 @@ public final class GameState implements State {
         } else if (orbs[i] == OrbType.GLASS.ordinal()) {
             orbs[i + 1] = (short) Math.max(0, orbs[i + 1] - 1);
         }
+    }
+
+    private int getLightningOrbDamage(int baseDamage, Enemy enemy) {
+        int damage = baseDamage + focus;
+        if (properties.infusedCore != null && properties.infusedCore.isRelicEnabledInScenario(this)) {
+            damage++;
+        }
+        return damage + (enemy.getLockOn() > 0 ? damage / 2 : 0);
     }
 
     private void triggerOrbsPassiveEndOfTurn() {

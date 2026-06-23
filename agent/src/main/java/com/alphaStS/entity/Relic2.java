@@ -106,14 +106,12 @@ public class Relic2 {
     }
 
     // Pendulum (Common)
-    //   Effect: Whenever you shuffle your Draw Pile, draw a card.
-    // TODO CHANGED: Pendulum (Common)
     //   Effect: Every 3 turns, draw 1 card.
     public static class Pendulum extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
-            state.properties.addOnShuffleHandler("Pendulum", new GameEventHandler() {
+            state.properties.addStartOfTurnHandler("Pendulum", new GameEventHandler() {
                 @Override public void handle(GameState state) {
-                    if (isRelicEnabledInScenario(state)) {
+                    if (isRelicEnabledInScenario(state) && state.turnNum % 3 == 0) {
                         state.draw(1);
                     }
                 }
@@ -121,9 +119,7 @@ public class Relic2 {
         }
     }
 
-    // Permafrost (Common)
-    //   Effect: The first time you play a Powers each combat, gain 6 Block.
-    // TODO CHANGED: Permafrost (Uncommon)
+    // Permafrost (Uncommon)
     //   Effect: The first time you play a Power each combat, gain 7 Block.
     public static class Permafrost extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
@@ -151,7 +147,7 @@ public class Relic2 {
                     }
                     if (state.properties.cardDict[cardIdx].cardType == Card.POWER && state.getCounterForRead()[counterIdx] == 0) {
                         state.getCounterForWrite()[counterIdx] = 1;
-                        state.playerGainBlockNotFromCardPlay(6);
+                        state.playerGainBlockNotFromCardPlay(7);
                     }
                 }
             });
@@ -203,16 +199,12 @@ public class Relic2 {
     public static class Akabeko extends Relic.Akabeko {
     }
 
-    // Bag of Marbles (Uncommon)
-    //   Effect: At the start of each combat, apply 1 Vulnerable to ALL enemies.
-    // TODO CHANGED: Bag of Marbles (Common)
+    // Bag of Marbles (Common)
     //   Effect: At the start of each combat, apply 1 Vulnerable to ALL enemies.
     public static class BagOfMarbles extends Relic.BagOfMarbles {
     }
 
-    // Bellows (Uncommon)
-    //   Effect: The first Hand you draw each combat is Upgraded.
-    // TODO CHANGED: Bellows (Rare)
+    // Bellows (Rare)
     //   Effect: The first Hand you draw each combat is Upgraded.
     public static class Bellows extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
@@ -462,16 +454,12 @@ public class Relic2 {
 
     // No need to implement Planisphere: Whenever you enter a ? room, heal 4 HP.
 
-    // Red Mask (Uncommon)
-    //   Effect: At the start of each combat, apply 1 Weak to ALL enemies.
-    // TODO CHANGED: Red Mask (Common)
+    // Red Mask (Common)
     //   Effect: At the start of each combat, apply 1 Weak to ALL enemies.
     public static class RedMask extends Relic.RedMask {
     }
 
     // Reptile Trinket (Uncommon)
-    //   Effect: Whenever you use a potion, gain 3 Strength this turn.
-    // TODO CHANGED: Reptile Trinket (Uncommon)
     //   Effect: Whenever you use a Potion, gain 3 Strength this turn.
     public static class ReptileTrinket extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
@@ -550,14 +538,12 @@ public class Relic2 {
     }
 
     // Stone Cracker (Uncommon)
-    //   Effect: At the start of Boss combats, Upgrade 3 random cards in your Draw Pile for the rest of combat.
-    // TODO CHANGED: Stone Cracker (Uncommon)
     //   Effect: At the start of combat, Upgrade 2 random cards in your Draw Pile for the rest of combat.
     public static class StoneCracker extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addStartOfBattleHandler("StoneCracker", new GameEventHandler() {
                 @Override public void handle(GameState state) {
-                    if (!isRelicEnabledInScenario(state) || !isBossFight(state)) {
+                    if (!isRelicEnabledInScenario(state)) {
                         return;
                     }
                     int count = 0;
@@ -570,10 +556,10 @@ public class Relic2 {
                     if (count == 0) {
                         return;
                     }
-                    int numToUpgrade = Math.min(count, 3);
-                    if (count > 3) {
+                    int numToUpgrade = Math.min(count, 2);
+                    if (count > 2) {
                         state.setIsStochastic();
-                        for (int i = 0; i < 3; i++) {
+                        for (int i = 0; i < 2; i++) {
                             int r = i + state.getSearchRandomGen().nextInt(count - i, RandomGenCtx.Other, state);
                             int tmp = positions[i];
                             positions[i] = positions[r];
@@ -779,8 +765,6 @@ public class Relic2 {
     }
 
     // Girya (Rare)
-    //   Effect: You can now gain Strength at Rest Sites. (3 times max)
-    // TODO CHANGED: Girya (Rare)
     //   Effect: You can now gain Strength at Rest Site. (3 times max)
     public static class Girya extends Relic.Girya {
         public Girya(int strength) {
@@ -815,8 +799,6 @@ public class Relic2 {
     // No need to implement Lasting Candy: Every other combat, your card rewards gain an additional Power.
 
     // Lizard Tail (Rare)
-    //   Effect: When you would die, heal to 50% of your Max HP instead (works once).
-    // TODO CHANGED: Lizard Tail (Rare)
     //   Effect: When your HP would be reduced to 0, heal to 50% of your Max HP instead (works once).
     public static class LizardTail extends Relic.LizardTail {
     }
@@ -845,8 +827,6 @@ public class Relic2 {
     // No need to implement Prayer Wheel: Normal enemies drop an additional card reward.
 
     // Rainbow Ring (Rare)
-    //   Effect: The first time you play an Attack, Skill, and Powers each turn, gain 1 Strength and 1 Dexterity.
-    // TODO CHANGED: Rainbow Ring (Rare)
     //   Effect: The first time you play an Attack, Skill, and Power each turn, gain 1 Strength and 1 Dexterity.
     public static class RainbowRing extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
@@ -965,8 +945,6 @@ public class Relic2 {
     // **************************************************************************************************
 
     // Belt Buckle (Shop)
-    //   Effect: While you have no potions, you have 2 additional Dexterity.
-    // TODO CHANGED: Belt Buckle (Shop)
     //   Effect: While you have no Potion, you have 2 additional Dexterity.
     public static class BeltBuckle extends Relic {
         public BeltBuckle() {
@@ -1621,8 +1599,6 @@ public class Relic2 {
     // No need to implement Claws: Upon pickup, Transform up to 6 cards into Maul.
 
     // Crossbow (Ancient)
-    //   Effect: At the start of your turn, add a random Attack into your Hand. It costs 0 energy this turn.
-    // TODO CHANGED: Crossbow (Ancient)
     //   Effect: At the start of your turn, add a random Attack into your Hand. It's free to play this turn.
     public static class Crossbow extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
@@ -1763,8 +1739,6 @@ public class Relic2 {
     }
 
     // Jeweled Mask (Ancient)
-    //   Effect: At the start of combat put a random Powers from your Draw Pile into your Hand, it's free to play.
-    // TODO CHANGED: Jeweled Mask (Ancient)
     //   Effect: At the start of combat put a random Power from your Draw Pile into your Hand, it's free to play.
     public static class JeweledMask extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
@@ -2000,8 +1974,6 @@ public class Relic2 {
     }
 
     // Pumpkin Candle (Ancient)
-    //   Effect: Gain energy at the start of each turn. Extinguishes at the start of Act 3.
-    // TODO CHANGED: Pumpkin Candle (Ancient)
     //   Effect: Gain energy at the start of each turn. Extinguishes after 5 combats. Can be Kindled at Rest Sites.
     public static class PumpkinCandle extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
@@ -2121,8 +2093,6 @@ public class Relic2 {
     }
 
     // Sozu (Ancient)
-    //   Effect: Gain energy at the start of each turn. You can no longer obtain potions.
-    // TODO CHANGED: Sozu (Ancient)
     //   Effect: Gain energy at the start of each turn. You can no longer obtain Potion.
     public static class Sozu extends Relic.Sozu {
     }
@@ -2396,8 +2366,6 @@ public class Relic2 {
     }
 
     // Infused Core (Starter)
-    //   Effect: At the start of each combat, Channel 3 Lightning.
-    // TODO CHANGED: Infused Core (Starter)
     //   Effect: At the start of each combat, Channel 3 Lightning. Lightning Orbs deal 1 additional damage.
     public static class InfusedCore extends Relic {
         public InfusedCore() {
@@ -2405,6 +2373,7 @@ public class Relic2 {
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.infusedCore = this;
             state.properties.addStartOfBattleHandler(new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     if (isRelicEnabledInScenario(state)) {
@@ -2630,14 +2599,12 @@ public class Relic2 {
     }
 
     // Regalite (Uncommon)
-    //   Effect: Whenever you create a Colorless card, gain 2 Block.
-    // TODO CHANGED: Regalite (Uncommon)
     //   Effect: Whenever you create a card, gain 2 Block.
     public static class Regalite extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addOnCardCreationHandler("Regalite", new OnCardCreationHandler() {
                 @Override public void handle(GameState state, int cardIdx) {
-                    if (isRelicEnabledInScenario(state) && CardManager.isColorlessCard(state.properties.cardDict[cardIdx])) {
+                    if (isRelicEnabledInScenario(state)) {
                         state.playerGainBlockNotFromCardPlay(2);
                     }
                 }
