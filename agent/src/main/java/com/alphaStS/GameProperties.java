@@ -266,6 +266,7 @@ public class GameProperties implements Cloneable {
     public int retainHandCounterIdx = -1;
     public int drawNextTurnCounterIdx = -1;
     public int starNextTurnCounterIdx = -1;
+    public int borrowedTimeCounterIdx = -1;
     public int catastropheCounterIdx = -1;
     public int beatDownCounterIdx = -1;
     public int nostalgiaCounterIdx = -1;

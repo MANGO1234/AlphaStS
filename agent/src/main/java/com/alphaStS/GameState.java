@@ -1234,6 +1234,9 @@ public final class GameState implements State {
         if (properties.spikedGauntlets != null && properties.spikedGauntlets.isRelicEnabledInScenario(this) && properties.cardDict[cardIdx].cardType == Card.POWER) {
             cost++;
         }
+        if (properties.borrowedTimeCounterIdx >= 0) {
+            cost += counter[properties.borrowedTimeCounterIdx];
+        }
         return cost;
     }
 
