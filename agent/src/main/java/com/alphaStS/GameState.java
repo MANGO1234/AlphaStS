@@ -3890,6 +3890,7 @@ public final class GameState implements State {
             if (cw.mod.instinct) dmg *= 2;
             if (cw.mod.corrupted) dmg *= 1.5;
             if (cw.mod.sharp > 0) dmg += cw.mod.sharp;
+            if (cw.mod.momentumGained > 0) dmg += cw.mod.momentumGained;
             if (cw.mod.inky) dmg += 2;
             if (cw.mod.vigorous > 0) dmg += cw.mod.vigorous;
         }

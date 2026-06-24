@@ -226,6 +226,15 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         return new CardWrapper(this, mod);
     }
 
+    public Card enchantMomentum(int momentum) {
+        if (cardType != Card.ATTACK || momentum <= 0) {
+            return this;
+        }
+        var mod = new CardModification();
+        mod.momentum = momentum;
+        return new CardWrapper(this, mod);
+    }
+
     public Card enchantSoulsPower() {
         var mod = new CardModification();
         mod.soulsPower = true;
@@ -309,6 +318,8 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         public boolean glam = false;
         public boolean inky = false;
         public boolean instinct = false;
+        public int momentum = 0;
+        public int momentumGained = 0;
         public int nimble = 0;
         public boolean perfectFit = false;
         public boolean royallyApproved = false;
@@ -333,6 +344,8 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
             copy.glam = glam;
             copy.inky = inky;
             copy.instinct = instinct;
+            copy.momentum = momentum;
+            copy.momentumGained = momentumGained;
             copy.nimble = nimble;
             copy.perfectFit = perfectFit;
             copy.royallyApproved = royallyApproved;
@@ -397,6 +410,12 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
             }
             if (mod.instinct) {
                 sb.append(" (Instinct)");
+            }
+            if (mod.momentum > 0) {
+                sb.append(" (Momentum ").append(mod.momentum).append(")");
+            }
+            if (mod.momentumGained > 0) {
+                sb.append(" (Momentum Gained ").append(mod.momentumGained).append(")");
             }
             if (mod.royallyApproved) {
                 sb.append(" (Royally Approved)");
@@ -508,12 +527,38 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
             boolean hasTempMods = mod.tmpChangeCost != -1 || mod.tmpUntilPlayedCost != -1
                     || mod.tmpRetain || mod.swift > 0 || mod.sown || mod.glam || mod.vigorous > 0;
-            if (hasTempMods) {
-                var result = new ArrayList<>(card.getPossibleGeneratedCards(properties, cards));
-                result.add(card);
+            if (hasTempMods || mod.momentum > 0) {
+                var possibleInnerCards = card.getPossibleGeneratedCards(properties, cards);
+                var result = new ArrayList<>(possibleInnerCards);
+                if (hasTempMods) {
+                    result.add(card);
+                }
+                if (mod.momentum > 0) {
+                    addMomentumGainedCards(result, properties, card);
+                    for (Card possibleInnerCard : possibleInnerCards) {
+                        addMomentumGainedCards(result, properties, possibleInnerCard);
+                    }
+                }
                 return result;
             }
             return card.getPossibleGeneratedCards(properties, cards);
+        }
+
+        private void addMomentumGainedCards(List<Card> result, GameProperties properties, Card baseCard) {
+            var newMod = mod.clone();
+            newMod.tmpChangeCost = -1;
+            newMod.tmpUntilPlayedCost = -1;
+            newMod.tmpRetain = false;
+            newMod.swift = 0;
+            newMod.sown = false;
+            newMod.glam = false;
+            newMod.vigorous = 0;
+            for (int gained = mod.momentum; gained < properties.maxMomentumGained; gained += mod.momentum) {
+                newMod.momentumGained = gained;
+                result.add(wrap(baseCard, newMod));
+            }
+            newMod.momentumGained = properties.maxMomentumGained;
+            result.add(wrap(baseCard, newMod));
         }
 
         @Override
@@ -532,7 +577,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
                 afterFirstPlayTransformIdx = card.onPlayTransformCardIdx(prop, cardIdx);
                 boolean needsStrip = mod.tmpChangeCost != -1 || mod.tmpUntilPlayedCost != -1
                         || mod.tmpRetain || mod.swift > 0 || mod.sown || mod.glam || mod.vigorous > 0;
-                if (needsStrip) {
+                if (needsStrip || mod.momentum > 0) {
                     // use the inner-card transform target if available, otherwise the inner card itself
                     Card baseCard = afterFirstPlayTransformIdx >= 0
                             ? prop.cardDict[afterFirstPlayTransformIdx] : card;
@@ -544,6 +589,9 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
                     newMod.sown = false;
                     newMod.glam = false;
                     newMod.vigorous = 0;
+                    if (newMod.momentum > 0) {
+                        newMod.momentumGained = Math.min(prop.maxMomentumGained, newMod.momentumGained + newMod.momentum);
+                    }
                     afterFirstPlayTransformIdx = prop.findCardIndex(wrap(baseCard, newMod));
                 }
             }
@@ -649,6 +697,11 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
             if (newMod.glam) { resultMod.glam = true; modified = true; }
             if (newMod.inky) { resultMod.inky = true; modified = true; }
             if (newMod.instinct) { resultMod.instinct = true; modified = true; }
+            if (newMod.momentum > 0 && newCard.cardType == Card.ATTACK) {
+                resultMod.momentum = newMod.momentum;
+                resultMod.momentumGained = newMod.momentumGained;
+                modified = true;
+            }
             if (newMod.nimble > 0) { resultMod.nimble = newMod.nimble; modified = true; }
             if (newMod.perfectFit) { resultMod.perfectFit = true; modified = true; }
             if (!newCard.retain && newMod.royallyApproved) { resultMod.royallyApproved = true; modified = true; }
@@ -771,6 +824,16 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         public Card enchantSharp(int sharp) {
             var newMod = mod.clone();
             newMod.sharp = sharp;
+            return new CardWrapper(card, newMod);
+        }
+
+        @Override
+        public Card enchantMomentum(int momentum) {
+            if (cardType != Card.ATTACK || momentum <= 0 || mod.momentum > 0) {
+                return this;
+            }
+            var newMod = mod.clone();
+            newMod.momentum = momentum;
             return new CardWrapper(card, newMod);
         }
 

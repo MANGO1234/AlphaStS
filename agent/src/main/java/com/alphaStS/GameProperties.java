@@ -118,6 +118,7 @@ public class GameProperties implements Cloneable {
     public int generateCardOptions;
     public int kinglyPunchLimit = 30;
     public int kinglyPPunchLimit = 45;
+    public int maxMomentumGained = 50;
 
     // system card indexes
     // SORTED BLOCK START
