@@ -191,7 +191,7 @@ public class Player extends PlayerReadOnly {
         case LOSE_FOCUS_EOT -> this.loseFocusEot += n;
         case LOSE_DEXTERITY_PER_TURN -> state.getCounterForWrite()[state.properties.loseDexterityPerTurnCounterIdx] += n;
         case NO_MORE_CARD_DRAW -> this.cannotDrawCard = true;
-        case ENTANGLED -> this.entangled = state.getActionCtx() == GameActionCtx.BEGIN_TURN && this.entangled == 0 ? n + 1 : n;
+        case ENTANGLED -> this.entangled += n;
         case HEX -> this.hexed = true;
         case LOSE_FOCUS -> state.gainFocus(-n);
         case LOSE_FOCUS_PER_TURN -> state.getCounterForWrite()[state.properties.loseFocusPerTurnCounterIdx] += n;
