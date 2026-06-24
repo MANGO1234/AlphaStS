@@ -86,7 +86,14 @@ public enum PredefinedEncounter {
     CORRUPT_HEART("The Heart", 4, () -> List.of(new EnemyEnding.CorruptHeart())),
 
     // Slay the Spire 2: Act 1 Underdocks
-    PHANTASMAL_GARDNER("PhantasmalGardner", 1, () -> List.of(new EnemyUnderdock.PhantasmalGardener(32, EnemyUnderdock.PhantasmalGardener.FLAIL), new EnemyUnderdock.PhantasmalGardener(32, EnemyUnderdock.PhantasmalGardener.BITE), new EnemyUnderdock.PhantasmalGardener(32, EnemyUnderdock.PhantasmalGardener.LASH), new EnemyUnderdock.PhantasmalGardener(32, EnemyUnderdock.PhantasmalGardener.ENLARGE)));
+    PHANTASMAL_GARDNER("PhantasmalGardner", 1, () -> List.of(new EnemyUnderdock.PhantasmalGardener(32, EnemyUnderdock.PhantasmalGardener.FLAIL), new EnemyUnderdock.PhantasmalGardener(32, EnemyUnderdock.PhantasmalGardener.BITE), new EnemyUnderdock.PhantasmalGardener(32, EnemyUnderdock.PhantasmalGardener.LASH), new EnemyUnderdock.PhantasmalGardener(32, EnemyUnderdock.PhantasmalGardener.ENLARGE))),
+    CORPSE_SLUGS_EASY("2 Corpse Slugs", 1, () -> List.of(new EnemyUnderdock.CorpseSlug(29, EnemyUnderdock.CorpseSlug.WHIP_SLAP), new EnemyUnderdock.CorpseSlug(29, EnemyUnderdock.CorpseSlug.GLOMP))),
+    CORPSE_SLUGS("3 Corpse Slugs", 1, () -> List.of(new EnemyUnderdock.CorpseSlug(29, EnemyUnderdock.CorpseSlug.WHIP_SLAP), new EnemyUnderdock.CorpseSlug(29, EnemyUnderdock.CorpseSlug.GLOMP), new EnemyUnderdock.CorpseSlug(29, EnemyUnderdock.CorpseSlug.GOOP))),
+    UNDERDOCKS_CULTISTS("Underdocks Cultists", 1, () -> List.of(new EnemyUnderdock.CalcifiedCultist(), new EnemyUnderdock.DampCultist())),
+    GREMLIN_MERC("Gremlin Merc", 1, () -> List.of(new EnemyUnderdock.GremlinMerc(), new EnemyUnderdock.GremlinMercSneakyGremlin().startDead(), new EnemyUnderdock.GremlinMercFatGremlin().startDead())),
+    HAUNTED_SHIP("Haunted Ship", 1, () -> List.of(new EnemyUnderdock.HauntedShip())),
+    LAGAVULIN_MATRIARCH("Lagavulin Matriarch", 1, () -> List.of(new EnemyUnderdock.LagavulinMatriarch())),
+    LIVING_FOG("Living Fog", 1, () -> List.of(new EnemyUnderdock.LivingFog(), new EnemyUnderdock.GasBomb().startDead()));
 
     public final int act;
     public final String internalKey;

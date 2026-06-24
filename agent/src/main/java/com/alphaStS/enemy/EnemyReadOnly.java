@@ -26,6 +26,7 @@ public abstract class EnemyReadOnly implements GameProperties.TrainingTargetRegi
         public boolean canGainRegeneration = false;
         public boolean canHeal = false;
         public boolean canGainMetallicize = false;
+        public boolean canGainPlating = false;
         public boolean canGainPlatedArmor = false;
         public boolean canGainBlock = false;
         public boolean hasBurningEliteBuff = false;
@@ -73,6 +74,7 @@ public abstract class EnemyReadOnly implements GameProperties.TrainingTargetRegi
     protected int poison;
     protected int regeneration;
     protected int metallicize;
+    protected int plating;
     protected int platedArmor;
     protected int loseStrengthEot;
     protected int corpseExplosion;
@@ -156,6 +158,7 @@ public abstract class EnemyReadOnly implements GameProperties.TrainingTargetRegi
         loseStrengthEot = other.loseStrengthEot;
         regeneration = other.regeneration;
         metallicize = other.metallicize;
+        plating = other.plating;
         platedArmor = other.platedArmor;
         corpseExplosion = other.corpseExplosion;
         choke = other.choke;
@@ -212,6 +215,10 @@ public abstract class EnemyReadOnly implements GameProperties.TrainingTargetRegi
 
     public int getMetallicize() {
         return metallicize;
+    }
+
+    public int getPlating() {
+        return plating;
     }
 
     public int getPlatedArmor() {
@@ -335,6 +342,9 @@ public abstract class EnemyReadOnly implements GameProperties.TrainingTargetRegi
         if (metallicize > 0) {
             str += ", metallicize=" + metallicize;
         }
+        if (plating > 0) {
+            str += ", plating=" + plating;
+        }
         if (platedArmor > 0) {
             str += ", platedArmor=" + platedArmor;
         }
@@ -397,6 +407,9 @@ public abstract class EnemyReadOnly implements GameProperties.TrainingTargetRegi
         if (metallicize > 0) {
             str += ", metallicize=" + metallicize;
         }
+        if (plating > 0) {
+            str += ", plating=" + plating;
+        }
         if (platedArmor > 0) {
             str += ", platedArmor=" + platedArmor;
         }
@@ -437,10 +450,10 @@ public abstract class EnemyReadOnly implements GameProperties.TrainingTargetRegi
                 strength == enemy.strength && vulnerable == enemy.vulnerable && weak == enemy.weak && artifact == enemy.artifact &&
                 poison == enemy.poison && loseStrengthEot == enemy.loseStrengthEot && corpseExplosion == enemy.corpseExplosion &&
                 choke == enemy.choke && lockOn == enemy.lockOn && talkToTheHand == enemy.talkToTheHand && mark == enemy.mark && doom == enemy.doom &&
-                debilitate == enemy.debilitate && sicEm == enemy.sicEm;
+                debilitate == enemy.debilitate && sicEm == enemy.sicEm && plating == enemy.plating;
     }
 
     @Override public int hashCode() {
-        return Objects.hash(health, block, strength, vulnerable, weak, artifact, poison, doom, debilitate, move, lastMove);
+        return Objects.hash(health, block, strength, vulnerable, weak, artifact, poison, doom, debilitate, plating, move, lastMove);
     }
 }

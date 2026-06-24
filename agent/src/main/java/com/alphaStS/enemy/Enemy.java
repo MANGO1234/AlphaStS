@@ -83,6 +83,10 @@ public abstract class Enemy extends EnemyReadOnly {
         metallicize = n;
     }
 
+    public void setPlating(int n) {
+        plating = n;
+    }
+
     public void setBurningHealthBuff(boolean b) {
         if (properties.hasBurningHealthBuff != b) {
             properties = properties.clone();
@@ -92,6 +96,10 @@ public abstract class Enemy extends EnemyReadOnly {
 
     public void gainMetallicize(int n) {
         metallicize += n;
+    }
+
+    public void gainPlating(int n) {
+        plating += n;
     }
 
     public void gainPlatedArmor(int n) {
@@ -158,6 +166,10 @@ public abstract class Enemy extends EnemyReadOnly {
         if (!properties.isElite || (turnNum > 0 && metallicize > 0)) { // todo: burning elite
             gainBlock(metallicize);
         }
+        if (plating > 0) {
+            gainBlock(plating);
+            plating--;
+        }
         if (platedArmor > 0) {
             gainBlock(platedArmor);
         }
@@ -176,6 +188,7 @@ public abstract class Enemy extends EnemyReadOnly {
         poison = 0;
         regeneration = 0;
         metallicize = 0;
+        plating = 0;
         platedArmor = 0;
         loseStrengthEot = 0;
         doom = 0;
@@ -323,6 +336,7 @@ public abstract class Enemy extends EnemyReadOnly {
             properties.canGainRegeneration = possibleEnemies.stream().anyMatch((e) -> e.properties.canGainRegeneration);
             properties.canHeal = possibleEnemies.stream().anyMatch((e) -> e.properties.canHeal);
             properties.canGainMetallicize = possibleEnemies.stream().anyMatch((e) -> e.properties.canGainMetallicize);
+            properties.canGainPlating = possibleEnemies.stream().anyMatch((e) -> e.properties.canGainPlating);
             properties.canGainPlatedArmor = possibleEnemies.stream().anyMatch((e) -> e.properties.canGainPlatedArmor);
             properties.canGainBlock = possibleEnemies.stream().anyMatch((e) -> e.properties.canGainBlock);
             for (var e : possibleEnemies) {
@@ -422,12 +436,20 @@ public abstract class Enemy extends EnemyReadOnly {
             currentEnemy.setMetallicize(n);
         }
 
+        @Override public void setPlating(int n) {
+            currentEnemy.setPlating(n);
+        }
+
         @Override public void setBurningHealthBuff(boolean b) {
             currentEnemy.setBurningHealthBuff(b);
         }
 
         @Override public void gainMetallicize(int n) {
             currentEnemy.gainMetallicize(n);
+        }
+
+        @Override public void gainPlating(int n) {
+            currentEnemy.gainPlating(n);
         }
 
         @Override public void removeAllDebuffs() {
@@ -524,6 +546,10 @@ public abstract class Enemy extends EnemyReadOnly {
 
         @Override public int getMetallicize() {
             return currentEnemy.getMetallicize();
+        }
+
+        @Override public int getPlating() {
+            return currentEnemy.getPlating();
         }
 
         @Override public int getArtifact() {

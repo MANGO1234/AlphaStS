@@ -1462,6 +1462,24 @@ public class NNInputSchema {
             }
         });
 
+        // Enemy Plating (per-enemy)
+        allEnemyModules.add(new EnemyInputModule() {
+            @Override public int getLength(GameProperties p, EnemyReadOnly enemy) {
+                return enemy.properties.canGainPlating ? 1 : 0;
+            }
+            @Override public String getDescription(GameProperties p, EnemyReadOnly enemy) {
+                return "        1 input to keep track of plating\n";
+            }
+            @Override public int fill(GameState s, EnemyReadOnly enemy, float[] x, int idx) {
+                x[idx] = enemy.getPlating() / (float) 14.0;
+                return 1;
+            }
+            @Override public int print(GameState s, EnemyReadOnly enemy, float[] input, int idx) {
+                System.out.println("  Plating: " + input[idx]);
+                return 1;
+            }
+        });
+
         // Enemy Plated Armor (per-enemy)
         allEnemyModules.add(new EnemyInputModule() {
             @Override public int getLength(GameProperties p, EnemyReadOnly enemy) {
