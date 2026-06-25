@@ -3,6 +3,8 @@ package com.alphaStS.card;
 import com.alphaStS.*;
 import com.alphaStS.gameAction.GameActionCtx;
 
+import java.util.List;
+
 public class CardOther2 {
     // **************************************************************************************************
     // ********************************************* Status *********************************************
@@ -57,6 +59,37 @@ public class CardOther2 {
     // TODO: Frantic Escape (Status) - 1 energy, Status
     //   Effect: Get farther away. Increase Sandpit by 1. Increase the cost of this card by 1.
     //   No upgrade.
+    public static class FranticEscape extends Card {
+        public FranticEscape() {
+            super("Frantic Escape", Card.STATUS, 1, Card.COMMON);
+        }
+
+        @Override public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            // TODO: Implement Sandpit once the player Sandpit counter exists.
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            return List.of(
+                    getPermCostIfPossible(2),
+                    getPermCostIfPossible(3),
+                    getPermCostIfPossible(4),
+                    getPermCostIfPossible(5),
+                    getPermCostIfPossible(6),
+                    getPermCostIfPossible(7),
+                    getPermCostIfPossible(8),
+                    getPermCostIfPossible(9),
+                    getPermCostIfPossible(10));
+        }
+
+        @Override public int onPlayTransformCardIdx(GameProperties prop, int cardIdx) {
+            var card = prop.cardDict[cardIdx];
+            // TODO: Support Frantic Escape costs above 10 if Sandpit fights require it.
+            return card.realEnergyCost() >= 10
+                    ? -1
+                    : prop.findCardIndex(card.getPermCostIfPossible(card.realEnergyCost() + 1));
+        }
+    }
 
     // Infection (Status) - Unplayable, Status
     //   Effect: Unplayable. At the end of your turn, if this is in your Hand, take 3 damage.

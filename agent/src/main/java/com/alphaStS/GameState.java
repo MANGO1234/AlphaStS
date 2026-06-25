@@ -2343,11 +2343,15 @@ public final class GameState implements State {
     }
 
     public void onSelectEnemy(int idx) {
-        if (properties.shieldAndSpireFacingCounterIdx >= 0) {
+        if (properties.surroundedEnemiesFacingCounterIdx >= 0) {
             if (getEnemiesForRead().get(idx) instanceof EnemyEnding.SpireShield) {
-                getCounterForWrite()[properties.shieldAndSpireFacingCounterIdx] = 1;
+                getCounterForWrite()[properties.surroundedEnemiesFacingCounterIdx] = 1;
             } else if (getEnemiesForRead().get(idx) instanceof EnemyEnding.SpireSpear) {
-                getCounterForWrite()[properties.shieldAndSpireFacingCounterIdx] = 2;
+                getCounterForWrite()[properties.surroundedEnemiesFacingCounterIdx] = 2;
+            } else if (getEnemiesForRead().get(idx) instanceof EnemyHive.Crusher) {
+                getCounterForWrite()[properties.surroundedEnemiesFacingCounterIdx] = 1;
+            } else if (getEnemiesForRead().get(idx) instanceof EnemyHive.Rocket) {
+                getCounterForWrite()[properties.surroundedEnemiesFacingCounterIdx] = 2;
             }
         }
     }
@@ -4110,10 +4114,12 @@ public final class GameState implements State {
         if ((buffs & PlayerBuff.COLOSSUS.mask()) != 0 && enemy.getVulnerable() > 0) {
             dmg *= 0.5;
         }
-        if (properties.shieldAndSpireFacingCounterIdx >= 0) {
-            if (getCounterForRead()[properties.shieldAndSpireFacingCounterIdx] == 1 && enemy instanceof EnemyEnding.SpireSpear) {
+        if (properties.surroundedEnemiesFacingCounterIdx >= 0) {
+            if (getCounterForRead()[properties.surroundedEnemiesFacingCounterIdx] == 1 &&
+                    (enemy instanceof EnemyEnding.SpireSpear || enemy instanceof EnemyHive.Rocket)) {
                 dmg *= 1.5;
-            } else if (getCounterForRead()[properties.shieldAndSpireFacingCounterIdx] == 2 && enemy instanceof EnemyEnding.SpireShield) {
+            } else if (getCounterForRead()[properties.surroundedEnemiesFacingCounterIdx] == 2 &&
+                    (enemy instanceof EnemyEnding.SpireShield || enemy instanceof EnemyHive.Crusher)) {
                 dmg *= 1.5;
             }
         }

@@ -276,7 +276,7 @@ public class GameProperties implements Cloneable {
     public int selfRepairCounterIdx = -1;
     public int shadowStepCounterIdx = -1;
     public int shadowmeldCounterIdx = -1;
-    public int shieldAndSpireFacingCounterIdx = -1;
+    public int surroundedEnemiesFacingCounterIdx = -1;
     public int skillsPlayedThisTurnCounterIdx = -1;
     public int sneakyStrikeCounterIdx = -1;
     public int sneckoDebuffCounterIdx = -1;
@@ -286,6 +286,7 @@ public class GameProperties implements Cloneable {
     public int synthesisCounterIdx = -1;
     public int thunderDamageCounterIdx = -1;
     public int thunderStrikeCounterIdx = -1;
+    public int tenderCounterIdx = -1;
     public int timeEaterCounterIdx = -1;
     public int toolsOfTheTradeCounterIdx = -1;
     public int trackingCounterIdx = -1;
@@ -1126,6 +1127,40 @@ public class GameProperties implements Cloneable {
                 if (state.getCounterForRead()[state.properties.intangibleCounterIdx] > 0) {
                     state.getCounterForWrite()[state.properties.intangibleCounterIdx]--;
                 }
+            }
+        });
+    }
+
+    public void registerSurroundedEnemiesFacingCounter(String firstName, String secondName) {
+        registerCounter("Surrounded Enemies Facing", new GameProperties.CounterRegistrant() {
+            @Override public void setCounterIdx(GameProperties gameProperties, int idx) {
+                gameProperties.surroundedEnemiesFacingCounterIdx = idx;
+            }
+
+            @Override public int getCounterIdx(GameProperties gameProperties) {
+                return gameProperties.surroundedEnemiesFacingCounterIdx;
+            }
+        }, new NetworkInputHandler() {
+            @Override public int addToInput(GameState state, float[] input, int idx) {
+                int facing = state.getCounterForRead()[state.properties.surroundedEnemiesFacingCounterIdx];
+                if (facing == 1 || facing == 2) {
+                    input[idx + facing - 1] = 0.5f;
+                }
+                return idx + 2;
+            }
+
+            @Override public int getInputLenDelta() {
+                return 2;
+            }
+
+            @Override public String getDisplayString(GameState state) {
+                int facing = state.getCounterForRead()[state.properties.surroundedEnemiesFacingCounterIdx];
+                if (facing == 1) {
+                    return firstName;
+                } else if (facing == 2) {
+                    return secondName;
+                }
+                return "N/A";
             }
         });
     }

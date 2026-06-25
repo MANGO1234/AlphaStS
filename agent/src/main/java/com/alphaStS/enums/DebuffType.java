@@ -20,6 +20,7 @@ public enum DebuffType {
     CONSTRICTED,
     DRAW_REDUCTION,
     SNECKO,
+    TENDER,
     LOCK_ON,
     NO_BLOCK_FROM_CARDS,
     CHOKE,

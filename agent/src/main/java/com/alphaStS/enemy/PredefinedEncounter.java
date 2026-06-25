@@ -93,7 +93,33 @@ public enum PredefinedEncounter {
     GREMLIN_MERC("Gremlin Merc", 1, () -> List.of(new EnemyUnderdock.GremlinMerc(), new EnemyUnderdock.GremlinMercSneakyGremlin().startDead(), new EnemyUnderdock.GremlinMercFatGremlin().startDead())),
     HAUNTED_SHIP("Haunted Ship", 1, () -> List.of(new EnemyUnderdock.HauntedShip())),
     LAGAVULIN_MATRIARCH("Lagavulin Matriarch", 1, () -> List.of(new EnemyUnderdock.LagavulinMatriarch())),
-    LIVING_FOG("Living Fog", 1, () -> List.of(new EnemyUnderdock.LivingFog(), new EnemyUnderdock.GasBomb().startDead()));
+    LIVING_FOG("Living Fog", 1, () -> List.of(new EnemyUnderdock.LivingFog(), new EnemyUnderdock.GasBomb().startDead())),
+
+    // Slay the Spire 2: Hive
+    BOWLBUG_ROCK("Bowlbug (Rock)", 2, () -> List.of(new EnemyHive.BowlbugRock())),
+    BOWLBUG_EGG("Bowlbug (Egg)", 2, () -> List.of(new EnemyHive.BowlbugEgg())),
+    BOWLBUG_SILK("Bowlbug (Silk)", 2, () -> List.of(new EnemyHive.BowlbugSilk())),
+    BOWLBUG_NECTAR("Bowlbug (Nectar)", 2, () -> List.of(new EnemyHive.BowlbugNectar())),
+    CHOMPERS("Chompers", 2, () -> List.of(new EnemyHive.Chomper(EnemyHive.Chomper.CLAMP), new EnemyHive.Chomper(EnemyHive.Chomper.SCREECH))),
+    DECIMILLIPEDE("Decimillipede", 2, () -> List.of(new EnemyHive.Decimillipede(EnemyHive.Decimillipede.BULK), new EnemyHive.Decimillipede(EnemyHive.Decimillipede.WRITHE), new EnemyHive.Decimillipede(EnemyHive.Decimillipede.OUTGAS))),
+    ENTOMANCER("Entomancer", 2, () -> List.of(new EnemyHive.Entomancer())),
+    EXOSKELETONS("Exoskeletons", 2, () -> List.of(new EnemyHive.Exoskeleton(EnemyHive.Exoskeleton.SKITTER), new EnemyHive.Exoskeleton(EnemyHive.Exoskeleton.MANDIBLES), new EnemyHive.Exoskeleton(EnemyHive.Exoskeleton.ENRAGE), new EnemyHive.Exoskeleton(-1))),
+    HUNTER_KILLER("Hunter Killer", 2, () -> List.of(new EnemyHive.HunterKiller())),
+    INFESTED_PRISM("Infested Prism", 2, () -> List.of(new EnemyHive.InfestedPrism())),
+    KNOWLEDGE_DEMON("Knowledge Demon", 2, () -> List.of(new EnemyHive.KnowledgeDemon())),
+    LOUSE_PROGENITOR("Louse Progenitor", 2, () -> List.of(new EnemyHive.LouseProgenitor())),
+    MYTES("Mytes", 2, () -> List.of(new EnemyHive.Myte(EnemyHive.Myte.TOXIC_CORNUCOPIA), new EnemyHive.Myte(EnemyHive.Myte.SUCK))),
+    OVICOPTER("Ovicopter", 2, () -> List.of(new EnemyHive.Ovicopter(),
+            new EnemyHive.ToughEggOrHatchling().startDead(),
+            new EnemyHive.ToughEggOrHatchling().startDead(),
+            new EnemyHive.ToughEggOrHatchling().startDead())),
+    SLUMBERING_BEETLE("Slumbering Beetle", 2, () -> List.of(new EnemyHive.SlumberingBeetle())),
+    SPINY_TOAD("Spiny Toad", 2, () -> List.of(new EnemyHive.SpinyToad())),
+    THE_INSATIABLE("The Insatiable", 2, () -> List.of(new EnemyHive.TheInsatiable())),
+    THE_OBSCURA("The Obscura", 2, () -> List.of(new EnemyHive.TheObscura(), new EnemyHive.Parafright().startDead())),
+    THIEVING_HOPPER("Thieving Hopper", 2, () -> List.of(new EnemyHive.ThievingHopper())),
+    TUNNELER("Tunneler", 2, () -> List.of(new EnemyHive.Tunneler())),
+    KAISER_CRAB("Kaiser Crab", 2, () -> List.of(new EnemyHive.Crusher(), new EnemyHive.Rocket()));
 
     public final int act;
     public final String internalKey;
