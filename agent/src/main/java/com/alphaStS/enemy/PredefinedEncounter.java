@@ -106,6 +106,7 @@ public enum PredefinedEncounter {
     EXOSKELETONS("Exoskeletons", 2, () -> List.of(new EnemyHive.Exoskeleton(EnemyHive.Exoskeleton.SKITTER), new EnemyHive.Exoskeleton(EnemyHive.Exoskeleton.MANDIBLES), new EnemyHive.Exoskeleton(EnemyHive.Exoskeleton.ENRAGE), new EnemyHive.Exoskeleton(-1))),
     HUNTER_KILLER("Hunter Killer", 2, () -> List.of(new EnemyHive.HunterKiller())),
     INFESTED_PRISM("Infested Prism", 2, () -> List.of(new EnemyHive.InfestedPrism())),
+    KAISER_CRAB("Kaiser Crab", 2, () -> List.of(new EnemyHive.Crusher(), new EnemyHive.Rocket())),
     KNOWLEDGE_DEMON("Knowledge Demon", 2, () -> List.of(new EnemyHive.KnowledgeDemon())),
     LOUSE_PROGENITOR("Louse Progenitor", 2, () -> List.of(new EnemyHive.LouseProgenitor())),
     MYTES("Mytes", 2, () -> List.of(new EnemyHive.Myte(EnemyHive.Myte.TOXIC_CORNUCOPIA), new EnemyHive.Myte(EnemyHive.Myte.SUCK))),
@@ -119,7 +120,26 @@ public enum PredefinedEncounter {
     THE_OBSCURA("The Obscura", 2, () -> List.of(new EnemyHive.TheObscura(), new EnemyHive.Parafright().startDead())),
     THIEVING_HOPPER("Thieving Hopper", 2, () -> List.of(new EnemyHive.ThievingHopper())),
     TUNNELER("Tunneler", 2, () -> List.of(new EnemyHive.Tunneler())),
-    KAISER_CRAB("Kaiser Crab", 2, () -> List.of(new EnemyHive.Crusher(), new EnemyHive.Rocket()));
+    AEONGLASS("Aeonglass", 3, () -> List.of(new EnemyGlory.Aeonglass())),
+    AXEBOT("Axebot", 3, () -> List.of(new EnemyGlory.Axebot())),
+    DEVOTED_SCULPTOR("Devoted Sculptor", 3, () -> List.of(new EnemyGlory.DevotedSculptor())),
+    FABRICATOR("Fabricator", 3, () -> List.of(new EnemyGlory.Fabricator(),
+            new EnemyGlory.Guardbot().startDead(),
+            new EnemyGlory.Noisebot().startDead(),
+            new EnemyGlory.Zapbot().startDead(),
+            new EnemyGlory.Stabbot().startDead())),
+    FROG_KNIGHT("Frog Knight", 3, () -> List.of(new EnemyGlory.FrogKnight())),
+    GLOBE_HEAD("Globe Head", 3, () -> List.of(new EnemyGlory.GlobeHead())),
+    KNIGHT_GANG("Knight Gang", 3, () -> List.of(new EnemyGlory.FlailKnight(), new EnemyGlory.SpectralKnight(), new EnemyGlory.MagiKnight())),
+    MECHA_KNIGHT("Mecha Knight", 3, () -> List.of(new EnemyGlory.MechaKnight())),
+    OWL_MAGISTRATE("Owl Magistrate", 3, () -> List.of(new EnemyGlory.OwlMagistrate())),
+    QUEEN("Queen", 3, () -> List.of(new EnemyGlory.Queen(), new EnemyGlory.TorchHeadAmalgam())),
+    SCROLL_OF_BITING("Scroll of Biting", 3, () -> List.of(new EnemyGlory.ScrollOfBiting())),
+    SLIMED_BERSERKER("Slimed Berserker", 3, () -> List.of(new EnemyGlory.SlimedBerserker())),
+    SOUL_NEXUS("Soul Nexus", 3, () -> List.of(new EnemyGlory.SoulNexus())),
+    TEST_SUBJECT("Test Subject", 3, () -> List.of(new EnemyGlory.TestSubject())),
+    THE_LOST_AND_FORGOTTEN("The Lost and Forgotten", 3, () -> List.of(new EnemyGlory.TheLost(), new EnemyGlory.TheForgotten())),
+    TURRET_OPERATOR("Turret Operator", 3, () -> List.of(new EnemyGlory.TurretOperator(), new EnemyGlory.LivingShield()));
 
     public final int act;
     public final String internalKey;

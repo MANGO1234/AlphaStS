@@ -161,9 +161,22 @@ public class CardOther2 {
     //   Effect: Unplayable.
     public static class Wound extends CardOther.Wound {}
 
-    // TODO: Wither (Status) - Unplayable, Status
+    // Wither (Status) - Unplayable, Status
     //   Effect: Unplayable. At the end of your turn, if this is in your Hand, take 3 damage.
     //   Upgraded Effect: Unplayable. At the end of your turn, if this is in your Hand, take 6 damage.
+    public static class Wither extends Card {
+        public Wither() {
+            super("Wither", Card.STATUS, -1, Card.COMMON);
+            alwaysDiscard = true;
+        }
+
+        @Override public void onDiscardEndOfTurn(GameState state, int numCardsInHand) {
+            int wither = state.properties.aeonglassWitherCounterIdx >= 0
+                    ? Math.max(1, state.getCounterForRead()[state.properties.aeonglassWitherCounterIdx])
+                    : 1;
+            state.doNonAttackDamageToPlayer(3 * wither, false, this);
+        }
+    }
 
     // **************************************************************************************************
     // ********************************************* Curse  *********************************************
