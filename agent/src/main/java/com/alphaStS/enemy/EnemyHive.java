@@ -339,7 +339,6 @@ public class EnemyHive {
             this.openingMove = openingMove;
             properties.isElite = true;
             properties.canGainStrength = true;
-            properties.canSelfRevive = true;
             properties.entityProperty.changePlayerWeakened = true;
         }
 
@@ -350,6 +349,10 @@ public class EnemyHive {
 
         @Override public Enemy copy() {
             return new Decimillipede(this);
+        }
+
+        @Override public boolean canSelfRevive(GameState state) {
+            return hasLivingSegment(state);
         }
 
         @Override public int damage(double n, GameState state) {
@@ -1592,7 +1595,6 @@ public class EnemyHive {
 
         public Parafright(int health) {
             super(health, 2, false);
-            properties.canSelfRevive = true;
         }
 
         public Parafright(Parafright other) {
@@ -1601,6 +1603,16 @@ public class EnemyHive {
 
         @Override public Enemy copy() {
             return new Parafright(this);
+        }
+
+        @Override public boolean canSelfRevive(GameState state) {
+            for (int i = 0; i < state.getEnemiesForRead().size(); i++) {
+                EnemyReadOnly enemy = state.getEnemiesForRead().get(i);
+                if (enemy instanceof TheObscura && enemy.isAlive()) {
+                    return true;
+                }
+            }
+            return false;
         }
 
         @Override public int damage(double n, GameState state) {

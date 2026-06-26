@@ -31,7 +31,6 @@ public class EnemyBeyond {
         public AwakenedOne(int health) {
             super(health, 6, true);
             properties.canGainStrength = true;
-            properties.canSelfRevive = true;
             properties.isBoss = true;
             strength = 2;
         }
@@ -43,6 +42,10 @@ public class EnemyBeyond {
 
         @Override public Enemy copy() {
             return new EnemyBeyond.AwakenedOne(this);
+        }
+
+        @Override public boolean canSelfRevive(GameState state) {
+            return !awakened;
         }
 
         @Override public int damage(double n, GameState state) {
@@ -1763,7 +1766,6 @@ public class EnemyBeyond {
             this.middle = middle;
             properties.canGainStrength = true;
             properties.canGainBlock = true;
-            properties.canSelfRevive = true;
         }
 
         public Darkling(EnemyBeyond.Darkling other) {
@@ -1775,6 +1777,16 @@ public class EnemyBeyond {
 
         @Override public Enemy copy() {
             return new EnemyBeyond.Darkling(this);
+        }
+
+        @Override public boolean canSelfRevive(GameState state) {
+            for (int i = 0; i < state.getEnemiesForRead().size(); i++) {
+                EnemyReadOnly enemy = state.getEnemiesForRead().get(i);
+                if (enemy instanceof Darkling && enemy.isAlive()) {
+                    return true;
+                }
+            }
+            return false;
         }
 
         public int getLowerPossibleNipDmg() {

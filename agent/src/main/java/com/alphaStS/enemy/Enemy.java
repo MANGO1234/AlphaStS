@@ -19,6 +19,11 @@ public abstract class Enemy extends EnemyReadOnly {
     }
 
     public abstract void nextMove(GameState state, RandomGen random);
+
+    @Override public boolean canSelfRevive(GameState state) {
+        return false;
+    }
+
     public void saveStateForNextMove(GameState state) {}
 
     public int damage(double n, GameState state) {

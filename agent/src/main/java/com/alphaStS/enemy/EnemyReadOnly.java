@@ -32,7 +32,6 @@ public abstract class EnemyReadOnly implements GameProperties.TrainingTargetRegi
         public boolean hasBurningEliteBuff = false;
         public boolean hasArtifact = false;
         public boolean useLast2MovesForMoveSelection;
-        public boolean canSelfRevive;
         public boolean isAct3;
         public int generatedCardIdx = -1; // when getPossibleGeneratedCards return 1 card, this is the card index for it
         public int[] generatedCardIdxes; // when getPossibleGeneratedCards returns non-empty list, this is the card indexes for each card in the order of the list
@@ -98,6 +97,10 @@ public abstract class EnemyReadOnly implements GameProperties.TrainingTargetRegi
     public EnemyReadOnly startDead() {
         startDead = true;
         return this;
+    }
+
+    public boolean canSelfRevive(GameState state) {
+        return false;
     }
 
     public EnemyReadOnly(int health, int numOfMoves, boolean useLast2MovesForMoveSelection) {

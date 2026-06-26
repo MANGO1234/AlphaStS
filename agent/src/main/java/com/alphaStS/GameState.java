@@ -1385,7 +1385,7 @@ public final class GameState implements State {
                         selectIdx = -1;
                     } else {
                         cardPlayedSuccessfully = false;
-                        targetHalfAlive = e.properties.canSelfRevive;
+                        targetHalfAlive = e.canSelfRevive(this);
                         setActionCtx(GameActionCtx.PLAY_CARD, action, cloneSource);
                     }
                 } else if (targetableEnemies == 1) {
@@ -1779,7 +1779,7 @@ public final class GameState implements State {
             var enemies = getEnemiesForWrite();
             for (int i = 0; i < enemies.size(); i++) {
                 var enemy = enemies.get(i);
-                if (enemy.isAlive() || enemy.properties.canSelfRevive) {
+                if (enemy.isAlive() || enemy.canSelfRevive(this)) {
                     var enemy2 = enemies.getForWrite(i);
                     enemy2.endTurn(turnNum);
                     if (!properties.isRunicDomeEnabled(this)) {
@@ -2060,7 +2060,7 @@ public final class GameState implements State {
         boolean atLeastOneAlive = false;
         for (int i = 0; i < enemies.size(); i++) {
             var enemy = enemies.get(i);
-            if (enemy.isAlive() || enemy.properties.canSelfRevive) {
+            if (enemy.isAlive() || enemy.canSelfRevive(this)) {
                 livingEnemies[livingEnemiesCount++] = i;
                 if (enemy.isAlive()) {
                     atLeastOneAlive = true;
@@ -2087,7 +2087,7 @@ public final class GameState implements State {
                     }
                     isStochastic = oldIsStochastic | isStochastic;
                 }
-                if (enemy2.isAlive() || enemy2.properties.canSelfRevive) {
+                if (enemy2.isAlive() || enemy2.canSelfRevive(this)) {
                     enemy2.doMove(this, enemy2);
                 }
                 if (i != livingEnemiesCount - 1) {

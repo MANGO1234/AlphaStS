@@ -1608,7 +1608,7 @@ public class NNInputSchema {
                             }
                         }
                     }
-                } else if (enemy.properties.canSelfRevive) {
+                } else if (enemy.canSelfRevive(state)) {
                     for (int i = 0; i < enemy.properties.numOfMoves; i++) {
                         x[idx++] = enemy.getMove() == i ? 0.5f : -0.5f;
                     }

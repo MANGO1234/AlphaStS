@@ -135,7 +135,6 @@ public class EnemyGlory {
 
         public Axebot(int health) {
             super(health, 3, false);
-            properties.canSelfRevive = true;
             properties.canGainBlock = true;
             properties.canGainStrength = true;
             properties.entityProperty.changePlayerWeakened = true;
@@ -149,6 +148,10 @@ public class EnemyGlory {
 
         @Override public Enemy copy() {
             return new Axebot(this);
+        }
+
+        @Override public boolean canSelfRevive(GameState state) {
+            return stock > 0;
         }
 
         @Override public int damage(double n, GameState state) {

@@ -893,7 +893,7 @@ public class InteractiveMode {
         out.println("Enemies Alive: " + state.enemiesAlive);
         for (var enemy : state.getEnemiesForRead()) {
             enemyArrayIdx++;
-            if (!(enemy.isAlive() || (enemy.properties.canSelfRevive && enemy.getMove() >= 0))) {
+            if (!(enemy.isAlive() || (enemy.canSelfRevive(state) && enemy.getMove() >= 0))) {
                 continue;
             }
             out.println("Enemy " + (enemyIdx++) + ": " + enemy.getName());

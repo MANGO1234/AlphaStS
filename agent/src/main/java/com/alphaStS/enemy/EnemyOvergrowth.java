@@ -543,7 +543,6 @@ public class EnemyOvergrowth {
 
         public EyeWithTeeth(int health) {
             super(health, 1, false);
-            properties.canSelfRevive = true;
             this.health = 0;
         }
 
@@ -553,6 +552,16 @@ public class EnemyOvergrowth {
 
         @Override public Enemy copy() {
             return new EyeWithTeeth(this);
+        }
+
+        @Override public boolean canSelfRevive(GameState state) {
+            for (int i = 0; i < state.getEnemiesForRead().size(); i++) {
+                EnemyReadOnly enemy = state.getEnemiesForRead().get(i);
+                if (enemy instanceof Fogmog && enemy.isAlive()) {
+                    return true;
+                }
+            }
+            return false;
         }
 
         @Override public void doMove(GameState state, EnemyReadOnly self) {
