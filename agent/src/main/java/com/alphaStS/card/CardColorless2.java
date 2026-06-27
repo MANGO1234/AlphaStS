@@ -1861,7 +1861,7 @@ public class CardColorless2 {
             if (state.properties.conquerorCounterIdx >= 0 && state.getCounterForRead()[state.properties.conquerorCounterIdx] > 0) {
                 dmg <<= state.getCounterForRead()[state.properties.conquerorCounterIdx];
             }
-            if ((state.buffs & PlayerBuff.SEEKING_EDGE.mask()) != 0) {
+            if (state.hasBuff(PlayerBuff.SEEKING_EDGE)) {
                 for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
                     state.playerDoDamageToEnemy(enemy, dmg, this);
                 }

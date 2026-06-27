@@ -136,21 +136,21 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     public static class Akabeko extends Relic {
         public Akabeko() {
-            entityProperty.possibleBuffs |= PlayerBuff.AKABEKO.mask();
+            entityProperty.addPossibleBuff(PlayerBuff.AKABEKO);
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addStartOfBattleHandler(new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     if (isRelicEnabledInScenario(state)) {
-                        state.buffs |= PlayerBuff.AKABEKO.mask();
+                        state.addBuff(PlayerBuff.AKABEKO);
                     }
                 }
             });
             state.properties.addOnCardPlayedHandler(new GameEventCardHandler() {
                 @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
                     if (state.properties.cardDict[cardIdx].cardType == Card.ATTACK) {
-                        state.buffs &= ~PlayerBuff.AKABEKO.mask();
+                        state.removeBuff(PlayerBuff.AKABEKO);
                     }
                 }
             });
@@ -193,7 +193,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     public static class ArtOfWar extends Relic {
         public ArtOfWar() {
-            entityProperty.possibleBuffs |= PlayerBuff.ART_OF_WAR.mask();
+            entityProperty.addPossibleBuff(PlayerBuff.ART_OF_WAR);
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
@@ -203,7 +203,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                         return;
                     }
                     if (state.properties.cardDict[cardIdx].cardType == Card.ATTACK) {
-                        state.buffs &= ~PlayerBuff.ART_OF_WAR.mask();
+                        state.removeBuff(PlayerBuff.ART_OF_WAR);
                     }
                 }
             });
@@ -212,10 +212,10 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                     if (!isRelicEnabledInScenario(state)) {
                         return;
                     }
-                    if (state.turnNum > 1 && (state.buffs & PlayerBuff.ART_OF_WAR.mask()) != 0) {
+                    if (state.turnNum > 1 && state.hasBuff(PlayerBuff.ART_OF_WAR)) {
                         state.gainEnergy(1);
                     }
-                    state.buffs |= PlayerBuff.ART_OF_WAR.mask();
+                    state.addBuff(PlayerBuff.ART_OF_WAR);
                 }
             });
         }
@@ -286,22 +286,22 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     public static class CentennialPuzzle extends Relic {
         public CentennialPuzzle() {
-            entityProperty.possibleBuffs |= PlayerBuff.CENTENNIAL_PUZZLE.mask();
+            entityProperty.addPossibleBuff(PlayerBuff.CENTENNIAL_PUZZLE);
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addStartOfBattleHandler(new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     if (isRelicEnabledInScenario(state)) {
-                        state.buffs |= PlayerBuff.CENTENNIAL_PUZZLE.mask();
+                        state.addBuff(PlayerBuff.CENTENNIAL_PUZZLE);
                     }
                 }
             });
             state.properties.addOnDamageHandler(new OnDamageHandler() {
                 @Override public void handle(GameState state, Object source, boolean isAttack, int damageDealt) {
                     if (damageDealt <= 0) return;
-                    if ((state.buffs & PlayerBuff.CENTENNIAL_PUZZLE.mask()) != 0) {
-                        state.buffs &= ~PlayerBuff.CENTENNIAL_PUZZLE.mask();
+                    if (state.hasBuff(PlayerBuff.CENTENNIAL_PUZZLE)) {
+                        state.removeBuff(PlayerBuff.CENTENNIAL_PUZZLE);
                         state.addGameActionToEndOfDeque(new CardDrawAction(3));
                     }
                 }
@@ -2084,7 +2084,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     public static class Necronomicon extends Relic {
         public Necronomicon() {
-            entityProperty.possibleBuffs |= PlayerBuff.NECRONOMICON.mask();
+            entityProperty.addPossibleBuff(PlayerBuff.NECRONOMICON);
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
@@ -2098,7 +2098,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
             state.properties.addStartOfTurnHandler(new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     if (isRelicEnabledInScenario(state)) {
-                        state.buffs |= PlayerBuff.NECRONOMICON.mask();
+                        state.addBuff(PlayerBuff.NECRONOMICON);
                     }
                 }
             });
@@ -2107,8 +2107,8 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                     if (state.properties.cardDict[cardIdx].cardType != Card.ATTACK) {
                         return;
                     }
-                    if (energyUsed >= 2 && (state.buffs & PlayerBuff.NECRONOMICON.mask()) != 0) {
-                        state.buffs &= ~PlayerBuff.NECRONOMICON.mask();
+                    if (energyUsed >= 2 && state.hasBuff(PlayerBuff.NECRONOMICON)) {
+                        state.removeBuff(PlayerBuff.NECRONOMICON);
                         state.addGameActionToEndOfDeque(curState -> {
                             var action = curState.properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][cardIdx];
                             curState.playCard(action, lastIdx, true, Relic.Necronomicon.class, false, false, energyUsed, cloneParentLocation);

@@ -3277,12 +3277,12 @@ public class CardRegent2 {
             super(cardName, Card.POWER, 1, Card.RARE);
             this.forgeAmount = forgeAmount;
             entityProperty.canForge = true;
-            entityProperty.possibleBuffs |= PlayerBuff.SEEKING_EDGE.mask();
+            entityProperty.addPossibleBuff(PlayerBuff.SEEKING_EDGE);
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.forge(forgeAmount);
-            state.buffs |= PlayerBuff.SEEKING_EDGE.mask();
+            state.addBuff(PlayerBuff.SEEKING_EDGE);
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -3433,11 +3433,11 @@ public class CardRegent2 {
             super(cardName, Card.POWER, 3, Card.RARE);
             this.freeCards = freeCards;
             this.ethereal = ethereal;
-            entityProperty.possibleBuffs |= PlayerBuff.END_TURN_IMMEDIATELY.mask();
+            entityProperty.addPossibleBuff(PlayerBuff.END_TURN_IMMEDIATELY);
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.buffs |= PlayerBuff.END_TURN_IMMEDIATELY.mask();
+            state.addBuff(PlayerBuff.END_TURN_IMMEDIATELY);
             int cur = state.getCounterForRead()[counterIdx];
             int perTurn = (cur >> 8) + freeCards;
             int remaining = (cur & 0xFF) + freeCards;

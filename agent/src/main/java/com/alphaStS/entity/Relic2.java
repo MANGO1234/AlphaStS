@@ -918,7 +918,7 @@ public class Relic2 {
     //   Effect: Each combat, the first time you play a card that Debuffs an enemy, double its effect.
     public static class UnsettlingLamp extends Relic {
         public UnsettlingLamp() {
-            entityProperty.possibleBuffs |= PlayerBuff.UNSETTLING_LAMP.mask();
+            entityProperty.addPossibleBuff(PlayerBuff.UNSETTLING_LAMP);
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
@@ -926,7 +926,7 @@ public class Relic2 {
             state.properties.addStartOfBattleHandler("UnsettlingLamp", new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     if (isRelicEnabledInScenario(state)) {
-                        state.buffs |= PlayerBuff.UNSETTLING_LAMP.mask();
+                        state.addBuff(PlayerBuff.UNSETTLING_LAMP);
                     }
                 }
             });

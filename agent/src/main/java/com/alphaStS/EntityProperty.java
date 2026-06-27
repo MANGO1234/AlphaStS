@@ -48,6 +48,14 @@ public class EntityProperty {
     public boolean needToKeepTrackOfEnemyHitCount;
     public boolean otsyAttack;
 
+    public void addPossibleBuff(PlayerBuff buff) {
+        possibleBuffs |= buff.mask();
+    }
+
+    public boolean hasPossibleBuff(PlayerBuff buff) {
+        return (possibleBuffs & buff.mask()) != 0;
+    }
+
     public void mergeFrom(EntityProperty other) {
         changePlayerArtifact |= other.changePlayerArtifact;
         changePlayerStrength |= other.changePlayerStrength;

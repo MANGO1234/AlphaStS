@@ -159,13 +159,13 @@ public class TestReplay {
         }
 
         boolean logCannotDrawCard = playerNode.path("cannot_draw_card").asBoolean(false);
-        boolean noCardDrawForTheTurn = (state.buffs & PlayerBuff.NO_CARD_DRAW_FOR_THE_TURN.mask()) != 0;
+        boolean noCardDrawForTheTurn = state.hasBuff(PlayerBuff.NO_CARD_DRAW_FOR_THE_TURN);
         if (logCannotDrawCard != noCardDrawForTheTurn) {
             throw new ReplayException("Player noCardDrawForTheTurn mismatch: log=" + logCannotDrawCard + " state=" + noCardDrawForTheTurn, state, line);
         }
 
         boolean logHexed = playerNode.path("hexed").asBoolean(false);
-        boolean hex = (state.buffs & PlayerBuff.HEX.mask()) != 0;
+        boolean hex = state.hasBuff(PlayerBuff.HEX);
         if (logHexed != hex) {
             throw new ReplayException("Player HEX mismatch: log=" + logHexed + " state=" + hex, state, line);
         }

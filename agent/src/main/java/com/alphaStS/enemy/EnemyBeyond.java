@@ -425,7 +425,7 @@ public class EnemyBeyond {
             properties.entityProperty.changePlayerVulnerable = true;
             properties.entityProperty.changePlayerWeakened = true;
             properties.entityProperty.changePlayerFrailed = true;
-            properties.entityProperty.possibleBuffs |= PlayerBuff.END_TURN_IMMEDIATELY.mask();
+            properties.entityProperty.addPossibleBuff(PlayerBuff.END_TURN_IMMEDIATELY);
             properties.isBoss = true;
         }
 
@@ -495,7 +495,7 @@ public class EnemyBeyond {
                         if (enemy instanceof TimeEater && enemy.isAlive()) {
                             c[state.properties.timeEaterCounterIdx]++;
                             if (c[state.properties.timeEaterCounterIdx] == 12) {
-                                state.buffs |= PlayerBuff.END_TURN_IMMEDIATELY.mask();
+                                state.addBuff(PlayerBuff.END_TURN_IMMEDIATELY);
                             }
                             break;
                         }

@@ -815,7 +815,7 @@ public class CardWatcher {
         public _ConcludeT(String cardName, int damage) {
             super(cardName, Card.ATTACK, 1, Card.UNCOMMON);
             this.damage = damage;
-            entityProperty.possibleBuffs |= PlayerBuff.END_TURN_IMMEDIATELY.mask();
+            entityProperty.addPossibleBuff(PlayerBuff.END_TURN_IMMEDIATELY);
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -824,7 +824,7 @@ public class CardWatcher {
                     state.playerDoNonAttackDamageToEnemy(state.getEnemiesForWrite().getForWrite(i), damage, true);
                 }
             }
-            state.buffs |= PlayerBuff.END_TURN_IMMEDIATELY.mask();
+            state.addBuff(PlayerBuff.END_TURN_IMMEDIATELY);
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -1174,7 +1174,7 @@ public class CardWatcher {
             super(cardName, Card.SKILL, energyCost, Card.UNCOMMON);
             this.cardCount = cardCount;
             entityProperty.selectFromDiscard = true;
-            entityProperty.possibleBuffs |= PlayerBuff.END_TURN_IMMEDIATELY.mask();
+            entityProperty.addPossibleBuff(PlayerBuff.END_TURN_IMMEDIATELY);
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -1197,7 +1197,7 @@ public class CardWatcher {
                 // Reset counter, enter Calm, and end turn
                 state.getCounterForWrite()[counterIdx] = 0;
                 state.changeStance(Stance.CALM);
-                state.buffs |= PlayerBuff.END_TURN_IMMEDIATELY.mask();
+                state.addBuff(PlayerBuff.END_TURN_IMMEDIATELY);
                 return GameActionCtx.PLAY_CARD;
             }
         }
@@ -2327,21 +2327,21 @@ public class CardWatcher {
             super(cardName, Card.SKILL, 1, Card.RARE);
             this.exhaustWhenPlayed = true;
             this.retain = retain;
-            entityProperty.possibleBuffs |= PlayerBuff.BLASPHEMY.mask();
+            entityProperty.addPossibleBuff(PlayerBuff.BLASPHEMY);
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.changeStance(Stance.DIVINITY);
-            state.buffs |= PlayerBuff.BLASPHEMY.mask();
+            state.addBuff(PlayerBuff.BLASPHEMY);
             return GameActionCtx.PLAY_CARD;
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addStartOfTurnHandler("Blasphemy", new GameEventHandler() {
                 @Override public void handle(GameState state) {
-                    if ((state.buffs & PlayerBuff.BLASPHEMY.mask()) != 0) {
+                    if (state.hasBuff(PlayerBuff.BLASPHEMY)) {
                         state.doNonAttackDamageToPlayer(99999, false, null);
-                        state.buffs &= ~PlayerBuff.BLASPHEMY.mask();
+                        state.removeBuff(PlayerBuff.BLASPHEMY);
                     }
                 }
             });
@@ -2768,7 +2768,7 @@ public class CardWatcher {
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             int cardIdx = state.getDeckArrForRead()[idx];
             state.removeCardFromDeck(idx, true);
-            
+
             // Play the card twice
             var action = state.properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][cardIdx];
             if (action != null) {
@@ -2892,12 +2892,13 @@ public class CardWatcher {
         public _VaultT(String cardName, int energyCost) {
             super(cardName, Card.SKILL, energyCost, Card.RARE);
             this.exhaustWhenPlayed = true;
-            entityProperty.possibleBuffs |= PlayerBuff.END_TURN_IMMEDIATELY.mask() | PlayerBuff.USED_VAULT.mask();
+            entityProperty.addPossibleBuff(PlayerBuff.END_TURN_IMMEDIATELY);
+            entityProperty.addPossibleBuff(PlayerBuff.USED_VAULT);
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.buffs |= PlayerBuff.USED_VAULT.mask();
-            state.buffs |= PlayerBuff.END_TURN_IMMEDIATELY.mask();
+            state.addBuff(PlayerBuff.USED_VAULT);
+            state.addBuff(PlayerBuff.END_TURN_IMMEDIATELY);
             return GameActionCtx.PLAY_CARD;
         }
     }

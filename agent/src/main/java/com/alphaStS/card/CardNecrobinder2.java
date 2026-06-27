@@ -3016,12 +3016,12 @@ public class CardNecrobinder2 {
         public _ReaperFormT(String cardName, boolean retain) {
             super(cardName, Card.POWER, 3, Card.RARE);
             this.retain = retain;
-            entityProperty.possibleBuffs |= PlayerBuff.REAPER_FORM.mask();
+            entityProperty.addPossibleBuff(PlayerBuff.REAPER_FORM);
             entityProperty.doomEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.buffs |= PlayerBuff.REAPER_FORM.mask();
+            state.addBuff(PlayerBuff.REAPER_FORM);
             return GameActionCtx.PLAY_CARD;
         }
     }

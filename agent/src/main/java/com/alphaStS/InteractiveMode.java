@@ -1063,7 +1063,7 @@ public class InteractiveMode {
             if (state.getPlayerForRead().isEntangled()) {
                 out.println("  - Entangled");
             }
-            if ((state.buffs & PlayerBuff.NO_CARD_DRAW_FOR_THE_TURN.mask()) != 0) {
+            if (state.hasBuff(PlayerBuff.NO_CARD_DRAW_FOR_THE_TURN)) {
                 out.println("  - Cannot Draw Card");
             }
             for (int i = 0; i < state.properties.potions.size(); i++) {

@@ -2315,7 +2315,7 @@ public class CardSilent {
     private static abstract class _BulletTimeT extends Card {
         public _BulletTimeT(String cardName, int energyCost) {
             super(cardName, Card.SKILL, energyCost, Card.RARE);
-            this.entityProperty.possibleBuffs |= PlayerBuff.NO_CARD_DRAW_FOR_THE_TURN.mask();
+            this.entityProperty.addPossibleBuff(PlayerBuff.NO_CARD_DRAW_FOR_THE_TURN);
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {

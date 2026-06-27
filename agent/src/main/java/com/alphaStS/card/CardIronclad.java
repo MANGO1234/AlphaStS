@@ -757,7 +757,7 @@ public class CardIronclad {
         public _BattleTranceT(String cardName, int draw) {
             super(cardName, Card.SKILL, 0, Card.UNCOMMON);
             this.draw = draw;
-            this.entityProperty.possibleBuffs |= PlayerBuff.NO_CARD_DRAW_FOR_THE_TURN.mask();
+            this.entityProperty.addPossibleBuff(PlayerBuff.NO_CARD_DRAW_FOR_THE_TURN);
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -2168,11 +2168,11 @@ public class CardIronclad {
     private static abstract class _BarricadeT extends Card {
         public _BarricadeT(String cardName, int energyCost) {
             super(cardName, Card.POWER, energyCost, Card.RARE);
-            entityProperty.possibleBuffs |= PlayerBuff.BARRICADE.mask();
+            entityProperty.addPossibleBuff(PlayerBuff.BARRICADE);
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.buffs |= PlayerBuff.BARRICADE.mask();
+            state.addBuff(PlayerBuff.BARRICADE);
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -2293,11 +2293,11 @@ public class CardIronclad {
         public _CorruptionT(String cardName, int energyCost) {
             super(cardName, Card.POWER, energyCost, Card.RARE);
             exhaustSkill = true;
-            entityProperty.possibleBuffs |= PlayerBuff.CORRUPTION.mask();
+            entityProperty.addPossibleBuff(PlayerBuff.CORRUPTION);
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.buffs |= PlayerBuff.CORRUPTION.mask();
+            state.addBuff(PlayerBuff.CORRUPTION);
             return GameActionCtx.PLAY_CARD;
         }
     }

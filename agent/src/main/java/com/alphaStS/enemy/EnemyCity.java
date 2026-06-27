@@ -2018,14 +2018,14 @@ public class EnemyCity {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addOnCardPlayedHandler("Chosen", new GameEventCardHandler() {
                 @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
-                    if (state.properties.cardDict[cardIdx].cardType != Card.ATTACK && (state.buffs & PlayerBuff.HEX.mask()) != 0) {
+                    if (state.properties.cardDict[cardIdx].cardType != Card.ATTACK && state.hasBuff(PlayerBuff.HEX)) {
                         state.addCardToDeck(properties.generatedCardIdx);
                     }
                 }
             });
             state.properties.addNNInputHandler("Hex", new GameProperties.NetworkInputHandler() {
                 @Override public int addToInput(GameState state, float[] input, int idx) {
-                    input[idx] = (state.buffs & PlayerBuff.HEX.mask()) != 0 ? 0.5f : -0.5f;
+                    input[idx] = state.hasBuff(PlayerBuff.HEX) ? 0.5f : -0.5f;
                     return idx + 1;
                 }
 

@@ -761,7 +761,7 @@ public class ScenarioStats {
                 ds1.addValue(dmgEntry.getKey());
             }
         }
-        
+
         DescriptiveStatistics ds2 = new DescriptiveStatistics();
         for (Map.Entry<Integer, Integer> dmgEntry : group2.damageCountNoDeath.entrySet()) {
             for (int i = 0; i < dmgEntry.getValue(); i++) {

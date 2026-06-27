@@ -355,6 +355,18 @@ public final class GameState implements State {
         return result;
     }
 
+    public void addBuff(PlayerBuff buff) {
+        buffs |= buff.mask();
+    }
+
+    public void removeBuff(PlayerBuff buff) {
+        buffs &= ~buff.mask();
+    }
+
+    public boolean hasBuff(PlayerBuff buff) {
+        return (buffs & buff.mask()) != 0;
+    }
+
     public GameState(GameStateBuilder builder) {
         builder.build(this);
         List<Enemy> enemiesArg = builder.getEnemies();
@@ -1090,7 +1102,7 @@ public final class GameState implements State {
     }
 
     public int draw(int count) {
-        if (count == 0 || (buffs & PlayerBuff.NO_CARD_DRAW_FOR_THE_TURN.mask()) != 0) {
+        if (count == 0 || hasBuff(PlayerBuff.NO_CARD_DRAW_FOR_THE_TURN)) {
             return -1;
         }
         if (properties.fiddle != null && properties.fiddle.isRelicEnabledInScenario(this) && !isStartOfTurnPhase) {
@@ -1221,7 +1233,7 @@ public final class GameState implements State {
     }
 
     private int getCardEnergyCost(int cardIdx) {
-        if ((buffs & PlayerBuff.CORRUPTION.mask()) != 0 && properties.cardDict[cardIdx].cardType == Card.SKILL) {
+        if (hasBuff(PlayerBuff.CORRUPTION) && properties.cardDict[cardIdx].cardType == Card.SKILL) {
             return 0;
         } else if (properties.blueCandle != null && properties.blueCandle.isRelicEnabledInScenario(this) && properties.cardDict[cardIdx].cardType == Card.CURSE) {
             return 0;
@@ -1497,7 +1509,7 @@ public final class GameState implements State {
             if (cloneSource == null && properties.havocCounterIdx >= 0 && getCounterForRead()[properties.havocCounterIdx] == 0) {
                 if (properties.cardDict[cardIdx].exhaustWhenPlayed) {
                     cloneParentLocation = GameState.EXHAUST;
-                } else if ((buffs & PlayerBuff.CORRUPTION.mask()) != 0 && properties.cardDict[cardIdx].cardType == Card.SKILL) {
+                } else if (hasBuff(PlayerBuff.CORRUPTION) && properties.cardDict[cardIdx].cardType == Card.SKILL) {
                     cloneParentLocation = GameState.EXHAUST;
                 } else if (properties.cardDict[cardIdx].returnToDeckWhenPlay || properties.cardDict[cardIdx].returnToTopOfDeckWhenPlay || (properties.nostalgiaCounterIdx >= 0 && getCounterForRead()[properties.nostalgiaCounterIdx] > 0 && (properties.cardDict[cardIdx].cardType == Card.ATTACK || properties.cardDict[cardIdx].cardType == Card.SKILL))) {
                     cloneParentLocation = GameState.DECK;
@@ -1534,7 +1546,7 @@ public final class GameState implements State {
             if (cloneSource == null && (properties.havocCounterIdx < 0 || getCounterForRead()[properties.havocCounterIdx] == 0)) {
                 if (properties.cardDict[cardIdx].exhaustWhenPlayed) {
                     exhaustedCardHandle(cardIdx, true);
-                } else if ((buffs & PlayerBuff.CORRUPTION.mask()) != 0 && properties.cardDict[cardIdx].cardType == Card.SKILL) {
+                } else if (hasBuff(PlayerBuff.CORRUPTION) && properties.cardDict[cardIdx].cardType == Card.SKILL) {
                     exhaustedCardHandle(cardIdx, true);
                 } else if (properties.cardDict[cardIdx].returnToDeckWhenPlay) {
                     addCardToDeck(cardIdx);
@@ -1775,7 +1787,7 @@ public final class GameState implements State {
         if (properties.character == CharacterEnum.WATCHER) {
             exitDivinityAtStartOfTurn();
         }
-        if ((buffs & PlayerBuff.USED_VAULT.mask()) == 0) {
+        if (!hasBuff(PlayerBuff.USED_VAULT)) {
             var enemies = getEnemiesForWrite();
             for (int i = 0; i < enemies.size(); i++) {
                 var enemy = enemies.get(i);
@@ -1801,7 +1813,7 @@ public final class GameState implements State {
             }
         }
         triggerOrbsPassiveStartOfTurn();
-        buffs &= ~PlayerBuff.USED_VAULT.mask();
+        removeBuff(PlayerBuff.USED_VAULT);
         if (properties.toolbox != null && turnNum == 0 && properties.toolbox.isRelicEnabledInScenario(this)) {
             Relic.Toolbox.changeToSelectionCtx(this);
         } else {
@@ -2067,7 +2079,7 @@ public final class GameState implements State {
                 }
             }
         }
-        if (atLeastOneAlive && (buffs & PlayerBuff.USED_VAULT.mask()) == 0) {
+        if (atLeastOneAlive && !hasBuff(PlayerBuff.USED_VAULT)) {
             for (int i = 0; i < livingEnemiesCount; i++) {
                 if (enemies.getForWrite(livingEnemies[i]).getHealth() > 0) {
                     enemies.getForWrite(livingEnemies[i]).startTurn(this);
@@ -2107,7 +2119,7 @@ public final class GameState implements State {
         if (properties.timeEaterCounterIdx >= 0 && getCounterForRead()[properties.timeEaterCounterIdx] == 12) {
             getCounterForWrite()[properties.timeEaterCounterIdx] = 0;
         }
-        buffs &= ~PlayerBuff.END_TURN_IMMEDIATELY.mask();
+        removeBuff(PlayerBuff.END_TURN_IMMEDIATELY);
         getPlayerForWrite().endTurn(this);
         if (properties.iceCream == null || !properties.iceCream.isRelicEnabledInScenario(this)) {
             energy = 0;
@@ -3103,7 +3115,7 @@ public final class GameState implements State {
                 legal[legal.length - 1] = true; // End Turn
                 int count = 1;
 
-                if ((buffs & PlayerBuff.END_TURN_IMMEDIATELY.mask()) != 0) {
+                if (hasBuff(PlayerBuff.END_TURN_IMMEDIATELY)) {
                     // Only End Turn is legal when this buff is active
                     legalActions = new int[1];
                     legalActions[0] = legal.length - 1; // End Turn action index
@@ -3898,10 +3910,10 @@ public final class GameState implements State {
             if (cw.mod.inky) dmg += 2;
             if (cw.mod.vigorous > 0) dmg += cw.mod.vigorous;
         }
-        if ((buffs & PlayerBuff.AKABEKO.mask()) != 0) {
+        if (hasBuff(PlayerBuff.AKABEKO)) {
             dmg += 8;
         }
-        if ((buffs & PlayerBuff.WRIST_BLADE.mask()) != 0) {
+        if (hasBuff(PlayerBuff.WRIST_BLADE)) {
             dmg += 4;
         }
         if (properties.miniatureCannon != null && properties.miniatureCannon.isRelicEnabledInScenario(this) && CardManager.isUpgraded(damageSource)) {
@@ -3976,7 +3988,7 @@ public final class GameState implements State {
                 enemy.applyDebuff(this, DebuffType.VULNERABLE, 2);
             }
 
-            if (dmgDone > 0 && (buffs & PlayerBuff.REAPER_FORM.mask()) != 0) {
+            if (dmgDone > 0 && hasBuff(PlayerBuff.REAPER_FORM)) {
                 enemy.applyDebuff(this, DebuffType.DOOM, dmgDone);
             }
             if (dmgDone > 0 && currentlyPlayedCardIdx >= 0 && properties.cardDict[currentlyPlayedCardIdx] instanceof Card.CardWrapper cw && cw.mod.inky) {
@@ -4063,13 +4075,13 @@ public final class GameState implements State {
     public void checkWristBladeBuffForZeroCostAttack(int cardIdx) {
         if (properties.wristBlade != null && properties.wristBlade.isRelicEnabledInScenario(this)) {
             if (properties.cardDict[cardIdx].cardType == Card.ATTACK && getCardEnergyCost(cardIdx) == 0) {
-                buffs |= PlayerBuff.WRIST_BLADE.mask();
+                addBuff(PlayerBuff.WRIST_BLADE);
             }
         }
     }
 
     public void removeWristBladeBuff() {
-        buffs &= ~PlayerBuff.WRIST_BLADE.mask();
+        removeBuff(PlayerBuff.WRIST_BLADE);
     }
 
     public void adjustEnemiesAlive(int count) {
@@ -4111,7 +4123,7 @@ public final class GameState implements State {
             }
             dmg *= weakMult;
         }
-        if ((buffs & PlayerBuff.COLOSSUS.mask()) != 0 && enemy.getVulnerable() > 0) {
+        if (hasBuff(PlayerBuff.COLOSSUS) && enemy.getVulnerable() > 0) {
             dmg *= 0.5;
         }
         if (properties.surroundedEnemiesFacingCounterIdx >= 0) {

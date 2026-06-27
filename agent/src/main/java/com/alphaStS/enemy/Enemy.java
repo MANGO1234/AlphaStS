@@ -224,9 +224,9 @@ public abstract class Enemy extends EnemyReadOnly {
             return false;
         }
         if (state.properties.unsettlingLamp != null && state.properties.unsettlingLamp.isRelicEnabledInScenario(state)
-                && (state.buffs & PlayerBuff.UNSETTLING_LAMP.mask()) != 0) {
+                && state.hasBuff(PlayerBuff.UNSETTLING_LAMP)) {
             n *= 2;
-            state.buffs &= ~PlayerBuff.UNSETTLING_LAMP.mask();
+            state.removeBuff(PlayerBuff.UNSETTLING_LAMP);
         }
         switch (type) {
         case VULNERABLE -> {

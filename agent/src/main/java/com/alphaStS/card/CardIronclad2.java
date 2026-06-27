@@ -1800,19 +1800,19 @@ public class CardIronclad2 {
         public _ColossusT(String cardName, int block) {
             super(cardName, Card.SKILL, 1, Card.UNCOMMON);
             this.block = block;
-            entityProperty.possibleBuffs |= PlayerBuff.COLOSSUS.mask();
+            entityProperty.addPossibleBuff(PlayerBuff.COLOSSUS);
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.playerGainBlock(block);
-            state.buffs |= PlayerBuff.COLOSSUS.mask();
+            state.addBuff(PlayerBuff.COLOSSUS);
             return GameActionCtx.PLAY_CARD;
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addStartOfTurnHandler("Colossus", new GameEventHandler() {
                 @Override public void handle(GameState state) {
-                    state.buffs &= ~PlayerBuff.COLOSSUS.mask();
+                    state.removeBuff(PlayerBuff.COLOSSUS);
                 }
             });
         }

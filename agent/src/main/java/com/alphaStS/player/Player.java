@@ -190,9 +190,9 @@ public class Player extends PlayerReadOnly {
         case LOSE_DEXTERITY_EOT -> this.loseDexterityEot += n;
         case LOSE_FOCUS_EOT -> this.loseFocusEot += n;
         case LOSE_DEXTERITY_PER_TURN -> state.getCounterForWrite()[state.properties.loseDexterityPerTurnCounterIdx] += n;
-        case NO_MORE_CARD_DRAW -> state.buffs |= PlayerBuff.NO_CARD_DRAW_FOR_THE_TURN.mask();
+        case NO_MORE_CARD_DRAW -> state.addBuff(PlayerBuff.NO_CARD_DRAW_FOR_THE_TURN);
         case ENTANGLED -> this.entangled += n;
-        case HEX -> state.buffs |= PlayerBuff.HEX.mask();
+        case HEX -> state.addBuff(PlayerBuff.HEX);
         case LOSE_FOCUS -> state.gainFocus(-n);
         case LOSE_FOCUS_PER_TURN -> state.getCounterForWrite()[state.properties.loseFocusPerTurnCounterIdx] += n;
         case LOSE_ENERGY_PER_TURN -> state.getCounterForWrite()[state.properties.loseEnergyPerTurnCounterIdx] += n;
@@ -207,7 +207,7 @@ public class Player extends PlayerReadOnly {
     }
 
     public void preEndTurn(GameState state) {
-        state.buffs &= ~PlayerBuff.NO_CARD_DRAW_FOR_THE_TURN.mask();
+        state.removeBuff(PlayerBuff.NO_CARD_DRAW_FOR_THE_TURN);
         if (platedArmor > 0) {
             gainBlockNotFromCardPlay(platedArmor, state);
         }
@@ -241,7 +241,7 @@ public class Player extends PlayerReadOnly {
         loseStrengthEot = 0;
         loseDexterityEot = 0;
         loseFocusEot = 0;
-        if ((state.buffs & PlayerBuff.BARRICADE.mask()) != 0) {
+        if (state.hasBuff(PlayerBuff.BARRICADE)) {
         } else if (state.properties.blurCounterIdx >= 0 && state.getCounterForRead()[state.properties.blurCounterIdx] > 0) {
             state.getCounterForWrite()[state.properties.blurCounterIdx]--;
         } else {
@@ -286,8 +286,8 @@ public class Player extends PlayerReadOnly {
         vulnerable = 0;
         weak = 0;
         frail = 0;
-        state.buffs &= ~PlayerBuff.NO_CARD_DRAW_FOR_THE_TURN.mask();
-        state.buffs &= ~PlayerBuff.HEX.mask();
+        state.removeBuff(PlayerBuff.NO_CARD_DRAW_FOR_THE_TURN);
+        state.removeBuff(PlayerBuff.HEX);
         entangled = 0;
         loseStrengthEot = 0;
         loseDexterityEot = 0;

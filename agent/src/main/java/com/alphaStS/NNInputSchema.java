@@ -810,7 +810,7 @@ public class NNInputSchema {
 
         // Player buffs
         for (PlayerBuff buff : PlayerBuff.BUFFS) {
-            if ((props.anyEntityProperty.possibleBuffs & buff.mask()) != 0) {
+            if (props.anyEntityProperty.hasPossibleBuff(buff)) {
                 inputLen += 1;
                 descBody.append("    1 input to keep track of buff ").append(buff.name()).append("\n");
                 final long mask = buff.mask();
