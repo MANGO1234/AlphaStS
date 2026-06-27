@@ -1,5 +1,7 @@
 package com.alphaStS;
 
+import java.util.function.Predicate;
+
 public class Configuration {
     public static final boolean SLAY_THE_SPIRE2_SHUFFLE_FORCED = false;
     public static boolean DO_NOT_USE_CACHED_STATE_WHEN_MAKING_REAL_MOVE = false;
@@ -110,6 +112,12 @@ public class Configuration {
     public static boolean STATS_PRINT_CARD_USAGE_COUNT = false;
     public static boolean STATS_PRINT_PER_MODEL_STATS = false;
     public static boolean STATS_PRINT_TREE_DEPTH = true;
+    public enum PrintDamageLevel { NONE, ALL_SCENARIOS_COMBINED, GROUPED_SCENARIOS, INDIVIDUAL_SCENARIO }
+    public static PrintDamageLevel PRINT_DAMAGE_LEVEL = PrintDamageLevel.NONE;
+    public static final Predicate<MatchSession.Game> WRITE_MATCHES_WINS = (game) -> game.steps().get(game.steps().size() - 1).state().isTerminal() > 0;
+    public static final Predicate<MatchSession.Game> WRITE_MATCHES_LOSS = (game) -> game.steps().get(game.steps().size() - 1).state().isTerminal() < 0;
+    public static Predicate<MatchSession.Game> WRITE_MATCHES_FILTER;
+    public static int WRITE_MATCHES_MAX_COUNT = 0;
     // when set, writes a JSON map of damage -> occurrence count to this filename inside the iteration folder
     public static String STATS_WRITE_DAMAGE_DISTRIBUTION_FILE_SUFFIX = "_nosl";
 

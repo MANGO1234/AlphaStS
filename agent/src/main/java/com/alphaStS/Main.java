@@ -16,9 +16,13 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 public class Main {
+    private static final DateTimeFormatter MATCH_LOG_FILE_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss");
+
     public static void main(String[] args) throws IOException {
         if (args.length > 0 && args[0].equals("--gui-server")) {
             BattleBuilderGuiServer.start(args);
@@ -66,8 +70,6 @@ public class Main {
     private static int TRAINING_NUMBER_OF_NODES_PER_TURN = 100;
     private static int NUMBER_OF_THREADS = 1;
     private static int BATCH_SIZE = 1;
-    private static boolean WRITE_MATCHES = false;
-    private static MatchSession.PrintDamageLevel PRINT_DAMAGE_LEVEL = MatchSession.PrintDamageLevel.NONE;
     private static boolean MAKE_PRE_BATTLE_SCENARIOS_RANDOM = false;
     private static boolean TEST_TRAINING_AGENT_ONLY = false;
     private static String COMPARE_DIR = null;
@@ -135,9 +137,10 @@ public class Main {
 
         if (SAVES_DIR.startsWith("../")) {
             SAVES_DIR = "../saves";
-            PRINT_DAMAGE_LEVEL = MatchSession.PrintDamageLevel.NONE;
-            WRITE_MATCHES = true;
-            NUMBER_OF_GAMES_TO_PLAY = 1000;
+            Configuration.PRINT_DAMAGE_LEVEL = Configuration.PrintDamageLevel.NONE;
+            Configuration.STATS_PRINT_CARD_USAGE_COUNT = false;
+            Configuration.WRITE_MATCHES_MAX_COUNT = 100;
+            Configuration.WRITE_MATCHES_FILTER = null;
             int n = state.properties.randomization == null ? 1 : state.properties.randomization.listRandomizations().size();
             n *= state.properties.preBattleRandomization == null ? 1 : state.properties.preBattleRandomization.listRandomizations().size();
             n *= state.properties.preBattleScenarios == null ? 1 : state.properties.preBattleScenarios.listRandomizations().size();
@@ -192,9 +195,9 @@ public class Main {
         parseCommonArgs(state, args);
         MatchSession session = new MatchSession(CUR_ITER_DIRECTORY);
         session.setModelComparison(COMPARE_DIR, state, -1);
-        session.setPrintDamageLevel(PRINT_DAMAGE_LEVEL);
-        if (NUMBER_OF_GAMES_TO_PLAY <= 100 || WRITE_MATCHES) {
-            session.setMatchLogFile("matches.txt.gz");
+        session.setPrintDamageLevel(Configuration.PRINT_DAMAGE_LEVEL);
+        if (Configuration.WRITE_MATCHES_MAX_COUNT > 0) {
+            session.setMatchLogFile("matches-" + LocalDateTime.now().format(MATCH_LOG_FILE_FORMATTER) + ".txt.gz");
         }
         var preBattleScenarios = state.properties.preBattleScenarios;
         var randomization = state.properties.preBattleRandomization;
@@ -239,10 +242,6 @@ public class Main {
         }
 
         MatchSession session = new MatchSession(CUR_ITER_DIRECTORY);
-        session.setPrintDamageLevel(PRINT_DAMAGE_LEVEL);
-        if (NUMBER_OF_GAMES_TO_PLAY <= 100) {
-            session.setMatchLogFile("training_matches.txt.gz");
-        }
         var preBattleScenarios = state.properties.preBattleScenarios;
         var randomization = state.properties.preBattleRandomization;
         makePreBattleScenariosRandom(state, preBattleScenarios);

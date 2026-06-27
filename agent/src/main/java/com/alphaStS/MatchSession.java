@@ -1,5 +1,6 @@
 package com.alphaStS;
 
+import com.alphaStS.Configuration.PrintDamageLevel;
 import com.alphaStS.gameAction.GameActionCtx;
 import com.alphaStS.gameAction.GameActionType;
 import com.alphaStS.model.Model;
@@ -30,16 +31,13 @@ import java.util.stream.IntStream;
 import static java.lang.Math.sqrt;
 
 public class MatchSession {
-    private final static boolean LOG_GAME_USING_LINES_FORMAT = true;
-
-    public enum PrintDamageLevel { NONE, ALL_SCENARIOS_COMBINED, GROUPED_SCENARIOS, INDIVIDUAL_SCENARIO }
     private PrintDamageLevel printDamageLevel = PrintDamageLevel.NONE;
     public void setPrintDamageLevel(PrintDamageLevel printDamageLevel) {
         this.printDamageLevel = printDamageLevel;
     }
 
     public HashMap<Integer, Integer> difficultyReachedByScenario = new HashMap<>();
-    Writer matchLogWriter;
+    MatchSessionWriter matchSessionWriter;
     Writer trainingDataWriter;
     List<MCTS> mcts = new ArrayList<>();
     List<MCTS> mctsCmp = new ArrayList<>();
@@ -54,6 +52,7 @@ public class MatchSession {
 
     public MatchSession(String dir) {
         modelDir = dir;
+        matchSessionWriter = new MatchSessionWriter(modelDir);
         modelExecutor = new ModelExecutor(modelDir);
     }
 
@@ -408,18 +407,12 @@ public class MatchSession {
                     chanceNodeStats.get(game.steps.get(0).state()).add(game.steps, steps2, result.modelCalls2, result.reruns);
                 }
                 game_i.incrementAndGet();
-                if (matchLogWriter != null && game.steps.get(game.steps.size() - 1).state().isTerminal() < 0) {
-                    matchLogWriter.write("*** Match " + game_i + " ***\n");
-                    writeGameRecord(matchLogWriter, result, steps, combinedInfoMap, r);
-                }
+                matchSessionWriter.writeMatch(game_i.get(), result, steps, combinedInfoMap, r);
             } else {
                 r = result.remoteR;
                 scenarioStats.computeIfAbsent(r, (k) -> new ScenarioStats(origState.properties)).add(result.remoteStats);
                 remoteServerGames.computeIfPresent(result.remoteServer, (k, x) -> x + 1);
-                if (matchLogWriter != null) {
-                    matchLogWriter.write("*** Match " + game_i + " (Remote) ***\n");
-                    matchLogWriter.write(result.remoteGameRecord);
-                }
+                matchSessionWriter.writeRemoteMatch(game_i.get(), result.remoteGameRecord);
                 game_i.incrementAndGet();
             }
 
@@ -496,35 +489,6 @@ public class MatchSession {
             totalCalls += m.calls;
         }
         System.out.println("Model Average: time_taken=" + (totalTimeTaken / models.size()) + ", cache_size=" + (totalCacheSize / models.size()) + ", " + totalCacheHits + "/" + totalCalls + " hits (" + (double) totalCacheHits / totalCalls + ")");
-    }
-
-    private void writeGameRecord(Writer writer, GameResult result, List<GameStep> steps, Map<Integer, GameStateRandomization.Info> combinedInfoMap, int r) throws IOException {
-        var state = steps.get(steps.size() - 1).state();
-        int damageTaken = state.getPlayerForRead().getOrigHealth() - state.getPlayerForRead().getHealth();
-        if (state.properties.randomization != null) {
-            if (combinedInfoMap.size() > 1) {
-                writer.write("Scenario: " + combinedInfoMap.get(r).desc() + "\n");
-            }
-        }
-        writer.write("Result: " + (state.isTerminal() == 1 ? "Win" : "Loss") + "\n");
-        writer.write("Damage Taken: " + damageTaken + "\n");
-        writer.write("Seed: " + result.seed + "\n");
-        boolean usingLine = steps.stream().anyMatch((s) -> s.lines != null);
-        if (usingLine && LOG_GAME_USING_LINES_FORMAT) {
-            for (GameStep step : steps) {
-                if (step.state().actionCtx == GameActionCtx.BEGIN_TURN) continue;
-                if (step.lines != null) {
-                    writer.write(step.state().toString() + "\n");
-                    for (int i = 0; i < Math.min(step.lines.size(), 5); i++) {
-                        writer.write("  " + (i + 1) + ". " + step.lines.get(i) + "\n");
-                    }
-                }
-            }
-        } else {
-            printGame(writer, steps);
-        }
-        writer.write("\n");
-        writer.write("\n");
     }
 
     private List<Tuple<String, Integer>> getRemoteServers() {
@@ -658,9 +622,8 @@ public class MatchSession {
         var ret = getInfoMaps(origState.properties);
         var battleInfoMap = ret.v2();
         var r = game.preBattle_r * battleInfoMap.size() + game.battle_r;
-        var gameRecordWriter = new StringWriter();
-        writeGameRecord(gameRecordWriter, result, steps, ret.v1(), r);
-        return new RemoteGameResult(r, stat, gameRecordWriter.toString());
+        String gameRecord = matchSessionWriter.getRemoteGameRecord(result, steps, ret.v1(), r);
+        return new RemoteGameResult(r, stat, gameRecord);
     }
 
     public void stopPlayGamesRemote() {
@@ -1575,13 +1538,7 @@ public class MatchSession {
     }
 
     public void setMatchLogFile(String fileName) {
-        try {
-            File file = new File(modelDir + "/" + fileName);
-            file.delete();
-            matchLogWriter = new OutputStreamWriter(new GzipCompressorOutputStream(new FileOutputStream(modelDir + "/" + fileName, true)));
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        matchSessionWriter.setMatchLogFile(fileName);
     }
 
     private static class GameRecord {
@@ -1685,14 +1642,7 @@ public class MatchSession {
     }
 
     public void flushAndCloseFileWriters() {
-        try {
-            if (matchLogWriter != null) {
-                matchLogWriter.flush();
-                matchLogWriter.close();
-            }
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        matchSessionWriter.flushAndClose();
         try {
             if (trainingDataWriter != null) {
                 trainingDataWriter.flush();

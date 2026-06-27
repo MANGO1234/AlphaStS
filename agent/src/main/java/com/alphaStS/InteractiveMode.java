@@ -1869,8 +1869,9 @@ public class InteractiveMode {
         }
         MatchSession session = new MatchSession(modelDir);
         session.startingAction = startingAction;
-        session.setPrintDamageLevel(printDamageDistribution ? MatchSession.PrintDamageLevel.ALL_SCENARIOS_COMBINED : MatchSession.PrintDamageLevel.NONE);
+        session.setPrintDamageLevel(printDamageDistribution ? Configuration.PrintDamageLevel.ALL_SCENARIOS_COMBINED : Configuration.PrintDamageLevel.NONE);
         if (writeFile) {
+            Configuration.WRITE_MATCHES_MAX_COUNT = numberOfGames;
             session.setMatchLogFile("matches_interactive.txt.gz");
         }
         var prevRandomization = state.properties.randomization;
