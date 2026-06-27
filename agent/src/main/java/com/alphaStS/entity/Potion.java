@@ -420,8 +420,8 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
                 return GameActionCtx.PLAY_CARD; // tested, potion is wasted
             }
             state.removeCardFromDiscard(idx);
-            if (state.properties.tmp0CostCardUntilEndOfTurnTransformIdxes[idx] >= 0) {
-                state.addCardToHand(state.properties.tmp0CostCardUntilEndOfTurnTransformIdxes[idx]);
+            if (state.properties.tmp0CostCardTransformIdxes[idx] >= 0) {
+                state.addCardToHand(state.properties.tmp0CostCardTransformIdxes[idx]);
             } else {
                 state.addCardToHand(idx);
             }
