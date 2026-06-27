@@ -368,7 +368,8 @@ public class CardSilent {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.getCounterForWrite()[counterIdx] += state.playerGainBlock(n);
+            state.playerGainBlock(n);
+            state.playerGainBlockNextTurn(n);
             return GameActionCtx.PLAY_CARD;
         }
 

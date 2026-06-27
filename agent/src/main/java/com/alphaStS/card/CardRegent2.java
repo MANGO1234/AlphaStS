@@ -457,7 +457,7 @@ public class CardRegent2 {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.playerGainBlock(block);
-            state.getCounterForWrite()[counterIdx] += nextBlock;
+            state.playerGainBlockNextTurn(nextBlock);
             return GameActionCtx.PLAY_CARD;
         }
 

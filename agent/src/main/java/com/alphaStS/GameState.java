@@ -4391,8 +4391,8 @@ public final class GameState implements State {
         return player;
     }
 
-    public int playerGainBlock(int n) {
-        if (currentlyPlayedCardIdx >= 0 && properties.cardDict[currentlyPlayedCardIdx] instanceof Card.CardWrapper cw && cw.mod.nimble > 0) {
+    private int applyCardBlockModification(int n) {
+        if (properties.cardDict[currentlyPlayedCardIdx] instanceof Card.CardWrapper cw && cw.mod.nimble > 0) {
             n += cw.mod.nimble;
         }
         if (properties.vambraceCounterIdx >= 0 && properties.vambrace.isRelicEnabledInScenario(this) && getCounterForRead()[properties.vambraceCounterIdx] == 0) {
@@ -4410,6 +4410,11 @@ public final class GameState implements State {
                 n *= 2;
             }
         }
+        return n;
+    }
+
+    public int playerGainBlock(int n) {
+        n = applyCardBlockModification(n);
         if (properties.vitruvianMinion != null && properties.vitruvianMinion.isRelicEnabledInScenario(this)
                 && currentAction != null && currentAction.type() == GameActionType.PLAY_CARD
                 && properties.cardDict[currentAction.idx()].cardName.contains("Minion")) {
@@ -4422,6 +4427,16 @@ public final class GameState implements State {
             }
         }
         return blockGained;
+    }
+
+    public int playerGainBlockNextTurn(int n) {
+        n = applyCardBlockModification(n);
+        return getPlayerForWrite().gainBlockNextTurn(n, this);
+    }
+
+    public int playerGainBlockNextNextTurn(int n) {
+        n = applyCardBlockModification(n);
+        return getPlayerForWrite().gainBlockNextNextTurn(n, this);
     }
 
     public void playerGainBlockNotFromCardPlay(int n) {

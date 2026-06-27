@@ -1367,8 +1367,8 @@ public class CardColorless2 {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.playerGainBlock(block);
-            state.getCounterForWrite()[state.properties.blockNextTurnCounterIdx] += block;
-            state.getCounterForWrite()[counterIdx] += block;
+            state.playerGainBlockNextTurn(block);
+            state.playerGainBlockNextNextTurn(block);
             return GameActionCtx.PLAY_CARD;
         }
 

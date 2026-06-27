@@ -127,7 +127,7 @@ public class Player extends PlayerReadOnly {
         return healed;
     }
 
-    public int gainBlock(int n, GameState state) {
+    private int modifyCardBlock(int n, GameState state) {
         if (noMoreBlockFromCards > 0) {
             return 0;
         }
@@ -139,10 +139,27 @@ public class Player extends PlayerReadOnly {
         if (state.properties.shadowmeldCounterIdx >= 0) {
             n *= (1 + state.getCounterForRead()[state.properties.shadowmeldCounterIdx]);
         }
+        return n;
+    }
+
+    public int gainBlock(int n, GameState state) {
+        n = modifyCardBlock(n, state);
         block += n;
         if (block > 999) {
             block = 999;
         }
+        return n;
+    }
+
+    public int gainBlockNextTurn(int n, GameState state) {
+        n = modifyCardBlock(n, state);
+        state.getCounterForWrite()[state.properties.blockNextTurnCounterIdx] += n;
+        return n;
+    }
+
+    public int gainBlockNextNextTurn(int n, GameState state) {
+        n = modifyCardBlock(n, state);
+        state.getCounterForWrite()[state.properties.blockNextNextTurnCounterIdx] += n;
         return n;
     }
 
