@@ -1502,46 +1502,53 @@ public class CardColorless2 {
 
     private static abstract class _NeowsFuryT extends Card {
         private final int damage;
+        private final int amount;
 
-        public _NeowsFuryT(String cardName, int damage) {
+        public _NeowsFuryT(String cardName, int damage, int amount) {
             super(cardName, Card.ATTACK, 1, Card.RARE);
             this.damage = damage;
+            this.amount = amount;
             this.exhaustWhenPlayed = true;
             entityProperty.selectEnemy = true;
+            entityProperty.selectFromDiscard = true;
+            selectFromDiscardLater = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
-            if (state.discardArrLen > 2) {
-                state.setIsStochastic();
+            if (state.actionCtx == GameActionCtx.SELECT_ENEMY) {
+                state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
+                state.getCounterForWrite()[counterIdx] = Math.min(amount, state.getNumCardsInDiscard());
+                return state.getCounterForRead()[counterIdx] > 0 ? GameActionCtx.SELECT_CARD_DISCARD : GameActionCtx.PLAY_CARD;
             }
-            for (int i = 0; i < 2; i++) {
-                if (state.discardArrLen > 0) {
-                    int randIdx = state.getSearchRandomGen().nextInt(state.discardArrLen, RandomGenCtx.RandomCardGen, new Tuple<>(state, state.getDiscardArrForRead()));
-                    int cardIdx = state.getDiscardArrForRead()[randIdx];
-                    state.removeCardFromDiscardByPosition(randIdx);
-                    state.addCardToHand(cardIdx);
-                }
+            if (state.getNumCardsInHand() < GameState.HAND_LIMIT) {
+                state.removeCardFromDiscard(idx);
+                state.addCardToHand(idx);
             }
+            state.getCounterForWrite()[counterIdx]--;
+            if (state.getCounterForRead()[counterIdx] > 0 && state.getNumCardsInDiscard() > 0) {
+                return GameActionCtx.SELECT_CARD_DISCARD;
+            }
+            state.getCounterForWrite()[counterIdx] = 0;
             return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("NeowsFury", this, null);
         }
     }
 
     // Neow's Fury (Ancient) - 1 energy, Attack
-    //   Effect: Deal 10 damage. Put 2 random cards from your Discard Pile into your Hand. Exhaust.
-    //   Upgraded Effect: Deal 14 damage. Put 2 random cards from your Discard Pile into your Hand. Exhaust.
-    // TODO CHANGED: Neow's Fury (Ancient) - 1 energy, Attack
-    //   Effect: Deal 10 damage. Put 2 random cards from your Discard Pile into your Hand. Exhaust.
-    //   Upgraded Effect: Deal 14 damage. Put 3 random cards from your Discard Pile into your Hand. Exhaust.
+    //   Effect: Deal 10 damage. Put up to 2 cards from your Discard Pile into your Hand. Exhaust.
+    //   Upgraded Effect: Deal 14 damage. Put up to 3 cards from your Discard Pile into your Hand. Exhaust.
     public static class NeowsFury extends _NeowsFuryT {
         public NeowsFury() {
-            super("Neow's Fury", 10);
+            super("Neow's Fury", 10, 2);
         }
     }
 
     public static class NeowsFuryP extends _NeowsFuryT {
         public NeowsFuryP() {
-            super("Neow's Fury+", 14);
+            super("Neow's Fury+", 14, 3);
         }
     }
 

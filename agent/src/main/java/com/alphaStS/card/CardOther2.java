@@ -56,9 +56,8 @@ public class CardOther2 {
         }
     }
 
-    // TODO: Frantic Escape (Status) - 1 energy, Status
+    // Frantic Escape (Status) - 1 energy, Status
     //   Effect: Get farther away. Increase Sandpit by 1. Increase the cost of this card by 1.
-    //   No upgrade.
     public static class FranticEscape extends Card {
         public FranticEscape() {
             super("Frantic Escape", Card.STATUS, 1, Card.COMMON);
@@ -229,13 +228,12 @@ public class CardOther2 {
     }
 
     // Folly (Curse) - Unplayable, Curse
-    //   Effect: Unplayable. Innate. Eternal.
-    // TODO CHANGED: Folly (Curse) - Unplayable, Curse
     //   Effect: Unplayable. Ethereal. Innate. Eternal.
     //   No upgrade.
     public static class Folly extends Card {
         public Folly() {
             super("Folly", Card.CURSE, -1, Card.COMMON);
+            ethereal = true;
             exhaustWhenPlayed = true;
             innate = true;
         }

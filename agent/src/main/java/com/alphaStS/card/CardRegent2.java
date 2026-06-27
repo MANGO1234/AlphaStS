@@ -125,25 +125,27 @@ public class CardRegent2 {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
-                state.playerDoDamageToEnemy(enemy, dmg, this);
+            for (int i = 0; i < 2; i++) {
+                for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
+                    state.playerDoDamageToEnemy(enemy, dmg, this);
+                }
             }
             return GameActionCtx.PLAY_CARD;
         }
     }
 
     // Astral Pulse (Common) - 0 energy, 3 star, Attack
-    //   Effect: Deal 14 damage to ALL enemies.
-    //   Upgraded Effect: Deal 18 damage to ALL enemies.
+    //   Effect: Deal 6 damage to ALL enemies twice.
+    //   Upgraded Effect: Deal 8 damage to ALL enemies twice.
     public static class AstralPulse extends _AstralPulseT {
         public AstralPulse() {
-            super("Astral Pulse", 14);
+            super("Astral Pulse", 6);
         }
     }
 
     public static class AstralPulseP extends _AstralPulseT {
         public AstralPulseP() {
-            super("Astral Pulse+", 18);
+            super("Astral Pulse+", 8);
         }
     }
 
@@ -1630,10 +1632,12 @@ public class CardRegent2 {
 
     private static abstract class _ManifestAuthorityT extends Card {
         private final int block;
+        private final boolean upgraded;
 
-        public _ManifestAuthorityT(String cardName, int block) {
+        public _ManifestAuthorityT(String cardName, int block, boolean upgraded) {
             super(cardName, Card.SKILL, 1, Card.UNCOMMON);
             this.block = block;
+            this.upgraded = upgraded;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -1644,7 +1648,8 @@ public class CardRegent2 {
         }
 
         @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
-            return CardManager.getColorlessCards(false);
+            var colorlessCards = CardManager.getColorlessCards(false);
+            return upgraded ? colorlessCards.stream().map(Card::getUpgrade).filter(java.util.Objects::nonNull).toList() : colorlessCards;
         }
     }
 
@@ -1653,13 +1658,13 @@ public class CardRegent2 {
     //   Upgraded Effect: Gain 8 Block. Add 1 random Upgraded Colorless card into your Hand.
     public static class ManifestAuthority extends _ManifestAuthorityT {
         public ManifestAuthority() {
-            super("Manifest Authority", 7);
+            super("Manifest Authority", 7, false);
         }
     }
 
     public static class ManifestAuthorityP extends _ManifestAuthorityT {
         public ManifestAuthorityP() {
-            super("Manifest Authority+", 8);
+            super("Manifest Authority+", 8, true);
         }
     }
 
