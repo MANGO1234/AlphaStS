@@ -11,6 +11,7 @@ import com.alphaStS.eventHandler.OnDamageHandler;
 import com.alphaStS.random.RandomGen;
 import com.alphaStS.random.RandomGenCtx;
 
+import java.io.PrintStream;
 import java.util.List;
 
 public class EnemyEnding {
@@ -229,20 +230,12 @@ public class EnemyEnding {
         private int invincible = 200;
         private int buffCount = 0;
 
-        public int getInvincible() {
+        int getInvincible() {
             return invincible;
         }
 
         public void setInvincible(int invincible) {
             this.invincible = invincible;
-        }
-
-        public int getBeatOfDeath() {
-            return beatOfDeath;
-        }
-
-        public int getBuffCount() {
-            return buffCount;
         }
 
         public CorruptHeart() {
@@ -272,6 +265,12 @@ public class EnemyEnding {
 
         @Override public Enemy copy() {
             return new CorruptHeart(this);
+        }
+
+        @Override public void interactiveModePrint(GameState state, PrintStream out) {
+            out.println("  Invincible: " + invincible);
+            out.println("  Beat Of Death: " + beatOfDeath);
+            out.println("  Buff Count: " + buffCount);
         }
 
         @Override public int damage(double n, GameState state) {

@@ -931,48 +931,7 @@ public class InteractiveMode {
             if (enemy.getLoseStrengthEot() != 0) {
                 out.println("  Gain Strength EOT: " + -enemy.getLoseStrengthEot());
             }
-            if (enemy instanceof EnemyExordium.RedLouse louse) {
-                if (!louse.hasCurledUp()) {
-                    out.println("  Curl Up: " + louse.getCurlUpAmount());
-                }
-            } else if (enemy instanceof EnemyExordium.GreenLouse louse) {
-                if (!louse.hasCurledUp()) {
-                    out.println("  Curl Up: " + louse.getCurlUpAmount());
-                }
-            } else if (enemy instanceof EnemyExordium.TheGuardian guardian) {
-                out.println("  Mode Shift Damage: " + guardian.getModeShiftDmg() + "/" + guardian.getMaxModeShiftDmg());
-            } else if (enemy instanceof EnemyCity.BronzeOrb orb) {
-                if (!orb.usedStasis()) {
-                    out.println("  Stasis: Not Used");
-                } else if (orb.getStasisCard() >= 0) {
-                    out.println("  Stasis: Used (" + state.properties.cardDict[orb.getStasisCard()].cardName + ")");
-                } else {
-                    out.println("  Stasis: Used");
-                }
-            } else if (enemy instanceof EnemyBeyond.Darkling darkling) {
-                if (darkling.getLowerPossibleNipDmg() == darkling.getUpperPossibleNipDmg()) {
-                    out.println("  Nip Damage: " + darkling.getLowerPossibleNipDmg());
-                } else {
-                    out.println("  Nip Damage: " + darkling.getLowerPossibleNipDmg() + "-" + darkling.getUpperPossibleNipDmg());
-                }
-            } else if (enemy instanceof EnemyCity.SnakePlant snakePlant) {
-                out.println("  Malleable: " + (3 + snakePlant.getExtraBlockPerAttack()));
-            } else if (enemy instanceof EnemyBeyond.GiantHead giantHead) {
-                if (giantHead.getMove() != EnemyBeyond.GiantHead.IT_IS_TIME) {
-                    out.println("  Turn(s) Until Large Attack: " + giantHead.getTurnUntilLargeAttack());
-                }
-                if (giantHead.getSlow() > 0) {
-                    out.println("  Slow: " + giantHead.getSlow());
-                }
-            } else if (enemy instanceof EnemyBeyond.Nemesis nemesis) {
-                if (nemesis.isIntangible()) {
-                    out.println("  Intangible");
-                }
-            } else if (enemy instanceof EnemyEnding.CorruptHeart heart) {
-                out.println("  Invincible: " + heart.getInvincible());
-                out.println("  Beat Of Death: " + heart.getBeatOfDeath());
-                out.println("  Buff Count: " + heart.getBuffCount());
-            }
+            enemy.interactiveModePrint(state, out);
             if (!states.isEmpty()) {
                 GameState prevState = states.get(states.size() - 1);
                 if (state.properties.isRunicDomeEnabled(state)) {

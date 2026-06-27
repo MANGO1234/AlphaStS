@@ -10,6 +10,7 @@ import com.alphaStS.eventHandler.GameEventHandler;
 import com.alphaStS.random.RandomGen;
 import com.alphaStS.random.RandomGenCtx;
 
+import java.io.PrintStream;
 import java.util.List;
 
 import static com.alphaStS.enemy.EnemyUtils.*;
@@ -1829,6 +1830,10 @@ public class EnemyOvergrowth {
 
         @Override public Enemy copy() {
             return new Vantom(this);
+        }
+
+        @Override public void interactiveModePrint(GameState state, PrintStream out) {
+            out.println("  Slippery " + slippery);
         }
 
         @Override public int damage(double n, GameState state) {

@@ -6,6 +6,7 @@ import com.alphaStS.GameState;
 import com.alphaStS.GameStateUtils;
 import com.alphaStS.card.Card;
 
+import java.io.PrintStream;
 import java.util.List;
 import java.util.Objects;
 
@@ -102,6 +103,8 @@ public abstract class EnemyReadOnly implements GameProperties.TrainingTargetRegi
     public boolean canSelfRevive(GameState state) {
         return false;
     }
+
+    public void interactiveModePrint(GameState state, PrintStream out) {}
 
     public EnemyReadOnly(int health, int numOfMoves, boolean useLast2MovesForMoveSelection) {
         this.health = health;

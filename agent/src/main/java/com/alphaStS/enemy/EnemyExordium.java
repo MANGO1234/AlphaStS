@@ -9,6 +9,7 @@ import com.alphaStS.eventHandler.GameEventCardHandler;
 import com.alphaStS.random.RandomGen;
 import com.alphaStS.random.RandomGenCtx;
 
+import java.io.PrintStream;
 import java.util.Arrays;
 import java.util.List;
 import com.alphaStS.utils.Tuple;
@@ -391,14 +392,6 @@ public class EnemyExordium {
         int modeShiftDmg;
         int maxModeShiftDmg;
 
-        public int getModeShiftDmg() {
-            return modeShiftDmg;
-        }
-
-        public int getMaxModeShiftDmg() {
-            return maxModeShiftDmg;
-        }
-
         public TheGuardian() {
             this(250);
         }
@@ -421,6 +414,10 @@ public class EnemyExordium {
 
         @Override public Enemy copy() {
             return new TheGuardian(this);
+        }
+
+        @Override public void interactiveModePrint(GameState state, PrintStream out) {
+            out.println("  Mode Shift Damage: " + modeShiftDmg + "/" + maxModeShiftDmg);
         }
 
         @Override public int damage(double n, GameState state) {
@@ -1468,16 +1465,8 @@ public class EnemyExordium {
         boolean hasCurledUp = false;
         boolean tookAttackDamage = false;
 
-        public boolean hasCurledUp() {
-            return hasCurledUp;
-        }
-
         public int getD() {
             return d;
-        }
-
-        public int getCurlUpAmount() {
-            return curlUpAmount;
         }
 
         public void setD(int d) {
@@ -1508,6 +1497,12 @@ public class EnemyExordium {
 
         @Override public Enemy copy() {
             return new RedLouse(this);
+        }
+
+        @Override public void interactiveModePrint(GameState state, PrintStream out) {
+            if (!hasCurledUp) {
+                out.println("  Curl Up: " + curlUpAmount);
+            }
         }
 
         @Override public void doMove(GameState state, EnemyReadOnly self) {
@@ -1602,16 +1597,8 @@ public class EnemyExordium {
         boolean hasCurledUp = false;
         boolean tookAttackDamage = false;
 
-        public boolean hasCurledUp() {
-            return hasCurledUp;
-        }
-
         public int getD() {
             return d;
-        }
-
-        public int getCurlUpAmount() {
-            return curlUpAmount;
         }
 
         public void setD(int d) {
@@ -1641,6 +1628,12 @@ public class EnemyExordium {
 
         @Override public Enemy copy() {
             return new GreenLouse(this);
+        }
+
+        @Override public void interactiveModePrint(GameState state, PrintStream out) {
+            if (!hasCurledUp) {
+                out.println("  Curl Up: " + curlUpAmount);
+            }
         }
 
         @Override public void doMove(GameState state, EnemyReadOnly self) {

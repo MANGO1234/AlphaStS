@@ -10,6 +10,7 @@ import com.alphaStS.random.RandomGen;
 import com.alphaStS.random.RandomGenCtx;
 import com.alphaStS.utils.CrashException;
 
+import java.io.PrintStream;
 import java.util.List;
 import com.alphaStS.utils.Tuple;
 
@@ -664,12 +665,13 @@ public class EnemyBeyond {
             return new EnemyBeyond.GiantHead(this);
         }
 
-        public int getSlow() {
-            return slow;
-        }
-
-        public int getTurnUntilLargeAttack() {
-            return 3 - turn;
+        @Override public void interactiveModePrint(GameState state, PrintStream out) {
+            if (move != IT_IS_TIME) {
+                out.println("  Turn(s) Until Large Attack: " + (3 - turn));
+            }
+            if (slow > 0) {
+                out.println("  Slow: " + slow);
+            }
         }
 
         @Override public int damage(double n, GameState state) {
@@ -803,8 +805,10 @@ public class EnemyBeyond {
             return new EnemyBeyond.Nemesis(this);
         }
 
-        public boolean isIntangible() {
-            return intangible;
+        @Override public void interactiveModePrint(GameState state, PrintStream out) {
+            if (intangible) {
+                out.println("  Intangible");
+            }
         }
 
         @Override public int damage(double n, GameState state) {
@@ -1789,20 +1793,20 @@ public class EnemyBeyond {
             return false;
         }
 
-        public int getLowerPossibleNipDmg() {
-            return lowerPossibleNipDmg;
-        }
-
-        public int getUpperPossibleNipDmg() {
-            return upperPossibleNipDmg;
-        }
-
         public void setLowerPossibleNipDmg(int lowerPossibleNipDmg) {
             this.lowerPossibleNipDmg = lowerPossibleNipDmg;
         }
 
         public void setUpperPossibleNipDmg(int upperPossibleNipDmg) {
             this.upperPossibleNipDmg = upperPossibleNipDmg;
+        }
+
+        @Override public void interactiveModePrint(GameState state, PrintStream out) {
+            if (lowerPossibleNipDmg == upperPossibleNipDmg) {
+                out.println("  Nip Damage: " + lowerPossibleNipDmg);
+            } else {
+                out.println("  Nip Damage: " + lowerPossibleNipDmg + "-" + upperPossibleNipDmg);
+            }
         }
 
         @Override public int damage(double n, GameState state) {

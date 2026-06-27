@@ -9,6 +9,7 @@ import com.alphaStS.eventHandler.OnDamageHandler;
 import com.alphaStS.random.RandomGen;
 import com.alphaStS.random.RandomGenCtx;
 
+import java.io.PrintStream;
 import java.util.List;
 import com.alphaStS.utils.Tuple;
 
@@ -302,12 +303,14 @@ public class EnemyCity {
             return new BronzeOrb(this);
         }
 
-        public boolean usedStasis() {
-            return usedStasis;
-        }
-
-        public int getStasisCard() {
-            return stasisCardIdx;
+        @Override public void interactiveModePrint(GameState state, PrintStream out) {
+            if (!usedStasis) {
+                out.println("  Stasis: Not Used");
+            } else if (stasisCardIdx >= 0) {
+                out.println("  Stasis: Used (" + state.properties.cardDict[stasisCardIdx].cardName + ")");
+            } else {
+                out.println("  Stasis: Used");
+            }
         }
 
         @Override public int damage(double n, GameState state) {
@@ -2062,6 +2065,10 @@ public class EnemyCity {
             return new SnakePlant(this);
         }
 
+        @Override public void interactiveModePrint(GameState state, PrintStream out) {
+            out.println("  Malleable: " + (3 + extraBlockPerAttack));
+        }
+
         @Override public int damage(double n, GameState state) {
             var dmg = super.damage(n, state);
             if (dmg > 0) {
@@ -2145,8 +2152,5 @@ public class EnemyCity {
             return 1;
         }
 
-        public int getExtraBlockPerAttack() {
-            return extraBlockPerAttack;
-        }
     }
 }
