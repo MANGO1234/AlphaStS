@@ -1636,6 +1636,40 @@ public final class GameState implements State {
         }
     }
 
+    private boolean playImbuedCardsAtStartOfCombat() {
+        List<Integer> imbuedCardIdxes = new ArrayList<>();
+        for (int i = deckArrLen - 1; i >= 0; i--) {
+            int cardIdx = deckArr[i];
+            if (!(properties.cardDict[cardIdx] instanceof Card.CardWrapper cw) || !cw.mod.imbued) {
+                continue;
+            }
+            imbuedCardIdxes.add(cardIdx);
+            removeCardFromDeckByPosition(i);
+        }
+        for (int cardIdx : imbuedCardIdxes) {
+            if (isTerminal() != 0) {
+                return false;
+            }
+            var action = properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][cardIdx];
+            setActionCtx(GameActionCtx.PLAY_CARD, action, null);
+            playCard(action, -1, true, null, false, false, -1, -1);
+            while (actionCtx == GameActionCtx.SELECT_ENEMY) {
+                int enemyIdx = GameStateUtils.getRandomEnemyIdx(this, RandomGenCtx.RandomEnemyGeneral);
+                if (properties.makingRealMove || properties.stateDescOn) {
+                    getStateDesc().append(" -> ").append(getEnemiesForRead().get(enemyIdx).getName()).append(" (").append(enemyIdx).append(")");
+                }
+                playCard(action, enemyIdx, true, null, false, false, -1, -1);
+            }
+            if (actionCtx != GameActionCtx.PLAY_CARD) {
+                return false;
+            }
+        }
+        if (actionCtx == GameActionCtx.PLAY_CARD) {
+            setActionCtx(GameActionCtx.BEGIN_BATTLE, null, null);
+        }
+        return true;
+    }
+
     private void transformTopMostCard(short[] cardArrForWrite, int cardArrLen, int cardIdx, int newCardIdx) {
         for (int i = cardArrLen - 1; i >= 0; i--) {
             if (cardArrForWrite[i] == cardIdx) {
@@ -2153,11 +2187,15 @@ public final class GameState implements State {
                     setActionCtx(GameActionCtx.AFTER_RANDOMIZATION, null, null);
                     selectBiasedCognitionLimit();
                 } else {
-                    beginTurn();
+                    if (playImbuedCardsAtStartOfCombat()) {
+                        beginTurn();
+                    }
                 }
             }
         } else if (action.type() == GameActionType.AFTER_RANDOMIZATION) {
-            beginTurn();
+            if (playImbuedCardsAtStartOfCombat()) {
+                beginTurn();
+            }
         } else if (action.type() == GameActionType.END_TURN) {
             endTurn();
         } else if (action.type() == GameActionType.PLAY_CARD) {
@@ -3656,6 +3694,16 @@ public final class GameState implements State {
             getDiscardArrForWrite()[i] = getDiscardArrForRead()[i + 1];
         }
         discardArrLen--;
+    }
+
+    public void removeCardFromDeckByPosition(int idx) {
+        if (idx > deckArrLen - 1 - deckArrFixedDrawLen) {
+            deckArrFixedDrawLen--;
+        }
+        for (int i = idx; i < deckArrLen - 1; i++) {
+            getDeckArrForWrite()[i] = getDeckArrForRead()[i + 1];
+        }
+        deckArrLen--;
     }
 
     private void triggerDiscardEffect(int cardIndex) {

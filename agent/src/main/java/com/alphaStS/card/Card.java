@@ -190,6 +190,12 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         return new CardWrapper(this, mod);
     }
 
+    public Card enchantImbued() {
+        var mod = new CardModification();
+        mod.imbued = true;
+        return new CardWrapper(this, mod);
+    }
+
     public Card enchantInky() {
         var mod = new CardModification();
         mod.inky = true;
@@ -316,6 +322,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         public int adroit = 0;
         public boolean corrupted = false;
         public boolean glam = false;
+        public boolean imbued = false;
         public boolean inky = false;
         public boolean instinct = false;
         public int momentum = 0;
@@ -342,6 +349,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
             copy.adroit = adroit;
             copy.corrupted = corrupted;
             copy.glam = glam;
+            copy.imbued = imbued;
             copy.inky = inky;
             copy.instinct = instinct;
             copy.momentum = momentum;
@@ -404,6 +412,9 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
             }
             if (mod.corrupted) {
                 sb.append(" (Corrupted)");
+            }
+            if (mod.imbued) {
+                sb.append(" (Imbued)");
             }
             if (mod.inky) {
                 sb.append(" (Inky)");
@@ -695,6 +706,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
             if (newMod.adroit > 0) { resultMod.adroit = newMod.adroit; modified = true; }
             if (newMod.corrupted) { resultMod.corrupted = true; modified = true; }
             if (newMod.glam) { resultMod.glam = true; modified = true; }
+            if (newMod.imbued) { resultMod.imbued = true; modified = true; }
             if (newMod.inky) { resultMod.inky = true; modified = true; }
             if (newMod.instinct) { resultMod.instinct = true; modified = true; }
             if (newMod.momentum > 0 && newCard.cardType == Card.ATTACK) {
@@ -782,6 +794,13 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         public Card enchantGlam() {
             var newMod = mod.clone();
             newMod.glam = true;
+            return new CardWrapper(card, newMod);
+        }
+
+        @Override
+        public Card enchantImbued() {
+            var newMod = mod.clone();
+            newMod.imbued = true;
             return new CardWrapper(card, newMod);
         }
 
