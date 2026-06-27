@@ -2320,7 +2320,7 @@ public class CardSilent {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.handArrTransform(state.properties.tmp0CostCardTransformIdxes);
+            state.handArrTransform(state.properties.tmp0CostCardUntilEndOfTurnTransformIdxes);
             state.getPlayerForWrite().applyDebuff(state, DebuffType.NO_MORE_CARD_DRAW, 1);
             return GameActionCtx.PLAY_CARD;
         }

@@ -130,8 +130,8 @@ public class GameProperties implements Cloneable {
     public int[] healCardsIdxes;
     public int[] select1OutOf3CardsIdxes;
     public int[] select1OutOf3CardsReverseIdxes;
-    public int[] tmp0CostCardTransformIdxes;
-    public int[] tmpModifiedCardReverseTransformIdxes;
+    public int[] tmp0CostCardUntilEndOfTurnTransformIdxes;
+    public int[] tmpUntilEndOfTurnReverseTransformIdxes;
     public int[] upgradeIdxes;
     public int[][] sneckoIdxes;
     // SORTED BLOCK END

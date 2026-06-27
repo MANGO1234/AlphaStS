@@ -988,7 +988,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                             }
                         }
                         state.removeCardFromHand(idx);
-                        state.addCardToHand(state.properties.tmp0CostCardTransformIdxes[idx]);
+                        state.addCardToHand(state.properties.tmp0CostCardUntilEndOfTurnTransformIdxes[idx]);
                     }
                 }
             });

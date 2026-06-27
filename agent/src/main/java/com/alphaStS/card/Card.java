@@ -95,10 +95,6 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         return ethereal;
     }
 
-    public boolean isTmpModifiedCard() {
-        return false;
-    }
-
     public boolean isTmpModifiedUntilEndOfTurnCard() {
         return false;
     }
@@ -660,11 +656,6 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         @Override
         public boolean retain() {
             return mod.tmpRetain || mod.steady || mod.royallyApproved || mod.permRetain || card.retain;
-        }
-
-        @Override
-        public boolean isTmpModifiedCard() {
-            return isTmpChangeCost() || isTmpUntilPlayedCost() || isTmpRetain();
         }
 
         @Override

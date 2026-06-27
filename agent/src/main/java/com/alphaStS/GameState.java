@@ -215,7 +215,7 @@ public final class GameState implements State {
     private void transformCardsModifiedUntilEndOfTurn(short[] arr, int arrLen) {
         for (int i = 0; i < arrLen; i++) {
             if (properties.cardDict[arr[i]].isTmpModifiedUntilEndOfTurnCard()) {
-                arr[i] = (short) properties.tmpModifiedCardReverseTransformIdxes[arr[i]];
+                arr[i] = (short) properties.tmpUntilEndOfTurnReverseTransformIdxes[arr[i]];
             }
         }
     }
@@ -238,7 +238,7 @@ public final class GameState implements State {
 
     public void addNightmareCard(int idx) {
         if (idx >= properties.realCardsLen) {
-            nightmareCards = cardIdxArrAdd(nightmareCards, true, nightmareCardsLen, properties.tmpModifiedCardReverseTransformIdxes[idx]);
+            nightmareCards = cardIdxArrAdd(nightmareCards, true, nightmareCardsLen, properties.tmpUntilEndOfTurnReverseTransformIdxes[idx]);
         } else {
             nightmareCards = cardIdxArrAdd(nightmareCards, true, nightmareCardsLen, idx);
         }
@@ -898,7 +898,7 @@ public final class GameState implements State {
                 }
             }
         }
-        return l.stream().filter((x) -> !properties.cardDict[x].isTmpModifiedCard()).sorted().mapToInt(Integer::intValue).toArray();
+        return l.stream().filter((x) -> !properties.cardDict[x].isTmpModifiedUntilEndOfTurnCard()).sorted().mapToInt(Integer::intValue).toArray();
     }
 
     private int[] findSelect1OutOf3CardsToKeepTrackOf(List<Card> cards, List<Relic> relics, List<Potion> potions) {
@@ -962,9 +962,9 @@ public final class GameState implements State {
 
         var cards = new ArrayList<>(set);
         cards.sort((o1, o2) -> {
-            if (!o1.isTmpModifiedCard() && o2.isTmpModifiedCard()) {
+            if (!o1.isTmpModifiedUntilEndOfTurnCard() && o2.isTmpModifiedUntilEndOfTurnCard()) {
                 return -1;
-            } else if (o1.isTmpModifiedCard() && !o2.isTmpModifiedCard()) {
+            } else if (o1.isTmpModifiedUntilEndOfTurnCard() && !o2.isTmpModifiedUntilEndOfTurnCard()) {
                 return 1;
             } else {
                 return o1.cardName.compareTo(o2.cardName);
@@ -974,17 +974,18 @@ public final class GameState implements State {
         for (int i = 0; i < cards.size(); i++) {
             properties.cardDict[i] = cards.get(i);
         }
-        properties.realCardsLen = (int) cards.stream().takeWhile((card) -> !card.isTmpModifiedCard()).count();
+        properties.realCardsLen = (int) cards.stream().takeWhile((card) -> !card.isTmpModifiedUntilEndOfTurnCard()).count();
         if (properties.realCardsLen != cards.size()) {
-            properties.tmp0CostCardTransformIdxes = new int[cards.size()];
-            properties.tmpModifiedCardReverseTransformIdxes = new int[cards.size()];
-            Arrays.fill(properties.tmp0CostCardTransformIdxes, -1);
-            Arrays.fill(properties.tmpModifiedCardReverseTransformIdxes, -1);
+            properties.tmp0CostCardUntilEndOfTurnTransformIdxes = new int[cards.size()];
+            properties.tmpUntilEndOfTurnReverseTransformIdxes = new int[cards.size()];
+            Arrays.fill(properties.tmp0CostCardUntilEndOfTurnTransformIdxes, -1);
+            Arrays.fill(properties.tmpUntilEndOfTurnReverseTransformIdxes, -1);
             for (int i = 0; i < cards.size(); i++) {
-                if (properties.cardDict[i].isTmpModifiedCard()) {
-                    properties.tmpModifiedCardReverseTransformIdxes[i] = properties.findCardIndex(properties.cardDict[i].getBaseCard());
+                if (properties.cardDict[i].isTmpModifiedUntilEndOfTurnCard()) {
+                    // TODO: due to new sts2 enchantment, need to branch out depending on played vs not played
+                    properties.tmpUntilEndOfTurnReverseTransformIdxes[i] = properties.findCardIndex(properties.cardDict[i].getBaseCard());
                 } else {
-                    properties.tmp0CostCardTransformIdxes[i] = properties.findCardIndex(properties.cardDict[i].getTemporaryCostIfPossible(0));
+                    properties.tmp0CostCardUntilEndOfTurnTransformIdxes[i] = properties.findCardIndex(properties.cardDict[i].getTemporaryCostIfPossible(0));
                 }
             }
         }
@@ -1354,7 +1355,7 @@ public final class GameState implements State {
                 }
             }
             if (cardIdx >= properties.realCardsLen) {
-                cardIdx = properties.tmpModifiedCardReverseTransformIdxes[cardIdx];
+                cardIdx = properties.tmpUntilEndOfTurnReverseTransformIdxes[cardIdx];
                 action = properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][cardIdx];
             }
             for (var handler : properties.onPreCardPlayedHandlers) {
@@ -2065,7 +2066,7 @@ public final class GameState implements State {
         updateHandArr();
 
         // Remove card modifications that expire at end of turn after retain processing is complete.
-        if (properties.tmpModifiedCardReverseTransformIdxes != null) {
+        if (properties.tmpUntilEndOfTurnReverseTransformIdxes != null) {
             transformCardsModifiedUntilEndOfTurn(getHandArrForWrite(), handArrLen);
             transformCardsModifiedUntilEndOfTurn(chosenCardsArr, chosenCardsArrLen);
         }
@@ -3383,7 +3384,7 @@ public final class GameState implements State {
 
     public void exhaustedCardHandle(int cardIdx, boolean fromCardPlay) {
         if (cardIdx >= properties.realCardsLen) {
-            cardIdx = properties.tmpModifiedCardReverseTransformIdxes[cardIdx];
+            cardIdx = properties.tmpUntilEndOfTurnReverseTransformIdxes[cardIdx];
         }
         if (fromCardPlay && properties.strangeSpoon != null && properties.strangeSpoon.isRelicEnabledInScenario(this) && getSearchRandomGen().nextBoolean(RandomGenCtx.Misc)) {
             addCardToDiscard(cardIdx);
@@ -3658,7 +3659,7 @@ public final class GameState implements State {
 
     public void addCardToDiscard(int cardIndex) {
         if (properties.cardDict[cardIndex].isTmpModifiedUntilEndOfTurnCard()) {
-            cardIndex = properties.tmpModifiedCardReverseTransformIdxes[cardIndex];
+            cardIndex = properties.tmpUntilEndOfTurnReverseTransformIdxes[cardIndex];
         }
         discardArr = cardIdxArrAdd(discardArr, !discardCloned, discardArrLen, cardIndex);
         discardArrLen++;
@@ -3849,7 +3850,7 @@ public final class GameState implements State {
 
     public void addCardOnTopOfDeck(int idx) {
         if (properties.cardDict[idx].isTmpModifiedUntilEndOfTurnCard()) {
-            idx = properties.tmpModifiedCardReverseTransformIdxes[idx];
+            idx = properties.tmpUntilEndOfTurnReverseTransformIdxes[idx];
         }
         deckArrLen += 1;
         getDeckArrForWrite(deckArrLen);
@@ -3870,7 +3871,7 @@ public final class GameState implements State {
     }
 
     public void addCardToExhaust(int cardIndex) {
-        cardIndex = cardIndex >= properties.realCardsLen ? properties.tmpModifiedCardReverseTransformIdxes[cardIndex] : cardIndex;
+        cardIndex = cardIndex >= properties.realCardsLen ? properties.tmpUntilEndOfTurnReverseTransformIdxes[cardIndex] : cardIndex;
         exhaustArr = cardIdxArrAdd(exhaustArr, !exhaustCloned, exhaustArrLen, cardIndex);
         exhaustArrLen++;
         exhaustCloned = true;

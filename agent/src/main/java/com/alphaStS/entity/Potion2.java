@@ -298,9 +298,10 @@ public class Potion2 {
             if (idx < 0 || idx >= state.properties.cardDict.length) {
                 return GameActionCtx.PLAY_CARD;
             }
-            if (state.properties.tmp0CostCardTransformIdxes[idx] >= 0) {
+            // todo: using wrong transform idx
+            if (state.properties.tmp0CostCardUntilEndOfTurnTransformIdxes[idx] >= 0) {
                 state.removeCardFromHand(idx);
-                state.addCardToHand(state.properties.tmp0CostCardTransformIdxes[idx]);
+                state.addCardToHand(state.properties.tmp0CostCardUntilEndOfTurnTransformIdxes[idx]);
             }
             if (state.properties.sacredBark != null && state.properties.sacredBark.isRelicEnabledInScenario(state)) {
                 state.getCounterForWrite()[counterIdx]++;
