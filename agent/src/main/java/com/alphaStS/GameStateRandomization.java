@@ -1057,4 +1057,19 @@ public interface GameStateRandomization {
             return upgradableCards.stream().map(Card::getUpgrade).filter(Objects::nonNull).toList();
         }
     }
+
+    class WorstCardInDeckRandomization extends StateModificationRandomization {
+        public WorstCardInDeckRandomization(GameStateBuilder builder) {
+            super(createScenarios(builder));
+        }
+
+        private static List<List<StateModification>> createScenarios(GameStateBuilder builder) {
+            Set<Card> cards = new LinkedHashSet<>(builder.getStartingCards());
+            List<List<StateModification>> scenarios = new ArrayList<>(cards.size());
+            for (Card card : cards) {
+                scenarios.add(List.of(new Remove(card)));
+            }
+            return scenarios;
+        }
+    }
 }
