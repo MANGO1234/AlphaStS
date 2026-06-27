@@ -1090,7 +1090,7 @@ public final class GameState implements State {
     }
 
     public int draw(int count) {
-        if (count == 0 || getPlayerForRead().cannotDrawCard()) {
+        if (count == 0 || (buffs & PlayerBuff.NO_CARD_DRAW_FOR_THE_TURN.mask()) != 0) {
             return -1;
         }
         if (properties.fiddle != null && properties.fiddle.isRelicEnabledInScenario(this) && !isStartOfTurnPhase) {

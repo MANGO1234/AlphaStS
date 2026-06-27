@@ -1,6 +1,7 @@
 package com.alphaStS.test;
 
 import com.alphaStS.GameState;
+import com.alphaStS.PlayerBuff;
 import com.alphaStS.card.Card;
 import com.alphaStS.enemy.EnemyReadOnly;
 import com.alphaStS.player.PlayerReadOnly;
@@ -158,13 +159,15 @@ public class TestReplay {
         }
 
         boolean logCannotDrawCard = playerNode.path("cannot_draw_card").asBoolean(false);
-        if (logCannotDrawCard != player.cannotDrawCard()) {
-            throw new ReplayException("Player cannotDrawCard mismatch: log=" + logCannotDrawCard + " state=" + player.cannotDrawCard(), state, line);
+        boolean noCardDrawForTheTurn = (state.buffs & PlayerBuff.NO_CARD_DRAW_FOR_THE_TURN.mask()) != 0;
+        if (logCannotDrawCard != noCardDrawForTheTurn) {
+            throw new ReplayException("Player noCardDrawForTheTurn mismatch: log=" + logCannotDrawCard + " state=" + noCardDrawForTheTurn, state, line);
         }
 
         boolean logHexed = playerNode.path("hexed").asBoolean(false);
-        if (logHexed != player.isHexed()) {
-            throw new ReplayException("Player hexed mismatch: log=" + logHexed + " state=" + player.isHexed(), state, line);
+        boolean hex = (state.buffs & PlayerBuff.HEX.mask()) != 0;
+        if (logHexed != hex) {
+            throw new ReplayException("Player HEX mismatch: log=" + logHexed + " state=" + hex, state, line);
         }
 
         int logEntangled = playerNode.path("entangled").asInt(0);

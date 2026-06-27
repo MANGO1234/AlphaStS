@@ -190,9 +190,9 @@ public class Player extends PlayerReadOnly {
         case LOSE_DEXTERITY_EOT -> this.loseDexterityEot += n;
         case LOSE_FOCUS_EOT -> this.loseFocusEot += n;
         case LOSE_DEXTERITY_PER_TURN -> state.getCounterForWrite()[state.properties.loseDexterityPerTurnCounterIdx] += n;
-        case NO_MORE_CARD_DRAW -> this.cannotDrawCard = true;
+        case NO_MORE_CARD_DRAW -> state.buffs |= PlayerBuff.NO_CARD_DRAW_FOR_THE_TURN.mask();
         case ENTANGLED -> this.entangled += n;
-        case HEX -> this.hexed = true;
+        case HEX -> state.buffs |= PlayerBuff.HEX.mask();
         case LOSE_FOCUS -> state.gainFocus(-n);
         case LOSE_FOCUS_PER_TURN -> state.getCounterForWrite()[state.properties.loseFocusPerTurnCounterIdx] += n;
         case LOSE_ENERGY_PER_TURN -> state.getCounterForWrite()[state.properties.loseEnergyPerTurnCounterIdx] += n;
@@ -207,7 +207,7 @@ public class Player extends PlayerReadOnly {
     }
 
     public void preEndTurn(GameState state) {
-        cannotDrawCard = false;
+        state.buffs &= ~PlayerBuff.NO_CARD_DRAW_FOR_THE_TURN.mask();
         if (platedArmor > 0) {
             gainBlockNotFromCardPlay(platedArmor, state);
         }
@@ -286,8 +286,8 @@ public class Player extends PlayerReadOnly {
         vulnerable = 0;
         weak = 0;
         frail = 0;
-        cannotDrawCard = false;
-        hexed = false;
+        state.buffs &= ~PlayerBuff.NO_CARD_DRAW_FOR_THE_TURN.mask();
+        state.buffs &= ~PlayerBuff.HEX.mask();
         entangled = 0;
         loseStrengthEot = 0;
         loseDexterityEot = 0;

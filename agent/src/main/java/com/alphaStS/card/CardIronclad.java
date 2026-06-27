@@ -757,7 +757,7 @@ public class CardIronclad {
         public _BattleTranceT(String cardName, int draw) {
             super(cardName, Card.SKILL, 0, Card.UNCOMMON);
             this.draw = draw;
-            this.entityProperty.possibleBuffs |= PlayerBuff.BATTLE_TRANCE.mask();
+            this.entityProperty.possibleBuffs |= PlayerBuff.NO_CARD_DRAW_FOR_THE_TURN.mask();
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {

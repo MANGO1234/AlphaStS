@@ -71,7 +71,7 @@ public class NNInputLenTest {
         assertEquals(196, TestStates.TestStateSilent2().properties.inputLen);
         assertEquals(270, TestStates.TestStateSilentHeartOrangePellet().properties.inputLen);
         assertEquals(156, TestStates.TestStateSilentRun10().properties.inputLen);
-        assertEquals(525, TestStates.TestStateSilentRun2().properties.inputLen);
+        assertEquals(526, TestStates.TestStateSilentRun2().properties.inputLen);
         assertEquals(641, TestStates.TestStateSilentRun3().properties.inputLen);
         assertEquals(280, TestStates.TestStateSilentRun4().properties.inputLen);
         assertEquals(233, TestStates.TestStateSilentRun5().properties.inputLen);

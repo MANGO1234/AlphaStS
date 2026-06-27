@@ -794,20 +794,6 @@ public class NNInputSchema {
             });
         }
 
-        // Battle trance
-        if ((props.anyEntityProperty.possibleBuffs & PlayerBuff.BATTLE_TRANCE.mask()) != 0) {
-            inputLen += 1;
-            descBody.append("    1 input to keep track of battle trance cannot draw card debuff\n");
-            inputModules.add((s, x, idx) -> {
-                x[idx] = s.getPlayerForRead().cannotDrawCard() ? 0.5f : -0.5f;
-                return 1;
-            });
-            inputPrinters.add((s, input, idx) -> {
-                System.out.println("Battle Trance Cannot Draw: " + input[idx]);
-                return 1;
-            });
-        }
-
         // energy refill
         if (props.anyEntityProperty.changeEnergyRefill) {
             inputLen += 1;

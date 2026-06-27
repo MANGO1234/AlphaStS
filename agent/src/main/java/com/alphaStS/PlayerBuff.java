@@ -14,9 +14,10 @@ public record PlayerBuff(long mask, String name) {
     public final static PlayerBuff END_TURN_IMMEDIATELY = new PlayerBuff(1L << 37, "End Turn Immediately");
     public final static PlayerBuff USED_VAULT = new PlayerBuff(1L << 38, "Used Vault");
     public final static PlayerBuff WRIST_BLADE = new PlayerBuff(1L << 39, "Wrist Blade");
-    public final static PlayerBuff BATTLE_TRANCE = new PlayerBuff(1L << 40, "Battle Trance");
+    public final static PlayerBuff NO_CARD_DRAW_FOR_THE_TURN = new PlayerBuff(1L << 40, "No Card Draw For The Turn");
     public final static PlayerBuff SEEKING_EDGE = new PlayerBuff(1L << 41, "Seeking Edge");
     public final static PlayerBuff UNSETTLING_LAMP = new PlayerBuff(1L << 42, "Unsettling Lamp");
+    public final static PlayerBuff HEX = new PlayerBuff(1L << 43, "Hex");
 
     public final static PlayerBuff[] BUFFS = new PlayerBuff[] {
             BARRICADE,
@@ -31,6 +32,8 @@ public record PlayerBuff(long mask, String name) {
             END_TURN_IMMEDIATELY,
             USED_VAULT,
             WRIST_BLADE,
+            NO_CARD_DRAW_FOR_THE_TURN,
             UNSETTLING_LAMP,
+            HEX,
     };
 }
