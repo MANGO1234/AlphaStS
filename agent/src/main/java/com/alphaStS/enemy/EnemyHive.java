@@ -322,7 +322,8 @@ public class EnemyHive {
         public static final int BULK = 0;
         public static final int WRITHE = 1;
         public static final int OUTGAS = 2;
-        public static final int REATTACH = 3;
+        public static final int REATTACH_1 = 3;
+        public static final int REATTACH_2 = 4;
 
         private final int openingMove;
 
@@ -335,7 +336,7 @@ public class EnemyHive {
         }
 
         public Decimillipede(int health, int openingMove) {
-            super(health, 4, false);
+            super(health, 5, false);
             this.openingMove = openingMove;
             properties.isElite = true;
             properties.canGainStrength = true;
@@ -359,7 +360,7 @@ public class EnemyHive {
             int prevHealth = health;
             int dmg = super.damage(n, state);
             if (health <= 0 && prevHealth > 0) {
-                move = REATTACH;
+                move = REATTACH_1;
             }
             return dmg;
         }
@@ -368,7 +369,7 @@ public class EnemyHive {
             int prevHealth = health;
             super.nonAttackDamage(n, blockable, state);
             if (health <= 0 && prevHealth > 0) {
-                move = REATTACH;
+                move = REATTACH_1;
             }
         }
 
@@ -386,7 +387,9 @@ public class EnemyHive {
 
         @Override public void nextMove(GameState state, RandomGen random) {
             lastMove = move;
-            if (move == REATTACH) {
+            if (move == REATTACH_1) {
+                move = REATTACH_2;
+            } else if (move == REATTACH_2) {
                 if (hasLivingSegment(state)) {
                     reviveReset();
                     health = 25;
@@ -416,7 +419,7 @@ public class EnemyHive {
                 return "Attack " + state.enemyCalcDamageToPlayer(this, 6) + "x2";
             } else if (move == OUTGAS) {
                 return "Attack " + state.enemyCalcDamageToPlayer(this, 9) + "+Weak 1";
-            } else if (move == REATTACH) {
+            } else if (move == REATTACH_1 || move == REATTACH_2) {
                 return "Reattach";
             }
             return "Unknown";
@@ -710,6 +713,7 @@ public class EnemyHive {
         public static final int PULSATE = 3;
 
         private int tainted;
+        private int taintedPerSKill = 3;
 
         public InfestedPrism() {
             this(171);
@@ -724,6 +728,7 @@ public class EnemyHive {
         public InfestedPrism(InfestedPrism other) {
             super(other);
             tainted = other.tainted;
+            taintedPerSKill = other.taintedPerSKill;
         }
 
         @Override public Enemy copy() {
@@ -732,7 +737,7 @@ public class EnemyHive {
 
         @Override public void react(GameState state, Card card) {
             if (card.cardType == Card.SKILL) {
-                tainted += 3;
+                tainted += taintedPerSKill;
             }
         }
 
@@ -747,7 +752,7 @@ public class EnemyHive {
             } else if (move == PULSATE) {
                 state.enemyDoDamageToPlayer(this, 10 + tainted, 1);
                 gainBlock(22);
-                tainted += 3;
+                taintedPerSKill += 3;
             }
         }
 
@@ -769,7 +774,7 @@ public class EnemyHive {
             } else if (move == WHIRLWIND) {
                 return "Attack " + state.enemyCalcDamageToPlayer(this, 6 + tainted) + "x3";
             } else if (move == PULSATE) {
-                return "Attack " + state.enemyCalcDamageToPlayer(this, 10 + tainted) + "+22 Block+Tainted 3";
+                return "Attack " + state.enemyCalcDamageToPlayer(this, 10 + tainted) + "+22 Block+Increase Tainted 3";
             }
             return "Unknown";
         }
@@ -784,7 +789,7 @@ public class EnemyHive {
 
         @Override public String toString(GameState state) {
             String s = super.toString(state);
-            return tainted == 0 ? s : s.subSequence(0, s.length() - 1) + ", tainted=" + tainted + "}";
+            return tainted == 0 ? s : s.subSequence(0, s.length() - 1) + ", tainted=" + tainted + ", " + "taintedPerSkill=" + taintedPerSKill + "}";
         }
 
         @Override public boolean equals(Object o) {
@@ -792,16 +797,17 @@ public class EnemyHive {
         }
 
         @Override public int getNNInputLen(GameProperties prop) {
-            return 1;
+            return 2;
         }
 
         @Override public String getNNInputDesc(GameProperties prop) {
-            return "1 input to keep track of Infested Prism Tainted";
+            return "2 inputs to keep track of Infested Prism Tainted";
         }
 
         @Override public int writeNNInput(GameProperties prop, float[] input, int idx) {
             input[idx] = tainted / 20.0f;
-            return 1;
+            input[idx + 1] = taintedPerSKill / 12.0f;
+            return 2;
         }
     }
 

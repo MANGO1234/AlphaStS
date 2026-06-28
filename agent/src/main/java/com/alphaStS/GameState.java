@@ -427,7 +427,7 @@ public final class GameState implements State {
         properties.potionsVExtraIdx = new int[properties.potions.size()];
         Arrays.fill(properties.potionsVExtraIdx, -1);
         registerPotionTrainingTargets();
-        if (builder.getCharacter() == CharacterEnum.DEFECT) {
+        if (builder.getCharacter() == CharacterEnum.DEFECT || builder.getCharacter() == CharacterEnum.DEFECT2) {
             properties.maxNumOfOrbs = 3;
             orbs = new short[3 * 2];
         }
@@ -1821,7 +1821,6 @@ public final class GameState implements State {
         playerTurnStartPotionCount = getPotionCount();
         playerTurnStartMaxHandOfGreed = (byte) CardColorless.HandOfGreed.getMaxPossibleHandOfGreed(this);
         playerTurnStartMaxRitualDagger = (byte) CardColorless.RitualDagger.getMaxPossibleRitualDagger(this);
-        starResource = 0;
         gainEnergy(energyRefill);
         if (properties.character == CharacterEnum.WATCHER) {
             exitDivinityAtStartOfTurn();
@@ -3014,6 +3013,9 @@ public final class GameState implements State {
             str.append(", stance=").append(stance.toString());
         }
         str.append(", energy=").append(energy);
+        if (starResource > 0) {
+            str.append(", star=").append(starResource);
+        }
         if (actionCtx != GameActionCtx.PLAY_CARD) {
             str.append(", ctx=").append(actionCtx);
             if (actionCtx == GameActionCtx.SELECT_ENEMY || actionCtx == GameActionCtx.SELECT_CARD_HAND ||
@@ -3709,6 +3711,13 @@ public final class GameState implements State {
             getDeckArrForWrite()[i] = getDeckArrForRead()[i + 1];
         }
         deckArrLen--;
+    }
+
+    public void removeCardFromExhaustByPosition(int idx) {
+        for (int i = idx; i < exhaustArrLen - 1; i++) {
+            getExhaustArrForWrite()[i] = getExhaustArrForRead()[i + 1];
+        }
+        exhaustArrLen--;
     }
 
     private void triggerDiscardEffect(int cardIndex) {

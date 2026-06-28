@@ -118,8 +118,8 @@ public class GameProperties implements Cloneable {
     public int generateCardOptions;
     // global limits and rewards
     // SORTED BLOCK START
-    public static int kinglyPunchLimit = 30;
     public static int kinglyPPunchLimit = 45;
+    public static int kinglyPunchLimit = 30;
     public static int maxClawDamage = 20;
     public static int maxMomentumGained = 50;
     // SORTED BLOCK END
@@ -199,6 +199,7 @@ public class GameProperties implements Cloneable {
     // SORTED BLOCK START
     public int accelerantCounterIdx = -1;
     public int accuracyCounterIdx = -1;
+    public int aeonglassWitherCounterIdx = -1;
     public int attacksPlayedThisTurnCounterIdx = -1;
     public int beatDownCounterIdx = -1;
     public int beatingRemnantCounterIdx = -1;
@@ -224,7 +225,6 @@ public class GameProperties implements Cloneable {
     public int doomPerTurnCounterIdx = -1;
     public int drawNextTurnCounterIdx = -1;
     public int drawReductionCounterIdx = -1;
-    public int aeonglassWitherCounterIdx = -1;
     public int echoFormCounterIdx = -1;
     public int electrodynamicsCounterIdx = -1;
     public int envenomCounterIdx = -1;
@@ -270,8 +270,8 @@ public class GameProperties implements Cloneable {
     public int otsyMaxHPCounterIdx = -1;
     public int paelsLegionCounterIdx = -1;
     public int penNibCounterIdx = -1;
-    public int phantomBladesCounterIdx = -1;
     public int phantasmalKillerCounterIdx = -1;
+    public int phantomBladesCounterIdx = -1;
     public int platedArmorCounterIdx = -1;
     public int platingCounterIdx = -1;
     public int playCardOnTopOfDeckCounterIdx = -1;
@@ -286,17 +286,17 @@ public class GameProperties implements Cloneable {
     public int selfRepairCounterIdx = -1;
     public int shadowStepCounterIdx = -1;
     public int shadowmeldCounterIdx = -1;
-    public int surroundedEnemiesFacingCounterIdx = -1;
     public int skillsPlayedThisTurnCounterIdx = -1;
     public int sneakyStrikeCounterIdx = -1;
     public int sneckoDebuffCounterIdx = -1;
     public int starNextTurnCounterIdx = -1;
     public int sundialCounterIdx = -1;
+    public int surroundedEnemiesFacingCounterIdx = -1;
     public int swivelCounterIdx = -1;
     public int synthesisCounterIdx = -1;
+    public int tenderCounterIdx = -1;
     public int thunderDamageCounterIdx = -1;
     public int thunderStrikeCounterIdx = -1;
-    public int tenderCounterIdx = -1;
     public int timeEaterCounterIdx = -1;
     public int toolsOfTheTradeCounterIdx = -1;
     public int trackingCounterIdx = -1;

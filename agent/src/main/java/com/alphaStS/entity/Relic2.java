@@ -449,8 +449,7 @@ public class Relic2 {
         }
     }
 
-    // TODO: Petrified Toad (Uncommon)
-    //   Effect: At the start of each combat, procure a Potion-Shaped Rock.
+    // No need to implement Petrified Toad: At the start of each combat, procure a Potion-Shaped Rock.
 
     // No need to implement Planisphere: Whenever you enter a ? room, heal 4 HP.
 
@@ -1044,14 +1043,11 @@ public class Relic2 {
 
     // No need to implement Dragon Fruit: Whenever you gain Gold, raise your Max HP by 1.
 
-    // TODO: Ghost Seed (Shop)
-    //   Effect: Strikes and Defends gain Ethereal.
+    // No need to implement Ghost Seed: Strikes and Defends gain Ethereal.
 
-    // TODO: Gnarled Hammer (Shop)
-    //   Effect: Upon pickup, Enchant up to 3 Attacks with Sharp 3.
+    // No need to implement Gnarled Hammer: Upon pickup, Enchant up to 3 Attacks with Sharp 3.
 
-    // TODO: Kifuda (Shop)
-    //   Effect: Upon pickup, Enchant up to 3 cards with Adroit.
+    // No need to implement Kifuda: Upon pickup, Enchant up to 3 cards with Adroit.
 
     // No need to implement Lava Lamp: At the end of combat, Upgrade all card rewards if you took no damage.
 
@@ -1066,8 +1062,7 @@ public class Relic2 {
 
     // No need to implement Orrery: Upon pickup, gain 5 card rewards.
 
-    // TODO: Punch Dagger (Shop)
-    //   Effect: Upon pickup, Enchant an Attack with Momentum 5.
+    // No need to implement Punch Dagger: Upon pickup, Enchant an Attack with Momentum 5.
 
     // Ringing Triangle (Shop)
     //   Effect: Retain your Hand on the first turn of combat.
@@ -1084,8 +1079,7 @@ public class Relic2 {
         }
     }
 
-    // TODO: Royal Stamp (Shop)
-    //   Effect: Upon pickup, choose an Attack or Skill in your Deck to Enchant with Royally Approved.
+    // No need to implement Royal Stamp: Upon pickup, choose an Attack or Skill in your Deck to Enchant with Royally Approved.
 
     // Screaming Flagon (Shop)
     //   Effect: If you end your turn with no cards in your Hand, deal 20 damage to ALL enemies.
@@ -1118,8 +1112,7 @@ public class Relic2 {
     public static class Toolbox extends Relic.Toolbox {
     }
 
-    // TODO: Wing Charm (Shop)
-    //   Effect: A random card in each card reward is Enchanted with Swift 1.
+    // No need to implement Wing Charm: A random card in each card reward is Enchanted with Swift 1.
 
     // **************************************************************************************************
     // ********************************************* Event  *********************************************
@@ -1239,8 +1232,7 @@ public class Relic2 {
 
     // No need to implement Fragrant Mushroom: Upon pickup, lose 15 HP and Upgrade 3 random cards.
 
-    // TODO: Fresnel Lens (Event)
-    //   Effect: Whenever you add a card that gains Block to your Deck, Enchant it with Nimble 2.
+    // No need to implement Fresnel Lens: Whenever you add a card that gains Block to your Deck, Enchant it with Nimble 2.
 
     // Hand Drill (Event)
     //   Effect: Whenever you break an enemy's Block, apply 2 Vulnerable.
@@ -1468,8 +1460,7 @@ public class Relic2 {
     public static class Astrolabe extends Relic.Astrolabe {
     }
 
-    // TODO: Beautiful Bracelet (Ancient)
-    //   Effect: Upon pickup, choose 3 cards in your Deck. Enchant them with Swift 3.
+    // No need to implement: Beautiful Bracelet: Upon pickup, choose 3 cards in your Deck. Enchant them with Swift 3.
 
     // Biiig Hug (Ancient)
     //   Effect: Upon pickup, remove 4 cards from your Deck. Whenever you shuffle your Draw Pile, add a Soot into your Draw Pile.
@@ -1643,8 +1634,7 @@ public class Relic2 {
     public static class Ectoplasm extends Relic.Ectoplasm {
     }
 
-    // TODO: Electric Shrymp (Ancient)
-    //   Effect: Upon pickup, Enchant a Skill with Imbued.
+    // No need to implement Electric Shrymp: Upon pickup, Enchant a Skill with Imbued.
 
     // No need to implement Empty Cage: Upon pickup, remove 2 cards from your Deck.
 
@@ -1667,8 +1657,7 @@ public class Relic2 {
 
     // No need to implement Glass Eye: Upon pickup, obtain 2 Common cards, 2 Uncommon cards, and 1 Rare card.
 
-    // TODO: Glitter (Ancient)
-    //   Effect: Enchant all card rewards with Glam.
+    // No need to implement Glitter: Enchant all card rewards with Glam.
 
     // No need to implement Golden Compass: Upon pickup, replace the Act 2 Map with a single special path.
 
@@ -2144,8 +2133,7 @@ public class Relic2 {
 
     // No need to implement Toy Box: Upon pickup, obtain 4 Wax Relics. Every 3 combats, your left-most Wax Relic will melt away.
 
-    // TODO: Tri-Boomerang (Ancient)
-    //   Effect: Choose 3 Attacks in your Deck. Enchant them with Instinct.
+    // No need to implement Tri-Boomerang: Choose 3 Attacks in your Deck. Enchant them with Instinct.
 
     // Velvet Choker (Ancient)
     //   Effect: Gain energy at the start of each turn. You cannot play more than 6 cards per turn.
@@ -2173,29 +2161,22 @@ public class Relic2 {
 
     // No need to implement Yummy Cookie: Upon pickup, Upgrade 4 cards.
 
-    // TODO: Fishing Rod (Ancient)
-    //   Effect: Every 3 normal combats, Upgrade a random card in your Deck.
+    // No need to implement Fishing Rod: Every 3 normal combats, Upgrade a random card in your Deck.
 
     // TODO: Hefty Tablet (Ancient)
     //   Effect: Choose 1 of 3 Rare cards to add to your Deck. Add 1 Injury to your Deck.
 
-    // TODO: Kaleidoscope (Ancient)
-    //   Effect: Upon pickup, obtain 2 card rewards from other characters.
+    // No need to implement Kaleidoscope: Upon pickup, obtain 2 card rewards from other characters.
 
-    // TODO: Neow's Bones (Ancient)
-    //   Effect: Upon pickup, gain 2 random Neow Relics. Add 1 random Curse to your Deck.
+    // No need to implement Neow's Bones: Upon pickup, gain 2 random Neow Relics. Add 1 random Curse to your Deck.
 
-    // TODO: Neow's Talisman (Ancient)
-    //   Effect: Upon pickup, Upgrade 1 of your Strikes and 1 of your Defends.
+    // No need to implement Neow's Talisman: Upon pickup, Upgrade 1 of your Strikes and 1 of your Defends.
 
-    // TODO: Phial Holster (Ancient)
-    //   Effect: Upon pickup, gain 1 potion slot and procure 2 random Potion.
+    // No need to implement Phial Holster: Upon pickup, gain 1 potion slot and procure 2 random Potion.
 
-    // TODO: Silken Tress (Ancient)
-    //   Effect: Upon pickup, lose all Gold. Enchant all cards in the first card reward with Glam.
+    // No need to implement Silken Tress: Upon pickup, lose all Gold. Enchant all cards in the first card reward with Glam.
 
-    // TODO: Winged Boots (Ancient)
-    //   Effect: You may ignore paths when choosing the next rooms to travel to 3 times.
+    // No need to implement Winged Bootst: You may ignore paths when choosing the next rooms to travel to 3 times.
 
     // **************************************************************************************************
     // ********************************************* Special *********************************************

@@ -2929,6 +2929,7 @@ public class CardRegent2 {
             super(cardName, Card.ATTACK, -1, Card.RARE);
             this.damage = damage;
             this.isXCost = true;
+            this.delayUseEnergy = true;
             entityProperty.selectEnemy = true;
         }
 
@@ -3101,9 +3102,24 @@ public class CardRegent2 {
                         for (int i = state.discardArrLen - 1; i >= 0 && state.handArrLen < GameState.HAND_LIMIT; i--) {
                             var base = state.properties.cardDict[state.getDiscardArrForRead()[i]].getBaseCard();
                             if (base instanceof _MakeItSoT) {
-                                int foundIdx = state.getDiscardArrForRead()[i];
+                                state.addCardToHand(state.getDiscardArrForRead()[i]);
                                 state.removeCardFromDiscardByPosition(i);
-                                state.addCardToHand(foundIdx);
+                                break;
+                            }
+                        }
+                        for (int i = state.deckArrLen - 1; i >= 0 && state.handArrLen < GameState.HAND_LIMIT; i--) {
+                            var base = state.properties.cardDict[state.getDeckArrForRead()[i]].getBaseCard();
+                            if (base instanceof _MakeItSoT) {
+                                state.addCardToHand(state.getDeckArrForRead()[i]);
+                                state.removeCardFromDeckByPosition(i);
+                                break;
+                            }
+                        }
+                        for (int i = state.exhaustArrLen - 1; i >= 0 && state.handArrLen < GameState.HAND_LIMIT; i--) {
+                            var base = state.properties.cardDict[state.getExhaustArrForRead()[i]].getBaseCard();
+                            if (base instanceof _MakeItSoT) {
+                                state.addCardToHand(state.getExhaustArrForRead()[i]);
+                                state.removeCardFromExhaustByPosition(i);
                                 break;
                             }
                         }

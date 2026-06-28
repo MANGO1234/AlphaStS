@@ -544,7 +544,7 @@ public interface GameStateRandomization {
                 if (potions.get(i).isGenerated) {
                     continue;
                 }
-                if (!(potions.get(i) instanceof Potion.FairyInABottle || potions.get(i) instanceof Potion.BloodPotion || potions.get(i) instanceof Potion.RegenPotion || potions.get(i) instanceof Potion.BlockPotion)) {
+                if (potions.get(i) instanceof Potion.FairyInABottle || potions.get(i) instanceof Potion.BloodPotion || potions.get(i) instanceof Potion.RegenPotion || potions.get(i) instanceof Potion.BlockPotion) {
                     for (int j = 0; j < scenarios.length; j++) {
                         scenarios[j][k] = 100;
                     }

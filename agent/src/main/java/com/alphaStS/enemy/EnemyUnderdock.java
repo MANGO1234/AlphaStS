@@ -47,12 +47,16 @@ public class EnemyUnderdock {
 
         @Override public int damage(double n, GameState state) {
             var dmg = super.damage(n, state);
-            // todo: should only be after the card finished playing
             if (dmg > 0 && !tookDamageThisTurn) {
                 tookDamageThisTurn = true;
-                gainBlock(7);
             }
             return dmg;
+        }
+
+        @Override public void react(GameState state, Card card) {
+            if (tookDamageThisTurn) {
+                gainBlock(7);
+            }
         }
 
         @Override public void endTurn(int turnNum) {
@@ -139,7 +143,6 @@ public class EnemyUnderdock {
 
         private boolean stunned = false;
         private int vigor = 0;
-        private int lastMoveBeforeStun = -1;
 
         public TerrorEel() {
             this(150);
@@ -155,7 +158,6 @@ public class EnemyUnderdock {
             super(other);
             this.stunned = other.stunned;
             this.vigor = other.vigor;
-            this.lastMoveBeforeStun = other.lastMoveBeforeStun;
         }
 
         @Override public Enemy copy() {
@@ -167,7 +169,6 @@ public class EnemyUnderdock {
             // todo: should only be after the card finished playing
             if (health <= 75 && !stunned) {
                 stunned = true;
-                lastMoveBeforeStun = move;
                 move = STUN;
             }
             return dmg;
@@ -177,7 +178,6 @@ public class EnemyUnderdock {
             super.nonAttackDamage(n, blockable, state);
             if (health <= 75 && !stunned) {
                 stunned = true;
-                lastMoveBeforeStun = move;
                 move = STUN;
             }
         }
@@ -196,11 +196,12 @@ public class EnemyUnderdock {
         }
 
         @Override public void nextMove(GameState state, RandomGen random) {
-            if (move == STUN) {
+            if (move < 0) {
+                move = CRASH;
+            } else if (move == STUN) {
                 move = TERROR;
             } else if (move == TERROR) {
-                move = lastMoveBeforeStun;
-                lastMoveBeforeStun = -1;
+                move = CRASH;
             } else if (move == THRASH) {
                 move = CRASH;
             } else {
@@ -212,7 +213,7 @@ public class EnemyUnderdock {
             if (move == CRASH) {
                 return "Attack " + state.enemyCalcDamageToPlayer(this, 18 + vigor);
             } else if (move == THRASH) {
-                return "Attack " + state.enemyCalcDamageToPlayer(this, 4) + "x3";
+                return "Attack " + state.enemyCalcDamageToPlayer(this, 4 + vigor) + "x3";
             } else if (move == STUN) {
                 return "Stunned";
             } else if (move == TERROR) {
@@ -234,27 +235,25 @@ public class EnemyUnderdock {
 
         @Override public String toString(GameState state) {
             String s = super.toString(state);
-            return s.subSequence(0, s.length() - 1) + ", stunned=" + stunned + "}";
+            return s.subSequence(0, s.length() - 1) + ", stunned=" + stunned + ", vigor=" + vigor + "}";
         }
 
         @Override public boolean equals(Object o) {
-            return super.equals(o) && stunned == ((TerrorEel) o).stunned;
+            return super.equals(o) && stunned == ((TerrorEel) o).stunned && vigor == ((TerrorEel) o).vigor;
         }
 
         @Override public int getNNInputLen(GameProperties prop) {
-            return 4;
+            return 2;
         }
 
         @Override public String getNNInputDesc(GameProperties prop) {
-            return "4 inputs to keep track Terror Eel mechanics";
+            return "2 inputs to keep track whether Terror Eel was stunned and its vigor";
         }
 
         @Override public int writeNNInput(GameProperties prop, float[] input, int idx) {
-            input[idx++] = stunned ? 0.5f : 0.0f;
-            input[idx++] = ((float) vigor) / 12.0f;
-            input[idx++] = lastMoveBeforeStun == CRASH ? 0.5f : 0.0f;
-            input[idx++] = lastMoveBeforeStun == THRASH ? 0.5f : 0.0f;
-            return 4;
+            input[idx] = stunned ? 0.5f : 0.0f;
+            input[idx + 1] = vigor / 12.0f;
+            return 2;
         }
     }
 
@@ -265,14 +264,13 @@ public class EnemyUnderdock {
         public static final int STUNNED = 3;
 
         private int startingMove;
-        private int lastMoveBeforeStun = WHIP_SLAP;
 
         public CorpseSlug() {
             this(29, WHIP_SLAP);
         }
 
         public CorpseSlug(int health, int startingMove) {
-            super(health, 4, false);
+            super(health, 4, true);
             properties.canGainStrength = true;
             properties.canBeStunned = true;
             properties.entityProperty.changePlayerFrailed = true;
@@ -282,7 +280,6 @@ public class EnemyUnderdock {
         public CorpseSlug(CorpseSlug other) {
             super(other);
             this.startingMove = other.startingMove;
-            this.lastMoveBeforeStun = other.lastMoveBeforeStun;
         }
 
         @Override public Enemy copy() {
@@ -300,9 +297,7 @@ public class EnemyUnderdock {
         }
 
         public void ravenousStun() {
-            if (move != STUNNED) {
-                lastMoveBeforeStun = move < 0 ? startingMove : move;
-            }
+            lastMove = move;
             move = STUNNED;
         }
 
@@ -310,8 +305,8 @@ public class EnemyUnderdock {
             if (move < 0) {
                 move = startingMove;
             } else if (move == STUNNED) {
-                lastMove = move;
-                move = (lastMoveBeforeStun + 1) % 3;
+                move = lastMove;
+                lastMove = STUNNED;
             } else {
                 int newMove = (move + 1) % 3;
                 lastMove = move;
@@ -348,30 +343,6 @@ public class EnemyUnderdock {
 
         @Override public void randomize(GameState state, boolean training, int difficulty) {
             randomizeHealth(this, state, training, 27, 29);
-        }
-
-        @Override public String toString(GameState state) {
-            String s = super.toString(state);
-            return s.subSequence(0, s.length() - 1) + ", lastMoveBeforeStun=" + lastMoveBeforeStun + "}";
-        }
-
-        @Override public boolean equals(Object o) {
-            return super.equals(o) && lastMoveBeforeStun == ((CorpseSlug) o).lastMoveBeforeStun;
-        }
-
-        @Override public int getNNInputLen(GameProperties prop) {
-            return 3;
-        }
-
-        @Override public String getNNInputDesc(GameProperties prop) {
-            return "3 inputs to keep track of Corpse Slug stun mechanics";
-        }
-
-        @Override public int writeNNInput(GameProperties prop, float[] input, int idx) {
-            input[idx++] = lastMoveBeforeStun == WHIP_SLAP ? 0.5f : 0.0f;
-            input[idx++] = lastMoveBeforeStun == GLOMP ? 0.5f : 0.0f;
-            input[idx++] = lastMoveBeforeStun == GOOP ? 0.5f : 0.0f;
-            return 3;
         }
 
         @Override public String getName() {
@@ -1172,10 +1143,9 @@ public class EnemyUnderdock {
         @Override public void doMove(GameState state, EnemyReadOnly self) {
             if (move == ZOOM_1 || move == ZOOM_2) {
                 state.enemyDoDamageToPlayer(this, 16, 1);
-                gainBlock(13);
             } else if (move == INERTIA) {
                 state.enemyDoDamageToPlayer(this, 11, 1);
-                gainStrength(3);
+                gainStrength(4);
             } else if (move == PIERCING_STABS) {
                 state.enemyDoDamageToPlayer(this, 8, 2);
             }
@@ -1188,9 +1158,9 @@ public class EnemyUnderdock {
 
         @Override public String getMoveString(GameState state, int move) {
             if (move == ZOOM_1 || move == ZOOM_2) {
-                return "Attack " + state.enemyCalcDamageToPlayer(this, 16) + "+Block 13";
+                return "Attack " + state.enemyCalcDamageToPlayer(this, 16);
             } else if (move == INERTIA) {
-                return "Attack " + state.enemyCalcDamageToPlayer(this, 11) + "+Strength 3";
+                return "Attack " + state.enemyCalcDamageToPlayer(this, 11) + "+Strength 4";
             } else if (move == PIERCING_STABS) {
                 return "Attack " + state.enemyCalcDamageToPlayer(this, 8) + "x2";
             }

@@ -99,12 +99,11 @@ public class Configuration {
     // ends the battle faster among moves with similar evaluation
     // basic testing show it significantly helps in preventing losing to 50 turns and dramatically shorten number of turns
     // (usually in defect battles with lots of focus where the network stop progressing due to every move being the same eval)
-    // disable unless needed for now, some testing shows it will cause the network to lose fights it wouldn't have lost by picking
-    // more "aggressive" moves to do damage
-    public static boolean USE_TURNS_LEFT_HEAD = true;
-    // Experimental feature to test the problem mentioned above (Worked on the single instance I tested it on)
-    // Since the main problem is when defensive output far exceeds enemy damage, add an addition head for probablity
-    // of taking any more damage from current position and only use turns left head when it exeeds a threshold 
+    // Some testing shows it will cause the network to lose fights it wouldn't have lost by picking more "aggressive" moves to do damage
+    public static boolean USE_TURNS_LEFT_HEAD = false;
+    // Experimental feature to resolve the problem mentioned above (Worked on couple instances I tested it on so far)
+    // Since the main problem is when defensive output far exceeds enemy damage, add an addition head for probability
+    // of taking any more damage from current position and only use turns left head when it exceeds a threshold
     public static boolean USE_TURNS_LEFT_HEAD_ONLY_WHEN_NO_DMG = true;
 
     // print model prediction error compare to actual result

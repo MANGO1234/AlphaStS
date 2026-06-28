@@ -955,6 +955,9 @@ public class InteractiveMode {
         }
         out.println("Player");
         out.println("  Energy: " + state.energy);
+        if (state.starResource > 0) {
+            out.println("  Star: " + state.starResource);
+        }
         int maxPossibleHealth = state.getMaxPossibleHealth();
         int health = state.getPlayerForRead().getHealth();
         out.println("  HP: " + health + ((health != maxPossibleHealth) ? " (Max Possible HP=" + maxPossibleHealth + ")" : ""));
