@@ -41,6 +41,8 @@ DYNAMIC_BATCH_SIZE_FACTOR = int(getFlagValue('-dynamic_batch', 0))
 SAVES_DIR = getFlagValue('-dir', './saves')
 SKIP_FIRST = getFlag('-skip_first')
 USE_CYCLIC_LR = getFlag('-cyclic')
+USE_ADAMW = getFlag('-adamw')
+USE_RESIDUAL_MLP = getFlag('-residual_mlp')
 USE_KAGGLE = getFlagValue('-kaggle')
 KAGGLE_USER_NAME = getFlagValue('-kaggle_user', None)
 KAGGLE_DATASET_NAME = 'dataset'
@@ -133,32 +135,18 @@ else:
 
 custom_objects = {"softmax_cross_entropy_with_logits": softmax_cross_entropy_with_logits,
                   "softmax_cross_entropy_with_logits_simple": softmax_cross_entropy_with_logits_simple, "mse_ignoring_out_of_bound": mse_ignoring_out_of_bound}
-if os.path.exists(f'{SAVES_DIR}/iteration{training_info["iteration"] - 1}'):
-    with keras.utils.custom_object_scope(custom_objects):
-        model = tf.keras.models.load_model(f'{SAVES_DIR}/iteration{training_info["iteration"] - 1}')
-        # model.optimizer.lr.assign(0.01)
-else:
-    inputs = keras.Input(shape=(input_len,))
-    # x = layers.BatchNormalization(axis=1)(inputs)
-    x = layers.Dense(input_len, activation="linear", name="layer1")(inputs)
-    x = layers.BatchNormalization(axis=1)(x)
-    x = layers.LeakyReLU()(x)
-    x = layers.Dense(input_len, activation="linear", name="layer2")(x)
-    x = layers.BatchNormalization(axis=1)(x)
-    x = layers.LeakyReLU()(x)
-    # x = layers.Dense((input_len + 1) // 2, activation="linear", use_bias=True, name="layer2")(x)
-    # x = layers.BatchNormalization(axis=1)(x)
-    # x = layers.LeakyReLU()(x)
-    # x1 = layers.Dense((input_len + 1) // 4, activation="linear", use_bias=True, name="layer3")(x)
-    # x1 = layers.BatchNormalization(axis=1)(x1)
-    # x1 = layers.LeakyReLU()(x1)
-    # x2 = layers.Dense((input_len + 1) // 4, activation="linear", use_bias=True, name="layer4")(x)
-    # x2 = layers.BatchNormalization(axis=1)(x2)
-    # x2 = layers.LeakyReLU()(x2)
-    exp_win_head = layers.Dense(1, name="exp_win_head", use_bias=True, activation='tanh')(x)
-    exp_health_head = layers.Dense(1, name="exp_health_head", use_bias=True, activation='tanh')(x)
-    policy_head = layers.Dense(num_of_actions, use_bias=True, activation='linear', name="policy_head")(x)
-    exp_other_heads = []
+
+
+def make_optimizer():
+    if USE_ADAMW:
+        adamw = getattr(tf.keras.optimizers, 'AdamW', None)
+        if adamw is None:
+            adamw = tf.keras.optimizers.experimental.AdamW
+        return adamw(learning_rate=0.001, weight_decay=0.0001, clipnorm=1.0)
+    return tf.keras.optimizers.SGD(learning_rate=0.1, momentum=0.9)
+
+
+def make_loss_config():
     loss = {
         'exp_health_head': mse_ignoring_out_of_bound,
         'exp_win_head': mse_ignoring_out_of_bound,
@@ -168,25 +156,86 @@ else:
     idx = 0
     for v_other in v_other_lens:
         if v_other == 1:
-            if v_other_label[idx].startswith('z_'):
-                loss[f'{v_other_label[idx]}_head'] = mse_ignoring_out_of_bound
-                exp_other_heads.append(layers.Dense(1, name=f"{v_other_label[idx]}_head", use_bias=True, activation='tanh')(layers.Lambda(lambda x: tf.stop_gradient(x))(x)))
-                loss_weights[f'{v_other_label[idx]}_head'] = 0.25
-            else:
-                loss[f'{v_other_label[idx]}_head'] = mse_ignoring_out_of_bound
-                exp_other_heads.append(layers.Dense(1, name=f"{v_other_label[idx]}_head", use_bias=True, activation='tanh')(x))
-                loss_weights[f'{v_other_label[idx]}_head'] = 0.25
+            loss[f'{v_other_label[idx]}_head'] = mse_ignoring_out_of_bound
+            loss_weights[f'{v_other_label[idx]}_head'] = 0.25
         else:
             loss[f'{v_other_label[idx]}_head'] = softmax_cross_entropy_with_logits_simple
-            exp_other_heads.append(layers.Dense(v_other, name=f"{v_other_label[idx]}_head", use_bias=True, activation='linear')(x))
             loss_weights[f'{v_other_label[idx]}_head'] = 0.45 if v_other_label[idx] == 'dmg_distribution' else 0.25
         idx += 1
-    model = keras.Model(inputs=[inputs], outputs=[exp_health_head, exp_win_head, policy_head] + exp_other_heads)
+    return loss, loss_weights
+
+
+def compile_model(model):
+    loss, loss_weights = make_loss_config()
     model.compile(
         loss=loss,
         loss_weights=loss_weights,
-        optimizer=tf.keras.optimizers.SGD(learning_rate=0.1, momentum=0.9)
+        optimizer=make_optimizer()
     )
+
+
+def residual_mlp_block(x, width, name):
+    residual = x
+    x = layers.Dense(width, activation="linear", name=f"{name}_dense1")(x)
+    x = layers.LayerNormalization(name=f"{name}_ln1")(x)
+    x = layers.LeakyReLU(name=f"{name}_relu1")(x)
+    x = layers.Dense(width, activation="linear", name=f"{name}_dense2")(x)
+    x = layers.LayerNormalization(name=f"{name}_ln2")(x)
+    x = layers.Add(name=f"{name}_add")([residual, x])
+    x = layers.LeakyReLU(name=f"{name}_relu2")(x)
+    return x
+
+
+if os.path.exists(f'{SAVES_DIR}/iteration{training_info["iteration"] - 1}'):
+    with keras.utils.custom_object_scope(custom_objects):
+        model = tf.keras.models.load_model(f'{SAVES_DIR}/iteration{training_info["iteration"] - 1}')
+        compile_model(model)
+else:
+    inputs = keras.Input(shape=(input_len,))
+    if USE_RESIDUAL_MLP:
+        width = max(512, input_len)
+        x = layers.Dense(width, activation="linear", name="layer1")(inputs)
+        x = layers.LayerNormalization(name="layer1_ln")(x)
+        x = layers.LeakyReLU(name="layer1_relu")(x)
+        x = residual_mlp_block(x, width, "residual_block1")
+        x = residual_mlp_block(x, width, "residual_block2")
+        x = residual_mlp_block(x, width, "residual_block3")
+        x = layers.Dense(input_len, activation="linear", name="layer2")(x)
+        x = layers.LayerNormalization(name="layer2_ln")(x)
+        x = layers.LeakyReLU(name="layer2_relu")(x)
+    else:
+        # x = layers.BatchNormalization(axis=1)(inputs)
+        x = layers.Dense(input_len, activation="linear", name="layer1")(inputs)
+        x = layers.BatchNormalization(axis=1)(x)
+        x = layers.LeakyReLU()(x)
+        x = layers.Dense(input_len, activation="linear", name="layer2")(x)
+        x = layers.BatchNormalization(axis=1)(x)
+        x = layers.LeakyReLU()(x)
+        # x = layers.Dense((input_len + 1) // 2, activation="linear", use_bias=True, name="layer2")(x)
+        # x = layers.BatchNormalization(axis=1)(x)
+        # x = layers.LeakyReLU()(x)
+        # x1 = layers.Dense((input_len + 1) // 4, activation="linear", use_bias=True, name="layer3")(x)
+        # x1 = layers.BatchNormalization(axis=1)(x1)
+        # x1 = layers.LeakyReLU()(x1)
+        # x2 = layers.Dense((input_len + 1) // 4, activation="linear", use_bias=True, name="layer4")(x)
+        # x2 = layers.BatchNormalization(axis=1)(x2)
+        # x2 = layers.LeakyReLU()(x2)
+    exp_win_head = layers.Dense(1, name="exp_win_head", use_bias=True, activation='tanh')(x)
+    exp_health_head = layers.Dense(1, name="exp_health_head", use_bias=True, activation='tanh')(x)
+    policy_head = layers.Dense(num_of_actions, use_bias=True, activation='linear', name="policy_head")(x)
+    exp_other_heads = []
+    idx = 0
+    for v_other in v_other_lens:
+        if v_other == 1:
+            if v_other_label[idx].startswith('z_'):
+                exp_other_heads.append(layers.Dense(1, name=f"{v_other_label[idx]}_head", use_bias=True, activation='tanh')(layers.Lambda(lambda x: tf.stop_gradient(x))(x)))
+            else:
+                exp_other_heads.append(layers.Dense(1, name=f"{v_other_label[idx]}_head", use_bias=True, activation='tanh')(x))
+        else:
+            exp_other_heads.append(layers.Dense(v_other, name=f"{v_other_label[idx]}_head", use_bias=True, activation='linear')(x))
+        idx += 1
+    model = keras.Model(inputs=[inputs], outputs=[exp_health_head, exp_win_head, policy_head] + exp_other_heads)
+    compile_model(model)
     os.mkdir(f'{SAVES_DIR}/iteration0')
     model.save(f'{SAVES_DIR}/iteration0')
     convertToOnnx(model, input_len, f'{SAVES_DIR}/iteration0')
@@ -499,7 +548,7 @@ if DO_TRAINING:
             print("Model layers reset!!!")
             reset_model(model)
         # need a bit more testing, but a few different fihgt shows cyclic lr seems to training a bit faster and lead to better network
-        if USE_CYCLIC_LR and training_info["iteration"] > 20:
+        if USE_CYCLIC_LR and not USE_ADAMW and training_info["iteration"] > 20:
             t = (training_info["iteration"] - 21) % 15
             if t <= 7:
                 lr = 0.05 + (0.5 - 0.05) / 7 * t
