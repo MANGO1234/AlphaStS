@@ -17,6 +17,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
     public static int POWER = 2;
     public static int CURSE = 3;
     public static int STATUS = 4;
+    public static int QUEST = 5;
 
     public static int COMMON = 0;
     public static int UNCOMMON = 1;

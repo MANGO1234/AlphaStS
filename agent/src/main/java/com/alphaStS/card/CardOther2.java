@@ -248,9 +248,13 @@ public class CardOther2 {
         }
     }
 
-    // TODO: Guilty (Curse) - Unplayable, Curse
+    // Guilty (Curse) - Unplayable, Curse
     //   Effect: Unplayable. Removed from your Deck after 5 combats.
-    //   No upgrade.
+    public static class Guilty extends Card {
+        public Guilty() {
+            super("Guilty", Card.CURSE, -1, Card.COMMON);
+        }
+    }
 
     // Injury (Curse) - Unplayable, Curse
     //   Effect: Unplayable.
@@ -293,15 +297,27 @@ public class CardOther2 {
     // ********************************************* Quest  *********************************************
     // **************************************************************************************************
 
-    // TODO: Byrdonis Egg (Quest) - Unplayable, Quest
-    //   Effect: Unplayable. Can be hatched at a Rest Site.
-    //   No upgrade.
+    // Byrdonis Egg (Quest) - Unplayable, Quest
+    //    Effect: Unplayable. Can be hatched at a Rest Site.
+    public static class ByrdonisEgg extends Card {
+        public ByrdonisEgg() {
+            super("Byrdonis Egg", Card.QUEST, -1, Card.COMMON);
+        }
+    }
 
-    // TODO: Lantern Key (Quest) - Unplayable, Quest
-    //   Effect: Unplayable. Unlocks a special event in the next Act.
-    //   No upgrade.
+    // Lantern Key (Quest) - Unplayable, Quest
+    //    Effect: Unplayable. Unlocks a special event in the next Act.
+    public static class LanternKey extends Card {
+        public LanternKey() {
+            super("Lantern Key", Card.QUEST, -1, Card.COMMON);
+        }
+    }
 
-    // TODO: Spoils Map (Quest) - Unplayable, Quest
-    //   Effect: Unplayable. Marks a site of 600 extra Gold in the next Act.
-    //   No upgrade.
+    // Spoils Map (Quest) - Unplayable, Quest
+    //    Effect: Unplayable. Marks a site of 600 extra Gold in the next Act.
+    public static class SpoilsMap extends Card {
+        public SpoilsMap() {
+            super("Spoils Map", Card.QUEST, -1, Card.COMMON);
+        }
+    }
 }
