@@ -10,6 +10,7 @@ import com.alphaStS.eventHandler.GameEventHandler;
 import com.alphaStS.gameAction.GameActionCtx;
 import com.alphaStS.random.RandomGenCtx;
 
+import java.util.Arrays;
 import java.util.List;
 
 public class CardSilent2 {
@@ -644,9 +645,78 @@ public class CardSilent2 {
     public static class FootworkP extends CardSilent.FootworkP {
     }
 
-    // TODO: Hand Trick (Uncommon) - 1 energy, Skill
+    // Hand Trick (Uncommon) - 1 energy, Skill
     //   Effect: Gain 7 Block. Add Sly to a Skill in your Hand this turn.
     //   Upgraded Effect: Gain 10 Block. Add Sly to a Skill in your Hand this turn.
+    private static abstract class _HandTrickT extends Card {
+        private final int block;
+        private int[] tmpSlyTransformIdxes;
+
+        public _HandTrickT(String cardName, int block) {
+            super(cardName, Card.SKILL, 1, Card.UNCOMMON);
+            this.block = block;
+            entityProperty.selectFromHand = true;
+            selectFromHandLater = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            if (state.actionCtx == GameActionCtx.PLAY_CARD) {
+                state.playerGainBlock(block);
+                for (int i = 0; i < state.handArrLen; i++) {
+                    if (canSelectCard(state.properties.cardDict[state.handArr[i]])) {
+                        return GameActionCtx.SELECT_CARD_HAND;
+                    }
+                }
+                return GameActionCtx.PLAY_CARD;
+            } else {
+                if (tmpSlyTransformIdxes != null && tmpSlyTransformIdxes[idx] >= 0) {
+                    var handArr = state.getHandArrForWrite();
+                    for (int i = 0; i < state.handArrLen; i++) {
+                        if (handArr[i] == idx) {
+                            state.transformCard(handArr, i, tmpSlyTransformIdxes[idx]);
+                            break;
+                        }
+                    }
+                }
+                return GameActionCtx.PLAY_CARD;
+            }
+        }
+
+        @Override public boolean canSelectCard(Card card) {
+            return card.cardType == Card.SKILL;
+        }
+
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            return cards.stream().filter(this::canSelectCard).map(Card::getTmpSlyUntilEndOfTurnIfPossible).toList();
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            if (state.properties.tmpSlyTransformIdxes == null) {
+                state.properties.tmpSlyTransformIdxes = new int[state.properties.cardDict.length];
+                Arrays.fill(state.properties.tmpSlyTransformIdxes, -1);
+                for (int i = 0; i < state.properties.cardDict.length; i++) {
+                    if (canSelectCard(state.properties.cardDict[i])) {
+                        Card transformedCard = state.properties.cardDict[i].getTmpSlyUntilEndOfTurnIfPossible();
+                        if (transformedCard != state.properties.cardDict[i]) {
+                            state.properties.tmpSlyTransformIdxes[i] = state.properties.findCardIndex(transformedCard);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    public static class HandTrick extends _HandTrickT {
+        public HandTrick() {
+            super("Hand Trick", 7);
+        }
+    }
+
+    public static class HandTrickP extends _HandTrickT {
+        public HandTrickP() {
+            super("Hand Trick+", 10);
+        }
+    }
 
     private static abstract class _HazeT extends Card {
         private final int n;
@@ -907,9 +977,57 @@ public class CardSilent2 {
         }
     }
 
-    // TODO: Phantom Blades (Uncommon) - 1 energy, Power
+    // Phantom Blades (Uncommon) - 1 energy, Power
     //   Effect: Shivs gain Retain. The first Shiv you play each turn deals 9 additional damage.
     //   Upgraded Effect: Shivs gain Retain. The first Shiv you play each turn deals 12 additional damage.
+    private static abstract class _PhantomBladesT extends Card {
+        private final int bonusDamage;
+
+        public _PhantomBladesT(String cardName, int bonusDamage) {
+            super(cardName, Card.POWER, 1, Card.UNCOMMON);
+            this.bonusDamage = bonusDamage;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getCounterForWrite()[counterIdx] += bonusDamage;
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("PhantomBlades", this, 2, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 30.0f;
+                    input[idx + 1] = state.getCounterForRead()[counterIdx + 1];
+                    return idx + 2;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 2;
+                }
+
+                @Override public void onRegister(int counterIdx) {
+                    state.properties.phantomBladesCounterIdx = counterIdx;
+                }
+            });
+            state.properties.addStartOfTurnHandler("PhantomBlades", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    state.getCounterForWrite()[counterIdx + 1] = 0;
+                }
+            });
+        }
+    }
+
+    public static class PhantomBlades extends _PhantomBladesT {
+        public PhantomBlades() {
+            super("Phantom Blades", 9);
+        }
+    }
+
+    public static class PhantomBladesP extends _PhantomBladesT {
+        public PhantomBladesP() {
+            super("Phantom Blades+", 12);
+        }
+    }
 
     private static abstract class _PinpointT extends Card {
         private final int n;
@@ -1817,9 +1935,51 @@ public class CardSilent2 {
     public static class MalaiseP extends CardSilent.MalaiseP {
     }
 
-    // TODO: Master Planner (Rare) - 2 energy, Power
+    // Master Planner (Rare) - 2 energy, Power
     //   Effect: When you play a Skill, it gains Sly.
     //   Upgraded Effect (1 energy): When you play a Skill, it gains Sly.
+    private static abstract class _MasterPlannerT extends Card {
+        public _MasterPlannerT(String cardName, int cost) {
+            super(cardName, Card.POWER, cost, Card.RARE);
+            entityProperty.addPossibleBuff(PlayerBuff.MASTER_PLANNER);
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.addBuff(PlayerBuff.MASTER_PLANNER);
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            return cards.stream().filter(card -> card.cardType == Card.SKILL).map(Card::getPermSly).toList();
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            if (state.properties.permSlyTransformIdxes == null) {
+                state.properties.permSlyTransformIdxes = new int[state.properties.cardDict.length];
+                Arrays.fill(state.properties.permSlyTransformIdxes, -1);
+                for (int i = 0; i < state.properties.cardDict.length; i++) {
+                    if (canSelectCard(state.properties.cardDict[i])) {
+                        Card transformedCard = state.properties.cardDict[i].getTmpSlyUntilEndOfTurnIfPossible();
+                        if (transformedCard != state.properties.cardDict[i]) {
+                            state.properties.permSlyTransformIdxes[i] = state.properties.findCardIndex(transformedCard);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    public static class MasterPlanner extends _MasterPlannerT {
+        public MasterPlanner() {
+            super("Master Planner", 2);
+        }
+    }
+
+    public static class MasterPlannerP extends _MasterPlannerT {
+        public MasterPlannerP() {
+            super("Master Planner+", 1);
+        }
+    }
 
     private static abstract class _MurderT extends Card {
         public _MurderT(String cardName, int cost) {
@@ -2228,7 +2388,33 @@ public class CardSilent2 {
     // ********************************************* Uncommon *********************************************
     // **************************************************************************************************
 
-    // TODO: Scare (Uncommon) - 0 energy, Skill
+    // Scare (Uncommon) - 0 energy, Skill
     //   Effect: Apply 1 Weak to ALL enemies. Exhaust.
     //   Upgraded Effect: Apply 1 Weak to ALL enemies.
+    private static abstract class _ScareT extends Card {
+        public _ScareT(String cardName, boolean exhaustWhenPlayed) {
+            super(cardName, Card.SKILL, 0, Card.UNCOMMON);
+            this.exhaustWhenPlayed = exhaustWhenPlayed;
+            entityProperty.weakEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
+                enemy.applyDebuff(state, DebuffType.WEAK, 1);
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Scare extends _ScareT {
+        public Scare() {
+            super("Scare", true);
+        }
+    }
+
+    public static class ScareP extends _ScareT {
+        public ScareP() {
+            super("Scare+", false);
+        }
+    }
 }

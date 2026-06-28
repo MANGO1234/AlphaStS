@@ -789,7 +789,7 @@ public class CardNecrobinder2 {
             if (state.actionCtx == GameActionCtx.PLAY_CARD) {
                 state.otsyDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage);
                 for (int i = 0; i < state.handArrLen; i++) {
-                    if (!state.properties.cardDict[state.handArr[i]].retain()) {
+                    if (!state.properties.cardDict[state.handArr[i]].retain(state)) {
                         return GameActionCtx.SELECT_CARD_HAND;
                     }
                 }
@@ -808,17 +808,17 @@ public class CardNecrobinder2 {
             }
         }
 
-        @Override public boolean canSelectCard(Card card) { return !card.retain(); }
+        @Override public boolean canSelectCard(Card card) { return !card.retain(null); }
 
         @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
-            return cards.stream().filter(c -> !c.retain()).map(Card::getPermRetain).toList();
+            return cards.stream().filter(c -> !c.retain(null)).map(Card::getPermRetain).toList();
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
             permRetainTransformIdxes = new int[state.properties.cardDict.length];
             Arrays.fill(permRetainTransformIdxes, -1);
             for (int i = 0; i < state.properties.cardDict.length; i++) {
-                if (!state.properties.cardDict[i].retain()) {
+                if (!state.properties.cardDict[i].retain(null)) {
                     permRetainTransformIdxes[i] = state.properties.findCardIndex(state.properties.cardDict[i].getPermRetain());
                 }
             }

@@ -88,12 +88,16 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         return innate;
     }
 
-    public boolean retain() {
+    public boolean retain(GameState state) {
         return retain;
     }
 
     public boolean ethereal() {
         return ethereal;
+    }
+
+    public boolean sly() {
+        return entityProperty.sly;
     }
 
     public boolean isTmpModifiedCard() {
@@ -144,14 +148,38 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
     }
 
     public Card getPermEthereal() {
+        if (ethereal) {
+            return this;
+        }
         var mod = new CardModification();
         mod.permEthereal = true;
         return new Card.CardWrapper(this, mod);
     }
 
     public Card getPermRetain() {
+        if (retain) {
+            return this;
+        }
         var mod = new CardModification();
         mod.permRetain = true;
+        return new Card.CardWrapper(this, mod);
+    }
+
+    public Card getPermSly() {
+        if (entityProperty.sly) {
+            return this;
+        }
+        var mod = new CardModification();
+        mod.permSly = true;
+        return new Card.CardWrapper(this, mod);
+    }
+
+    public Card getTmpSlyUntilEndOfTurnIfPossible() {
+        if (entityProperty.sly) {
+            return this;
+        }
+        var mod = new CardModification();
+        mod.tmpSlyUntilEndOfTurn = true;
         return new Card.CardWrapper(this, mod);
     }
 
@@ -336,6 +364,8 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         public int spiral = 0;
         public boolean steady = false;
         public int swift = 0;
+        public boolean permSly = false;
+        public boolean tmpSlyUntilEndOfTurn = false;
         public boolean sown = false;
         public int vigorous = 0;
 
@@ -363,6 +393,8 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
             copy.spiral = spiral;
             copy.steady = steady;
             copy.swift = swift;
+            copy.permSly = permSly;
+            copy.tmpSlyUntilEndOfTurn = tmpSlyUntilEndOfTurn;
             copy.sown = sown;
             copy.vigorous = vigorous;
             return copy;
@@ -438,6 +470,12 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
             if (mod.swift > 0) {
                 sb.append(" (Swift ").append(mod.swift).append(")");
             }
+            if (mod.permSly) {
+                sb.append(" (Sly)");
+            }
+            if (mod.tmpSlyUntilEndOfTurn) {
+                sb.append(" (Tmp Sly)");
+            }
             if (mod.glam) {
                 sb.append(" (Glam)");
             }
@@ -475,7 +513,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
             returnToDeckWhenPlay = card.returnToDeckWhenPlay;
             returnToTopOfDeckWhenPlay = card.returnToTopOfDeckWhenPlay;
             returnToHandWhenPlay = card.returnToHandWhenPlay;
-            retain = card.retain();
+            retain = card.retain;
             delayUseEnergy = card.delayUseEnergy;
             isXCost = card.isXCost;
             selectFromDiscardLater = card.selectFromDiscardLater;
@@ -496,6 +534,8 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         }
 
         @Override public boolean ethereal() { return super.ethereal() || mod.permEthereal; }
+
+        @Override public boolean sly() { return super.sly() || mod.permSly; }
 
         @Override
         public void setCounterIdx(GameProperties gameProperties, int idx) {
@@ -538,7 +578,8 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         @Override
         public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
             boolean hasTempMods = mod.tmpChangeCost != -1 || mod.tmpUntilPlayedCost != -1
-                    || mod.tmpRetain || mod.swift > 0 || mod.sown || mod.glam || mod.vigorous > 0;
+                    || mod.tmpRetain || mod.swift > 0 || mod.sown || mod.glam || mod.vigorous > 0
+                    || mod.tmpSlyUntilEndOfTurn;
             if (hasTempMods || mod.momentum > 0) {
                 var possibleInnerCards = card.getPossibleGeneratedCards(properties, cards);
                 var result = new ArrayList<>(possibleInnerCards);
@@ -562,6 +603,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
             newMod.tmpUntilPlayedCost = -1;
             newMod.tmpRetain = false;
             newMod.swift = 0;
+            newMod.tmpSlyUntilEndOfTurn = false;
             newMod.sown = false;
             newMod.glam = false;
             newMod.vigorous = 0;
@@ -588,7 +630,8 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
             if (afterFirstPlayTransformIdx == Integer.MIN_VALUE) {
                 afterFirstPlayTransformIdx = card.onPlayTransformCardIdx(prop, cardIdx);
                 boolean needsStrip = mod.tmpChangeCost != -1 || mod.tmpUntilPlayedCost != -1
-                        || mod.tmpRetain || mod.swift > 0 || mod.sown || mod.glam || mod.vigorous > 0;
+                        || mod.tmpRetain || mod.swift > 0 || mod.sown || mod.glam || mod.vigorous > 0
+                        || mod.tmpSlyUntilEndOfTurn;
                 if (needsStrip || mod.momentum > 0) {
                     // use the inner-card transform target if available, otherwise the inner card itself
                     Card baseCard = afterFirstPlayTransformIdx >= 0
@@ -598,6 +641,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
                     newMod.tmpUntilPlayedCost = -1;
                     newMod.tmpRetain = false;
                     newMod.swift = 0;
+                    newMod.tmpSlyUntilEndOfTurn = false;
                     newMod.sown = false;
                     newMod.glam = false;
                     newMod.vigorous = 0;
@@ -659,18 +703,18 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         }
 
         @Override
-        public boolean retain() {
-            return mod.tmpRetain || mod.steady || mod.royallyApproved || mod.permRetain || card.retain;
+        public boolean retain(GameState state) {
+            return mod.tmpRetain || mod.steady || mod.royallyApproved || mod.permRetain || card.retain(state);
         }
 
         @Override
         public boolean isTmpModifiedCard() {
-            return isTmpChangeCost() || isTmpUntilPlayedCost() || isTmpRetain();
+            return isTmpChangeCost() || isTmpUntilPlayedCost() || isTmpRetain() || mod.tmpSlyUntilEndOfTurn;
         }
 
         @Override
         public boolean isTmpModifiedUntilEndOfTurnCard() {
-            return isTmpChangeCost() || isTmpRetain();
+            return isTmpChangeCost() || isTmpRetain() || mod.tmpSlyUntilEndOfTurn;
         }
 
         @Override
@@ -700,8 +744,20 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
                 resultMod.tmpUntilPlayedCost = newMod.tmpUntilPlayedCost;
                 modified = true;
             }
-            if (!newCard.retain && newMod.tmpRetain) {
+            if (!newCard.ethereal && newMod.permEthereal) {
+                resultMod.permEthereal = true;
+                modified = true;
+            }
+            if (!newCard.retain && !newMod.permRetain && newMod.tmpRetain) {
                 resultMod.tmpRetain = true;
+                modified = true;
+            }
+            if (!newCard.entityProperty.sly && newMod.permSly) {
+                resultMod.permSly = true;
+                modified = true;
+            }
+            if (!newCard.entityProperty.sly && !newMod.permSly && newMod.tmpSlyUntilEndOfTurn) {
+                resultMod.tmpSlyUntilEndOfTurn = true;
                 modified = true;
             }
             if (newMod.adroit > 0) { resultMod.adroit = newMod.adroit; modified = true; }
@@ -743,6 +799,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
             newMod.tmpUntilPlayedCost = -1;
             newMod.tmpRetain = false;
             newMod.swift = 0;
+            newMod.tmpSlyUntilEndOfTurn = false;
             newMod.sown = false;
             newMod.glam = false;
             newMod.vigorous = 0;
@@ -771,9 +828,37 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         }
 
         @Override
+        public Card getPermEthereal() {
+            var newMod = mod.clone();
+            newMod.permEthereal = true;
+            return wrap(card, newMod);
+        }
+
+        @Override
+        public Card getPermRetain() {
+            var newMod = mod.clone();
+            newMod.permRetain = true;
+            return wrap(card, newMod);
+        }
+
+        @Override
         public Card getTmpRetainIfPossible() {
             var newMod = mod.clone();
             newMod.tmpRetain = true;
+            return wrap(card, newMod);
+        }
+
+        @Override
+        public Card getPermSly() {
+            var newMod = mod.clone();
+            newMod.permSly = true;
+            return wrap(card, newMod);
+        }
+
+        @Override
+        public Card getTmpSlyUntilEndOfTurnIfPossible() {
+            var newMod = mod.clone();
+            newMod.tmpSlyUntilEndOfTurn = true;
             return wrap(card, newMod);
         }
 

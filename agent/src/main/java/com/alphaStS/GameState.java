@@ -1535,6 +1535,11 @@ public final class GameState implements State {
             if (transformCardIdx >= 0) {
                 cardIdx = transformCardIdx;
             }
+            if (hasBuff(PlayerBuff.MASTER_PLANNER) && properties.cardDict[cardIdx].cardType == Card.SKILL) {
+                if (properties.permSlyTransformIdxes[cardIdx] >= 0) {
+                    cardIdx = properties.permSlyTransformIdxes[cardIdx];
+                }
+            }
             if (properties.razorTooth != null && properties.razorTooth.isRelicEnabledInScenario(this)) {
                 if (properties.cardDict[cardIdx].cardType == Card.ATTACK || properties.cardDict[cardIdx].cardType == Card.SKILL) {
                     int upgIdx = properties.upgradeIdxes[cardIdx];
@@ -2052,7 +2057,7 @@ public final class GameState implements State {
             } else if (properties.cardDict[handArr[i]].alwaysDiscard) {
                 addCardToDiscard(handArr[i]);
                 getHandArrForWrite()[i] = -1;
-            } else if (properties.cardDict[handArr[i]].retain()) {
+            } else if (properties.cardDict[handArr[i]].retain(this)) {
                 // Retain cards stay in hand, call onRetain handlers
                 for (var handler : properties.onRetainHandlers) {
                     handler.handle(this, i, -1, -1, null, -1);
@@ -3708,7 +3713,7 @@ public final class GameState implements State {
 
     private void triggerDiscardEffect(int cardIndex) {
         properties.cardDict[cardIndex].onDiscard(this);
-        if (properties.cardDict[cardIndex].entityProperty.sly) {
+        if (properties.cardDict[cardIndex].sly()) {
             final int slyCardIdx = cardIndex;
             addGameActionToEndOfDeque(state1 -> {
                 var action = state1.properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][slyCardIdx];

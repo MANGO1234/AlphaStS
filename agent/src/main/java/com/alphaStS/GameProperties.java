@@ -116,9 +116,13 @@ public class GameProperties implements Cloneable {
     public final static int GENERATE_CARD_DRAIN_POWER = 1 << 11;
     public final static int GENERATE_CARD_ALL_COLORLESS = GENERATE_CARD_DISCOVERY | GENERATE_CARD_METAMORPHOSIS | GENERATE_CARD_CHRYSALIS | GENERATE_CARD_MADNESS | GENERATE_CARD_ENLIGHTENMENT | GENERATE_CARD_APOTHEOSIS;
     public int generateCardOptions;
-    public int kinglyPunchLimit = 30;
-    public int kinglyPPunchLimit = 45;
-    public int maxMomentumGained = 50;
+    // global limits and rewards
+    // SORTED BLOCK START
+    public static int kinglyPunchLimit = 30;
+    public static int kinglyPPunchLimit = 45;
+    public static int maxClawDamage = 20;
+    public static int maxMomentumGained = 50;
+    // SORTED BLOCK END
 
     // system card indexes
     // SORTED BLOCK START
@@ -128,10 +132,12 @@ public class GameProperties implements Cloneable {
     public int[] discardIdxes; // cards that can change in number of copies during a fight
     public int[] discardReverseIdxes;
     public int[] healCardsIdxes;
+    public int[] permSlyTransformIdxes;
     public int[] select1OutOf3CardsIdxes;
     public int[] select1OutOf3CardsReverseIdxes;
     public int[] tmp0CostCardTransformIdxes;
     public int[] tmpModifiedCardReverseTransformIdxes;
+    public int[] tmpSlyTransformIdxes;
     public int[] upgradeIdxes;
     public int[][] sneckoIdxes;
     // SORTED BLOCK END
@@ -263,6 +269,7 @@ public class GameProperties implements Cloneable {
     public int otsyMaxHPCounterIdx = -1;
     public int paelsLegionCounterIdx = -1;
     public int penNibCounterIdx = -1;
+    public int phantomBladesCounterIdx = -1;
     public int phantasmalKillerCounterIdx = -1;
     public int platingCounterIdx = -1;
     public int playCardOnTopOfDeckCounterIdx = -1;

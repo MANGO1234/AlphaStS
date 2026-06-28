@@ -137,9 +137,76 @@ public class CardDefect2 {
     public static class ChargeBatteryP extends CardDefect.ChargeBatteryP {
     }
 
-    // TODO: Claw (Common) - 0 energy, Attack
+    // Claw (Common) - 0 energy, Attack
     //   Effect: Deal 3 damage. Increase the damage of ALL Claw cards by 2 this combat.
     //   Upgraded Effect: Deal 4 damage. Increase the damage of ALL Claw cards by 3 this combat.
+    public static class Claw extends CardDefect._ClawT {
+        public Claw() {
+            this(3);
+        }
+
+        public Claw(int dmg) {
+            super("Claw", dmg, 2);
+        }
+
+        @Override protected CardDefect._ClawT create(int dmg) {
+            return new Claw(dmg);
+        }
+
+        @Override protected int[] getTransformIndexes(GameProperties properties) {
+            return properties.clawTransformIndexes;
+        }
+
+        @Override protected void setTransformIndexes(GameProperties properties, int[] transformIndexes) {
+            properties.clawTransformIndexes = transformIndexes;
+        }
+
+        @Override protected int[] getAfterPlayTransformIndexes(GameProperties properties) {
+            return properties.clawAfterPlayTransformIndexes;
+        }
+
+        @Override protected void setAfterPlayTransformIndexes(GameProperties properties, int[] transformIndexes) {
+            properties.clawAfterPlayTransformIndexes = transformIndexes;
+        }
+
+        public Card getUpgrade() {
+            if (dmg + 1 > GameProperties.maxClawDamage) {
+                return null;
+            } else {
+                return new CardDefect2.ClawP(dmg + 1);
+            }
+        }
+    }
+
+    public static class ClawP extends CardDefect._ClawT {
+        public ClawP() {
+            this(4);
+        }
+
+        public ClawP(int dmg) {
+            super("Claw+", dmg, 3);
+        }
+
+        @Override protected CardDefect._ClawT create(int dmg) {
+            return new ClawP(dmg);
+        }
+
+        @Override protected int[] getTransformIndexes(GameProperties properties) {
+            return properties.clawPTransformIndexes;
+        }
+
+        @Override protected void setTransformIndexes(GameProperties properties, int[] transformIndexes) {
+            properties.clawPTransformIndexes = transformIndexes;
+        }
+
+        @Override protected int[] getAfterPlayTransformIndexes(GameProperties properties) {
+            return properties.clawPAfterPlayTransformIndexes;
+        }
+
+        @Override protected void setAfterPlayTransformIndexes(GameProperties properties, int[] transformIndexes) {
+            properties.clawPAfterPlayTransformIndexes = transformIndexes;
+        }
+    }
 
     // Cold Snap (Common) - 1 energy, Attack
     //   Effect: Deal 6 damage. Channel 1 Frost.

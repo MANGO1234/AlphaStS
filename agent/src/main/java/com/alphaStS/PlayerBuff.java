@@ -18,6 +18,7 @@ public record PlayerBuff(long mask, String name) {
     public final static PlayerBuff SEEKING_EDGE = new PlayerBuff(1L << 41, "Seeking Edge");
     public final static PlayerBuff UNSETTLING_LAMP = new PlayerBuff(1L << 42, "Unsettling Lamp");
     public final static PlayerBuff HEX = new PlayerBuff(1L << 43, "Hex");
+    public final static PlayerBuff MASTER_PLANNER = new PlayerBuff(1L << 44, "Master Planner");
 
     public final static PlayerBuff[] BUFFS = new PlayerBuff[] {
             BARRICADE,

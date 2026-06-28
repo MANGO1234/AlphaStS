@@ -1556,14 +1556,26 @@ public class CardColorless {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            int damage = n;
+            if (state.properties.phantomBladesCounterIdx >= 0
+                    && state.getCounterForRead()[state.properties.phantomBladesCounterIdx] > 0
+                    && state.getCounterForRead()[state.properties.phantomBladesCounterIdx + 1] == 0) {
+                damage += state.getCounterForRead()[state.properties.phantomBladesCounterIdx];
+                state.getCounterForWrite()[state.properties.phantomBladesCounterIdx + 1] = 1;
+            }
             if (state.properties.fanOfKnivesCounterIdx >= 0 && state.getCounterForRead()[state.properties.fanOfKnivesCounterIdx] > 0) {
                 for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
-                    state.playerDoDamageToEnemy(enemy, n, this);
+                    state.playerDoDamageToEnemy(enemy, damage, this);
                 }
             } else {
-                state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n, this);
+                state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             }
             return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public boolean retain(GameState state) {
+            return super.retain(state) || (state.properties.phantomBladesCounterIdx >= 0
+                    && state.getCounterForRead()[state.properties.phantomBladesCounterIdx] > 0);
         }
     }
 
