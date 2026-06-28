@@ -480,8 +480,12 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
     public static class EssenceOfSteel extends Potion {
         @Override public GameActionCtx use(GameState state, int idx) {
             int platedArmorAmount = state.properties.sacredBark != null && state.properties.sacredBark.isRelicEnabledInScenario(state) ? 8 : 4;
-            state.getPlayerForWrite().gainPlatedArmor(platedArmorAmount);
+            state.getCounterForWrite()[state.properties.platedArmorCounterIdx] += platedArmorAmount;
             return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerPlatedArmorCounter();
         }
     }
 

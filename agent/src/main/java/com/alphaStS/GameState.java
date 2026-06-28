@@ -3189,7 +3189,7 @@ public final class GameState implements State {
                             if (enthralledConstraint && handArr[i] != properties.enthralledCardIdx) {
                                 continue;
                             }
-                            if (getPlayerForRead().isEntangled() && properties.cardDict[handArr[i]].cardType == Card.ATTACK) {
+                            if (hasBuff(PlayerBuff.ENTANGLED) && properties.cardDict[handArr[i]].cardType == Card.ATTACK) {
                                 continue;
                             }
                             int cost = getCardEnergyCost(handArr[i]);

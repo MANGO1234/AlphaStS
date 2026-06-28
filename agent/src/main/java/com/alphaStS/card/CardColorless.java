@@ -543,6 +543,10 @@ public class CardColorless {
             state.getPlayerForWrite().applyDebuff(state, DebuffType.NO_BLOCK_FROM_CARDS, 2);
             return GameActionCtx.PLAY_CARD;
         }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerNoMoreBlockFromCardsCounter();
+        }
     }
 
     public static class PanicButton extends _PanicButtonT {

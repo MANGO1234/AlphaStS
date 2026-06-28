@@ -37,8 +37,8 @@ public class Player extends PlayerReadOnly {
         }
         health -= dmg;
         block = Math.max(0, block - n);
-        if (platedArmor > 0 && dmg > 0) {
-            platedArmor -= 1;
+        if (state.properties.platedArmorCounterIdx >= 0 && state.getCounterForRead()[state.properties.platedArmorCounterIdx] > 0 && dmg > 0) {
+            state.getCounterForWrite()[state.properties.platedArmorCounterIdx]--;
         }
         if (health < 0) {
             health = 0;
@@ -128,7 +128,8 @@ public class Player extends PlayerReadOnly {
     }
 
     private int modifyCardBlock(int n, GameState state) {
-        if (noMoreBlockFromCards > 0) {
+        if (state.properties.noMoreBlockFromCardsCounterIdx >= 0 &&
+                state.getCounterForRead()[state.properties.noMoreBlockFromCardsCounterIdx] > 0) {
             return 0;
         }
         n += dexterity;
@@ -208,14 +209,14 @@ public class Player extends PlayerReadOnly {
         case LOSE_FOCUS_EOT -> this.loseFocusEot += n;
         case LOSE_DEXTERITY_PER_TURN -> state.getCounterForWrite()[state.properties.loseDexterityPerTurnCounterIdx] += n;
         case NO_MORE_CARD_DRAW -> state.addBuff(PlayerBuff.NO_CARD_DRAW_FOR_THE_TURN);
-        case ENTANGLED -> this.entangled += n;
+        case ENTANGLED -> state.addBuff(PlayerBuff.ENTANGLED);
         case HEX -> state.addBuff(PlayerBuff.HEX);
         case LOSE_FOCUS -> state.gainFocus(-n);
         case LOSE_FOCUS_PER_TURN -> state.getCounterForWrite()[state.properties.loseFocusPerTurnCounterIdx] += n;
         case LOSE_ENERGY_PER_TURN -> state.getCounterForWrite()[state.properties.loseEnergyPerTurnCounterIdx] += n;
         case CONSTRICTED -> state.getCounterForWrite()[state.properties.constrictedCounterIdx] += n;
         case DRAW_REDUCTION -> state.getCounterForWrite()[state.properties.drawReductionCounterIdx] += n;
-        case NO_BLOCK_FROM_CARDS -> this.noMoreBlockFromCards += n;
+        case NO_BLOCK_FROM_CARDS -> state.getCounterForWrite()[state.properties.noMoreBlockFromCardsCounterIdx] += n;
         case SNECKO -> state.getCounterForWrite()[state.properties.sneckoDebuffCounterIdx] = 1;
         case TENDER -> state.getCounterForWrite()[state.properties.tenderCounterIdx] += n;
         case DOOM -> state.getCounterForWrite()[state.properties.playerDoomCounterIdx] += n;
@@ -225,9 +226,6 @@ public class Player extends PlayerReadOnly {
 
     public void preEndTurn(GameState state) {
         state.removeBuff(PlayerBuff.NO_CARD_DRAW_FOR_THE_TURN);
-        if (platedArmor > 0) {
-            gainBlockNotFromCardPlay(platedArmor, state);
-        }
     }
 
     public void endTurn(GameState state) {
@@ -240,11 +238,10 @@ public class Player extends PlayerReadOnly {
         if (frail > 0) {
             frail -= 1;
         }
-        if (entangled > 0) {
-            entangled -= 1;
-        }
-        if (noMoreBlockFromCards > 0) {
-            noMoreBlockFromCards -= 1;
+        state.removeBuff(PlayerBuff.ENTANGLED);
+        if (state.properties.noMoreBlockFromCardsCounterIdx >= 0 &&
+                state.getCounterForRead()[state.properties.noMoreBlockFromCardsCounterIdx] > 0) {
+            state.getCounterForWrite()[state.properties.noMoreBlockFromCardsCounterIdx]--;
         }
         if (loseStrengthEot > 0) {
             applyDebuff(state, DebuffType.LOSE_STRENGTH, loseStrengthEot);
@@ -277,10 +274,6 @@ public class Player extends PlayerReadOnly {
         artifact += n;
     }
 
-    public void gainPlatedArmor(int n) {
-        platedArmor += n;
-    }
-
     public void setHealth(int hp) {
         health = hp;
     }
@@ -305,7 +298,7 @@ public class Player extends PlayerReadOnly {
         frail = 0;
         state.removeBuff(PlayerBuff.NO_CARD_DRAW_FOR_THE_TURN);
         state.removeBuff(PlayerBuff.HEX);
-        entangled = 0;
+        state.removeBuff(PlayerBuff.ENTANGLED);
         loseStrengthEot = 0;
         loseDexterityEot = 0;
         loseFocusEot = 0;
@@ -315,7 +308,9 @@ public class Player extends PlayerReadOnly {
         if (dexterity < 0) {
             dexterity = 0;
         }
-        noMoreBlockFromCards = 0;
+        if (state.properties.noMoreBlockFromCardsCounterIdx >= 0) {
+            state.getCounterForWrite()[state.properties.noMoreBlockFromCardsCounterIdx] = 0;
+        }
         if (state.properties.loseDexterityPerTurnCounterIdx >= 0) {
             state.getCounterForWrite()[state.properties.loseDexterityPerTurnCounterIdx] = 0;
         }

@@ -13,7 +13,6 @@ public class EntityProperty {
     public boolean changePlayerVulnerable;
     public boolean changePlayerWeakened;
     public boolean changePlayerFrailed;
-    public boolean changePlayerEntangled;
     public boolean vulnEnemy;
     public boolean weakEnemy;
     public boolean chokeEnemy;
@@ -32,7 +31,6 @@ public class EntityProperty {
     public boolean affectEnemyStrength;
     public boolean affectEnemyStrengthEot;
     public boolean changeEnergyRefill;
-    public boolean changePlatedArmor;
     public boolean selectEnemy;
     public boolean selectFromDiscard;
     public boolean selectFromExhaust;
@@ -67,7 +65,6 @@ public class EntityProperty {
         changePlayerVulnerable |= other.changePlayerVulnerable;
         changePlayerWeakened |= other.changePlayerWeakened;
         changePlayerFrailed |= other.changePlayerFrailed;
-        changePlayerEntangled |= other.changePlayerEntangled;
         vulnEnemy |= other.vulnEnemy;
         weakEnemy |= other.weakEnemy;
         chokeEnemy |= other.chokeEnemy;
@@ -85,7 +82,6 @@ public class EntityProperty {
         affectEnemyStrength |= other.affectEnemyStrength;
         affectEnemyStrengthEot |= other.affectEnemyStrengthEot;
         changeEnergyRefill |= other.changeEnergyRefill;
-        changePlatedArmor |= other.changePlatedArmor;
         selectEnemy |= other.selectEnemy;
         selectFromDiscard |= other.selectFromDiscard;
         selectFromExhaust |= other.selectFromExhaust;

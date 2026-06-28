@@ -978,9 +978,6 @@ public class InteractiveMode {
         if (state.getPlayerForRead().getDexterity() != 0) {
             out.println("  Dexterity: " + state.getPlayerForRead().getDexterity());
         }
-        if (state.getPlayerForRead().getPlatedArmor() != 0) {
-            out.println("  Plated Armor: " + state.getPlayerForRead().getPlatedArmor());
-        }
         if (state.getFocus() != 0) {
             out.println("  Focus: " + state.getFocus());
         }
@@ -1018,12 +1015,6 @@ public class InteractiveMode {
             }
             if (state.currentEncounter != null && state.currentEncounter.encounterEnum != null) {
                 out.println("  - " + state.currentEncounter.encounterEnum.name());
-            }
-            if (state.getPlayerForRead().isEntangled()) {
-                out.println("  - Entangled");
-            }
-            if (state.hasBuff(PlayerBuff.NO_CARD_DRAW_FOR_THE_TURN)) {
-                out.println("  - Cannot Draw Card");
             }
             for (int i = 0; i < state.properties.potions.size(); i++) {
                 if (state.potionUsable(i)) {

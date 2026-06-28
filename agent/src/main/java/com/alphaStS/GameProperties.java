@@ -260,6 +260,7 @@ public class GameProperties implements Cloneable {
     public int metallicizeCounterIdx = -1;
     public int metronomeCounterIdx = -1;
     public int nextEtherealCostZeroCounterIdx = -1;
+    public int noMoreBlockFromCardsCounterIdx = -1;
     public int normalityCounterIdx = -1;
     public int nostalgiaCounterIdx = -1;
     public int nunchakuCounterIdx = -1;
@@ -271,6 +272,7 @@ public class GameProperties implements Cloneable {
     public int penNibCounterIdx = -1;
     public int phantomBladesCounterIdx = -1;
     public int phantasmalKillerCounterIdx = -1;
+    public int platedArmorCounterIdx = -1;
     public int platingCounterIdx = -1;
     public int playCardOnTopOfDeckCounterIdx = -1;
     public int playerDoomCounterIdx = -1;
@@ -991,6 +993,24 @@ public class GameProperties implements Cloneable {
         }
     };
 
+    private static CounterRegistrant PlatedArmorCounterRegistrant = new CounterRegistrant() {
+        @Override public void setCounterIdx(GameProperties gameProperties, int idx) {
+            gameProperties.platedArmorCounterIdx = idx;
+        }
+        @Override public int getCounterIdx(GameProperties gameProperties) {
+            return gameProperties.platedArmorCounterIdx;
+        }
+    };
+
+    private static CounterRegistrant NoMoreBlockFromCardsCounterRegistrant = new CounterRegistrant() {
+        @Override public void setCounterIdx(GameProperties gameProperties, int idx) {
+            gameProperties.noMoreBlockFromCardsCounterIdx = idx;
+        }
+        @Override public int getCounterIdx(GameProperties gameProperties) {
+            return gameProperties.noMoreBlockFromCardsCounterIdx;
+        }
+    };
+
     private static CounterRegistrant AttacksPlayedThisTurnCounterRegistrant = new CounterRegistrant() {
         @Override public void setCounterIdx(GameProperties gameProperties, int idx) {
             gameProperties.attacksPlayedThisTurnCounterIdx = idx;
@@ -1249,6 +1269,27 @@ public class GameProperties implements Cloneable {
                 }
             }
         });
+    }
+
+    public void registerPlatedArmorCounter() {
+        registerCounter("PlatedArmor", PlatedArmorCounterRegistrant, new NetworkInputHandler() {
+            @Override public int addToInput(GameState state, float[] input, int idx) {
+                input[idx] = state.getCounterForRead()[state.properties.platedArmorCounterIdx] / 10.0f;
+                return idx + 1;
+            }
+            @Override public int getInputLenDelta() {
+                return 1;
+            }
+        });
+        addPreEndOfTurnHandler("PlatedArmor", new GameEventHandler() {
+            @Override public void handle(GameState state) {
+                state.playerGainBlockNotFromCardPlay(state.getCounterForRead()[state.properties.platedArmorCounterIdx]);
+            }
+        });
+    }
+
+    public void registerNoMoreBlockFromCardsCounter() {
+        registerCounter("NoMoreBlockFromCards", NoMoreBlockFromCardsCounterRegistrant, null);
     }
 
     public void registerVigorCounter(CounterRegistrant registrant) {

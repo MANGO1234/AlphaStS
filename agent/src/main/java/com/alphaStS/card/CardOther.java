@@ -433,8 +433,12 @@ public class CardOther {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.getPlayerForWrite().gainPlatedArmor(armor);
+            state.getCounterForWrite()[state.properties.platedArmorCounterIdx] += armor;
             return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerPlatedArmorCounter();
         }
     }
 

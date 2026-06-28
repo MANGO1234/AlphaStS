@@ -170,9 +170,10 @@ public class TestReplay {
             throw new ReplayException("Player HEX mismatch: log=" + logHexed + " state=" + hex, state, line);
         }
 
-        int logEntangled = playerNode.path("entangled").asInt(0);
-        if (logEntangled != player.getEntangled()) {
-            throw new ReplayException("Player entangled mismatch: log=" + logEntangled + " state=" + player.getEntangled(), state, line);
+        boolean entangled = state.hasBuff(PlayerBuff.ENTANGLED);
+        boolean logEntangled = playerNode.path("entangled").asInt(0) > 0;
+        if (logEntangled != entangled) {
+            throw new ReplayException("Player entangled mismatch: log=" + logEntangled + " state=" + entangled, state, line);
         }
 
         int logLoseStrengthEot = playerNode.path("lose_strength_eot").asInt(0);
@@ -191,13 +192,15 @@ public class TestReplay {
         }
 
         int logPlatedArmor = playerNode.path("plated_armor").asInt(0);
-        if (logPlatedArmor != player.getPlatedArmor()) {
-            throw new ReplayException("Player platedArmor mismatch: log=" + logPlatedArmor + " state=" + player.getPlatedArmor(), state, line);
+        int platedArmor = state.properties.platedArmorCounterIdx >= 0 ? state.getCounterForRead()[state.properties.platedArmorCounterIdx] : 0;
+        if (logPlatedArmor != platedArmor) {
+            throw new ReplayException("Player platedArmor mismatch: log=" + logPlatedArmor + " state=" + platedArmor, state, line);
         }
 
         int logNoMoreBlockFromCards = playerNode.path("no_more_block_from_cards").asInt(0);
-        if (logNoMoreBlockFromCards != player.getNoMoreBlockFromCards()) {
-            throw new ReplayException("Player noMoreBlockFromCards mismatch: log=" + logNoMoreBlockFromCards + " state=" + player.getNoMoreBlockFromCards(), state, line);
+        int noMoreBlockFromCards = state.properties.noMoreBlockFromCardsCounterIdx >= 0 ? state.getCounterForRead()[state.properties.noMoreBlockFromCardsCounterIdx] : 0;
+        if (logNoMoreBlockFromCards != noMoreBlockFromCards) {
+            throw new ReplayException("Player noMoreBlockFromCards mismatch: log=" + logNoMoreBlockFromCards + " state=" + noMoreBlockFromCards, state, line);
         }
 
         int logAccumulatedDamage = playerNode.path("accumulated_damage").asInt(0);

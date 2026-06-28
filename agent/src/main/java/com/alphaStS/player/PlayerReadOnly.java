@@ -14,12 +14,9 @@ public class PlayerReadOnly {
     protected int weak;
     protected int frail;
     protected int artifact;
-    protected int entangled;
     protected int loseStrengthEot;
     protected int loseDexterityEot;
     protected int loseFocusEot;
-    protected int platedArmor;
-    protected short noMoreBlockFromCards;
     protected int accumulatedDamage;
 
     public PlayerReadOnly(int health, int maxHealth) {
@@ -45,12 +42,9 @@ public class PlayerReadOnly {
         weak = other.weak;
         frail = other.frail;
         artifact = other.artifact;
-        entangled = other.entangled;
         loseStrengthEot = other.loseStrengthEot;
         loseDexterityEot = other.loseDexterityEot;
         loseFocusEot = other.loseFocusEot;
-        platedArmor = other.platedArmor;
-        noMoreBlockFromCards = other.noMoreBlockFromCards;
         accumulatedDamage = other.accumulatedDamage;
     }
 
@@ -110,22 +104,6 @@ public class PlayerReadOnly {
         return loseFocusEot;
     }
 
-    public int getPlatedArmor() {
-        return platedArmor;
-    }
-
-    public int getEntangled() {
-        return entangled;
-    }
-
-    public boolean isEntangled() {
-        return entangled > 0;
-    }
-
-    public int getNoMoreBlockFromCards() {
-        return noMoreBlockFromCards;
-    }
-
     public int getAccumulatedDamage() {
         return accumulatedDamage;
     }
@@ -153,9 +131,6 @@ public class PlayerReadOnly {
         if (artifact > 0) {
             str += ", art=" + artifact;
         }
-        if (isEntangled()) {
-            str += ", entangled";
-        }
         if (loseStrengthEot > 0) {
             str += ", loseStrEot=" + loseStrengthEot;
         }
@@ -164,9 +139,6 @@ public class PlayerReadOnly {
         }
         if (loseFocusEot > 0) {
             str += ", loseFocusEot=" + loseFocusEot;
-        }
-        if (noMoreBlockFromCards > 0) {
-            str += ", noMoreBlockFromCards=" + noMoreBlockFromCards;
         }
         return str + '}';
     }
@@ -177,10 +149,10 @@ public class PlayerReadOnly {
         if (o == null || getClass() != o.getClass())
             return false;
         PlayerReadOnly that = (PlayerReadOnly) o;
-        return origHealth == that.origHealth && maxHealth == that.maxHealth && inBattleMaxHealth == that.inBattleMaxHealth && health == that.health && block == that.block && strength == that.strength && dexterity == that.dexterity && vulnerable == that.vulnerable && weak == that.weak && frail == that.frail && artifact == that.artifact && entangled == that.entangled && loseStrengthEot == that.loseStrengthEot && loseDexterityEot == that.loseDexterityEot && loseFocusEot == that.loseFocusEot && noMoreBlockFromCards == that.noMoreBlockFromCards && accumulatedDamage == that.accumulatedDamage;
+        return origHealth == that.origHealth && maxHealth == that.maxHealth && inBattleMaxHealth == that.inBattleMaxHealth && health == that.health && block == that.block && strength == that.strength && dexterity == that.dexterity && vulnerable == that.vulnerable && weak == that.weak && frail == that.frail && artifact == that.artifact && loseStrengthEot == that.loseStrengthEot && loseDexterityEot == that.loseDexterityEot && loseFocusEot == that.loseFocusEot && accumulatedDamage == that.accumulatedDamage;
     }
 
     @Override public int hashCode() {
-        return Objects.hash(origHealth, maxHealth, health, block, strength, dexterity, vulnerable, weak, frail, artifact, entangled, loseStrengthEot, loseDexterityEot, loseFocusEot);
+        return Objects.hash(origHealth, maxHealth, health, block, strength, dexterity, vulnerable, weak, frail, artifact, loseStrengthEot, loseDexterityEot, loseFocusEot);
     }
 }

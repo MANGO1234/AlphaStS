@@ -724,20 +724,6 @@ public class NNInputSchema {
             });
         }
 
-        // Player plated armor
-        if (props.anyEntityProperty.changePlatedArmor) {
-            inputLen += 1;
-            descBody.append("    1 input to keep track of player plated armor\n");
-            inputModules.add((s, x, idx) -> {
-                x[idx] = s.getPlayerForRead().getPlatedArmor() / (float) 10.0;
-                return 1;
-            });
-            inputPrinters.add((s, input, idx) -> {
-                System.out.println("Player Plated Armor: " + input[idx]);
-                return 1;
-            });
-        }
-
         // Player vulnerable
         if (props.anyEntityProperty.changePlayerVulnerable) {
             inputLen += 1;
@@ -776,20 +762,6 @@ public class NNInputSchema {
             });
             inputPrinters.add((s, input, idx) -> {
                 System.out.println("Player Frail: " + input[idx]);
-                return 1;
-            });
-        }
-
-        // Player entangled
-        if (props.anyEntityProperty.changePlayerEntangled) {
-            inputLen += 1;
-            descBody.append("    1 input to keep track of whether player is entangled or not\n");
-            inputModules.add((s, x, idx) -> {
-                x[idx] = s.getPlayerForRead().isEntangled() ? 0.5f : -0.5f;
-                return 1;
-            });
-            inputPrinters.add((s, input, idx) -> {
-                System.out.println("Player Entangled: " + input[idx]);
                 return 1;
             });
         }

@@ -2,6 +2,7 @@ package com.alphaStS.enemy;
 
 import com.alphaStS.GameProperties;
 import com.alphaStS.GameState;
+import com.alphaStS.PlayerBuff;
 import com.alphaStS.card.Card;
 import com.alphaStS.card.CardOther2;
 import com.alphaStS.enums.DebuffType;
@@ -1935,7 +1936,7 @@ public class EnemyOvergrowth {
 
         public VineShambler(int health) {
             super(health, 3, false);
-            properties.entityProperty.changePlayerEntangled = true;
+            properties.entityProperty.addPossibleBuff(PlayerBuff.ENTANGLED);
         }
 
         public VineShambler(VineShambler other) {

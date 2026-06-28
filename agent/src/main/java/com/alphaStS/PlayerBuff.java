@@ -19,6 +19,7 @@ public record PlayerBuff(long mask, String name) {
     public final static PlayerBuff UNSETTLING_LAMP = new PlayerBuff(1L << 42, "Unsettling Lamp");
     public final static PlayerBuff HEX = new PlayerBuff(1L << 43, "Hex");
     public final static PlayerBuff MASTER_PLANNER = new PlayerBuff(1L << 44, "Master Planner");
+    public final static PlayerBuff ENTANGLED = new PlayerBuff(1L << 45, "Entangled");
 
     public final static PlayerBuff[] BUFFS = new PlayerBuff[] {
             BARRICADE,
@@ -36,5 +37,6 @@ public record PlayerBuff(long mask, String name) {
             NO_CARD_DRAW_FOR_THE_TURN,
             UNSETTLING_LAMP,
             HEX,
+            ENTANGLED,
     };
 }

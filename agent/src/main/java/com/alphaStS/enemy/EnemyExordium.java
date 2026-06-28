@@ -1149,7 +1149,7 @@ public class EnemyExordium {
         public RedSlaver(int health) {
             super(health, 3, true);
             properties.entityProperty.changePlayerVulnerable = true;
-            properties.entityProperty.changePlayerEntangled = true;
+            properties.entityProperty.addPossibleBuff(PlayerBuff.ENTANGLED);
         }
 
         public RedSlaver(RedSlaver other) {
