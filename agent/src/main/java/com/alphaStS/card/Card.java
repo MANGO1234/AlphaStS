@@ -50,6 +50,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
     public boolean healPlayer;
     public boolean scry;
     public boolean select1OutOf3CardEffectCard;
+    public boolean select1OutOf3CardExtraEffect;
     public int generatedCardIdx = -1; // when getPossibleGeneratedCards return 1 card, this is the card index for it
     public int[] generatedCardIdxes; // when getPossibleGeneratedCards returns non-empty list, this is the card indexes for each card in the order of the list
     public int[] generatedCardReverseIdxes; // given a cardIdx, return the index of it in generatedCardIdxes (-1 otherwise)
@@ -527,6 +528,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
             healPlayer = card.healPlayer;
             scry = card.scry;
             select1OutOf3CardEffectCard = card.select1OutOf3CardEffectCard;
+            select1OutOf3CardExtraEffect = card.select1OutOf3CardExtraEffect;
         }
 
         private boolean isFreeToPlay() {

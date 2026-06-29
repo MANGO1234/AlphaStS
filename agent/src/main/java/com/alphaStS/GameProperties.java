@@ -121,6 +121,7 @@ public class GameProperties implements Cloneable {
     public static int kinglyPPunchLimit = 45;
     public static int kinglyPunchLimit = 30;
     public static int maxClawDamage = 20;
+    public static int maxMaulDamage = 20;
     public static int maxMomentumGained = 50;
     // SORTED BLOCK END
 
@@ -172,6 +173,10 @@ public class GameProperties implements Cloneable {
     public int[] kinglyPunchTransformIndexes;
     public int[] masterfulStabPTransformIndexes;
     public int[] masterfulStabTransformIndexes;
+    public int[] maulAfterPlayTransformIndexes;
+    public int[] maulPAfterPlayTransformIndexes;
+    public int[] maulPTransformIndexes;
+    public int[] maulTransformIndexes;
     public int[] moddedTransformIndexes;
     public int[] momentumStrikeTransformIndexes;
     public int[] nilroysCodexIdxes;

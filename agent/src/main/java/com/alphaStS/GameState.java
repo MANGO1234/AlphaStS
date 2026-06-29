@@ -2247,7 +2247,9 @@ public final class GameState implements State {
                     beginTurnPart2();
                 }
             } else {
-                if (properties.cardDict[action.idx()].select1OutOf3CardEffectCard) {
+                if (currentAction != null && properties.cardDict[currentAction.idx()].select1OutOf3CardExtraEffect) {
+                    properties.cardDict[currentAction.idx()].play(this, action.idx(), 0);
+                } else if (properties.cardDict[action.idx()].select1OutOf3CardEffectCard) {
                     properties.cardDict[action.idx()].play(this, 0, 0);
                 } else {
                     addCardToHandGeneration(action.idx());

@@ -287,6 +287,32 @@ public abstract class EnemyReadOnly implements GameProperties.TrainingTargetRegi
         return beetleJuice;
     }
 
+    public int getDebuffsCount() {
+        int count = 0;
+        if (strength != 0) count++;
+        if (vulnerable > 0) count++;
+        if (weak > 0) count++;
+        if (poison > 0) count++;
+        if (regeneration > 0) count++;
+        if (metallicize > 0) count++;
+        if (plating > 0) count++;
+        if (platedArmor > 0) count++;
+        if (loseStrengthEot > 0) count++;
+        if (corpseExplosion > 0) count++;
+        if (choke > 0) count++;
+        if (lockOn > 0) count++;
+        if (talkToTheHand > 0) count++;
+        if (mark > 0) count++;
+        if (doom > 0) count++;
+        if (debilitate > 0) count++;
+        if (sicEm > 0) count++;
+        if (hang > 0) count++;
+        if (doomPerCard > 0) count++;
+        if (powderedDemise > 0) count++;
+        if (beetleJuice > 0) count++;
+        return count;
+    }
+
     public boolean hasBurningHealthBuff() {
         return properties.hasBurningHealthBuff;
     }

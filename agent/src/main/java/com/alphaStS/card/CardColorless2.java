@@ -4,6 +4,7 @@ import com.alphaStS.*;
 import com.alphaStS.action.BeatDownContinueAction;
 import com.alphaStS.action.CatastropheContinueAction;
 import com.alphaStS.enemy.Enemy;
+import com.alphaStS.enums.CharacterEnum;
 import com.alphaStS.enums.DebuffType;
 import com.alphaStS.eventHandler.GameEventCardHandler;
 import com.alphaStS.eventHandler.GameEventHandler;
@@ -13,7 +14,62 @@ import com.alphaStS.random.RandomGenCtx;
 import com.alphaStS.utils.Tuple;
 import com.alphaStS.utils.Utils;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
+
 public class CardColorless2 {
+    private static void setSelectUpTo3Idxes(GameState state, int[] possibleCardIdxes) {
+        if (possibleCardIdxes.length == 1) {
+            state.setSelect1OutOf3Idxes(possibleCardIdxes[0], -1, -1);
+        } else if (possibleCardIdxes.length == 2) {
+            state.setSelect1OutOf3Idxes(possibleCardIdxes[0], possibleCardIdxes[1], -1);
+        } else {
+            state.setSelect1OutOf3Idxes(possibleCardIdxes);
+        }
+    }
+
+    private static List<Card> getOtherCharacterAttackCardsTmp0Cost(CharacterEnum character, boolean upgraded) {
+        var cards = new ArrayList<Card>();
+        for (CharacterEnum value : CharacterEnum.values()) {
+            if (value == character) {
+                continue;
+            }
+            for (Card card : CardManager.getCharacterCardsByType(value, Card.ATTACK, false)) {
+                Card cardToAdd = upgraded ? card.getUpgrade() : card;
+                if (cardToAdd != null) {
+                    cards.add(cardToAdd.getTemporaryCostIfPossible(0));
+                }
+            }
+        }
+        return cards;
+    }
+
+    private static void returnUsedCardToHand(GameState state, int[] returnTransform) {
+        for (int i = state.discardArrLen - 1; i >= 0; i--) {
+            int baseIdx = returnTransform[state.getDiscardArrForRead()[i]];
+            if (baseIdx >= 0) {
+                state.removeCardFromDiscardByPosition(i);
+                state.addCardToHand(baseIdx);
+            }
+        }
+        for (int i = state.deckArrLen - 1; i >= 0; i--) {
+            int baseIdx = returnTransform[state.getDeckArrForRead()[i]];
+            if (baseIdx >= 0) {
+                state.removeCardFromDeckByPosition(i);
+                state.addCardToHand(baseIdx);
+            }
+        }
+        for (int i = state.exhaustArrLen - 1; i >= 0; i--) {
+            int baseIdx = returnTransform[state.getExhaustArrForRead()[i]];
+            if (baseIdx >= 0) {
+                state.removeCardFromExhaustByPosition(i);
+                state.addCardToHand(baseIdx);
+            }
+        }
+    }
+
     // **************************************************************************************************
     // ********************************************* Uncommon *********************************************
     // **************************************************************************************************
@@ -550,6 +606,57 @@ public class CardColorless2 {
     // TODO: Seeker Strike (Uncommon) - 1 energy, Attack
     //   Effect: Deal 9 damage. Choose 1 of 3 cards in your Draw Pile to add into your Hand.
     //   Upgraded Effect: Deal 12 damage. Choose 1 of 3 cards in your Draw Pile to add into your Hand.
+    private static abstract class _SeekerStrikeT extends Card {
+        private final int damage;
+
+        public _SeekerStrikeT(String cardName, int damage) {
+            super(cardName, Card.ATTACK, 1, Card.UNCOMMON);
+            this.damage = damage;
+            this.entityProperty.selectEnemy = true;
+            this.select1OutOf3CardExtraEffect = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            if (state.actionCtx == GameActionCtx.SELECT_CARD_1_OUT_OF_3) {
+                state.removeCardFromDeck(idx, false);
+                state.addCardToHand(idx);
+                return GameActionCtx.PLAY_CARD;
+            }
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
+            if (state.deckArrLen == 0) {
+                return GameActionCtx.PLAY_CARD;
+            }
+            int[] possibleCardIdxes = new int[state.deckArrLen];
+            boolean[] seen = new boolean[state.properties.cardDict.length];
+            int len = 0;
+            // TODO: Investigate whether Seeker Strike samples draw-pile copies or unique card types.
+            for (int i = 0; i < state.deckArrLen; i++) {
+                int cardIdx = state.getDeckArrForRead()[i];
+                if (!seen[cardIdx]) {
+                    seen[cardIdx] = true;
+                    possibleCardIdxes[len++] = cardIdx;
+                }
+            }
+            setSelectUpTo3Idxes(state, Arrays.copyOf(possibleCardIdxes, len));
+            return GameActionCtx.SELECT_CARD_1_OUT_OF_3;
+        }
+
+        @Override public List<Card> getPossibleSelect1OutOf3Cards(GameProperties gameProperties) {
+            return List.of(gameProperties.cardDict);
+        }
+    }
+
+    public static class SeekerStrike extends _SeekerStrikeT {
+        public SeekerStrike() {
+            super("Seeker Strike", 9);
+        }
+    }
+
+    public static class SeekerStrikeP extends _SeekerStrikeT {
+        public SeekerStrikeP() {
+            super("Seeker Strike+", 12);
+        }
+    }
 
     // Shockwave (Uncommon) - 2 energy, Skill
     //   Effect: Apply 3 Weak and Vulnerable to ALL enemies. Exhaust.
@@ -563,6 +670,39 @@ public class CardColorless2 {
     // TODO: Splash (Uncommon) - 1 energy, Skill
     //   Effect: Choose 1 of 3 random Attacks from another character to add into your Hand. It's free to play this turn.
     //   Upgraded Effect: Choose 1 of 3 random Upgraded Attacks from another character to add into your Hand. It's free to play this turn.
+    private static abstract class _SplashT extends Card {
+        private final boolean upgraded;
+
+        public _SplashT(String cardName, boolean upgraded) {
+            super(cardName, Card.SKILL, 1, Card.UNCOMMON);
+            this.upgraded = upgraded;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.setSelect1OutOf3Idxes(generatedCardIdxes);
+            return GameActionCtx.SELECT_CARD_1_OUT_OF_3;
+        }
+
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties gameProperties, List<Card> cards) {
+            return getPossibleSelect1OutOf3Cards(gameProperties);
+        }
+
+        @Override public List<Card> getPossibleSelect1OutOf3Cards(GameProperties gameProperties) {
+            return getOtherCharacterAttackCardsTmp0Cost(gameProperties.character, upgraded);
+        }
+    }
+
+    public static class Splash extends _SplashT {
+        public Splash() {
+            super("Splash", false);
+        }
+    }
+
+    public static class SplashP extends _SplashT {
+        public SplashP() {
+            super("Splash+", true);
+        }
+    }
 
     // TODO: Stratagem (Uncommon) - 1 energy, Power
     //   Effect: Whenever you shuffle your Draw Pile, choose a card from it to put into your Hand.
@@ -591,6 +731,89 @@ public class CardColorless2 {
     // TODO: Thrumming Hatchet (Uncommon) - 1 energy, Attack
     //   Effect: Deal 11 damage. At the start of your next turn, return this to your Hand.
     //   Upgraded Effect: Deal 14 damage. At the start of your next turn, return this to your Hand.
+    private static abstract class _ThrummingHatchetT extends Card {
+        private final int damage;
+
+        public _ThrummingHatchetT(String cardName, int damage) {
+            super(cardName, Card.ATTACK, 1, Card.UNCOMMON);
+            this.damage = damage;
+            entityProperty.selectEnemy = true;
+        }
+
+        protected abstract Card createUsed();
+
+        protected abstract Card createBase();
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            return List.of(createUsed());
+        }
+
+        @Override public int onPlayTransformCardIdx(GameProperties prop, int cardIdx) {
+            return prop.findCardIndex(prop.cardDict[cardIdx].wrapAfterPlay(createUsed()));
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            Card base = createBase();
+            Card used = createUsed();
+            int[] returnTransform = new int[state.properties.cardDict.length];
+            Arrays.fill(returnTransform, -1);
+            for (int i = 0; i < state.properties.cardDict.length; i++) {
+                if (state.properties.cardDict[i].getBaseCard().equals(used)) {
+                    returnTransform[i] = state.properties.findCardIndex(state.properties.cardDict[i].wrap(base));
+                }
+            }
+            state.properties.addStartOfTurnHandler(used.cardName + "Return", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    returnUsedCardToHand(state, returnTransform);
+                }
+            });
+        }
+    }
+
+    public static class ThrummingHatchet extends _ThrummingHatchetT {
+        public ThrummingHatchet() {
+            super("Thrumming Hatchet", 11);
+        }
+
+        @Override protected Card createUsed() {
+            return new ThrummingHatchetUsed();
+        }
+
+        @Override protected Card createBase() {
+            return new ThrummingHatchet();
+        }
+    }
+
+    public static class ThrummingHatchetP extends _ThrummingHatchetT {
+        public ThrummingHatchetP() {
+            super("Thrumming Hatchet+", 14);
+        }
+
+        @Override protected Card createUsed() {
+            return new ThrummingHatchetUsedP();
+        }
+
+        @Override protected Card createBase() {
+            return new ThrummingHatchetP();
+        }
+    }
+
+    public static class ThrummingHatchetUsed extends Card {
+        public ThrummingHatchetUsed() {
+            super("Thrumming Hatchet (Used)", Card.ATTACK, 1, Card.UNCOMMON);
+        }
+    }
+
+    public static class ThrummingHatchetUsedP extends Card {
+        public ThrummingHatchetUsedP() {
+            super("Thrumming Hatchet+ (Used)", Card.ATTACK, 1, Card.UNCOMMON);
+        }
+    }
 
     private static abstract class _UltimateDefendT extends Card {
         private final int block;
@@ -809,10 +1032,142 @@ public class CardColorless2 {
     // TODO: Bolas (Rare) - 0 energy, Attack
     //   Effect: Deal 3 damage. At the start of your next turn, return this to your Hand.
     //   Upgraded Effect: Deal 4 damage. At the start of your next turn, return this to your Hand.
+    private static abstract class _BolasT extends Card {
+        private final int damage;
+
+        public _BolasT(String cardName, int damage) {
+            super(cardName, Card.ATTACK, 0, Card.RARE);
+            this.damage = damage;
+            entityProperty.selectEnemy = true;
+        }
+
+        protected abstract Card createUsed();
+
+        protected abstract Card createBase();
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            return List.of(createUsed());
+        }
+
+        @Override public int onPlayTransformCardIdx(GameProperties prop, int cardIdx) {
+            return prop.findCardIndex(prop.cardDict[cardIdx].wrapAfterPlay(createUsed()));
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            Card base = createBase();
+            Card used = createUsed();
+            int[] returnTransform = new int[state.properties.cardDict.length];
+            Arrays.fill(returnTransform, -1);
+            for (int i = 0; i < state.properties.cardDict.length; i++) {
+                if (state.properties.cardDict[i].getBaseCard().equals(used)) {
+                    returnTransform[i] = state.properties.findCardIndex(state.properties.cardDict[i].wrap(base));
+                }
+            }
+            state.properties.addStartOfTurnHandler(used.cardName + "Return", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    returnUsedCardToHand(state, returnTransform);
+                }
+            });
+        }
+    }
+
+    public static class Bolas extends _BolasT {
+        public Bolas() {
+            super("Bolas", 3);
+        }
+
+        @Override protected Card createUsed() {
+            return new BolasUsed();
+        }
+
+        @Override protected Card createBase() {
+            return new Bolas();
+        }
+    }
+
+    public static class BolasP extends _BolasT {
+        public BolasP() {
+            super("Bolas+", 4);
+        }
+
+        @Override protected Card createUsed() {
+            return new BolasUsedP();
+        }
+
+        @Override protected Card createBase() {
+            return new BolasP();
+        }
+    }
+
+    public static class BolasUsed extends Card {
+        public BolasUsed() {
+            super("Bolas (Used)", Card.ATTACK, 0, Card.RARE);
+        }
+    }
+
+    public static class BolasUsedP extends Card {
+        public BolasUsedP() {
+            super("Bolas+ (Used)", Card.ATTACK, 0, Card.RARE);
+        }
+    }
 
     // TODO: Calamity (Rare) - 3 energy, Power
     //   Effect: Whenever you play an Attack, add a random Attack into your Hand.
     //   Upgraded Effect (2 energy): Whenever you play an Attack, add a random Attack into your Hand.
+    private static abstract class _CalamityT extends Card {
+        public _CalamityT(String cardName, int energyCost) {
+            super(cardName, Card.POWER, energyCost, Card.RARE);
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getCounterForWrite()[counterIdx]++;
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            return CardManager.getCharacterCardsByType(properties.character, Card.ATTACK, false);
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("Calamity", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 3.0f;
+                    return idx + 1;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            state.properties.addOnCardPlayedHandler("Calamity", new GameEventCardHandler() {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                    if (state.getCounterForRead()[counterIdx] > 0 && state.properties.cardDict[cardIdx].cardType == Card.ATTACK) {
+                        for (int i = 0; i < state.getCounterForRead()[counterIdx]; i++) {
+                            int randomIdx = state.getSearchRandomGen().nextInt(generatedCardIdxes.length, RandomGenCtx.RandomCardGen, new Tuple<>(state, generatedCardIdxes));
+                            state.addCardToHand(state.createCard(generatedCardIdxes[randomIdx]));
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    public static class Calamity extends _CalamityT {
+        public Calamity() {
+            super("Calamity", 3);
+        }
+    }
+
+    public static class CalamityP extends _CalamityT {
+        public CalamityP() {
+            super("Calamity+", 2);
+        }
+    }
 
     // TODO: Entropy (Rare) - 1 energy, Power
     //   Effect: At the start of your turn, Transform 1 card in your Hand.
@@ -920,6 +1275,43 @@ public class CardColorless2 {
     // TODO: Jackpot (Rare) - 3 energy, Attack
     //   Effect: Deal 25 damage. Add 3 random 0 energy cards into your Hand.
     //   Upgraded Effect: Deal 30 damage. Add 3 random Upgraded 0 energy cards into your Hand.
+    private static abstract class _JackpotT extends Card {
+        private final int damage;
+        private final boolean upgraded;
+
+        public _JackpotT(String cardName, int damage, boolean upgraded) {
+            super(cardName, Card.ATTACK, 3, Card.RARE);
+            this.damage = damage;
+            this.upgraded = upgraded;
+            entityProperty.selectEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
+            for (int i = 0; i < 3; i++) {
+                int randomIdx = state.getSearchRandomGen().nextInt(generatedCardIdxes.length, RandomGenCtx.RandomCardGen, new Tuple<>(state, generatedCardIdxes));
+                state.addCardToHand(state.createCard(generatedCardIdxes[randomIdx]));
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            var zeroCostCards = CardManager.getCharacter0CostCardsByType(properties.character);
+            return upgraded ? zeroCostCards.stream().map(Card::getUpgrade).filter(Objects::nonNull).toList() : zeroCostCards;
+        }
+    }
+
+    public static class Jackpot extends _JackpotT {
+        public Jackpot() {
+            super("Jackpot", 25, false);
+        }
+    }
+
+    public static class JackpotP extends _JackpotT {
+        public JackpotP() {
+            super("Jackpot+", 30, true);
+        }
+    }
 
     // No need to implement Knockdown: Multiplayer
 
@@ -997,6 +1389,35 @@ public class CardColorless2 {
     // TODO: Rend (Rare) - 2 energy, Attack
     //   Effect: Deal 15 damage. Deals 5 additional damage for each unique debuff on the enemy.
     //   Upgraded Effect: Deal 18 damage. Deals 8 additional damage for each unique debuff on the enemy.
+    private static abstract class _RendT extends Card {
+        private final int damage;
+        private final int damagePerDebuff;
+
+        public _RendT(String cardName, int damage, int damagePerDebuff) {
+            super(cardName, Card.ATTACK, 2, Card.RARE);
+            this.damage = damage;
+            this.damagePerDebuff = damagePerDebuff;
+            entityProperty.selectEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            var enemy = state.getEnemiesForWrite().getForWrite(idx);
+            state.playerDoDamageToEnemy(enemy, damage + damagePerDebuff * enemy.getDebuffsCount(), this);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Rend extends _RendT {
+        public Rend() {
+            super("Rend", 15, 5);
+        }
+    }
+
+    public static class RendP extends _RendT {
+        public RendP() {
+            super("Rend+", 18, 8);
+        }
+    }
 
     private static abstract class _RollingBoulderT extends Card {
         private final int initialDamage;
@@ -1499,6 +1920,147 @@ public class CardColorless2 {
     // TODO: Maul (Ancient) - 1 energy, Attack
     //   Effect: Deal 5 damage twice. Increase the damage of ALL Maul cards by 1 this combat.
     //   Upgraded Effect: Deal 6 damage twice. Increase the damage of ALL Maul cards by 2 this combat.
+    protected static abstract class _MaulT extends Card {
+        protected final int damage;
+        private final int damageIncrement;
+
+        public _MaulT(String cardName, int damage, int damageIncrement) {
+            super(cardName + " (" + damage + ")", Card.ATTACK, 1, Card.RARE);
+            this.damage = damage;
+            this.damageIncrement = damageIncrement;
+            entityProperty.selectEnemy = true;
+        }
+
+        protected abstract _MaulT create(int damage);
+
+        protected abstract int[] getTransformIndexes(GameProperties properties);
+
+        protected abstract void setTransformIndexes(GameProperties properties, int[] transformIndexes);
+
+        protected abstract int[] getAfterPlayTransformIndexes(GameProperties properties);
+
+        protected abstract void setAfterPlayTransformIndexes(GameProperties properties, int[] transformIndexes);
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            var enemy = state.getEnemiesForWrite().getForWrite(idx);
+            state.playerDoDamageToEnemy(enemy, damage, this);
+            state.playerDoDamageToEnemy(enemy, damage, this);
+            state.handArrTransform(getTransformIndexes(state.properties));
+            state.discardArrTransform(getTransformIndexes(state.properties));
+            state.deckArrTransform(getTransformIndexes(state.properties));
+            state.exhaustArrTransform(getTransformIndexes(state.properties));
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            var c = new ArrayList<Card>();
+            for (Card card : cards) {
+                if (card.getBaseCard() instanceof _MaulT maul) {
+                    for (int i = maul.damage + damageIncrement; i <= GameProperties.maxMaulDamage; i += damageIncrement) {
+                        c.add(card.wrapAfterPlay(maul.create(i)));
+                    }
+                }
+            }
+            return c;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            if (getTransformIndexes(state.properties) == null) {
+                var transformIndexes = new int[state.properties.cardDict.length];
+                Arrays.fill(transformIndexes, -1);
+                for (int i = 0; i < transformIndexes.length; i++) {
+                    var card = state.properties.cardDict[i].getBaseCard();
+                    if (card instanceof _MaulT maul && maul.damage + damageIncrement <= GameProperties.maxMaulDamage) {
+                        transformIndexes[i] = state.properties.findCardIndex(state.properties.cardDict[i].wrap(maul.create(maul.damage + damageIncrement)));
+                    }
+                }
+                setTransformIndexes(state.properties, transformIndexes);
+            }
+            if (getAfterPlayTransformIndexes(state.properties) == null) {
+                var transformIndexes = new int[state.properties.cardDict.length];
+                Arrays.fill(transformIndexes, -1);
+                for (int i = 0; i < transformIndexes.length; i++) {
+                    var card = state.properties.cardDict[i].getBaseCard();
+                    if (card instanceof _MaulT maul && maul.damage + damageIncrement <= GameProperties.maxMaulDamage) {
+                        transformIndexes[i] = state.properties.findCardIndex(state.properties.cardDict[i].wrapAfterPlay(maul.create(maul.damage + damageIncrement)));
+                    }
+                }
+                setAfterPlayTransformIndexes(state.properties, transformIndexes);
+            }
+        }
+
+        @Override public int onPlayTransformCardIdx(GameProperties prop, int cardIdx) {
+            return getAfterPlayTransformIndexes(prop)[cardIdx];
+        }
+    }
+
+    public static class Maul extends _MaulT {
+        public Maul() {
+            this(5);
+        }
+
+        public Maul(int damage) {
+            super("Maul", damage, 1);
+        }
+
+        @Override protected _MaulT create(int damage) {
+            return new Maul(damage);
+        }
+
+        @Override protected int[] getTransformIndexes(GameProperties properties) {
+            return properties.maulTransformIndexes;
+        }
+
+        @Override protected void setTransformIndexes(GameProperties properties, int[] transformIndexes) {
+            properties.maulTransformIndexes = transformIndexes;
+        }
+
+        @Override protected int[] getAfterPlayTransformIndexes(GameProperties properties) {
+            return properties.maulAfterPlayTransformIndexes;
+        }
+
+        @Override protected void setAfterPlayTransformIndexes(GameProperties properties, int[] transformIndexes) {
+            properties.maulAfterPlayTransformIndexes = transformIndexes;
+        }
+
+        public Card getUpgrade() {
+            if (damage + 1 > GameProperties.maxMaulDamage) {
+                return null;
+            } else {
+                return new MaulP(damage + 1);
+            }
+        }
+    }
+
+    public static class MaulP extends _MaulT {
+        public MaulP() {
+            this(6);
+        }
+
+        public MaulP(int damage) {
+            super("Maul+", damage, 2);
+        }
+
+        @Override protected _MaulT create(int damage) {
+            return new MaulP(damage);
+        }
+
+        @Override protected int[] getTransformIndexes(GameProperties properties) {
+            return properties.maulPTransformIndexes;
+        }
+
+        @Override protected void setTransformIndexes(GameProperties properties, int[] transformIndexes) {
+            properties.maulPTransformIndexes = transformIndexes;
+        }
+
+        @Override protected int[] getAfterPlayTransformIndexes(GameProperties properties) {
+            return properties.maulPAfterPlayTransformIndexes;
+        }
+
+        @Override protected void setAfterPlayTransformIndexes(GameProperties properties, int[] transformIndexes) {
+            properties.maulPAfterPlayTransformIndexes = transformIndexes;
+        }
+    }
 
     private static abstract class _NeowsFuryT extends Card {
         private final int damage;
@@ -1595,6 +2157,34 @@ public class CardColorless2 {
     // TODO: Whistle (Ancient) - 3 energy, Attack
     //   Effect: Deal 33 damage. Stun the enemy. Exhaust.
     //   Upgraded Effect: Deal 44 damage. Stun the enemy. Exhaust.
+    private static abstract class _WhistleT extends Card {
+        private final int damage;
+
+        public _WhistleT(String cardName, int damage) {
+            super(cardName, Card.ATTACK, 3, Card.RARE);
+            this.damage = damage;
+            exhaustWhenPlayed = true;
+            entityProperty.selectEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
+            // TODO: Implement stunned effect.
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Whistle extends _WhistleT {
+        public Whistle() {
+            super("Whistle", 33);
+        }
+    }
+
+    public static class WhistleP extends _WhistleT {
+        public WhistleP() {
+            super("Whistle+", 44);
+        }
+    }
 
     private static abstract class _WishT extends Card {
         public _WishT(String cardName, boolean retain, boolean exhaustWhenPlayed) {

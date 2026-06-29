@@ -152,13 +152,13 @@ public class CardManager {
         List<Card> cards = new ArrayList<>();
 
         // Card generation pool
-        // cards.add(new CardColorless2.Bolas()); // TODO
+        cards.add(new CardColorless2.Bolas());
         cards.add(new CardColorless2.GoldAxe());
         cards.add(new CardColorless2.HandOfGreed(0.0));
-        // cards.add(new CardColorless2.Jackpot()); // TODO
-        // cards.add(new CardColorless2.Rend()); // TODO
+        cards.add(new CardColorless2.Jackpot());
+        cards.add(new CardColorless2.Rend());
         cards.add(new CardColorless2.Salvo());
-        // cards.add(new CardColorless2.Calamity()); // TODO
+        cards.add(new CardColorless2.Calamity());
         // cards.add(new CardColorless2.Entropy()); // TODO
         cards.add(new CardColorless2.EternalArmor());
         cards.add(new CardColorless2.Mayhem());
@@ -178,8 +178,8 @@ public class CardManager {
         cards.add(new CardColorless2.FlashOfSteel());
         cards.add(new CardColorless2.MindBlast());
         cards.add(new CardColorless2.Omnislice());
-        // cards.add(new CardColorless2.SeekerStrike()); // TODO
-        // cards.add(new CardColorless2.ThrummingHatchet()); // TODO
+        cards.add(new CardColorless2.SeekerStrike());
+        cards.add(new CardColorless2.ThrummingHatchet());
         cards.add(new CardColorless2.UltimateStrike());
         cards.add(new CardColorless2.Volley());
         cards.add(new CardColorless2.Automation());
@@ -201,15 +201,15 @@ public class CardManager {
         cards.add(new CardColorless2.Purity());
         cards.add(new CardColorless2.Restlessness());
         cards.add(new CardColorless2.Shockwave());
-        // cards.add(new CardColorless2.Splash()); // TODO
+        cards.add(new CardColorless2.Splash());
         cards.add(new CardColorless2.TheBomb());
         cards.add(new CardColorless2.ThinkingAhead());
         cards.add(new CardColorless2.UltimateDefend());
 
         if (pool == ColorlessCard2Pool.ALL) {
-            // cards.add(new CardColorless2.Maul()); // TODO
+            cards.add(new CardColorless2.Maul());
             cards.add(new CardColorless2.NeowsFury());
-            // cards.add(new CardColorless2.Whistle()); // TODO
+            cards.add(new CardColorless2.Whistle());
             cards.add(new CardColorless2.Apotheosis());
             cards.add(new CardColorless2.Apparition());
             cards.add(new CardColorless2.BrightestFlame());
