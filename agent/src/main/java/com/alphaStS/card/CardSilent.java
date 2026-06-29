@@ -1702,7 +1702,7 @@ public class CardSilent {
         private final int n;
 
         public _NoxiousFumesT(String cardName, int n) {
-            super(cardName, Card.POWER, 1, Card.RARE);
+            super(cardName, Card.POWER, 1, Card.UNCOMMON);
             entityProperty.poisonEnemy = true;
             this.n = n;
         }

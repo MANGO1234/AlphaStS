@@ -436,10 +436,16 @@ public class CardIronclad2 {
     // Bludgeon (Uncommon) - 3 energy, Attack
     //   Effect: Deal 32 damage.
     //   Upgraded Effect: Deal 42 damage.
-    public static class Bludgeon extends CardIronclad.Bludgeon {
+    public static class Bludgeon extends CardIronclad._BludgeonT {
+        public Bludgeon() {
+            super("Bludgeon", 32, Card.UNCOMMON);
+        }
     }
 
-    public static class BludgeonP extends CardIronclad.BludgeonP {
+    public static class BludgeonP extends CardIronclad._BludgeonT {
+        public BludgeonP() {
+            super("Bludgeon+", 42, Card.UNCOMMON);
+        }
     }
 
     private static abstract class _BullyT extends Card {
@@ -1971,10 +1977,16 @@ public class CardIronclad2 {
     // Dark Embrace (Rare) - 2 energy, Power
     //   Effect: Whenever a card is Exhausted, draw 1 card.
     //   Upgraded Effect (1 energy): Whenever a card is Exhausted, draw 1 card.
-    public static class DarkEmbrace extends CardIronclad.DarkEmbrace {
+    public static class DarkEmbrace extends CardIronclad._DarkEmbraceT {
+        public DarkEmbrace() {
+            super("Dark Embrace", 2, Card.RARE);
+        }
     }
 
-    public static class DarkEmbraceP extends CardIronclad.DarkEmbraceP {
+    public static class DarkEmbraceP extends CardIronclad._DarkEmbraceT {
+        public DarkEmbraceP() {
+            super("Dark Embrace+", 1, Card.RARE);
+        }
     }
 
     // Demon Form (Rare) - 3 energy, Power

@@ -1036,9 +1036,9 @@ public class CardIronclad {
         }
     }
 
-    private static abstract class _DarkEmbraceT extends Card {
-        public _DarkEmbraceT(String cardName, int energyCost) {
-            super(cardName, Card.POWER, energyCost, Card.UNCOMMON);
+    protected static abstract class _DarkEmbraceT extends Card {
+        public _DarkEmbraceT(String cardName, int energyCost, int rarity) {
+            super(cardName, Card.POWER, energyCost, rarity);
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -1068,13 +1068,13 @@ public class CardIronclad {
 
     public static class DarkEmbrace extends _DarkEmbraceT {
         public DarkEmbrace() {
-            super("Dark Embrace", 2);
+            super("Dark Embrace", 2, Card.UNCOMMON);
         }
     }
 
     public static class DarkEmbraceP extends _DarkEmbraceT {
         public DarkEmbraceP() {
-            super("Dark Embrace+", 1);
+            super("Dark Embrace+", 1, Card.UNCOMMON);
         }
     }
 
@@ -2218,11 +2218,11 @@ public class CardIronclad {
         }
     }
 
-    private static abstract class _BludgeonT extends Card {
+    protected static abstract class _BludgeonT extends Card {
         private final int damage;
 
-        public _BludgeonT(String cardName, int damage) {
-            super(cardName, Card.ATTACK, 3, Card.RARE);
+        public _BludgeonT(String cardName, int damage, int rarity) {
+            super(cardName, Card.ATTACK, 3, rarity);
             this.damage = damage;
             entityProperty.selectEnemy = true;
         }
@@ -2235,13 +2235,13 @@ public class CardIronclad {
 
     public static class Bludgeon extends _BludgeonT {
         public Bludgeon() {
-            super("Bludgeon", 32);
+            super("Bludgeon", 32, Card.RARE);
         }
     }
 
     public static class BludgeonP extends _BludgeonT {
         public BludgeonP() {
-            super("Bludgeon+", 42);
+            super("Bludgeon+", 42, Card.RARE);
         }
     }
 

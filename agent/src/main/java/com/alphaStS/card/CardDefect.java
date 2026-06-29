@@ -1218,11 +1218,11 @@ public class CardDefect {
         }
     }
 
-    private static abstract class _DefragmentT extends Card {
+    protected static abstract class _DefragmentT extends Card {
         private final int n;
 
-        public _DefragmentT(String cardName, int n) {
-            super(cardName, Card.POWER, 1, Card.UNCOMMON);
+        public _DefragmentT(String cardName, int n, int rarity) {
+            super(cardName, Card.POWER, 1, rarity);
             this.n = n;
             this.entityProperty.changePlayerFocus = true;
         }
@@ -1235,13 +1235,13 @@ public class CardDefect {
 
     public static class Defragment extends CardDefect._DefragmentT {
         public Defragment() {
-            super("Defragment", 1);
+            super("Defragment", 1, Card.UNCOMMON);
         }
     }
 
     public static class DefragmentP extends CardDefect._DefragmentT {
         public DefragmentP() {
-            super("Defragment+", 2);
+            super("Defragment+", 2, Card.UNCOMMON);
         }
     }
 
@@ -1550,13 +1550,13 @@ public class CardDefect {
     }
 
     // todo: echo form
-    private static abstract class _GeneticAlgorithmT extends Card {
+    protected static abstract class _GeneticAlgorithmT extends Card {
         protected final int block;
         private final int blockInc;
         protected final double healthRewardRatio;
 
-        public _GeneticAlgorithmT(String cardName, int block, int blockInc, double healthRewardRatio) {
-            super(cardName, Card.SKILL, 1, Card.UNCOMMON);
+        public _GeneticAlgorithmT(String cardName, int block, int blockInc, double healthRewardRatio, int rarity) {
+            super(cardName, Card.SKILL, 1, rarity);
             this.block = block;
             this.blockInc = blockInc;
             this.healthRewardRatio = healthRewardRatio;
@@ -1697,11 +1697,11 @@ public class CardDefect {
         public GeneticAlgorithm() { this(1); }
 
         public GeneticAlgorithm(int block) {
-            super("Genetic Algorithm (" + block + ")", block, 2, 2);
+            super("Genetic Algorithm (" + block + ")", block, 2, 2, Card.UNCOMMON);
         }
 
         public GeneticAlgorithm(int block, double healthRewardRatio) {
-            super("Genetic Algorithm (" + block + ")", block, 2, healthRewardRatio);
+            super("Genetic Algorithm (" + block + ")", block, 2, healthRewardRatio, Card.UNCOMMON);
         }
 
         public Card getUpgrade() {
@@ -1713,11 +1713,11 @@ public class CardDefect {
         public GeneticAlgorithmP() { this(1); }
 
         public GeneticAlgorithmP(int block) {
-            super("Genetic Algorithm+ (" + block + ")", block, 3, 2);
+            super("Genetic Algorithm+ (" + block + ")", block, 3, 2, Card.UNCOMMON);
         }
 
         public GeneticAlgorithmP(int block, double healthRewardRatio) {
-            super("Genetic Algorithm+ (" + block + ")", block, 3, healthRewardRatio);
+            super("Genetic Algorithm+ (" + block + ")", block, 3, healthRewardRatio, Card.UNCOMMON);
         }
     }
 

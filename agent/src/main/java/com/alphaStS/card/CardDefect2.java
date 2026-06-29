@@ -1712,10 +1712,16 @@ public class CardDefect2 {
     // Defragment (Rare) - 1 energy, Power
     //   Effect: Gain 1 Focus.
     //   Upgraded Effect: Gain 2 Focus.
-    public static class Defragment extends CardDefect.Defragment {
+    public static class Defragment extends CardDefect._DefragmentT {
+        public Defragment() {
+            super("Defragment", 1, Card.RARE);
+        }
     }
 
-    public static class DefragmentP extends CardDefect.DefragmentP {
+    public static class DefragmentP extends CardDefect._DefragmentT {
+        public DefragmentP() {
+            super("Defragment+", 2, Card.RARE);
+        }
     }
 
     // Echo Form (Rare) - 3 energy, Power
@@ -1791,15 +1797,35 @@ public class CardDefect2 {
     // Genetic Algorithm (Rare) - 1 energy, Skill
     //   Effect: Gain 1 Block. Permanently increase this card's Block by 3. Exhaust.
     //   Upgraded Effect: Gain 1 Block. Permanently increase this card's Block by 4. Exhaust.
-    public static class GeneticAlgorithm extends CardDefect.GeneticAlgorithm {
+    public static class GeneticAlgorithm extends CardDefect._GeneticAlgorithmT {
         public GeneticAlgorithm() {
-            super(1);
+            this(1);
+        }
+
+        public GeneticAlgorithm(int block) {
+            super("Genetic Algorithm (" + block + ")", block, 2, 2, Card.RARE);
+        }
+
+        public GeneticAlgorithm(int block, double healthRewardRatio) {
+            super("Genetic Algorithm (" + block + ")", block, 2, healthRewardRatio, Card.RARE);
+        }
+
+        public Card getUpgrade() {
+            return new CardDefect2.GeneticAlgorithmP(block, healthRewardRatio);
         }
     }
 
-    public static class GeneticAlgorithmP extends CardDefect.GeneticAlgorithmP {
+    public static class GeneticAlgorithmP extends CardDefect._GeneticAlgorithmT {
         public GeneticAlgorithmP() {
-            super(1);
+            this(1);
+        }
+
+        public GeneticAlgorithmP(int block) {
+            super("Genetic Algorithm+ (" + block + ")", block, 3, 2, Card.RARE);
+        }
+
+        public GeneticAlgorithmP(int block, double healthRewardRatio) {
+            super("Genetic Algorithm+ (" + block + ")", block, 3, healthRewardRatio, Card.RARE);
         }
     }
 
