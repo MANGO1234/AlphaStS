@@ -282,8 +282,10 @@ public class CardOther2 {
     //   Effect: Unplayable. At the end of your turn, if this is in your Hand, gain 1 Frail.
     public static class Shame extends CardOther.Shame {}
 
-    public static class SporesMind extends Card {
-        public SporesMind() {
+    // Spore Mind (Curse) - 1 energy, Curse
+    //   Effect: Exhaust.
+    public static class SporeMind extends Card {
+        public SporeMind() {
             super("Spore Mind", Card.CURSE, 1, Card.COMMON);
             exhaustWhenPlayed = true;
         }
@@ -298,7 +300,7 @@ public class CardOther2 {
     // **************************************************************************************************
 
     // Byrdonis Egg (Quest) - Unplayable, Quest
-    //    Effect: Unplayable. Can be hatched at a Rest Site.
+    //   Effect: Unplayable. Can be hatched at a Rest Site.
     public static class ByrdonisEgg extends Card {
         public ByrdonisEgg() {
             super("Byrdonis Egg", Card.QUEST, -1, Card.COMMON);
@@ -306,7 +308,7 @@ public class CardOther2 {
     }
 
     // Lantern Key (Quest) - Unplayable, Quest
-    //    Effect: Unplayable. Unlocks a special event in the next Act.
+    //   Effect: Unplayable. Unlocks a special event in the next Act.
     public static class LanternKey extends Card {
         public LanternKey() {
             super("Lantern Key", Card.QUEST, -1, Card.COMMON);
@@ -314,7 +316,7 @@ public class CardOther2 {
     }
 
     // Spoils Map (Quest) - Unplayable, Quest
-    //    Effect: Unplayable. Marks a site of 600 extra Gold in the next Act.
+    //   Effect: Unplayable. Marks a site of 600 extra Gold in the next Act.
     public static class SpoilsMap extends Card {
         public SpoilsMap() {
             super("Spoils Map", Card.QUEST, -1, Card.COMMON);

@@ -2499,14 +2499,17 @@ public class CardNecrobinder2 {
         }
     }
 
-    public static class BansheeCry extends _BansheeCryT {
-        public BansheeCry() {
+    // Banshee's Cry (Rare) - 9 energy, Attack
+    //   Effect: Deal 33 damage to ALL enemies. Costs 2 energy less for each Ethereal card played this combat.
+    //   Upgraded Effect (7 energy): Deal 33 damage to ALL enemies. Costs 2 energy less for each Ethereal card played this combat.
+    public static class BansheesCry extends _BansheeCryT {
+        public BansheesCry() {
             super("Banshee's Cry", 33);
         }
     }
 
-    public static class BansheeCryP extends _BansheeCryT {
-        public BansheeCryP() {
+    public static class BansheesCryP extends _BansheeCryT {
+        public BansheesCryP() {
             super("Banshee's Cry+", 39);
         }
     }

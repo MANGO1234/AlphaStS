@@ -504,8 +504,8 @@ public class CardRegent2 {
     }
 
     // Glow (Common) - 1 energy, Skill
-    //   Effect: Gain star. Draw 1 card. Next turn, draw 1 card.
-    //   Upgraded Effect: Gain 2 star. Draw 1 card. Next turn, draw 1 card.
+    //   Effect: Gain star. Draw 1 card. Next turn, draw 1 card
+    //   Upgraded Effect: Gain 2 star. Draw 1 card. Next turn, draw 1 card
     public static class Glow extends _GlowT {
         public Glow() {
             super("Glow", 1);
@@ -717,14 +717,17 @@ public class CardRegent2 {
         }
     }
 
-    public static class RefineBladeCard extends _RefineBladeT {
-        public RefineBladeCard() {
+    // Refine Blade (Common) - 1 energy, Skill
+    //   Effect: Forge 9. Next turn, gain energy.
+    //   Upgraded Effect: Forge 13. Next turn, gain energy.
+    public static class RefineBlade extends _RefineBladeT {
+        public RefineBlade() {
             super("Refine Blade", 6);
         }
     }
 
-    public static class RefineBladeCardP extends _RefineBladeT {
-        public RefineBladeCardP() {
+    public static class RefineBladeP extends _RefineBladeT {
+        public RefineBladeP() {
             super("Refine Blade+", 10);
         }
     }
@@ -2980,7 +2983,7 @@ public class CardRegent2 {
             if (state.actionCtx == GameActionCtx.PLAY_CARD) {
                 state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), dmg, this);
                 for (int i = 0; i < state.handArrLen; i++) {
-                    if (CardManager.isColorlessCard(state.properties.cardDict[state.handArr[i]])) {
+                    if (CardManager.isColorless2Card(state.properties.cardDict[state.handArr[i]])) {
                         return GameActionCtx.SELECT_CARD_HAND;
                     }
                 }
@@ -2992,11 +2995,11 @@ public class CardRegent2 {
         }
 
         @Override public boolean canSelectCard(Card card) {
-            return CardManager.isColorlessCard(card);
+            return CardManager.isColorless2Card(card);
         }
 
         @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
-            return cards.stream().filter(CardManager::isColorlessCard).toList();
+            return cards.stream().filter(CardManager::isColorless2Card).toList();
         }
     }
 

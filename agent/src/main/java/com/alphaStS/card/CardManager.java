@@ -22,7 +22,11 @@ public class CardManager {
             case SILENT -> getSilentCards(cardType, generateHealingCard);
             case DEFECT -> getDefectCards(cardType, generateHealingCard);
             case WATCHER -> getWatcherCards(cardType, generateHealingCard);
-            case IRONCLAD2, SILENT2, DEFECT2, REGENT, NECROBINDER -> new ArrayList<>();
+            case IRONCLAD2 -> getIronclad2Cards(cardType, generateHealingCard);
+            case SILENT2 -> getSilent2Cards(cardType, generateHealingCard);
+            case DEFECT2 -> getDefect2Cards(cardType, generateHealingCard);
+            case REGENT -> getRegentCards(cardType, generateHealingCard);
+            case NECROBINDER -> getNecrobinderCards(cardType, generateHealingCard);
         };
     }
 
@@ -125,21 +129,9 @@ public class CardManager {
         cards.add(new CardOther2.PoorSleep());
         cards.add(new CardOther2.Regret());
         cards.add(new CardOther2.Shame());
-        cards.add(new CardOther2.SporesMind());
+        cards.add(new CardOther2.SporeMind());
         cards.add(new CardOther2.Writhe());
         return cards;
-    }
-
-    private static HashSet<Class<?>> colorlessCardClasses;
-
-    public static boolean isColorlessCard(Card card) {
-        if (colorlessCardClasses == null) {
-            colorlessCardClasses = new HashSet<>();
-            for (var c : getColorlessCards(false)) {
-                colorlessCardClasses.add(c.getClass());
-            }
-        }
-        return colorlessCardClasses.contains(card.getBaseCard().getClass());
     }
 
     public static List<Card> getColorlessCardsTmp0Cost(boolean generateHealingCard) {
@@ -149,6 +141,159 @@ public class CardManager {
             cards.add(card.getTemporaryCostIfPossible(0));
         }
         return cards;
+    }
+
+    public enum ColorlessCard2Pool {
+        CARD_GENERATION,
+        ALL,
+    }
+
+    public static List<Card> getColorless2Cards(ColorlessCard2Pool pool) {
+        List<Card> cards = new ArrayList<>();
+
+        // Card generation pool
+        // cards.add(new CardColorless2.Bolas()); // TODO
+        cards.add(new CardColorless2.GoldAxe());
+        cards.add(new CardColorless2.HandOfGreed(0.0));
+        // cards.add(new CardColorless2.Jackpot()); // TODO
+        // cards.add(new CardColorless2.Rend()); // TODO
+        cards.add(new CardColorless2.Salvo());
+        // cards.add(new CardColorless2.Calamity()); // TODO
+        // cards.add(new CardColorless2.Entropy()); // TODO
+        cards.add(new CardColorless2.EternalArmor());
+        cards.add(new CardColorless2.Mayhem());
+        cards.add(new CardColorless2.Nostalgia());
+        cards.add(new CardColorless2.RollingBoulder());
+        cards.add(new CardColorless2.Alchemize(0, 0, 0));
+        cards.add(new CardColorless2.Anointed());
+        cards.add(new CardColorless2.BeatDown());
+        // cards.add(new CardColorless2.HiddenGem()); // TODO
+        cards.add(new CardColorless2.MasterOfStrategy());
+        cards.add(new CardColorless2.Scrawl());
+        cards.add(new CardColorless2.SecretTechnique());
+        cards.add(new CardColorless2.SecretWeapon());
+        cards.add(new CardColorless2.TheGambit());
+        cards.add(new CardColorless2.DramaticEntrance());
+        cards.add(new CardColorless2.Fisticuffs());
+        cards.add(new CardColorless2.FlashOfSteel());
+        cards.add(new CardColorless2.MindBlast());
+        cards.add(new CardColorless2.Omnislice());
+        // cards.add(new CardColorless2.SeekerStrike()); // TODO
+        // cards.add(new CardColorless2.ThrummingHatchet()); // TODO
+        cards.add(new CardColorless2.UltimateStrike());
+        cards.add(new CardColorless2.Volley());
+        cards.add(new CardColorless2.Automation());
+        cards.add(new CardColorless2.Fasten());
+        cards.add(new CardColorless2.Panache());
+        cards.add(new CardColorless2.PrepTime());
+        cards.add(new CardColorless2.Prowess());
+        // cards.add(new CardColorless2.Stratagem()); // TODO
+        cards.add(new CardColorless2.Catastrophe());
+        cards.add(new CardColorless2.DarkShackles());
+        cards.add(new CardColorless2.Discovery());
+        cards.add(new CardColorless2.Equilibrium());
+        cards.add(new CardColorless2.Finesse());
+        cards.add(new CardColorless2.Impatience());
+        cards.add(new CardColorless2.JackOfAllTrades());
+        cards.add(new CardColorless2.PanicButton());
+        cards.add(new CardColorless2.Production());
+        cards.add(new CardColorless2.Prolong());
+        cards.add(new CardColorless2.Purity());
+        cards.add(new CardColorless2.Restlessness());
+        cards.add(new CardColorless2.Shockwave());
+        // cards.add(new CardColorless2.Splash()); // TODO
+        cards.add(new CardColorless2.TheBomb());
+        cards.add(new CardColorless2.ThinkingAhead());
+        cards.add(new CardColorless2.UltimateDefend());
+
+        if (pool == ColorlessCard2Pool.ALL) {
+            // cards.add(new CardColorless2.Maul()); // TODO
+            cards.add(new CardColorless2.NeowsFury());
+            // cards.add(new CardColorless2.Whistle()); // TODO
+            cards.add(new CardColorless2.Apotheosis());
+            cards.add(new CardColorless2.Apparition());
+            cards.add(new CardColorless2.BrightestFlame());
+            cards.add(new CardColorless2.Relax());
+            cards.add(new CardColorless2.Wish());
+            cards.add(new CardColorless2.ByrdSwoop());
+            cards.add(new CardColorless2.Exterminate());
+            cards.add(new CardColorless2.Peck());
+            cards.add(new CardColorless2.Squash());
+            cards.add(new CardColorless2.Enlightenment());
+            cards.add(new CardColorless2.FeedingFrenzy());
+            // cards.add(new CardColorless2.MadScience()); // TODO
+            cards.add(new CardColorless2.Metamorphosis());
+            cards.add(new CardColorless2.ToricToughness());
+            cards.add(new CardColorless2.GiantRock());
+            cards.add(new CardColorless2.MinionDiveBomb());
+            cards.add(new CardColorless2.MinionStrike());
+            cards.add(new CardColorless2.Shiv());
+            cards.add(new CardColorless2.SovereignBlade());
+            cards.add(new CardColorless2.SweepingGaze());
+            cards.add(new CardColorless2.Fuel());
+            cards.add(new CardColorless2.Luminesce());
+            cards.add(new CardColorless2.MinionSacrifice());
+            cards.add(new CardColorless2.Soul());
+            cards.add(new CardOther2.AscendersBane());
+            cards.add(new CardOther2.BadLuck());
+            cards.add(new CardOther2.Clumsy());
+            cards.add(new CardOther2.CurseOfTheBell());
+            // cards.add(new CardOther2.Debt()); // TODO
+            cards.add(new CardOther2.Decay());
+            cards.add(new CardOther2.Doubt());
+            cards.add(new CardOther2.Enthralled());
+            cards.add(new CardOther2.Folly());
+            cards.add(new CardOther2.Greed());
+            cards.add(new CardOther2.Guilty());
+            cards.add(new CardOther2.Injury());
+            cards.add(new CardOther2.Normality());
+            cards.add(new CardOther2.PoorSleep());
+            cards.add(new CardOther2.Regret());
+            cards.add(new CardOther2.Shame());
+            cards.add(new CardOther2.SporeMind());
+            cards.add(new CardOther2.Writhe());
+            cards.add(new CardOther2.ByrdonisEgg());
+            cards.add(new CardOther2.LanternKey());
+            cards.add(new CardOther2.SpoilsMap());
+            cards.add(new CardOther2.Beckon());
+            cards.add(new CardOther2.Burn());
+            cards.add(new CardOther2.Dazed());
+            cards.add(new CardOther2.Debris());
+            cards.add(new CardOther2.Disintegration());
+            cards.add(new CardOther2.FranticEscape());
+            cards.add(new CardOther2.Infection());
+            // cards.add(new CardOther2.MindRot()); // TODO
+            cards.add(new CardOther2.Slimed());
+            // cards.add(new CardOther2.Sloth()); // TODO
+            cards.add(new CardOther2.Soot());
+            cards.add(new CardOther2.Toxic());
+            cards.add(new CardOther2.Void());
+            // cards.add(new CardOther2.WasteAway()); // TODO
+            cards.add(new CardOther2.Wither());
+            cards.add(new CardOther2.Wound());
+        }
+        return cards;
+    }
+
+    public static List<Card> getColorless2CardsTmp0Cost(boolean generateHealingCard) {
+        List<Card> baseCards = getColorless2Cards(ColorlessCard2Pool.CARD_GENERATION);
+        List<Card> cards = new ArrayList<>();
+        for (Card card : baseCards) {
+            cards.add(card.getTemporaryCostIfPossible(0));
+        }
+        return cards;
+    }
+
+    private static HashSet<Class<?>> colorless2CardClasses;
+
+    public static boolean isColorless2Card(Card card) {
+        if (colorless2CardClasses == null) {
+            colorless2CardClasses = new HashSet<>();
+            for (var c : getColorless2Cards(ColorlessCard2Pool.ALL)) {
+                colorless2CardClasses.add(c.getClass());
+            }
+        }
+        return colorless2CardClasses.contains(card.getBaseCard().getClass());
     }
 
     private static List<Card> getIroncladCards(int cardType, boolean generateHealingCard) {
@@ -538,6 +683,535 @@ public class CardManager {
         return cards;
     }
 
+    private static List<Card> getIronclad2Cards(int cardType, boolean generateHealingCard) {
+        List<Card> cards = new ArrayList<>();
+
+        if (cardType == Card.ATTACK) {
+            // Common cards
+            cards.add(new CardIronclad2.Anger());
+            cards.add(new CardIronclad2.BodySlam());
+            cards.add(new CardIronclad2.Breakthrough());
+            cards.add(new CardIronclad2.Cinder());
+            cards.add(new CardIronclad2.Headbutt());
+            cards.add(new CardIronclad2.IronWave());
+            cards.add(new CardIronclad2.MoltenFist());
+            cards.add(new CardIronclad2.PerfectedStrike());
+            cards.add(new CardIronclad2.PommelStrike());
+            cards.add(new CardIronclad2.SetupStrike());
+            cards.add(new CardIronclad2.SwordBoomerang());
+            cards.add(new CardIronclad2.Thunderclap());
+            cards.add(new CardIronclad2.TwinStrike());
+
+            // Uncommon cards
+            cards.add(new CardIronclad2.AshenStrike());
+            cards.add(new CardIronclad2.Bludgeon());
+            cards.add(new CardIronclad2.Bully());
+            cards.add(new CardIronclad2.Dismantle());
+            cards.add(new CardIronclad2.FightMe());
+            cards.add(new CardIronclad2.Hemokinesis());
+            cards.add(new CardIronclad2.HowlFromBeyond());
+            cards.add(new CardIronclad2.Pillage());
+            cards.add(new CardIronclad2.Rampage());
+            cards.add(new CardIronclad2.Spite());
+            cards.add(new CardIronclad2.Stomp());
+            cards.add(new CardIronclad2.Unrelenting());
+            cards.add(new CardIronclad2.Uppercut());
+            cards.add(new CardIronclad2.Whirlwind());
+
+            // Rare cards
+            cards.add(new CardIronclad2.Conflagration());
+            cards.add(new CardIronclad2.Feed());
+            cards.add(new CardIronclad2.FiendFire());
+            cards.add(new CardIronclad2.Mangle());
+            cards.add(new CardIronclad2.PactsEnd());
+            cards.add(new CardIronclad2.TearAsunder());
+            // cards.add(new CardIronclad2.Thrash()); // TODO
+        }
+        else if (cardType == Card.SKILL) {
+            // Common cards
+            cards.add(new CardIronclad2.Armaments());
+            cards.add(new CardIronclad2.BloodWall());
+            cards.add(new CardIronclad2.Bloodletting());
+            cards.add(new CardIronclad2.Havoc());
+            cards.add(new CardIronclad2.ShrugItOff());
+            cards.add(new CardIronclad2.Tremble());
+            cards.add(new CardIronclad2.TrueGrit());
+
+            // Uncommon cards
+            cards.add(new CardIronclad2.BattleTrance());
+            cards.add(new CardIronclad2.BurningPact());
+            cards.add(new CardIronclad2.Colossus());
+            cards.add(new CardIronclad2.Dominate());
+            cards.add(new CardIronclad2.DrumOfBattle());
+            cards.add(new CardIronclad2.EvilEye());
+            cards.add(new CardIronclad2.ExpectAFight());
+            cards.add(new CardIronclad2.FlameBarrier());
+            cards.add(new CardIronclad2.ForgottenRitual());
+            cards.add(new CardIronclad2.InfernalBlade());
+            cards.add(new CardIronclad2.Rage());
+            cards.add(new CardIronclad2.SecondWind());
+            cards.add(new CardIronclad2.Taunt());
+
+            // Rare cards
+            cards.add(new CardIronclad2.Brand());
+            cards.add(new CardIronclad2.Cascade());
+            cards.add(new CardIronclad2.Impervious());
+            // cards.add(new CardIronclad2.NotYet()); // TODO
+            cards.add(new CardIronclad2.Offering());
+            cards.add(new CardIronclad2.OneTwoPunch());
+            cards.add(new CardIronclad2.PrimalForce());
+            cards.add(new CardIronclad2.Stoke());
+        }
+        else if (cardType == Card.POWER) {
+            // Uncommon cards
+            cards.add(new CardIronclad2.FeelNoPain());
+            cards.add(new CardIronclad2.Inferno());
+            cards.add(new CardIronclad2.Inflame());
+            cards.add(new CardIronclad2.Juggling());
+            cards.add(new CardIronclad2.Rupture());
+            cards.add(new CardIronclad2.Stampede());
+            cards.add(new CardIronclad2.StoneArmor());
+            cards.add(new CardIronclad2.Vicious());
+
+            // Rare cards
+            cards.add(new CardIronclad2.Aggression());
+            cards.add(new CardIronclad2.Barricade());
+            cards.add(new CardIronclad2.CrimsonMantle());
+            cards.add(new CardIronclad2.Cruelty());
+            cards.add(new CardIronclad2.DarkEmbrace());
+            cards.add(new CardIronclad2.DemonForm());
+            cards.add(new CardIronclad2.Hellraiser());
+            cards.add(new CardIronclad2.Juggernaut());
+            cards.add(new CardIronclad2.Pyre());
+            cards.add(new CardIronclad2.Unmovable());
+        }
+
+        return cards;
+    }
+
+    private static List<Card> getSilent2Cards(int cardType, boolean generateHealingCard) {
+        List<Card> cards = new ArrayList<>();
+
+        if (cardType == Card.ATTACK) {
+            // Common cards
+            cards.add(new CardSilent2.DaggerSpray());
+            cards.add(new CardSilent2.DaggerThrow());
+            cards.add(new CardSilent2.FlickFlack());
+            cards.add(new CardSilent2.LeadingStrike());
+            cards.add(new CardSilent2.PoisonedStab());
+            cards.add(new CardSilent2.Predator());
+            cards.add(new CardSilent2.Ricochet());
+            cards.add(new CardSilent2.Slice());
+            cards.add(new CardSilent2.SuckerPunch());
+
+            // Uncommon cards
+            cards.add(new CardSilent2.Backstab());
+            cards.add(new CardSilent2.Dash());
+            cards.add(new CardSilent2.Finisher());
+            cards.add(new CardSilent2.Flechettes());
+            cards.add(new CardSilent2.MementoMori());
+            cards.add(new CardSilent2.Pinpoint());
+            cards.add(new CardSilent2.Pounce());
+            cards.add(new CardSilent2.PreciseCut());
+            cards.add(new CardSilent2.Skewer());
+            cards.add(new CardSilent2.Strangle());
+
+            // Rare cards
+            cards.add(new CardSilent2.Assassinate());
+            cards.add(new CardSilent2.EchoingSlash());
+            cards.add(new CardSilent2.GrandFinale());
+            cards.add(new CardSilent2.Murder());
+            cards.add(new CardSilent2.TheHunt(0.0));
+        }
+        else if (cardType == Card.SKILL) {
+            // Common cards
+            cards.add(new CardSilent2.Anticipate());
+            cards.add(new CardSilent2.Backflip());
+            cards.add(new CardSilent2.BladeDance());
+            cards.add(new CardSilent2.CloakAndDagger());
+            cards.add(new CardSilent2.DeadlyPoison());
+            cards.add(new CardSilent2.Deflect());
+            cards.add(new CardSilent2.DodgeAndRoll());
+            cards.add(new CardSilent2.PiercingWail());
+            cards.add(new CardSilent2.Prepared());
+            cards.add(new CardSilent2.Snakebite());
+            cards.add(new CardSilent2.Untouchable());
+
+            // Uncommon cards
+            cards.add(new CardSilent2.Acrobatics());
+            cards.add(new CardSilent2.Blur());
+            cards.add(new CardSilent2.BouncingFlask());
+            cards.add(new CardSilent2.BubbleBubble());
+            cards.add(new CardSilent2.CalculatedGamble());
+            cards.add(new CardSilent2.EscapePlan());
+            cards.add(new CardSilent2.Expertise());
+            cards.add(new CardSilent2.Expose());
+            cards.add(new CardSilent2.HandTrick());
+            cards.add(new CardSilent2.Haze());
+            cards.add(new CardSilent2.HiddenDaggers());
+            cards.add(new CardSilent2.LegSweep());
+            cards.add(new CardSilent2.Mirage());
+            cards.add(new CardSilent2.Reflex());
+            cards.add(new CardSilent2.Scare());
+            cards.add(new CardSilent2.Tactician());
+            cards.add(new CardSilent2.UpMySleeve());
+
+            // Rare cards
+            cards.add(new CardSilent2.Adrenaline());
+            cards.add(new CardSilent2.BladeOfInk());
+            cards.add(new CardSilent2.BulletTime());
+            cards.add(new CardSilent2.Burst());
+            cards.add(new CardSilent2.CorrosiveWave());
+            cards.add(new CardSilent2.KnifeTrap());
+            cards.add(new CardSilent2.Malaise());
+            cards.add(new CardSilent2.Nightmare());
+            cards.add(new CardSilent2.ShadowStep());
+            cards.add(new CardSilent2.Shadowmeld());
+            cards.add(new CardSilent2.StormOfSteel());
+        }
+        else if (cardType == Card.POWER) {
+            // Uncommon cards
+            cards.add(new CardSilent2.Accuracy());
+            cards.add(new CardSilent2.Footwork());
+            cards.add(new CardSilent2.InfiniteBlades());
+            cards.add(new CardSilent2.NoxiousFumes());
+            cards.add(new CardSilent2.Outbreak());
+            cards.add(new CardSilent2.PhantomBlades());
+            cards.add(new CardSilent2.Speedster());
+            cards.add(new CardSilent2.WellLaidPlans());
+
+            // Rare cards
+            cards.add(new CardSilent2.Abrasive());
+            cards.add(new CardSilent2.Accelerant());
+            cards.add(new CardSilent2.AfterImage());
+            cards.add(new CardSilent2.Envenom());
+            cards.add(new CardSilent2.FanOfKnives());
+            cards.add(new CardSilent2.MasterPlanner());
+            cards.add(new CardSilent2.SerpentForm());
+            cards.add(new CardSilent2.ToolsOfTheTrade());
+            cards.add(new CardSilent2.Tracking());
+        }
+
+        return cards;
+    }
+
+    private static List<Card> getDefect2Cards(int cardType, boolean generateHealingCard) {
+        List<Card> cards = new ArrayList<>();
+
+        if (cardType == Card.ATTACK) {
+            // Common cards
+            cards.add(new CardDefect2.BallLightning());
+            cards.add(new CardDefect2.Barrage());
+            cards.add(new CardDefect2.BeamCell());
+            cards.add(new CardDefect2.Claw());
+            cards.add(new CardDefect2.ColdSnap());
+            cards.add(new CardDefect2.CompileDriver());
+            cards.add(new CardDefect2.FocusedStrike());
+            cards.add(new CardDefect2.GoForTheEyes());
+            cards.add(new CardDefect2.GunkUp());
+            cards.add(new CardDefect2.MomentumStrike());
+            cards.add(new CardDefect2.SweepingBeam());
+            cards.add(new CardDefect2.Uproar());
+
+            // Uncommon cards
+            cards.add(new CardDefect2.FTL());
+            cards.add(new CardDefect2.Null());
+            cards.add(new CardDefect2.Refract());
+            cards.add(new CardDefect2.RocketPunch());
+            cards.add(new CardDefect2.Scrape());
+            cards.add(new CardDefect2.Sunder());
+            cards.add(new CardDefect2.Synthesis());
+            cards.add(new CardDefect2.TeslaCoil());
+
+            // Rare cards
+            cards.add(new CardDefect2.AdaptiveStrike());
+            cards.add(new CardDefect2.AllForOne(0, 0));
+            cards.add(new CardDefect2.FlakCannon());
+            cards.add(new CardDefect2.HelixDrill());
+            cards.add(new CardDefect2.Hyperbeam());
+            cards.add(new CardDefect2.IceLance());
+            cards.add(new CardDefect2.MeteorStrike());
+            cards.add(new CardDefect2.Shatter());
+        }
+        else if (cardType == Card.SKILL) {
+            // Common cards
+            cards.add(new CardDefect2.BoostAway());
+            cards.add(new CardDefect2.ChargeBattery());
+            cards.add(new CardDefect2.Coolheaded());
+            cards.add(new CardDefect2.Hologram());
+            cards.add(new CardDefect2.Hotfix());
+            cards.add(new CardDefect2.Leap());
+            cards.add(new CardDefect2.LightningRod());
+            cards.add(new CardDefect2.Turbo());
+
+            // Uncommon cards
+            cards.add(new CardDefect2.BootSequence());
+            cards.add(new CardDefect2.Chaos());
+            cards.add(new CardDefect2.Chill());
+            cards.add(new CardDefect2.Compact());
+            cards.add(new CardDefect2.Darkness());
+            cards.add(new CardDefect2.DoubleEnergy());
+            cards.add(new CardDefect2.FightThrough());
+            cards.add(new CardDefect2.Fusion());
+            cards.add(new CardDefect2.Glacier());
+            cards.add(new CardDefect2.Glasswork());
+            cards.add(new CardDefect2.Overclock());
+            cards.add(new CardDefect2.Scavenge());
+            cards.add(new CardDefect2.ShadowShield());
+            cards.add(new CardDefect2.Skim());
+            cards.add(new CardDefect2.Synchronize());
+            cards.add(new CardDefect2.Tempest());
+            cards.add(new CardDefect2.WhiteNoise());
+
+            // Rare cards
+            cards.add(new CardDefect2.GeneticAlgorithm());
+            cards.add(new CardDefect2.Modded());
+            cards.add(new CardDefect2.MultiCast());
+            cards.add(new CardDefect2.Rainbow());
+            cards.add(new CardDefect2.Reboot());
+            cards.add(new CardDefect2.SignalBoost());
+            cards.add(new CardDefect2.Supercritical());
+            cards.add(new CardDefect2.Voltaic());
+        }
+        else if (cardType == Card.POWER) {
+            // Uncommon cards
+            cards.add(new CardDefect2.BulkUp());
+            cards.add(new CardDefect2.Capacitor());
+            cards.add(new CardDefect2.Feral());
+            cards.add(new CardDefect2.Hailstorm());
+            cards.add(new CardDefect2.Iteration());
+            cards.add(new CardDefect2.Loop());
+            cards.add(new CardDefect2.Smokestack());
+            cards.add(new CardDefect2.Storm());
+            cards.add(new CardDefect2.Subroutine());
+            cards.add(new CardDefect2.Thunder());
+
+            // Rare cards
+            cards.add(new CardDefect2.Buffer());
+            cards.add(new CardDefect2.ConsumingShadow());
+            cards.add(new CardDefect2.Coolant());
+            cards.add(new CardDefect2.CreativeAI());
+            cards.add(new CardDefect2.Defragment());
+            cards.add(new CardDefect2.EchoForm());
+            cards.add(new CardDefect2.MachineLearning());
+            cards.add(new CardDefect2.Spinner());
+            cards.add(new CardDefect2.TrashToTreasure());
+        }
+
+        return cards;
+    }
+
+    private static List<Card> getRegentCards(int cardType, boolean generateHealingCard) {
+        List<Card> cards = new ArrayList<>();
+
+        if (cardType == Card.ATTACK) {
+            // Common cards
+            cards.add(new CardRegent2.AstralPulse());
+            cards.add(new CardRegent2.CelestialMight());
+            cards.add(new CardRegent2.CollisionCourse());
+            cards.add(new CardRegent2.CrescentSpear());
+            cards.add(new CardRegent2.CrushUnder());
+            cards.add(new CardRegent2.GuidingStar());
+            cards.add(new CardRegent2.PhotonCut());
+            cards.add(new CardRegent2.SolarStrike());
+            cards.add(new CardRegent2.WroughtInWar());
+
+            // Uncommon cards
+            cards.add(new CardRegent2.Devastate());
+            cards.add(new CardRegent2.GammaBlast());
+            cards.add(new CardRegent2.Hegemony());
+            cards.add(new CardRegent2.KinglyKick());
+            cards.add(new CardRegent2.KinglyPunch());
+            cards.add(new CardRegent2.KnockoutBlow());
+            cards.add(new CardRegent2.LunarBlast());
+            cards.add(new CardRegent2.Radiate());
+            cards.add(new CardRegent2.ShiningStrike());
+            cards.add(new CardRegent2.Stardust());
+            cards.add(new CardRegent2.Supermassive());
+
+            // Rare cards
+            cards.add(new CardRegent2.BeatIntoShape());
+            cards.add(new CardRegent2.Bombardment());
+            cards.add(new CardRegent2.Comet());
+            cards.add(new CardRegent2.CrashLanding());
+            cards.add(new CardRegent2.DyingStar());
+            cards.add(new CardRegent2.HeavenlyDrill());
+            cards.add(new CardRegent2.HeirloomHammer());
+            cards.add(new CardRegent2.MakeItSo());
+            cards.add(new CardRegent2.SevenStars());
+        }
+        else if (cardType == Card.SKILL) {
+            // Common cards
+            cards.add(new CardRegent2.Begone());
+            cards.add(new CardRegent2.CloakOfStars());
+            cards.add(new CardRegent2.CosmicIndifference());
+            cards.add(new CardRegent2.GatherLight());
+            cards.add(new CardRegent2.Glitterstream());
+            cards.add(new CardRegent2.Glow());
+            cards.add(new CardRegent2.HiddenCache());
+            cards.add(new CardRegent2.KnowThyPlace());
+            cards.add(new CardRegent2.Patter());
+            cards.add(new CardRegent2.RefineBlade());
+            cards.add(new CardRegent2.SpoilsOfBattle());
+
+            // Uncommon cards
+            cards.add(new CardRegent2.Alignment());
+            cards.add(new CardRegent2.Bulwark());
+            cards.add(new CardRegent2.Charge());
+            cards.add(new CardRegent2.Conqueror());
+            cards.add(new CardRegent2.Convergence());
+            cards.add(new CardRegent2.Glimmer());
+            cards.add(new CardRegent2.ManifestAuthority());
+            cards.add(new CardRegent2.Monologue());
+            cards.add(new CardRegent2.ParticleWall());
+            cards.add(new CardRegent2.Prophesize());
+            cards.add(new CardRegent2.Quasar());
+            cards.add(new CardRegent2.Reflect());
+            cards.add(new CardRegent2.Resonance());
+            cards.add(new CardRegent2.RoyalGamble());
+            cards.add(new CardRegent2.SummonForth());
+            cards.add(new CardRegent2.Terraforming());
+
+            // Rare cards
+            cards.add(new CardRegent2.BigBang());
+            cards.add(new CardRegent2.BundleOfJoy());
+            cards.add(new CardRegent2.DecisionsDecisions());
+            // cards.add(new CardRegent2.ForegoneConclusion()); // TODO
+            cards.add(new CardRegent2.Guards());
+            cards.add(new CardRegent2.IAmInvincible());
+            cards.add(new CardRegent2.TheSmith());
+        }
+        else if (cardType == Card.POWER) {
+            // Uncommon cards
+            cards.add(new CardRegent2.BlackHole());
+            cards.add(new CardRegent2.ChildOfTheStars());
+            cards.add(new CardRegent2.Furnace());
+            cards.add(new CardRegent2.Orbit());
+            cards.add(new CardRegent2.PaleBlueDot());
+            cards.add(new CardRegent2.Parry());
+            cards.add(new CardRegent2.PillarOfCreation());
+            cards.add(new CardRegent2.SpectrumShift());
+
+            // Rare cards
+            cards.add(new CardRegent2.Arsenal());
+            cards.add(new CardRegent2.Genesis());
+            cards.add(new CardRegent2.MonarchsGaze());
+            cards.add(new CardRegent2.NeutronAegis());
+            cards.add(new CardRegent2.Royalties(0.0));
+            cards.add(new CardRegent2.SeekingEdge());
+            cards.add(new CardRegent2.SwordSage());
+            // cards.add(new CardRegent2.Tyranny()); // TODO
+            cards.add(new CardRegent2.VoidForm());
+        }
+
+        return cards;
+    }
+
+    private static List<Card> getNecrobinderCards(int cardType, boolean generateHealingCard) {
+        List<Card> cards = new ArrayList<>();
+
+        if (cardType == Card.ATTACK) {
+            // Common cards
+            cards.add(new CardNecrobinder2.BlightStrike());
+            cards.add(new CardNecrobinder2.Defile());
+            cards.add(new CardNecrobinder2.DrainPower());
+            cards.add(new CardNecrobinder2.Fear());
+            cards.add(new CardNecrobinder2.Flatten());
+            cards.add(new CardNecrobinder2.Graveblast());
+            cards.add(new CardNecrobinder2.Poke());
+            cards.add(new CardNecrobinder2.Reap());
+            cards.add(new CardNecrobinder2.Reave());
+            cards.add(new CardNecrobinder2.SculptingStrike());
+            cards.add(new CardNecrobinder2.Snap());
+            cards.add(new CardNecrobinder2.Sow());
+
+            // Uncommon cards
+            cards.add(new CardNecrobinder2.BoneShards());
+            cards.add(new CardNecrobinder2.Bury());
+            cards.add(new CardNecrobinder2.DeathMarch());
+            cards.add(new CardNecrobinder2.Debilitate());
+            cards.add(new CardNecrobinder2.Fetch());
+            cards.add(new CardNecrobinder2.HighFive());
+            cards.add(new CardNecrobinder2.PullFromBelow());
+            cards.add(new CardNecrobinder2.Rattle());
+            cards.add(new CardNecrobinder2.RightHandHand());
+            cards.add(new CardNecrobinder2.Severance());
+            cards.add(new CardNecrobinder2.SicEm());
+            cards.add(new CardNecrobinder2.Veilpiercer());
+
+            // Rare cards
+            cards.add(new CardNecrobinder2.BansheesCry());
+            cards.add(new CardNecrobinder2.Eradicate());
+            cards.add(new CardNecrobinder2.Hang());
+            cards.add(new CardNecrobinder2.Misery());
+            cards.add(new CardNecrobinder2.SoulStorm());
+            cards.add(new CardNecrobinder2.Squeeze());
+            cards.add(new CardNecrobinder2.TheScythe());
+            cards.add(new CardNecrobinder2.TimesUp());
+        }
+        else if (cardType == Card.SKILL) {
+            // Common cards
+            cards.add(new CardNecrobinder2.Afterlife());
+            cards.add(new CardNecrobinder2.Defy());
+            cards.add(new CardNecrobinder2.GraveWarden());
+            cards.add(new CardNecrobinder2.Invoke());
+            cards.add(new CardNecrobinder2.NegativePulse());
+            cards.add(new CardNecrobinder2.PullAggro());
+            cards.add(new CardNecrobinder2.Scourge());
+            cards.add(new CardNecrobinder2.Wisp());
+
+            // Uncommon cards
+            cards.add(new CardNecrobinder2.BorrowedTime());
+            cards.add(new CardNecrobinder2.CaptureSpirit());
+            cards.add(new CardNecrobinder2.Cleanse());
+            cards.add(new CardNecrobinder2.DeathsDoor());
+            cards.add(new CardNecrobinder2.Deathbringer());
+            cards.add(new CardNecrobinder2.Delay());
+            cards.add(new CardNecrobinder2.Dirge());
+            cards.add(new CardNecrobinder2.Dredge());
+            cards.add(new CardNecrobinder2.EnfeeblingTouch());
+            cards.add(new CardNecrobinder2.Melancholy());
+            cards.add(new CardNecrobinder2.NoEscape());
+            cards.add(new CardNecrobinder2.Parse());
+            cards.add(new CardNecrobinder2.Putrefy());
+            cards.add(new CardNecrobinder2.Spur());
+
+            // Rare cards
+            cards.add(new CardNecrobinder2.Eidolon());
+            cards.add(new CardNecrobinder2.EndOfDays());
+            cards.add(new CardNecrobinder2.Oblivion());
+            cards.add(new CardNecrobinder2.Reanimate());
+            cards.add(new CardNecrobinder2.Sacrifice());
+            cards.add(new CardNecrobinder2.Seance());
+            cards.add(new CardNecrobinder2.SharedFate());
+            cards.add(new CardNecrobinder2.Transfigure());
+            cards.add(new CardNecrobinder2.Undeath());
+        }
+        else if (cardType == Card.POWER) {
+            // Uncommon cards
+            cards.add(new CardNecrobinder2.Calcify());
+            cards.add(new CardNecrobinder2.Countdown());
+            cards.add(new CardNecrobinder2.DanseMacabre());
+            cards.add(new CardNecrobinder2.Friendship());
+            cards.add(new CardNecrobinder2.Haunt());
+            cards.add(new CardNecrobinder2.Lethality());
+            cards.add(new CardNecrobinder2.Pagestorm());
+            cards.add(new CardNecrobinder2.Shroud());
+            cards.add(new CardNecrobinder2.SleightOfFlesh());
+
+            // Rare cards
+            cards.add(new CardNecrobinder2.CallOfTheVoid());
+            cards.add(new CardNecrobinder2.Demesne());
+            cards.add(new CardNecrobinder2.DevourLife());
+            cards.add(new CardNecrobinder2.NecroMastery());
+            cards.add(new CardNecrobinder2.Neurosurge());
+            cards.add(new CardNecrobinder2.ReaperForm());
+            cards.add(new CardNecrobinder2.SentryMode());
+            cards.add(new CardNecrobinder2.SpiritOfAsh());
+        }
+
+        return cards;
+    }
 
     public static List<Card> getCharacterRareCards(CharacterEnum character, boolean generateHealingCard) {
         return switch (character) {
@@ -545,7 +1219,11 @@ public class CardManager {
             case SILENT -> getSilentRareCards(generateHealingCard);
             case DEFECT -> getDefectRareCards(generateHealingCard);
             case WATCHER -> getWatcherRareCards(generateHealingCard);
-            case IRONCLAD2, SILENT2, DEFECT2, REGENT, NECROBINDER -> new ArrayList<>();
+            case IRONCLAD2 -> getIronclad2RareCards(generateHealingCard);
+            case SILENT2 -> getSilent2RareCards(generateHealingCard);
+            case DEFECT2 -> getDefect2RareCards(generateHealingCard);
+            case REGENT -> getRegentRareCards(generateHealingCard);
+            case NECROBINDER -> getNecrobinderRareCards(generateHealingCard);
         };
     }
 
@@ -651,6 +1329,181 @@ public class CardManager {
         cards.add(new CardWatcher.Devotion());
         cards.add(new CardWatcher.Establishment());
         cards.add(new CardWatcher.MasterReality());
+        return cards;
+    }
+
+    private static List<Card> getIronclad2RareCards(boolean generateHealingCard) {
+        List<Card> cards = new ArrayList<>();
+        // Rare attacks
+        cards.add(new CardIronclad2.Conflagration());
+        cards.add(new CardIronclad2.Feed());
+        cards.add(new CardIronclad2.FiendFire());
+        cards.add(new CardIronclad2.Mangle());
+        cards.add(new CardIronclad2.PactsEnd());
+        cards.add(new CardIronclad2.TearAsunder());
+        // cards.add(new CardIronclad2.Thrash()); // TODO
+
+        // Rare skills
+        cards.add(new CardIronclad2.Brand());
+        cards.add(new CardIronclad2.Cascade());
+        cards.add(new CardIronclad2.Impervious());
+        // cards.add(new CardIronclad2.NotYet()); // TODO
+        cards.add(new CardIronclad2.Offering());
+        cards.add(new CardIronclad2.OneTwoPunch());
+        cards.add(new CardIronclad2.PrimalForce());
+        cards.add(new CardIronclad2.Stoke());
+
+        // Rare powers
+        cards.add(new CardIronclad2.Aggression());
+        cards.add(new CardIronclad2.Barricade());
+        cards.add(new CardIronclad2.CrimsonMantle());
+        cards.add(new CardIronclad2.Cruelty());
+        cards.add(new CardIronclad2.DarkEmbrace());
+        cards.add(new CardIronclad2.DemonForm());
+        cards.add(new CardIronclad2.Hellraiser());
+        cards.add(new CardIronclad2.Juggernaut());
+        cards.add(new CardIronclad2.Pyre());
+        cards.add(new CardIronclad2.Unmovable());
+        return cards;
+    }
+
+    private static List<Card> getSilent2RareCards(boolean generateHealingCard) {
+        List<Card> cards = new ArrayList<>();
+        // Rare attacks
+        cards.add(new CardSilent2.Assassinate());
+        cards.add(new CardSilent2.EchoingSlash());
+        cards.add(new CardSilent2.GrandFinale());
+        cards.add(new CardSilent2.Murder());
+        cards.add(new CardSilent2.TheHunt(0.0));
+
+        // Rare skills
+        cards.add(new CardSilent2.Adrenaline());
+        cards.add(new CardSilent2.BladeOfInk());
+        cards.add(new CardSilent2.BulletTime());
+        cards.add(new CardSilent2.Burst());
+        cards.add(new CardSilent2.CorrosiveWave());
+        cards.add(new CardSilent2.KnifeTrap());
+        cards.add(new CardSilent2.Malaise());
+        cards.add(new CardSilent2.Nightmare());
+        cards.add(new CardSilent2.ShadowStep());
+        cards.add(new CardSilent2.Shadowmeld());
+        cards.add(new CardSilent2.StormOfSteel());
+
+        // Rare powers
+        cards.add(new CardSilent2.Abrasive());
+        cards.add(new CardSilent2.Accelerant());
+        cards.add(new CardSilent2.AfterImage());
+        cards.add(new CardSilent2.Envenom());
+        cards.add(new CardSilent2.FanOfKnives());
+        cards.add(new CardSilent2.MasterPlanner());
+        cards.add(new CardSilent2.SerpentForm());
+        cards.add(new CardSilent2.ToolsOfTheTrade());
+        cards.add(new CardSilent2.Tracking());
+        return cards;
+    }
+
+    private static List<Card> getDefect2RareCards(boolean generateHealingCard) {
+        List<Card> cards = new ArrayList<>();
+        // Rare attacks
+        cards.add(new CardDefect2.AdaptiveStrike());
+        cards.add(new CardDefect2.AllForOne(0, 0));
+        cards.add(new CardDefect2.FlakCannon());
+        cards.add(new CardDefect2.HelixDrill());
+        cards.add(new CardDefect2.Hyperbeam());
+        cards.add(new CardDefect2.IceLance());
+        cards.add(new CardDefect2.MeteorStrike());
+        cards.add(new CardDefect2.Shatter());
+
+        // Rare skills
+        cards.add(new CardDefect2.GeneticAlgorithm());
+        cards.add(new CardDefect2.Modded());
+        cards.add(new CardDefect2.MultiCast());
+        cards.add(new CardDefect2.Rainbow());
+        cards.add(new CardDefect2.Reboot());
+        cards.add(new CardDefect2.SignalBoost());
+        cards.add(new CardDefect2.Supercritical());
+        cards.add(new CardDefect2.Voltaic());
+
+        // Rare powers
+        cards.add(new CardDefect2.Buffer());
+        cards.add(new CardDefect2.ConsumingShadow());
+        cards.add(new CardDefect2.Coolant());
+        cards.add(new CardDefect2.CreativeAI());
+        cards.add(new CardDefect2.Defragment());
+        cards.add(new CardDefect2.EchoForm());
+        cards.add(new CardDefect2.MachineLearning());
+        cards.add(new CardDefect2.Spinner());
+        cards.add(new CardDefect2.TrashToTreasure());
+        return cards;
+    }
+
+    private static List<Card> getRegentRareCards(boolean generateHealingCard) {
+        List<Card> cards = new ArrayList<>();
+        // Rare attacks
+        cards.add(new CardRegent2.BeatIntoShape());
+        cards.add(new CardRegent2.Bombardment());
+        cards.add(new CardRegent2.Comet());
+        cards.add(new CardRegent2.CrashLanding());
+        cards.add(new CardRegent2.DyingStar());
+        cards.add(new CardRegent2.HeavenlyDrill());
+        cards.add(new CardRegent2.HeirloomHammer());
+        cards.add(new CardRegent2.MakeItSo());
+        cards.add(new CardRegent2.SevenStars());
+
+        // Rare skills
+        cards.add(new CardRegent2.BigBang());
+        cards.add(new CardRegent2.BundleOfJoy());
+        cards.add(new CardRegent2.DecisionsDecisions());
+        // cards.add(new CardRegent2.ForegoneConclusion()); // TODO
+        cards.add(new CardRegent2.Guards());
+        cards.add(new CardRegent2.IAmInvincible());
+        cards.add(new CardRegent2.TheSmith());
+
+        // Rare powers
+        cards.add(new CardRegent2.Arsenal());
+        cards.add(new CardRegent2.Genesis());
+        cards.add(new CardRegent2.MonarchsGaze());
+        cards.add(new CardRegent2.NeutronAegis());
+        cards.add(new CardRegent2.Royalties(0.0));
+        cards.add(new CardRegent2.SeekingEdge());
+        cards.add(new CardRegent2.SwordSage());
+        // cards.add(new CardRegent2.Tyranny()); // TODO
+        cards.add(new CardRegent2.VoidForm());
+        return cards;
+    }
+
+    private static List<Card> getNecrobinderRareCards(boolean generateHealingCard) {
+        List<Card> cards = new ArrayList<>();
+        // Rare attacks
+        cards.add(new CardNecrobinder2.BansheesCry());
+        cards.add(new CardNecrobinder2.Eradicate());
+        cards.add(new CardNecrobinder2.Hang());
+        cards.add(new CardNecrobinder2.Misery());
+        cards.add(new CardNecrobinder2.SoulStorm());
+        cards.add(new CardNecrobinder2.Squeeze());
+        cards.add(new CardNecrobinder2.TheScythe());
+        cards.add(new CardNecrobinder2.TimesUp());
+
+        // Rare skills
+        cards.add(new CardNecrobinder2.Eidolon());
+        cards.add(new CardNecrobinder2.EndOfDays());
+        cards.add(new CardNecrobinder2.Oblivion());
+        cards.add(new CardNecrobinder2.Reanimate());
+        cards.add(new CardNecrobinder2.Sacrifice());
+        cards.add(new CardNecrobinder2.Seance());
+        cards.add(new CardNecrobinder2.SharedFate());
+        cards.add(new CardNecrobinder2.Transfigure());
+        cards.add(new CardNecrobinder2.Undeath());
+
+        // Rare powers
+        cards.add(new CardNecrobinder2.CallOfTheVoid());
+        cards.add(new CardNecrobinder2.Demesne());
+        cards.add(new CardNecrobinder2.DevourLife());
+        cards.add(new CardNecrobinder2.NecroMastery());
+        cards.add(new CardNecrobinder2.Neurosurge());
+        cards.add(new CardNecrobinder2.ReaperForm());
+        cards.add(new CardNecrobinder2.SentryMode());
+        cards.add(new CardNecrobinder2.SpiritOfAsh());
         return cards;
     }
 

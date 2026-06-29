@@ -576,8 +576,8 @@ public class CardIronclad2 {
     }
 
     // Drum of Battle (Uncommon) - 1 energy, Skill
-    //   Effect: Draw 2 cards. When this card is Exhausted, gain 2 energy.
-    //   Upgraded Effect: Draw 2 cards. When this card is Exhausted, gain 3 energy.
+    //   Effect: Draw 2 cards. When this card is Exhausted, gain 2 energy
+    //   Upgraded Effect: Draw 2 cards. When this card is Exhausted, gain 3 energy
     public static class DrumOfBattle extends _DrumOfBattleT {
         public DrumOfBattle() {
             super("Drum of Battle", 2);
