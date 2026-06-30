@@ -534,7 +534,7 @@ public class CardColorless2 {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.getPlayerForWrite().gainStrength(n);
+            state.playerGainStrength(n);
             state.getPlayerForWrite().gainDexterity(n);
             return GameActionCtx.PLAY_CARD;
         }
@@ -1678,7 +1678,7 @@ public class CardColorless2 {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.getPlayerForWrite().gainStrength(strength);
+            state.playerGainStrength(strength);
             state.getPlayerForWrite().applyDebuff(state, DebuffType.LOSE_STRENGTH_EOT, strength);
             return GameActionCtx.PLAY_CARD;
         }

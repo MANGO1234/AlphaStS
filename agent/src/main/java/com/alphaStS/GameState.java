@@ -2147,7 +2147,7 @@ public final class GameState implements State {
             for (int i = 0; i < livingEnemiesCount; i++) {
                 var enemy2 = enemies.getForWrite(livingEnemies[i]);
                 if (enemy2.isAlive() && enemy2.getDoom() > 0 && enemy2.getHealth() <= enemy2.getDoom()) {
-                    killEnemy(livingEnemies[i], true);
+                    killEnemy(livingEnemies[i], true, EnemyDeathCause.DOOM);
                 }
             }
         }
@@ -3999,6 +3999,12 @@ public final class GameState implements State {
             if (cw.mod.inky) dmg += 2;
             if (cw.mod.vigorous > 0) dmg += cw.mod.vigorous;
         }
+        if (currentlyPlayedCardIdx >= 0 && properties.mysticLighter != null
+                && properties.mysticLighter.isRelicEnabledInScenario(this)
+                && properties.cardDict[currentlyPlayedCardIdx].cardType == Card.ATTACK
+                && properties.cardDict[currentlyPlayedCardIdx].isEnchanted()) {
+            dmg += 9;
+        }
         if (hasBuff(PlayerBuff.AKABEKO)) {
             dmg += 8;
         }
@@ -4085,7 +4091,7 @@ public final class GameState implements State {
             }
             if (enemy.getHealth() == 0) {
                 for (var handler : properties.onEnemyDeathHandlers) {
-                    handler.handle(this, enemy);
+                    handler.handle(this, enemy, EnemyDeathCause.NORMAL);
                 }
             } else if (dmgDone > 0 && properties.envenomCounterIdx >= 0 && getCounterForRead()[properties.envenomCounterIdx] > 0) {
                 enemy.applyDebuff(this, DebuffType.POISON, getCounterForRead()[properties.envenomCounterIdx]);
@@ -4150,7 +4156,7 @@ public final class GameState implements State {
             }
             if (enemy.getHealth() == 0) {
                 for (var handler : properties.onEnemyDeathHandlers) {
-                    handler.handle(this, enemy);
+                    handler.handle(this, enemy, EnemyDeathCause.NORMAL);
                 }
             }
             if (!enemy.isAlive()) {
@@ -4185,7 +4191,7 @@ public final class GameState implements State {
             enemy.nonAttackDamage(dmg, blockable, this);
             if (enemy.getHealth() == 0) {
                 for (var handler : properties.onEnemyDeathHandlers) {
-                    handler.handle(this, enemy);
+                    handler.handle(this, enemy, EnemyDeathCause.NORMAL);
                 }
             }
             if (!enemy.isAlive()) {
@@ -4432,6 +4438,15 @@ public final class GameState implements State {
         return player;
     }
 
+    public void playerGainStrength(int n) {
+        if (n > 0 && properties.ruinedHelmet != null && properties.ruinedHelmet.isRelicEnabledInScenario(this)
+                && hasBuff(PlayerBuff.RUINED_HELMET)) {
+            n *= 2;
+            removeBuff(PlayerBuff.RUINED_HELMET);
+        }
+        getPlayerForWrite().gainStrength(n);
+    }
+
     private int applyCardBlockModification(int n) {
         if (properties.cardDict[currentlyPlayedCardIdx] instanceof Card.CardWrapper cw && cw.mod.nimble > 0) {
             n += cw.mod.nimble;
@@ -4544,12 +4559,16 @@ public final class GameState implements State {
     }
 
     public void killEnemy(int i, boolean triggerOnDeathHandler) {
+        killEnemy(i, triggerOnDeathHandler, EnemyDeathCause.NORMAL);
+    }
+
+    public void killEnemy(int i, boolean triggerOnDeathHandler, EnemyDeathCause cause) {
         if (getEnemiesForRead().get(i).isAlive()) {
             getEnemiesForWrite().getForWrite(i).setHealth(0);
             adjustEnemiesAlive(-1);
             if (triggerOnDeathHandler) {
                 for (var handler : properties.onEnemyDeathHandlers) {
-                    handler.handle(this, getEnemiesForRead().get(i));
+                    handler.handle(this, getEnemiesForRead().get(i), cause);
                 }
             }
         }

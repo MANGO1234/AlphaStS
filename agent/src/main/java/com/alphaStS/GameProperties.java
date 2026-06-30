@@ -344,12 +344,14 @@ public class GameProperties implements Cloneable {
     public Relic meatOnTheBone = null;
     public Relic medicalKit = null;
     public Relic miniatureCannon = null;
+    public Relic mysticLighter = null;
     public Relic nilrysCodex = null;
     public Relic oddMushroom = null;
     public Relic paelsLegion = null;
     public Relic paperKrane = null;
     public Relic paperPhrog = null;
     public Relic razorTooth = null;
+    public Relic ruinedHelmet = null;
     public Relic runicDome = null;
     public Relic runicPyramid = null;
     public Relic sacredBark = null;

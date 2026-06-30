@@ -3,13 +3,17 @@ package com.alphaStS.entity;
 import com.alphaStS.*;
 import com.alphaStS.card.CardColorless2;
 import com.alphaStS.enemy.Enemy;
+import com.alphaStS.enemy.EnemyReadOnly;
 import com.alphaStS.enums.DebuffType;
+import com.alphaStS.enums.EnemyDeathCause;
 import com.alphaStS.enums.OrbType;
 import com.alphaStS.eventHandler.GameEventCardHandler;
+import com.alphaStS.eventHandler.GameEventEnemyHandler;
 import com.alphaStS.eventHandler.GameEventHandler;
 import com.alphaStS.eventHandler.OnCardCreationHandler;
 import com.alphaStS.eventHandler.OnDamageHandler;
 import com.alphaStS.eventHandler.OnStarChangeHandler;
+import com.alphaStS.gameAction.GameActionCtx;
 import com.alphaStS.random.RandomGenCtx;
 import com.alphaStS.utils.CounterStat;
 
@@ -465,7 +469,7 @@ public class Relic2 {
             state.properties.addOnPotionUseHandler("ReptileTrinket", new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     if (isRelicEnabledInScenario(state)) {
-                        state.getPlayerForWrite().gainStrength(3);
+                        state.playerGainStrength(3);
                         state.getPlayerForWrite().applyDebuff(state, DebuffType.LOSE_STRENGTH_EOT, 3);
                     }
                 }
@@ -528,7 +532,7 @@ public class Relic2 {
             state.properties.addStartOfTurnHandler("SparklingRouge", new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     if (state.turnNum == 3 && isRelicEnabledInScenario(state)) {
-                        state.getPlayerForWrite().gainStrength(1);
+                        state.playerGainStrength(1);
                         state.getPlayerForWrite().gainDexterity(1);
                     }
                 }
@@ -856,7 +860,7 @@ public class Relic2 {
                         state.getCounterForWrite()[counterIdx] |= 1 << 2;
                     }
                     if (state.getCounterForRead()[counterIdx] == 0b111) {
-                        state.getPlayerForWrite().gainStrength(1);
+                        state.playerGainStrength(1);
                         state.getPlayerForWrite().gainDexterity(1);
                     }
                 }
@@ -932,8 +936,26 @@ public class Relic2 {
         }
     }
 
-    // TODO: Vexing Puzzlebox (Rare)
+    // Vexing Puzzlebox (Rare)
     //   Effect: At the start of each combat, add a random card into your Hand. It's free to play this turn.
+    public static class VexingPuzzlebox extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.addStartOfBattleHandler("VexingPuzzlebox", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (!isRelicEnabledInScenario(state)) {
+                        return;
+                    }
+                    state.setIsStochastic();
+                    int r = state.getSearchRandomGen().nextInt(generatedCardIdxes.length, RandomGenCtx.RandomCardGen);
+                    state.addCardToHand(state.createCard(generatedCardIdxes[r]));
+                }
+            });
+        }
+
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            return CardManager.getCharacterCardsTmp0Cost(properties.character, false);
+        }
+    }
 
     // No need to implement White Beast Statue: Potions always appear in combat rewards.
 
@@ -1057,8 +1079,13 @@ public class Relic2 {
 
     // No need to implement Miniature Tent: You may choose any number of options at Rest Sites.
 
-    // TODO: Mystic Lighter (Shop)
+    // Mystic Lighter (Shop)
     //   Effect: Enchanted Attacks deal 9 additional damage.
+    public static class MysticLighter extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.mysticLighter = this;
+        }
+    }
 
     // No need to implement Orrery: Upon pickup, gain 5 card rewards.
 
@@ -1205,7 +1232,7 @@ public class Relic2 {
             state.properties.addStartOfTurnHandler("EmberTea", new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     if (state.turnNum == 1 && isRelicEnabledInScenario(state)) {
-                        state.getPlayerForWrite().gainStrength(2);
+                        state.playerGainStrength(2);
                     }
                 }
             });
@@ -1390,7 +1417,7 @@ public class Relic2 {
             state.properties.addStartOfBattleHandler("SwordOfJade", new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     if (isRelicEnabledInScenario(state)) {
-                        state.getPlayerForWrite().gainStrength(3);
+                        state.playerGainStrength(3);
                     }
                 }
             });
@@ -1802,8 +1829,39 @@ public class Relic2 {
 
     // No need to implement Meat Cleaver: You may Cook at Rest Sites.
 
-    // TODO: Music Box (Ancient)
+    // Music Box (Ancient)
     //   Effect: Create an Ethereal copy of the first Attack you play each turn.
+    public static class MusicBox extends Relic {
+        public MusicBox() {
+            entityProperty.addPossibleBuff(PlayerBuff.MUSIC_BOX);
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.addOnCardPlayedHandler("MusicBox", new GameEventCardHandler() {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                    if (!isRelicEnabledInScenario(state) || cloneSource != null || !state.hasBuff(PlayerBuff.MUSIC_BOX)) {
+                        return;
+                    }
+                    if (state.properties.cardDict[cardIdx].cardType == Card.ATTACK) {
+                        state.removeBuff(PlayerBuff.MUSIC_BOX);
+                        int etherealCardIdx = state.properties.findCardIndex(state.properties.cardDict[cardIdx].getPermEthereal());
+                        state.addCardToHand(state.createCard(etherealCardIdx));
+                    }
+                }
+            });
+            state.properties.addStartOfTurnHandler("MusicBox", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (isRelicEnabledInScenario(state)) {
+                        state.addBuff(PlayerBuff.MUSIC_BOX);
+                    }
+                }
+            });
+        }
+
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            return cards.stream().filter(c -> c.cardType == Card.ATTACK).map(Card::getPermEthereal).toList();
+        }
+    }
 
     // No need to implement Neow's Torment: Upon pickup, add 1 Neow's Fury to your Deck.
 
@@ -1811,7 +1869,7 @@ public class Relic2 {
 
     // No need to implement Nutritious Oyster: Upon pickup, raise your Max HP by 11.
 
-    // TODO: Nutritious Soup (Ancient)
+    // No need to implement Nutritious Soup (Ancient)
     //   Effect: Upon pickup, Enchant all Strikes in your Deck with Tezcatara's Ember.
 
     // Pael's Blood (Ancient)
@@ -2107,8 +2165,37 @@ public class Relic2 {
 
     // No need to implement Tanx's Whistle: Upon pickup, add 1 Whistle to your Deck.
 
-    // TODO: Throwing Axe (Ancient)
+    // Throwing Axe (Ancient)
     //   Effect: The first card you play each combat is played an extra time.
+    public static class ThrowingAxe extends Relic {
+        public ThrowingAxe() {
+            entityProperty.addPossibleBuff(PlayerBuff.THROWING_AXE);
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.addOnCardPlayedHandler("ThrowingAxe", new GameEventCardHandler(GameEventCardHandler.CLONE_CARD_PRIORITY) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                    if (!isRelicEnabledInScenario(state) || cloneSource != null || !state.hasBuff(PlayerBuff.THROWING_AXE)) {
+                        return;
+                    }
+                    state.removeBuff(PlayerBuff.THROWING_AXE);
+                    state.addGameActionToStartOfDeque(curState -> {
+                        var action = curState.properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][cardIdx];
+                        if (curState.playCard(action, lastIdx, false, ThrowingAxe.class, false, false, energyUsed, cloneParentLocation)) {
+                            curState.runActionsInQueueIfNonEmpty();
+                        }
+                    });
+                }
+            });
+            state.properties.addStartOfBattleHandler("ThrowingAxe", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (isRelicEnabledInScenario(state)) {
+                        state.addBuff(PlayerBuff.THROWING_AXE);
+                    }
+                }
+            });
+        }
+    }
 
     // Toasty Mittens (Ancient)
     //   Effect: At the start of your turn, Exhaust the top card of your Draw Pile and gain 1 Strength.
@@ -2123,7 +2210,7 @@ public class Relic2 {
                     if (cardIdx >= 0) {
                         state.exhaustedCardHandle(cardIdx, false);
                     }
-                    state.getPlayerForWrite().gainStrength(1);
+                    state.playerGainStrength(1);
                 }
             });
         }
@@ -2244,8 +2331,25 @@ public class Relic2 {
     public static class RedSkull extends Relic.RedSkull {
     }
 
-    // TODO: Ruined Helmet (Rare)
+    // Ruined Helmet (Rare)
     //   Effect: The first time you gain Strength each combat, double the amount gained.
+    public static class RuinedHelmet extends Relic {
+        public RuinedHelmet() {
+            entityProperty.changePlayerStrength = true;
+            entityProperty.addPossibleBuff(PlayerBuff.RUINED_HELMET);
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.ruinedHelmet = this;
+            state.properties.addStartOfBattleHandler("RuinedHelmet", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (isRelicEnabledInScenario(state)) {
+                        state.addBuff(PlayerBuff.RUINED_HELMET);
+                    }
+                }
+            });
+        }
+    }
 
     // Self-Forming Clay (Uncommon)
     //   Effect: Whenever you lose HP in combat, gain 3 Block next turn.
@@ -2551,7 +2655,7 @@ public class Relic2 {
                     if (!isRelicEnabledInScenario(state) || amount >= 0) return;
                     if (state.getCounterForRead()[counterIdx] == 0) {
                         state.getCounterForWrite()[counterIdx] = 1;
-                        state.getPlayerForWrite().gainStrength(1);
+                        state.playerGainStrength(1);
                     }
                 }
             });
@@ -2605,8 +2709,28 @@ public class Relic2 {
     // ********************************************* Necrobinder *********************************************
     // **************************************************************************************************
 
-    // TODO: Big Hat (Rare)
+    // Big Hat (Rare)
     //   Effect: At the start of each combat, add 2 random Ethereal cards into your Hand.
+    public static class BigHat extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.addStartOfBattleHandler("BigHat", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (!isRelicEnabledInScenario(state)) {
+                        return;
+                    }
+                    state.setIsStochastic();
+                    for (int i = 0; i < 2; i++) {
+                        int r = state.getSearchRandomGen().nextInt(generatedCardIdxes.length, RandomGenCtx.RandomCardGen);
+                        state.addCardToHand(state.createCard(generatedCardIdxes[r]));
+                    }
+                }
+            });
+        }
+
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            return CardManager.getCharacterEtherealCardsByType(properties.character);
+        }
+    }
 
     // Bone Flute (Common)
     //   Effect: Whenever Osty attacks, gain 2 Block.
@@ -2622,8 +2746,23 @@ public class Relic2 {
         }
     }
 
-    // TODO: Book Repair Knife (Uncommon)
+    // Book Repair Knife (Uncommon)
     //   Effect: Whenever a non-Minion enemy dies to Doom, heal 3 HP.
+    public static class BookRepairKnife extends Relic {
+        public BookRepairKnife() {
+            healPlayer = true;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.addOnEnemyDeathHandler("BookRepairKnife", new GameEventEnemyHandler() {
+                @Override public void handle(GameState state, EnemyReadOnly enemy, EnemyDeathCause cause) {
+                    if (isRelicEnabledInScenario(state) && cause == EnemyDeathCause.DOOM && !enemy.properties.isMinion) {
+                        state.healPlayer(3);
+                    }
+                }
+            });
+        }
+    }
 
     // TODO: Bookmark (Rare)
     //   Effect: At the end of each turn, lower the cost of a random Retained card by 1 until played.

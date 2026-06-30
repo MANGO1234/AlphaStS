@@ -1894,7 +1894,7 @@ public class CardColorless {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.doNonAttackDamageToPlayer(3, false, this);
-            state.getPlayerForWrite().gainStrength(strength);
+            state.playerGainStrength(strength);
             return GameActionCtx.PLAY_CARD;
         }
     }

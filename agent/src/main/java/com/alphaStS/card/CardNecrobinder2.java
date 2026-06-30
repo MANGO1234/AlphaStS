@@ -5,6 +5,7 @@ import com.alphaStS.enemy.Enemy;
 import com.alphaStS.enemy.EnemyReadOnly;
 import com.alphaStS.enums.CharacterEnum;
 import com.alphaStS.enums.DebuffType;
+import com.alphaStS.enums.EnemyDeathCause;
 import com.alphaStS.eventHandler.GameEventCardHandler;
 import com.alphaStS.eventHandler.GameEventEnemyDebuffHandler;
 import com.alphaStS.eventHandler.GameEventEnemyHandler;
@@ -1893,7 +1894,7 @@ public class CardNecrobinder2 {
                 }
             });
             state.properties.addOnEnemyDeathHandler("MelancholyDeathCount", new GameEventEnemyHandler() {
-                @Override public void handle(GameState state, EnemyReadOnly enemy) {
+                @Override public void handle(GameState state, EnemyReadOnly enemy, EnemyDeathCause cause) {
                     state.getCounterForWrite()[counterIdx]++;
                 }
             });
@@ -2708,7 +2709,7 @@ public class CardNecrobinder2 {
             for (int i = 0; i < state.getEnemiesForRead().size(); i++) {
                 var enemy = state.getEnemiesForRead().get(i);
                 if (enemy.isAlive() && enemy.getDoom() > 0 && enemy.getHealth() <= enemy.getDoom()) {
-                    state.killEnemy(i, true);
+                    state.killEnemy(i, true, EnemyDeathCause.DOOM);
                 }
             }
             return GameActionCtx.PLAY_CARD;
@@ -3166,7 +3167,7 @@ public class CardNecrobinder2 {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.getPlayerForWrite().gainStrength(-2);
+            state.playerGainStrength(-2);
             for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
                 enemy.applyDebuff(state, DebuffType.LOSE_STRENGTH, enemyStrLoss);
             }

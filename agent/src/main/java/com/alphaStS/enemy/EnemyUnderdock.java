@@ -4,6 +4,7 @@ import com.alphaStS.*;
 import com.alphaStS.card.Card;
 import com.alphaStS.card.CardOther2;
 import com.alphaStS.enums.DebuffType;
+import com.alphaStS.enums.EnemyDeathCause;
 import com.alphaStS.eventHandler.GameEventEnemyHandler;
 import com.alphaStS.random.RandomGen;
 import com.alphaStS.random.RandomGenCtx;
@@ -329,7 +330,7 @@ public class EnemyUnderdock {
 
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addOnEnemyDeathHandler("CorpseSlugRavenous", new GameEventEnemyHandler() {
-                @Override public void handle(GameState state, EnemyReadOnly deadEnemy) {
+                @Override public void handle(GameState state, EnemyReadOnly deadEnemy, EnemyDeathCause cause) {
                     for (int i = 0; i < state.getEnemiesForRead().size(); i++) {
                         if (state.getEnemiesForRead().get(i).isAlive() && state.getEnemiesForRead().get(i) instanceof CorpseSlug) {
                             var slug = (CorpseSlug) state.getEnemiesForWrite().getForWrite(i);
@@ -527,7 +528,7 @@ public class EnemyUnderdock {
 
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addOnEnemyDeathHandler("GremlinMercSurprise", new GameEventEnemyHandler() {
-                @Override public void handle(GameState state, EnemyReadOnly deadEnemy) {
+                @Override public void handle(GameState state, EnemyReadOnly deadEnemy, EnemyDeathCause cause) {
                     if (deadEnemy instanceof GremlinMerc) {
                         reviveFirstDeadEnemy(state, GremlinMercSneakyGremlin.class);
                         reviveFirstDeadEnemy(state, GremlinMercFatGremlin.class);

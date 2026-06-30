@@ -2057,7 +2057,7 @@ public class CardDefect {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.getPlayerForWrite().applyDebuff(state, DebuffType.LOSE_FOCUS, n);
-            state.getPlayerForWrite().gainStrength(n);
+            state.playerGainStrength(n);
             state.getPlayerForWrite().gainDexterity(n);
             return GameActionCtx.PLAY_CARD;
         }

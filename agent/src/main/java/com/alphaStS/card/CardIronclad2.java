@@ -45,6 +45,18 @@ public class CardIronclad2 {
     public static class Strike extends Card.Strike {
     }
 
+    public static class TezcatarasEmberStrike extends Card {
+        public TezcatarasEmberStrike() {
+            super("Tezcatara's Ember Strike", Card.ATTACK, 0, Card.COMMON);
+            entityProperty.selectEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), 6, this);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
     public static class StrikeP extends Card.StrikeP {
     }
 
@@ -289,7 +301,7 @@ public class CardIronclad2 {
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             var player = state.getPlayerForWrite();
-            player.gainStrength(strength);
+            state.playerGainStrength(strength);
             player.applyDebuff(state, DebuffType.LOSE_STRENGTH_EOT, strength);
             return GameActionCtx.PLAY_CARD;
         }
@@ -541,7 +553,7 @@ public class CardIronclad2 {
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             var enemy = state.getEnemiesForWrite().getForWrite(idx);
             enemy.applyDebuff(state, DebuffType.VULNERABLE, vulnerable);
-            state.getPlayerForWrite().gainStrength(enemy.getVulnerable());
+            state.playerGainStrength(enemy.getVulnerable());
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -714,7 +726,7 @@ public class CardIronclad2 {
             var enemy = state.getEnemiesForWrite().getForWrite(idx);
             state.playerDoDamageToEnemy(enemy, damage, this);
             state.playerDoDamageToEnemy(enemy, damage, this);
-            state.getPlayerForWrite().gainStrength(playerStr);
+            state.playerGainStrength(playerStr);
             enemy.gainStrength(1);
             return GameActionCtx.PLAY_CARD;
         }
@@ -1231,7 +1243,7 @@ public class CardIronclad2 {
             state.properties.addOnDamageHandler("Rupture2", new OnDamageHandler() {
                 @Override public void handle(GameState state, Object source, boolean isAttack, int damageDealt) {
                     if (damageDealt > 0) {
-                        state.getPlayerForWrite().gainStrength(state.getCounterForRead()[counterIdx]);
+                        state.playerGainStrength(state.getCounterForRead()[counterIdx]);
                     }
                 }
             });
@@ -1741,7 +1753,7 @@ public class CardIronclad2 {
                 return GameActionCtx.SELECT_CARD_HAND;
             } else {
                 state.exhaustCardFromHand(idx);
-                state.getPlayerForWrite().gainStrength(strength);
+                state.playerGainStrength(strength);
                 return GameActionCtx.PLAY_CARD;
             }
         }

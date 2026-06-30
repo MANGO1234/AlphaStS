@@ -6,6 +6,7 @@ import com.alphaStS.enemy.Enemy;
 import com.alphaStS.enemy.EnemyReadOnly;
 import com.alphaStS.enemy.PredefinedEncounter;
 import com.alphaStS.enums.DebuffType;
+import com.alphaStS.enums.EnemyDeathCause;
 import com.alphaStS.gameAction.GameActionCtx;
 import com.alphaStS.eventHandler.GameEventCardHandler;
 import com.alphaStS.eventHandler.GameEventEnemyHandler;
@@ -2436,7 +2437,7 @@ public class CardSilent {
 
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addOnEnemyDeathHandler("CorpseExplosion", new GameEventEnemyHandler() {
-                @Override public void handle(GameState state, EnemyReadOnly enemy) {
+                @Override public void handle(GameState state, EnemyReadOnly enemy, EnemyDeathCause cause) {
                     if (enemy.getCorpseExplosion() > 0) {
                         var k = enemy.getCorpseExplosion();
                         state.addGameActionToEndOfDeque(new GameEnvironmentAction() {

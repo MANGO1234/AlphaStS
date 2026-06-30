@@ -1699,7 +1699,7 @@ public class CardRegent2 {
                 @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
                     int n = state.getCounterForRead()[counterIdx];
                     if (n > 0) {
-                        state.getPlayerForWrite().gainStrength(n);
+                        state.playerGainStrength(n);
                         state.getPlayerForWrite().applyDebuff(state, DebuffType.LOSE_STRENGTH_EOT, n);
                     }
                 }
@@ -2161,7 +2161,7 @@ public class CardRegent2 {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.getPlayerForWrite().gainStrength(playerStrength);
+            state.playerGainStrength(playerStrength);
             for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
                 enemy.applyDebuff(state, DebuffType.LOSE_STRENGTH, 1);
             }
@@ -2470,7 +2470,7 @@ public class CardRegent2 {
                 @Override public void handle(GameState state, int cardIdx) {
                     int strength = state.getCounterForRead()[counterIdx];
                     if (strength > 0) {
-                        state.getPlayerForWrite().gainStrength(strength);
+                        state.playerGainStrength(strength);
                     }
                 }
             });

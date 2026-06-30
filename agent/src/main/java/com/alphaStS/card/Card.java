@@ -307,6 +307,10 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         return new CardWrapper(this, mod);
     }
 
+    public boolean isEnchanted() {
+        return false;
+    }
+
     @Override public String toString() {
         return "Card{" +
                 "cardName='" + cardName + '\'' +
@@ -399,6 +403,12 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
             copy.sown = sown;
             copy.vigorous = vigorous;
             return copy;
+        }
+
+        public boolean hasEnchantment() {
+            return adroit > 0 || corrupted || glam || imbued || inky || instinct || momentum > 0
+                    || nimble > 0 || perfectFit || royallyApproved || sharp > 0 || soulsPower
+                    || spiral > 0 || steady || swift > 0 || sown || vigorous > 0;
         }
     }
 
@@ -538,6 +548,8 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         @Override public boolean ethereal() { return super.ethereal() || mod.permEthereal; }
 
         @Override public boolean sly() { return super.sly() || mod.permSly; }
+
+        @Override public boolean isEnchanted() { return mod.hasEnchantment(); }
 
         @Override
         public void setCounterIdx(GameProperties gameProperties, int idx) {

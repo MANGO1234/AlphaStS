@@ -910,7 +910,7 @@ public class CardWatcher {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.getPlayerForWrite().gainStrength(statBonus);
+            state.playerGainStrength(statBonus);
             state.getPlayerForWrite().gainDexterity(statBonus);
             state.getPlayerForWrite().applyDebuff(state, DebuffType.LOSE_ENERGY_PER_TURN, 1);
             return GameActionCtx.PLAY_CARD;

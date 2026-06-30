@@ -5,6 +5,7 @@ import com.alphaStS.GameState;
 import com.alphaStS.card.Card;
 import com.alphaStS.card.CardOther2;
 import com.alphaStS.enums.DebuffType;
+import com.alphaStS.enums.EnemyDeathCause;
 import com.alphaStS.eventHandler.GameEventCardHandler;
 import com.alphaStS.eventHandler.GameEventEnemyHandler;
 import com.alphaStS.eventHandler.GameEventHandler;
@@ -1831,7 +1832,7 @@ public class EnemyGlory {
         @Override public void gamePropertiesSetup(GameState state) {
             var idx = state.getEnemiesForRead().find(this);
             state.properties.addOnEnemyDeathHandler("TheLostReturnStrength", new GameEventEnemyHandler() {
-                @Override public void handle(GameState state, EnemyReadOnly enemy) {
+                @Override public void handle(GameState state, EnemyReadOnly enemy, EnemyDeathCause cause) {
                     if (state.getEnemiesForRead().get(idx) == enemy && enemy instanceof TheLost lost && lost.stolenStrength > 0) {
                         state.getPlayerForWrite().gainStrength(lost.stolenStrength);
                     }
@@ -1925,7 +1926,7 @@ public class EnemyGlory {
         @Override public void gamePropertiesSetup(GameState state) {
             var idx = state.getEnemiesForRead().find(this);
             state.properties.addOnEnemyDeathHandler("TheForgottenReturnDexterity", new GameEventEnemyHandler() {
-                @Override public void handle(GameState state, EnemyReadOnly enemy) {
+                @Override public void handle(GameState state, EnemyReadOnly enemy, EnemyDeathCause cause) {
                     if (state.getEnemiesForRead().get(idx) == enemy && enemy instanceof TheForgotten forgotten
                             && forgotten.stolenDexterity > 0) {
                         state.getPlayerForWrite().gainDexterity(forgotten.stolenDexterity);

@@ -8,6 +8,7 @@ import com.alphaStS.enemy.Enemy;
 import com.alphaStS.enemy.EnemyReadOnly;
 import com.alphaStS.enemy.PredefinedEncounter;
 import com.alphaStS.enums.DebuffType;
+import com.alphaStS.enums.EnemyDeathCause;
 import com.alphaStS.gameAction.GameActionCtx;
 import com.alphaStS.enums.OrbType;
 import com.alphaStS.enums.Stance;
@@ -624,7 +625,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
             state.properties.addStartOfTurnHandler("OddlySmoothStone", new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     if (state.turnNum == 1 && isRelicEnabledInScenario(state)) {
-                        state.getPlayerForWrite().gainStrength(1);
+                        state.playerGainStrength(1);
                     }
                 }
             });
@@ -742,7 +743,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     public static class GremlinHorn extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addOnEnemyDeathHandler("GremlinHorn", new GameEventEnemyHandler() {
-                @Override public void handle(GameState state, EnemyReadOnly enemy) {
+                @Override public void handle(GameState state, EnemyReadOnly enemy, EnemyDeathCause cause) {
                     if (isRelicEnabledInScenario(state)) {
                         state.gainEnergy(1);
                         state.draw(1);
@@ -1082,7 +1083,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                         counter[counterIdx]++;
                         if (counter[counterIdx] == 3) {
                             counter[counterIdx] = 0;
-                            state.getPlayerForWrite().gainStrength(1);
+                            state.playerGainStrength(1);
                         }
                     }
                 }
@@ -1277,7 +1278,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                     if (isRelicEnabledInScenario(state)) {
                         for (int i : state.getDeckArrForRead()) {
                             if (state.properties.cardDict[i].cardType == Card.CURSE) {
-                                state.getPlayerForWrite().gainStrength(1);
+                                state.playerGainStrength(1);
                             }
                         }
                     }
@@ -1324,7 +1325,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
-            state.getPlayerForWrite().gainStrength(strength);
+            state.playerGainStrength(strength);
         }
     }
 
@@ -1663,7 +1664,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                 @Override public void handle(GameState state) {
                     if (state.turnNum == 1 && isRelicEnabledInScenario(state)) {
                         if (isEliteFight(state)) {
-                            state.getPlayerForWrite().gainStrength(2);
+                            state.playerGainStrength(2);
                         }
                     }
                 }
@@ -2069,7 +2070,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                 @Override public void handle(GameState state) {
                     if (isRelicEnabledInScenario(state)) {
                         var player = state.getPlayerForWrite();
-                        player.gainStrength(3);
+                        state.playerGainStrength(3);
                         player.applyDebuff(state, DebuffType.LOSE_STRENGTH_EOT, 3);
                     }
                 }
@@ -2251,7 +2252,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                 @Override public void handle(GameState state) {
                     if (isRelicEnabledInScenario(state)) {
                         if (state.getPlayerForRead().getHealth() <= state.getPlayerForRead().getInBattleMaxHealth() / 2) {
-                            state.getPlayerForWrite().gainStrength(3);
+                            state.playerGainStrength(3);
                         }
                     }
                 }
@@ -2261,7 +2262,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                     if (isRelicEnabledInScenario(state)) {
                         if (state.getPlayerForRead().getHealth() <= state.getPlayerForRead().getInBattleMaxHealth() / 2) {
                             if (state.getPlayerForRead().getHealth() + damageDealt > state.getPlayerForRead().getInBattleMaxHealth() / 2) {
-                                state.getPlayerForWrite().gainStrength(3);
+                                state.playerGainStrength(3);
                             }
                         }
                     }
@@ -2355,7 +2356,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
             state.properties.addStartOfTurnHandler("Brimstone", new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     if (isRelicEnabledInScenario(state)) {
-                        state.getPlayerForWrite().gainStrength(2);
+                        state.playerGainStrength(2);
                         for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
                             enemy.gainStrength(1);
                         }
@@ -2462,7 +2463,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     public static class TheSpecimen extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addOnEnemyDeathHandler("Specimen", new GameEventEnemyHandler() {
-                @Override public void handle(GameState state, EnemyReadOnly deadEnemy) {
+                @Override public void handle(GameState state, EnemyReadOnly deadEnemy, EnemyDeathCause cause) {
                     if (isRelicEnabledInScenario(state)) {
                         int poisonAmount = deadEnemy.getPoison();
                         if (poisonAmount > 0) {

@@ -5,6 +5,7 @@ import com.alphaStS.GameState;
 import com.alphaStS.card.Card;
 import com.alphaStS.card.CardOther2;
 import com.alphaStS.enums.DebuffType;
+import com.alphaStS.enums.EnemyDeathCause;
 import com.alphaStS.eventHandler.GameEventCardHandler;
 import com.alphaStS.eventHandler.GameEventEnemyHandler;
 import com.alphaStS.eventHandler.GameEventHandler;
@@ -2117,7 +2118,7 @@ public class EnemyHive {
             }
         });
         state.properties.addOnEnemyDeathHandler("KaiserCrabRage", new GameEventEnemyHandler() {
-            @Override public void handle(GameState state, EnemyReadOnly enemy) {
+            @Override public void handle(GameState state, EnemyReadOnly enemy, EnemyDeathCause cause) {
                 if (!(enemy instanceof Crusher || enemy instanceof Rocket)) {
                     return;
                 }

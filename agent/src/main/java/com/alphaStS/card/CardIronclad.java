@@ -281,7 +281,7 @@ public class CardIronclad {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             var player = state.getPlayerForWrite();
-            player.gainStrength(strength);
+            state.playerGainStrength(strength);
             player.applyDebuff(state, DebuffType.LOSE_STRENGTH_EOT, strength);
             return GameActionCtx.PLAY_CARD;
         }
@@ -1491,7 +1491,7 @@ public class CardIronclad {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.getPlayerForWrite().gainStrength(strength);
+            state.playerGainStrength(strength);
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -1844,7 +1844,7 @@ public class CardIronclad {
             state.properties.addOnDamageHandler("Rupture", new OnDamageHandler() {
                 @Override public void handle(GameState state, Object source, boolean isAttack, int damageDealt) {
                     if (damageDealt > 0 && source instanceof Card) {
-                        state.getPlayerForWrite().gainStrength(state.getCounterForRead()[counterIdx]);
+                        state.playerGainStrength(state.getCounterForRead()[counterIdx]);
                     }
                 }
             });
@@ -2080,7 +2080,7 @@ public class CardIronclad {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             if (state.getEnemiesForRead().get(idx).getMoveString(state).contains("Attack")) {
-                state.getPlayerForWrite().gainStrength(strength);
+                state.playerGainStrength(strength);
             }
             return GameActionCtx.PLAY_CARD;
         }
@@ -2340,7 +2340,7 @@ public class CardIronclad {
             });
             state.properties.addStartOfTurnHandler("DemonForm", new GameEventHandler() {
                 @Override public void handle(GameState state) {
-                    state.getPlayerForWrite().gainStrength(state.getCounterForRead()[counterIdx]);
+                    state.playerGainStrength(state.getCounterForRead()[counterIdx]);
                 }
             });
         }
@@ -2812,7 +2812,7 @@ public class CardIronclad {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             var player = state.getPlayerForWrite();
-            player.gainStrength(player.getStrength());
+            state.playerGainStrength(player.getStrength());
             return GameActionCtx.PLAY_CARD;
         }
     }

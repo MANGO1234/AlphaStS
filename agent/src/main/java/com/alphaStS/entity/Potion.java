@@ -165,7 +165,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
 
         @Override public GameActionCtx use(GameState state, int idx) {
             int n = state.properties.sacredBark != null && state.properties.sacredBark.isRelicEnabledInScenario(state) ? 4 : 2;
-            state.getPlayerForWrite().gainStrength(n);
+            state.playerGainStrength(n);
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -190,7 +190,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
 
         @Override public GameActionCtx use(GameState state, int idx) {
             int n = state.properties.sacredBark != null && state.properties.sacredBark.isRelicEnabledInScenario(state) ? 10 : 5;
-            state.getPlayerForWrite().gainStrength(n);
+            state.playerGainStrength(n);
             state.getPlayerForWrite().applyDebuff(state, DebuffType.LOSE_STRENGTH_EOT, n);
             return GameActionCtx.PLAY_CARD;
         }
@@ -593,7 +593,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
             state.properties.addStartOfTurnHandler("CultistPotion", new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     if (state.getCounterForRead()[counterIdx] > 0) {
-                        state.getPlayerForWrite().gainStrength(state.getCounterForRead()[counterIdx]);
+                        state.playerGainStrength(state.getCounterForRead()[counterIdx]);
                     }
                 }
             });

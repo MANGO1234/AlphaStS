@@ -2,6 +2,7 @@ package com.alphaStS.eventHandler;
 
 import com.alphaStS.GameState;
 import com.alphaStS.enemy.EnemyReadOnly;
+import com.alphaStS.enums.EnemyDeathCause;
 
 public abstract class GameEventEnemyHandler implements Comparable<GameEventEnemyHandler> {
     private int priority;
@@ -13,7 +14,7 @@ public abstract class GameEventEnemyHandler implements Comparable<GameEventEnemy
     public GameEventEnemyHandler() {
     }
 
-    public abstract void handle(GameState state, EnemyReadOnly enemy);
+    public abstract void handle(GameState state, EnemyReadOnly enemy, EnemyDeathCause cause);
 
     @Override public int compareTo(GameEventEnemyHandler other) {
         return Integer.compare(other.priority, priority);

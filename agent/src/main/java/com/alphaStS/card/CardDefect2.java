@@ -574,7 +574,7 @@ public class CardDefect2 {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.gainOrbSlot(-1);
-            state.getPlayerForWrite().gainStrength(n);
+            state.playerGainStrength(n);
             state.getPlayerForWrite().gainDexterity(n);
             return GameActionCtx.PLAY_CARD;
         }

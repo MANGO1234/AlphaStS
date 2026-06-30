@@ -173,7 +173,7 @@ public class Potion2 {
 
         @Override public GameActionCtx use(GameState state, int idx) {
             int n = state.properties.sacredBark != null && state.properties.sacredBark.isRelicEnabledInScenario(state) ? 2 : 1;
-            state.getPlayerForWrite().gainStrength(n);
+            state.playerGainStrength(n);
             state.getPlayerForWrite().gainDexterity(n);
             return GameActionCtx.PLAY_CARD;
         }

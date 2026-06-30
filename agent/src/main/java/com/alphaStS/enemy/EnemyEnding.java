@@ -4,6 +4,7 @@ import com.alphaStS.*;
 import com.alphaStS.card.Card;
 import com.alphaStS.card.CardOther;
 import com.alphaStS.enums.DebuffType;
+import com.alphaStS.enums.EnemyDeathCause;
 import com.alphaStS.eventHandler.GameEventCardHandler;
 import com.alphaStS.eventHandler.GameEventEnemyHandler;
 import com.alphaStS.eventHandler.GameEventHandler;
@@ -209,7 +210,7 @@ public class EnemyEnding {
                 }
             });
             state.properties.addOnEnemyDeathHandler(new GameEventEnemyHandler() {
-                @Override public void handle(GameState state2, EnemyReadOnly enemy) {
+                @Override public void handle(GameState state2, EnemyReadOnly enemy, EnemyDeathCause cause) {
                     if (enemy instanceof EnemyEnding.SpireShield) {
                         state2.getCounterForWrite()[state2.properties.surroundedEnemiesFacingCounterIdx] = 2;
                     } else {

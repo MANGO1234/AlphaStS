@@ -465,7 +465,7 @@ public class CardOther {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.getPlayerForWrite().gainStrength(strength);
+            state.playerGainStrength(strength);
             return GameActionCtx.PLAY_CARD;
         }
     }
