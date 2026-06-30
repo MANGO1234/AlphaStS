@@ -3593,10 +3593,35 @@ public final class GameState implements State {
 
     public void forge(int amount) {
         if (properties.forgeCounterIdx < 0) return;
-        if (getCounterForRead()[properties.forgeCounterIdx] == 0 && properties.sovereignBladeCardIdx >= 0) {
+        if (properties.sovereignBladeCardIdx >= 0 && !hasSovereignBladeInHandDeckOrDiscard()) {
+            getCounterForWrite()[properties.forgeCounterIdx] = 0;
             addCardToHand(properties.sovereignBladeCardIdx);
         }
         getCounterForWrite()[properties.forgeCounterIdx] += amount;
+    }
+
+    private boolean hasSovereignBladeInHandDeckOrDiscard() {
+        for (int i = 0; i < handArrLen; i++) {
+            if (isSovereignBlade(handArr[i])) {
+                return true;
+            }
+        }
+        for (int i = 0; i < deckArrLen; i++) {
+            if (isSovereignBlade(deckArr[i])) {
+                return true;
+            }
+        }
+        for (int i = 0; i < discardArrLen; i++) {
+            if (isSovereignBlade(discardArr[i])) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean isSovereignBlade(int cardIdx) {
+        var base = properties.cardDict[cardIdx].getBaseCard();
+        return base instanceof CardColorless2.SovereignBlade || base instanceof CardColorless2.SovereignBladeP;
     }
 
     public void addCardToHand(int cardIndex) {
