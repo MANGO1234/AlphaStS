@@ -3,6 +3,7 @@ package com.alphaStS.card;
 import com.alphaStS.*;
 import com.alphaStS.gameAction.GameActionCtx;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class CardOther2 {
@@ -59,34 +60,41 @@ public class CardOther2 {
     // Frantic Escape (Status) - 1 energy, Status
     //   Effect: Get farther away. Increase Sandpit by 1. Increase the cost of this card by 1.
     public static class FranticEscape extends Card {
+        public FranticEscape(int energyCost) {
+            super(energyCost == 1 ? "Frantic Escape" : "Frantic Escape (" + energyCost + ")", Card.STATUS, energyCost, Card.COMMON);
+        }
+
         public FranticEscape() {
-            super("Frantic Escape", Card.STATUS, 1, Card.COMMON);
+            this(1);
         }
 
         @Override public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            // TODO: Implement Sandpit once the player Sandpit counter exists.
+            if (state.properties.sandpitCounterIdx >= 0) {
+                state.getCounterForWrite()[state.properties.sandpitCounterIdx]++;
+            }
             return GameActionCtx.PLAY_CARD;
         }
 
         @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
-            return List.of(
-                    getPermCostIfPossible(2),
-                    getPermCostIfPossible(3),
-                    getPermCostIfPossible(4),
-                    getPermCostIfPossible(5),
-                    getPermCostIfPossible(6),
-                    getPermCostIfPossible(7),
-                    getPermCostIfPossible(8),
-                    getPermCostIfPossible(9),
-                    getPermCostIfPossible(10));
+            var generatedCards = new ArrayList<Card>();
+            for (int i = 2; i <= properties.maxFranticEscapeEnergyCost; i++) {
+                generatedCards.add(getPermCostIfPossible(i));
+            }
+            return generatedCards;
         }
 
         @Override public int onPlayTransformCardIdx(GameProperties prop, int cardIdx) {
             var card = prop.cardDict[cardIdx];
-            // TODO: Support Frantic Escape costs above 10 if Sandpit fights require it.
-            return card.realEnergyCost() >= 10
+            return card.realEnergyCost() >= prop.maxFranticEscapeEnergyCost
                     ? -1
                     : prop.findCardIndex(card.getPermCostIfPossible(card.realEnergyCost() + 1));
+        }
+
+        @Override public Card getPermCostIfPossible(int permCost) {
+            if (permCost >= 0) {
+                return new FranticEscape(permCost);
+            }
+            return super.getPermCostIfPossible(permCost);
         }
     }
 

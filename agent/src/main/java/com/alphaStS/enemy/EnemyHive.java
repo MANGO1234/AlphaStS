@@ -1476,7 +1476,7 @@ public class EnemyHive {
 
         @Override public void doMove(GameState state, EnemyReadOnly self) {
             if (move == LIQUIFY_GROUND) {
-                // TODO: Implement Sandpit 4 once the player Sandpit counter exists.
+                state.getCounterForWrite()[state.properties.sandpitCounterIdx] += 5;
                 for (int i = 0; i < 3; i++) {
                     state.addCardToDeck(properties.generatedCardIdx);
                     state.addCardToDiscard(properties.generatedCardIdx);
@@ -1487,6 +1487,18 @@ public class EnemyHive {
                 state.enemyDoDamageToPlayer(this, 31, 1);
             } else if (move == SALIVATE) {
                 gainStrength(3);
+            }
+            decrementSandpit(state);
+        }
+
+        private void decrementSandpit(GameState state) {
+            int cIdx = state.properties.sandpitCounterIdx;
+            if (cIdx < 0 || state.getCounterForRead()[cIdx] <= 0) {
+                return;
+            }
+            state.getCounterForWrite()[cIdx]--;
+            if (state.getCounterForRead()[cIdx] == 0) {
+                state.getPlayerForWrite().kill(state, false);
             }
         }
 
@@ -1518,6 +1530,10 @@ public class EnemyHive {
 
         @Override public List<Card> getPossibleGeneratedCards(GameProperties prop, List<Card> cards) {
             return List.of(new CardOther2.FranticEscape());
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerSandpitCounter();
         }
     }
 

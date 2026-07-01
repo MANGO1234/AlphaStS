@@ -99,6 +99,7 @@ public class GameProperties implements Cloneable {
     public boolean isHeartGauntlet;
     public int[] astrolabeCardsTransformed;
     public int[] pandorasBoxCardsTransformed;
+    public int maxFranticEscapeEnergyCost = 5;
 
     // set in GameStateBuilder: this turns off certain card generation that would significantly bloat network size
     // sometimes the deck is so strong it doesn't matter, or the relative strength of card picks doesn't change
@@ -288,6 +289,7 @@ public class GameProperties implements Cloneable {
     public int ritualDaggerCounterIdx = -1;
     public int royaltiesGoldCounterIdx = -1;
     public int sadisticNatureCounterIdx = -1;
+    public int sandpitCounterIdx = -1;
     public int selfRepairCounterIdx = -1;
     public int shadowStepCounterIdx = -1;
     public int shadowmeldCounterIdx = -1;
@@ -964,6 +966,15 @@ public class GameProperties implements Cloneable {
         }
     };
 
+    private static CounterRegistrant SandpitCounterRegistrant = new CounterRegistrant() {
+        @Override public void setCounterIdx(GameProperties gameProperties, int idx) {
+            gameProperties.sandpitCounterIdx = idx;
+        }
+        @Override public int getCounterIdx(GameProperties gameProperties) {
+            return gameProperties.sandpitCounterIdx;
+        }
+    };
+
     private static CounterRegistrant PlayCardOnTopOfDeckCounterRegistrant = new CounterRegistrant() {
         @Override public void setCounterIdx(GameProperties gameProperties, int idx) {
             gameProperties.playCardOnTopOfDeckCounterIdx = idx;
@@ -1119,6 +1130,19 @@ public class GameProperties implements Cloneable {
                         state.getPlayerForRead().getHealth() <= state.getCounterForRead()[cIdx]) {
                     state.getPlayerForWrite().kill(state, false);
                 }
+            }
+        });
+    }
+
+    public void registerSandpitCounter() {
+        registerCounter("Sandpit", SandpitCounterRegistrant, new NetworkInputHandler() {
+            @Override public int addToInput(GameState state, float[] input, int idx) {
+                input[idx] = state.getCounterForRead()[state.properties.sandpitCounterIdx] / 10.0f;
+                return idx + 1;
+            }
+
+            @Override public int getInputLenDelta() {
+                return 1;
             }
         });
     }
