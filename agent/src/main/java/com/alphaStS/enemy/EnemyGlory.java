@@ -854,6 +854,7 @@ public class EnemyGlory {
         @Override public void doMove(GameState state, EnemyReadOnly self) {
             if (move == HEX) {
                 // TODO: Implement Spectral Knight Hex once global alive-enemy ethereal card handling exists.
+                // create a player debuff (PlayerBuff, see existing HEX, call new SPECTRAL_KNIGHT_HEX), while it's active and spectral knight lives, end of turn instead of discarding hand exhaust hand
             } else if (move == SOUL_SLASH) {
                 state.enemyDoDamageToPlayer(this, 17, 1);
             } else if (move == SOUL_FLAME) {
