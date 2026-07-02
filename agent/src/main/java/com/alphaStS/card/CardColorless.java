@@ -880,6 +880,10 @@ public class CardColorless {
         public HandOfGreedP(double healthRewardRatio) {
             super("Hand of Greed+", 25, healthRewardRatio);
         }
+
+        @Override public Card getDowngrade() {
+            return new CardColorless.HandOfGreed(healthRewardRatio);
+        }
     }
 
     static abstract class _MagnetismT extends Card {
@@ -1547,6 +1551,10 @@ public class CardColorless {
         public RitualDaggerP(int dmg, int healthReward) {
             super("Ritual Dagger+", dmg, 5, healthReward);
         }
+
+        @Override public Card getDowngrade() {
+            return new RitualDagger(this.n, healthRewardRatio);
+        }
     }
 
     private static abstract class _ShivT extends Card {
@@ -1877,6 +1885,10 @@ public class CardColorless {
 
         public ExpungerP(int xValue) {
             super("Expunger+ (" + xValue + ")", 15, xValue);
+        }
+
+        @Override public Card getDowngrade() {
+            return new Expunger(xValue);
         }
     }
 

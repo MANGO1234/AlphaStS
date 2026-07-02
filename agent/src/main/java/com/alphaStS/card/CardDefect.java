@@ -324,6 +324,10 @@ public class CardDefect {
             super("Claw+", dmg, 2);
         }
 
+        @Override public Card getDowngrade() {
+            return new Claw(dmg - 2);
+        }
+
         @Override protected _ClawT create(int dmg) {
             return new ClawP(dmg);
         }
@@ -709,6 +713,10 @@ public class CardDefect {
 
         public SteamBarrierP(int n) {
             this(n, 0);
+        }
+
+        @Override public Card getDowngrade() {
+            return new SteamBarrier(n - 2, limit);
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -1719,6 +1727,10 @@ public class CardDefect {
         public GeneticAlgorithmP(int block, double healthRewardRatio) {
             super("Genetic Algorithm+ (" + block + ")", block, 3, healthRewardRatio, Card.UNCOMMON);
         }
+
+        @Override public Card getDowngrade() {
+            return new CardDefect.GeneticAlgorithm(block, healthRewardRatio);
+        }
     }
 
     static abstract class _GlacierT extends Card {
@@ -2435,8 +2447,8 @@ public class CardDefect {
 
     private static abstract class _AllForOneT extends Card {
         private final int n;
-        private final int discardOrderMaxKeepTrackIn10s;
-        private final int discardOrder0CardMaxCopies;
+        protected final int discardOrderMaxKeepTrackIn10s;
+        protected final int discardOrder0CardMaxCopies;
 
         public _AllForOneT(String cardName, int n, int discardOrderMaxKeepTrackIn10s, int discardOrder0CardMaxCopies) {
             super(cardName, Card.ATTACK, 2, Card.RARE);
@@ -2491,6 +2503,10 @@ public class CardDefect {
 
         public AllForOneP(int discardOrderMaxKeepTrackIn10s, int discardOrder0CardMaxCopies) {
             super("All for One+", 14, discardOrderMaxKeepTrackIn10s, discardOrder0CardMaxCopies);
+        }
+
+        @Override public Card getDowngrade() {
+            return new AllForOne(discardOrderMaxKeepTrackIn10s, discardOrder0CardMaxCopies);
         }
     }
 

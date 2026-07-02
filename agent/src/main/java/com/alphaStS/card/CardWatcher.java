@@ -1411,6 +1411,10 @@ public class CardWatcher {
             this(block, 37);
         }
 
+        @Override public Card getDowngrade() {
+            return new Perseverance(block - 2, limit - 12);
+        }
+
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.playerGainBlock(block);
             return GameActionCtx.PLAY_CARD;
@@ -2193,6 +2197,10 @@ public class CardWatcher {
             this(damage, 60);
         }
 
+        @Override public Card getDowngrade() {
+            return new WindmillStrike(damage - 3, limit - 13);
+        }
+
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             return GameActionCtx.PLAY_CARD;
@@ -2454,6 +2462,10 @@ public class CardWatcher {
 
         public ConjureBladeP(int limit) {
             super("Conjure Blade+", true, limit);
+        }
+
+        @Override public Card getDowngrade() {
+            return new ConjureBlade(limit);
         }
     }
 
@@ -2733,6 +2745,10 @@ public class CardWatcher {
         public LessonLearnedP(double healthRewardRatio) {
             super("Lesson Learned+", 13, healthRewardRatio);
         }
+
+        @Override public Card getDowngrade() {
+            return new LessonLearned(healthRewardRatio);
+        }
     }
 
     public static abstract class _MasterRealityT extends Card {
@@ -2983,6 +2999,10 @@ public class CardWatcher {
         public WishP(double healthRewardRatio) {
             super("Wish+", 3, healthRewardRatio);
             this.upgraded = true;
+        }
+
+        @Override public Card getDowngrade() {
+            return new Wish(healthRewardRatio);
         }
     }
 }

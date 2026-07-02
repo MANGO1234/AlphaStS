@@ -15,6 +15,10 @@ public class CardUpgrade {
         return character.isSts2 ? map_sts2.get(card) : map_sts1.get(card);
     }
 
+    public static Card getDowngrade(Card card, CharacterEnum character) {
+        return character.isSts2 ? downgrade_map_sts2.get(card) : null;
+    }
+
     static {
         map_sts1 = new HashMap<>();
         map_sts1.put(new Card.Strike(), new Card.StrikeP());

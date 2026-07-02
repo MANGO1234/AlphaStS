@@ -1697,6 +1697,10 @@ public class CardSilent {
         @Override public Card getUpgrade() {
             return new CardSilent.MasterfulStabP(energyCost, maxEnergyCost);
         }
+
+        @Override public Card getDowngrade() {
+            return new CardSilent.MasterfulStab(energyCost, maxEnergyCost);
+        }
     }
 
     private static abstract class _NoxiousFumesT extends Card {
@@ -1904,6 +1908,10 @@ public class CardSilent {
 
         @Override public Card getUpgrade() {
             return new CardSilent.SetupP(doNothing);
+        }
+
+        @Override public Card getDowngrade() {
+            return new CardSilent.Setup(doNothing);
         }
     }
 
@@ -2311,6 +2319,10 @@ public class CardSilent {
 
         public AlchemizeP(int basePenaltyRatio, int possibleGeneratedPotions, int healthReward) {
             super("Alchemize+", 0, basePenaltyRatio, possibleGeneratedPotions, healthReward);
+        }
+
+        @Override public Card getDowngrade() {
+            return new CardSilent.Alchemize(basePenaltyRatio, possibleGeneratedPotions, healthReward);
         }
     }
 

@@ -935,6 +935,10 @@ public class CardColorless2 {
         public AlchemizeP(int basePenaltyRatio, int possibleGeneratedPotions, int healthReward) {
             super("Alchemize+", 0, basePenaltyRatio, possibleGeneratedPotions, healthReward);
         }
+
+        @Override public Card getDowngrade() {
+            return new Alchemize(basePenaltyRatio, possibleGeneratedPotions, healthReward);
+        }
     }
 
     private static abstract class _AnointedT extends Card {
@@ -2039,6 +2043,10 @@ public class CardColorless2 {
 
         public MaulP(int damage) {
             super("Maul+", damage, 2);
+        }
+
+        @Override public Card getDowngrade() {
+            return new Maul(damage - 1);
         }
 
         @Override protected _MaulT create(int damage) {

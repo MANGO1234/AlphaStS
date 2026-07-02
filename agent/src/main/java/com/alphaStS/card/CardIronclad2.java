@@ -1188,6 +1188,10 @@ public class CardIronclad2 {
             super("Rampage+ (" + dmg + ")", dmg, limit);
         }
 
+        @Override public Card getDowngrade() {
+            return new Rampage(dmg, limit);
+        }
+
         public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
             var c = new ArrayList<Card>();
             for (Card card : cards) {

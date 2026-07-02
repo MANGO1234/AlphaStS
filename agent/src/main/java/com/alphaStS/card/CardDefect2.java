@@ -187,6 +187,10 @@ public class CardDefect2 {
             super("Claw+", dmg, 3);
         }
 
+        @Override public Card getDowngrade() {
+            return new Claw(dmg - 1);
+        }
+
         @Override protected CardDefect._ClawT create(int dmg) {
             return new ClawP(dmg);
         }
@@ -1826,6 +1830,10 @@ public class CardDefect2 {
 
         public GeneticAlgorithmP(int block, double healthRewardRatio) {
             super("Genetic Algorithm+ (" + block + ")", block, 3, healthRewardRatio, Card.RARE);
+        }
+
+        @Override public Card getDowngrade() {
+            return new CardDefect2.GeneticAlgorithm(block, healthRewardRatio);
         }
     }
 

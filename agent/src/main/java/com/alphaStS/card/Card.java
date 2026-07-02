@@ -135,6 +135,12 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public Card getUpgrade() { return CardUpgrade.map_sts1.get(this); }
 
+    public Card getDowngrade(GameProperties properties) {
+        return CardUpgrade.getDowngrade(this, properties.character);
+    }
+
+    public Card getDowngrade() { return CardUpgrade.downgrade_map_sts2.get(this); }
+
     public Card getTemporaryCostIfPossible(int temporaryCost) {
         if ((energyCost <= temporaryCost && !(temporaryCost == 0 && starCost > 0)) || isXCost) {
             return this;
@@ -1039,6 +1045,18 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         public Card getUpgrade(GameProperties properties) {
             var upgrade = card.getUpgrade(properties);
             return wrapUpgrade(upgrade);
+        }
+
+        @Override
+        public Card getDowngrade() {
+            var downgrade = card.getDowngrade();
+            return downgrade == null ? null : wrap(downgrade);
+        }
+
+        @Override
+        public Card getDowngrade(GameProperties properties) {
+            var downgrade = card.getDowngrade(properties);
+            return downgrade == null ? null : wrap(downgrade);
         }
 
         private Card wrapUpgrade(Card upgrade) {

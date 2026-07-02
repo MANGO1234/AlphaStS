@@ -1753,6 +1753,10 @@ public class CardIronclad {
             entityProperty.selectEnemy = true;
         }
 
+        @Override public Card getDowngrade() {
+            return new Rampage(dmg, limit - 25);
+        }
+
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), dmg, this);
             return GameActionCtx.PLAY_CARD;
@@ -1907,6 +1911,10 @@ public class CardIronclad {
 
     public static class SearingBlowP extends SearingBlow {
         public SearingBlowP() { super(1); }
+
+        @Override public Card getDowngrade() {
+            return new SearingBlow();
+        }
     }
 
     private static abstract class _SecondWindT extends Card {
@@ -2648,6 +2656,10 @@ public class CardIronclad {
 
         public FeedP(double healthRewardRatio) {
             super("Feed+", 12, 4, healthRewardRatio);
+        }
+
+        @Override public Card getDowngrade() {
+            return new CardIronclad.Feed(healthRewardRatio);
         }
     }
 
