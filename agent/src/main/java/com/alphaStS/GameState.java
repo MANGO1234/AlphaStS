@@ -836,7 +836,7 @@ public final class GameState implements State {
         int[] r = new int[cards.size()];
         Arrays.fill(r, -1);
         for (int i = 0; i < r.length; i++) {
-            var upgrade = cards.get(i).getUpgrade();
+            var upgrade = cards.get(i).getUpgrade(properties);
             if (upgrade != null) {
                 r[i] = properties.findCardIndex(upgrade);
             }
@@ -2010,9 +2010,22 @@ public final class GameState implements State {
         return true;
     }
 
+    private boolean isSpectralKnightHexActive() {
+        if (!hasBuff(PlayerBuff.SPECTRAL_KNIGHT_HEX)) {
+            return false;
+        }
+        for (EnemyReadOnly enemy : getEnemiesForRead()) {
+            if (enemy instanceof EnemyGlory.SpectralKnight && enemy.isAlive()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public void endTurn() {
+        boolean spectralKnightHexActive = isSpectralKnightHexActive();
         if (properties.wellLaidPlansCardIdx >= 0 && actionCtx != GameActionCtx.SELECT_CARD_HAND && getCounterForRead()[properties.wellLaidPlansCounterIdx] > 0 &&
-                isDiscardingCardEndOfTurn() && getNumCardsInHand() > 0) {
+                !spectralKnightHexActive && isDiscardingCardEndOfTurn() && getNumCardsInHand() > 0) {
             var action = properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][properties.wellLaidPlansCardIdx];
             setActionCtx(GameActionCtx.SELECT_CARD_HAND, action, null);
             return;
@@ -2050,7 +2063,7 @@ public final class GameState implements State {
 
         // discard cards from hand
         for (int i = handArrLen - 1; i >= 0; i--) {
-            if (properties.cardDict[handArr[i]].ethereal()) {
+            if (properties.cardDict[handArr[i]].ethereal() || spectralKnightHexActive) {
                 exhaustedCardHandle(handArr[i], false);
                 getHandArrForWrite()[i] = -1;
             } else if (properties.cardDict[handArr[i]].alwaysDiscard) {
@@ -2076,7 +2089,7 @@ public final class GameState implements State {
 
         // handle well laid plan cards
         for (int i = 0; i < chosenCardsArrLen; i++) {
-            if (properties.cardDict[chosenCardsArr[i]].ethereal()) {
+            if (properties.cardDict[chosenCardsArr[i]].ethereal() || spectralKnightHexActive) {
                 exhaustedCardHandle(chosenCardsArr[i], false);
             } else if (properties.cardDict[chosenCardsArr[i]].alwaysDiscard) {
                 addCardToDiscard(chosenCardsArr[i]);

@@ -294,7 +294,7 @@ public class CardOther {
             }
             state.getCounterForWrite()[counterIdx]++;
             state.removeCardFromDeck(idx, false);
-            state.addCardToDeck(state.properties.findCardIndex(state.properties.cardDict[idx].getUpgrade()), false);
+            state.addCardToDeck(state.properties.findCardIndex(state.properties.cardDict[idx].getUpgrade(state.properties)), false);
             if (state.getCounterForRead()[counterIdx] >= count) {
                 state.getCounterForWrite()[counterIdx] = 0;
                 return GameActionCtx.START_OF_BATTLE;

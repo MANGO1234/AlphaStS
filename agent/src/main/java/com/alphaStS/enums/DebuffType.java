@@ -15,6 +15,7 @@ public enum DebuffType {
     CORPSE_EXPLOSION,
     ENTANGLED,
     HEX,
+    SPECTRAL_KNIGHT_HEX,
     LOSE_FOCUS,
     LOSE_FOCUS_PER_TURN,
     CONSTRICTED,

@@ -211,6 +211,7 @@ public class Player extends PlayerReadOnly {
         case NO_MORE_CARD_DRAW -> state.addBuff(PlayerBuff.NO_CARD_DRAW_FOR_THE_TURN);
         case ENTANGLED -> state.addBuff(PlayerBuff.ENTANGLED);
         case HEX -> state.addBuff(PlayerBuff.HEX);
+        case SPECTRAL_KNIGHT_HEX -> state.addBuff(PlayerBuff.SPECTRAL_KNIGHT_HEX);
         case LOSE_FOCUS -> state.gainFocus(-n);
         case LOSE_FOCUS_PER_TURN -> state.getCounterForWrite()[state.properties.loseFocusPerTurnCounterIdx] += n;
         case LOSE_ENERGY_PER_TURN -> state.getCounterForWrite()[state.properties.loseEnergyPerTurnCounterIdx] += n;
@@ -299,6 +300,7 @@ public class Player extends PlayerReadOnly {
         state.removeBuff(PlayerBuff.NO_CARD_DRAW_FOR_THE_TURN);
         state.removeBuff(PlayerBuff.HEX);
         state.removeBuff(PlayerBuff.ENTANGLED);
+        state.removeBuff(PlayerBuff.SPECTRAL_KNIGHT_HEX);
         loseStrengthEot = 0;
         loseDexterityEot = 0;
         loseFocusEot = 0;

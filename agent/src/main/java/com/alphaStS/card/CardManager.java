@@ -1230,7 +1230,7 @@ public class CardManager {
         List<Card> cards = new ArrayList<>();
         for (Card card : baseCards) {
             cards.add(card);
-            cards.add(card.getUpgrade());
+            cards.add(CardUpgrade.getUpgrade(card, character));
         }
         return cards;
     }

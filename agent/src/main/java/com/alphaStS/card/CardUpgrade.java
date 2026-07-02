@@ -1,5 +1,7 @@
 package com.alphaStS.card;
 
+import com.alphaStS.enums.CharacterEnum;
+
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -8,6 +10,11 @@ public class CardUpgrade {
     public static Map<Card, Card> map_sts1;
     public static Map<Card, Card> map_sts2;
     public static Map<Card, Card> downgrade_map_sts2;
+
+    public static Card getUpgrade(Card card, CharacterEnum character) {
+        return character.isSts2 ? map_sts2.get(card) : map_sts1.get(card);
+    }
+
     static {
         map_sts1 = new HashMap<>();
         map_sts1.put(new Card.Strike(), new Card.StrikeP());
@@ -358,6 +365,7 @@ public class CardUpgrade {
 
         // Slay The Spire 2 Upgrades
 
+        map_sts2 = new HashMap<>();
         map_sts2.put(new CardIronclad2.Break(), new CardIronclad2.BreakP());
         map_sts2.put(new CardIronclad2.Corruption(), new CardIronclad2.CorruptionP());
         map_sts2.put(new CardIronclad2.Bash(), new CardIronclad2.BashP());
@@ -884,8 +892,13 @@ public class CardUpgrade {
         map_sts2.put(new CardColorless2.UltimateDefend(), new CardColorless2.UltimateDefendP());
 
         // map_sts2.put(new CardOther2.Wither(), new CardOther2.WitherP()); // TODO
-        map_sts2 = Collections.unmodifiableMap(map_sts2);
+        downgrade_map_sts2 = new HashMap<>();
+        for (Map.Entry<Card, Card> entry : map_sts2.entrySet()) {
+            downgrade_map_sts2.put(entry.getValue(), entry.getKey());
+        }
 
-        // TODO: downgrade_map_sts2
+        map_sts1 = Collections.unmodifiableMap(map_sts1);
+        map_sts2 = Collections.unmodifiableMap(map_sts2);
+        downgrade_map_sts2 = Collections.unmodifiableMap(downgrade_map_sts2);
     }
 }

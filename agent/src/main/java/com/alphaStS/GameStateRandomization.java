@@ -1,6 +1,7 @@
 package com.alphaStS;
 
 import com.alphaStS.card.Card;
+import com.alphaStS.card.CardUpgrade;
 import com.alphaStS.enemy.*;
 import com.alphaStS.entity.Potion;
 import com.alphaStS.random.RandomGenCtx;
@@ -814,7 +815,7 @@ public interface GameStateRandomization {
                 ensureDeckHasCards(state, counts);
                 for (Card card : cards) {
                     state.removeCardFromDeck(state.properties.findCardIndex(card), false);
-                    state.addCardToDeck(state.properties.findCardIndex(card.getUpgrade()), false);
+                    state.addCardToDeck(state.properties.findCardIndex(card.getUpgrade(state.properties)), false);
                 }
             }
 
@@ -1023,8 +1024,8 @@ public interface GameStateRandomization {
 
         public UpgradeRandomCardRandomization(GameStateBuilder builder, Card... extraCards) {
             upgradableCards = new HashSet<>();
-            upgradableCards.addAll(builder.getStartingCards().stream().filter((card) -> card.getUpgrade() != null).toList());
-            upgradableCards.addAll(Arrays.stream(extraCards).filter((card) -> card.getUpgrade() != null).toList());
+            upgradableCards.addAll(builder.getStartingCards().stream().filter((card) -> CardUpgrade.getUpgrade(card, builder.getCharacter()) != null).toList());
+            upgradableCards.addAll(Arrays.stream(extraCards).filter((card) -> CardUpgrade.getUpgrade(card, builder.getCharacter()) != null).toList());
         }
 
         @Override public int randomize(GameState state) {

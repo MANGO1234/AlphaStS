@@ -2,6 +2,7 @@ package com.alphaStS.enemy;
 
 import com.alphaStS.GameProperties;
 import com.alphaStS.GameState;
+import com.alphaStS.PlayerBuff;
 import com.alphaStS.card.Card;
 import com.alphaStS.card.CardOther2;
 import com.alphaStS.enums.DebuffType;
@@ -841,6 +842,7 @@ public class EnemyGlory {
         public SpectralKnight(int health) {
             super(health, 3, false);
             properties.isElite = true;
+            properties.entityProperty.addPossibleBuff(PlayerBuff.SPECTRAL_KNIGHT_HEX);
         }
 
         public SpectralKnight(SpectralKnight other) {
@@ -853,8 +855,7 @@ public class EnemyGlory {
 
         @Override public void doMove(GameState state, EnemyReadOnly self) {
             if (move == HEX) {
-                // TODO: Implement Spectral Knight Hex once global alive-enemy ethereal card handling exists.
-                // create a player debuff (PlayerBuff, see existing HEX, call new SPECTRAL_KNIGHT_HEX), while it's active and spectral knight lives, end of turn instead of discarding hand exhaust hand
+                state.getPlayerForWrite().applyDebuff(state, DebuffType.SPECTRAL_KNIGHT_HEX, 1);
             } else if (move == SOUL_SLASH) {
                 state.enemyDoDamageToPlayer(this, 17, 1);
             } else if (move == SOUL_FLAME) {

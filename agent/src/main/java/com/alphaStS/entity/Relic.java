@@ -639,7 +639,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                     if (!isRelicEnabledInScenario(state)) {
                         return;
                     }
-                    var cards = IntStreamEx.of(state.getDeckArrForRead()).mapToObj((cardIdx) -> new Tuple<>(cardIdx, state.properties.cardDict[cardIdx].getUpgrade())).filter((t) -> t.v2() != null).filter((t) -> t.v2().cardType == Card.SKILL).toList();
+                    var cards = IntStreamEx.of(state.getDeckArrForRead()).mapToObj((cardIdx) -> new Tuple<>(cardIdx, state.properties.cardDict[cardIdx].getUpgrade(state.properties))).filter((t) -> t.v2() != null).filter((t) -> t.v2().cardType == Card.SKILL).toList();
                     if (cards.size() == 1) {
                         var r1 = state.getSearchRandomGen().nextInt(cards.size(), RandomGenCtx.Misc);
                         state.removeCardFromDeck(cards.get(r1).v1(), false);
@@ -662,7 +662,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
 
         @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
-            return cards.stream().map(Card::getUpgrade).filter(Objects::nonNull).distinct().toList();
+            return cards.stream().map((card) -> card.getUpgrade(properties)).filter(Objects::nonNull).distinct().toList();
         }
     }
 
@@ -673,7 +673,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                     if (!isRelicEnabledInScenario(state)) {
                         return;
                     }
-                    var cards = IntStreamEx.of(state.getDeckArrForRead()).mapToObj((cardIdx) -> new Tuple<>(cardIdx, state.properties.cardDict[cardIdx].getUpgrade())).filter((t) -> t.v2() != null).filter((t) -> t.v2().cardType == Card.ATTACK).toList();
+                    var cards = IntStreamEx.of(state.getDeckArrForRead()).mapToObj((cardIdx) -> new Tuple<>(cardIdx, state.properties.cardDict[cardIdx].getUpgrade(state.properties))).filter((t) -> t.v2() != null).filter((t) -> t.v2().cardType == Card.ATTACK).toList();
                     if (cards.size() == 1) {
                         var r1 = state.getSearchRandomGen().nextInt(cards.size(), RandomGenCtx.Misc);
                         state.removeCardFromDeck(cards.get(r1).v1(), false);
@@ -1864,7 +1864,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
             if (upgradeSkill) {
                 for (int i = 0; i < generatedCards.size(); i++) {
                     if (generatedCards.get(i).cardType == Card.SKILL) {
-                        generatedCards.set(i, generatedCards.get(i).getUpgrade());
+                        generatedCards.set(i, generatedCards.get(i).getUpgrade(properties));
                     }
                 }
             }
@@ -2802,7 +2802,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                         return;
                     }
                     state.getPlayerForWrite().setHealth(state.getPlayerForRead().getHealth() - dmg);
-                    var cards = IntStreamEx.of(state.getDeckArrForRead()).mapToObj((cardIdx) -> new Tuple<>(cardIdx, state.properties.cardDict[cardIdx].getUpgrade())).filter((t) -> t.v2() != null).toList();
+                    var cards = IntStreamEx.of(state.getDeckArrForRead()).mapToObj((cardIdx) -> new Tuple<>(cardIdx, state.properties.cardDict[cardIdx].getUpgrade(state.properties))).filter((t) -> t.v2() != null).toList();
                     if (cards.size() == 1) {
                         var r1 = state.getSearchRandomGen().nextInt(cards.size(), RandomGenCtx.Misc);
                         state.removeCardFromDeck(cards.get(r1).v1(), false);
@@ -2846,7 +2846,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         @Override public List<Card> getPossibleGeneratedCards(GameProperties gameProperties, List<Card> cards) {
             cards = new ArrayList<>();
             cards.add(startOfBattleAction);
-            cards.addAll(this.cards.stream().map((c) -> c.getUpgrade()).toList());
+            cards.addAll(this.cards.stream().map((c) -> c.getUpgrade(gameProperties)).toList());
             return cards;
         }
     }

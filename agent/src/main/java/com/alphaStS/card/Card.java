@@ -128,7 +128,12 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
     public void gamePropertiesSetup(GameState state) {}
     public void onDiscard(GameState state) {}
     public void onDiscardEndOfTurn(GameState state, int numCardsInHand) {}
-    public Card getUpgrade() { return CardUpgrade.map.get(this); }
+
+    public Card getUpgrade(GameProperties properties) {
+        return CardUpgrade.getUpgrade(this, properties.character);
+    }
+
+    public Card getUpgrade() { return CardUpgrade.map_sts1.get(this); }
 
     public Card getTemporaryCostIfPossible(int temporaryCost) {
         if ((energyCost <= temporaryCost && !(temporaryCost == 0 && starCost > 0)) || isXCost) {
@@ -1027,6 +1032,16 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         @Override
         public Card getUpgrade() {
             var upgrade = card.getUpgrade();
+            return wrapUpgrade(upgrade);
+        }
+
+        @Override
+        public Card getUpgrade(GameProperties properties) {
+            var upgrade = card.getUpgrade(properties);
+            return wrapUpgrade(upgrade);
+        }
+
+        private Card wrapUpgrade(Card upgrade) {
             if (upgrade == null) {
                 return null;
             }

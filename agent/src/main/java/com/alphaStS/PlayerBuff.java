@@ -23,6 +23,7 @@ public record PlayerBuff(long mask, String name) {
     public final static PlayerBuff MUSIC_BOX = new PlayerBuff(1L << 46, "Music Box");
     public final static PlayerBuff THROWING_AXE = new PlayerBuff(1L << 47, "Throwing Axe");
     public final static PlayerBuff RUINED_HELMET = new PlayerBuff(1L << 48, "Ruined Helmet");
+    public final static PlayerBuff SPECTRAL_KNIGHT_HEX = new PlayerBuff(1L << 49, "Spectral Knight Hex");
 
     public final static PlayerBuff[] BUFFS = new PlayerBuff[] {
             BARRICADE,
@@ -44,5 +45,6 @@ public record PlayerBuff(long mask, String name) {
             MUSIC_BOX,
             THROWING_AXE,
             RUINED_HELMET,
+            SPECTRAL_KNIGHT_HEX,
     };
 }

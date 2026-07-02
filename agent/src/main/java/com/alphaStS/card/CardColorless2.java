@@ -37,7 +37,7 @@ public class CardColorless2 {
                 continue;
             }
             for (Card card : CardManager.getCharacterCardsByType(value, Card.ATTACK, false)) {
-                Card cardToAdd = upgraded ? card.getUpgrade() : card;
+                Card cardToAdd = upgraded ? CardUpgrade.getUpgrade(card, value) : card;
                 if (cardToAdd != null) {
                     cards.add(cardToAdd.getTemporaryCostIfPossible(0));
                 }
