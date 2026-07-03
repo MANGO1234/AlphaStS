@@ -130,6 +130,8 @@ public class GameProperties implements Cloneable {
     // SORTED BLOCK START
     public boolean[] healCardsBooleanArr;
     public int[] astrolabeCardsIdxes;
+    public int[] boundCardIdxes;
+    public int[] boundCardReverseIdxes;
     public int[] cardRewardIdxes;
     public int[] discardIdxes; // cards that can change in number of copies during a fight
     public int[] discardReverseIdxes;
@@ -150,6 +152,7 @@ public class GameProperties implements Cloneable {
     public boolean[] isStrikeCard;
     public int apotheosisCardIdx = -1;
     public int apotheosisPCardIdx = -1;
+    public int chainsOfBindingCounterIdx = -1;
     public int echoFormCardIdx = -1;
     public int echoFormPCardIdx = -1;
     public int enthralledCardIdx = -1;

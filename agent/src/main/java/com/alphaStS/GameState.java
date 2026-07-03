@@ -220,6 +220,14 @@ public final class GameState implements State {
         }
     }
 
+    private void transformBoundCards(short[] arr, int arrLen) {
+        for (int i = 0; i < arrLen; i++) {
+            if (properties.boundCardReverseIdxes[arr[i]] >= 0) {
+                arr[i] = (short) properties.boundCardReverseIdxes[arr[i]];
+            }
+        }
+    }
+
     public void handArrTransform(int[] transformIdxes) {
         transformCardArray(getHandArrForWrite(), handArrLen, transformIdxes);
     }
@@ -890,6 +898,28 @@ public final class GameState implements State {
         return r;
     }
 
+    private int[] findBoundCardIdxes(List<Card> cards) {
+        int[] r = new int[cards.size()];
+        Arrays.fill(r, -1);
+        for (int i = 0; i < r.length; i++) {
+            if (!cards.get(i).isBound()) {
+                r[i] = properties.findCardIndex(cards.get(i).getBoundIfPossible());
+            }
+        }
+        return r;
+    }
+
+    private int[] getReverseIdxes(int[] idxes) {
+        var reverseIndexes = new int[properties.cardDict.length];
+        Arrays.fill(reverseIndexes, -1);
+        for (int i = 0; i < idxes.length; i++) {
+            if (idxes[i] >= 0) {
+                reverseIndexes[idxes[i]] = i;
+            }
+        }
+        return reverseIndexes;
+    }
+
     private int[] findDiscardToKeepTrackOf(HashSet<Card> discardSet, List<Card> cards, List<Potion> potions) {
         Set<Integer> l = discardSet.stream().map((x) -> properties.findCardIndex(x)).collect(Collectors.toSet());
         for (int i = 0; i < cards.size(); i++) {
@@ -1037,7 +1067,9 @@ public final class GameState implements State {
 
         properties.upgradeIdxes = findUpgradeIdxes(cards);
         properties.temporaryDowngradeIdxes = findTemporaryDowngradeIdxes(cards);
-        properties.temporaryDowngradeReverseIdxes = findTemporaryDowngradeReverseIdxes(cards);
+        properties.temporaryDowngradeReverseIdxes = getReverseIdxes(properties.temporaryDowngradeIdxes);
+        properties.boundCardIdxes = findBoundCardIdxes(cards);
+        properties.boundCardReverseIdxes = getReverseIdxes(properties.boundCardIdxes);
         properties.discardIdxes = findDiscardToKeepTrackOf(discardSet, cards, potions);
         properties.discardReverseIdxes = new int[properties.realCardsLen];
         for (int i = 0; i < properties.discardIdxes.length; i++) {
@@ -1224,11 +1256,26 @@ public final class GameState implements State {
                     addCardToHand(cardIdx);
                 }
             }
+            if (shouldBindStartOfTurnDraw() && properties.boundCardIdxes[cardIdx] >= 0) {
+                int boundCardIdx = properties.boundCardIdxes[cardIdx];
+                removeCardFromHand(cardIdx);
+                addCardToHand(boundCardIdx);
+                cardIdx = boundCardIdx;
+                getCounterForWrite()[properties.chainsOfBindingCounterIdx]--;
+            }
             for (var handler : properties.onCardDrawnHandlers) {
                 handler.handle(this, cardIdx, -1, -1, null, -1);
             }
         }
         return drawnIdx;
+    }
+
+    private boolean shouldBindStartOfTurnDraw() {
+        if (properties.chainsOfBindingCounterIdx < 0 || !isStartOfTurnPhase) {
+            return false;
+        }
+        int chainsOfBinding = getCounterForRead()[properties.chainsOfBindingCounterIdx];
+        return (chainsOfBinding & (1 << 8)) != 0 && (chainsOfBinding & 0xFF) > 0;
     }
 
     public int drawOneCardSpecial() {
@@ -1371,6 +1418,9 @@ public final class GameState implements State {
             energyCost += 2;
         }
 
+        if (actionCtx == GameActionCtx.PLAY_CARD && hasBuff(PlayerBuff.BOUND_CARD_PLAYED) && properties.cardDict[cardIdx].isBound()) {
+            return false;
+        }
         if (properties.velvetChokerCounterIdx >= 0 && getCounterForRead()[properties.velvetChokerCounterIdx] >= 6 && actionCtx == GameActionCtx.PLAY_CARD) {
             return false;
         } else if (properties.timeEaterCounterIdx >= 0 && getCounterForRead()[properties.timeEaterCounterIdx] == 12 && cardIdx != properties.wellLaidPlansCardIdx) {
@@ -1935,6 +1985,9 @@ public final class GameState implements State {
         for (GameEventHandler handler : properties.startOfTurnHandlers) {
             handler.handle(this);
         }
+        if (properties.chainsOfBindingCounterIdx >= 0 && ((getCounterForWrite()[properties.chainsOfBindingCounterIdx] & EnemyGlory.Queen.CHAINS_OF_BINDING_ACTIVE) != 0)) {
+            getCounterForWrite()[properties.chainsOfBindingCounterIdx] = EnemyGlory.Queen.CHAINS_OF_BINDING_ACTIVE;
+        }
         isStartOfTurnPhase = false;
         if (properties.toolsOfTheTradeCounterIdx >= 0 && getCounterForRead()[properties.toolsOfTheTradeCounterIdx] > 0) {
             getCounterForWrite()[properties.toolsOfTheTradeCounterIdx] += getCounterForRead()[properties.toolsOfTheTradeCounterIdx] << 16;
@@ -2137,6 +2190,12 @@ public final class GameState implements State {
             transformCardsModifiedUntilEndOfTurn(getHandArrForWrite(), handArrLen);
             transformCardsModifiedUntilEndOfTurn(chosenCardsArr, chosenCardsArrLen);
         }
+        transformBoundCards(getHandArrForWrite(), handArrLen);
+        transformBoundCards(chosenCardsArr, chosenCardsArrLen);
+        transformBoundCards(getDeckArrForWrite(), deckArrLen);
+        transformBoundCards(getDiscardArrForWrite(), discardArrLen);
+        transformBoundCards(getExhaustArrForWrite(), exhaustArrLen);
+        removeBuff(PlayerBuff.BOUND_CARD_PLAYED);
 
         // handle well laid plan cards
         for (int i = 0; i < chosenCardsArrLen; i++) {
@@ -3258,6 +3317,9 @@ public final class GameState implements State {
                                 continue;
                             }
                             if (hasBuff(PlayerBuff.ENTANGLED) && properties.cardDict[handArr[i]].cardType == Card.ATTACK) {
+                                continue;
+                            }
+                            if (hasBuff(PlayerBuff.BOUND_CARD_PLAYED) && properties.cardDict[handArr[i]].isBound()) {
                                 continue;
                             }
                             int cost = getCardEnergyCost(handArr[i]);

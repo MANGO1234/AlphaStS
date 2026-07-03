@@ -14,6 +14,7 @@ import com.alphaStS.eventHandler.OnDamageHandler;
 import com.alphaStS.random.RandomGen;
 import com.alphaStS.random.RandomGenCtx;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.alphaStS.enemy.EnemyUtils.nextFixedMove;
@@ -1208,6 +1209,7 @@ public class EnemyGlory {
         public static final int OFF_WITH_YOUR_HEAD = 3;
         public static final int EXECUTION = 4;
         public static final int ENRAGE = 5;
+        public static final int CHAINS_OF_BINDING_ACTIVE = 1 << 8;
 
         public Queen() {
             this(419);
@@ -1233,7 +1235,7 @@ public class EnemyGlory {
 
         @Override public void doMove(GameState state, EnemyReadOnly self) {
             if (move == PUPPET_STRINGS) {
-                // TODO: Implement Chains of Binding and Bound card play restrictions.
+                state.getCounterForWrite()[state.properties.chainsOfBindingCounterIdx] = CHAINS_OF_BINDING_ACTIVE;
             } else if (move == YOURE_MINE) {
                 state.getPlayerForWrite().applyDebuff(state, DebuffType.FRAIL, 99);
                 state.getPlayerForWrite().applyDebuff(state, DebuffType.WEAK, 99);
@@ -1252,6 +1254,46 @@ public class EnemyGlory {
             } else if (move == ENRAGE) {
                 gainStrength(2);
             }
+        }
+
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties prop, List<Card> cards) {
+            var result = new ArrayList<Card>();
+            for (Card card : cards) {
+                Card newCard = card.getBoundIfPossible();
+                if (newCard != null) {
+                    result.add(newCard);
+                }
+            }
+            return result;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("ChainsOfBinding", new GameProperties.CounterRegistrant() {
+                @Override public int getCounterIdx(GameProperties gp) { return gp.chainsOfBindingCounterIdx; }
+                @Override public void setCounterIdx(GameProperties gp, int idx) { gp.chainsOfBindingCounterIdx = idx; }
+            }, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = (state.getCounterForRead()[state.properties.chainsOfBindingCounterIdx] & CHAINS_OF_BINDING_ACTIVE) != 0 ? 0.5f : -0.5f;
+                    input[idx + 1] = (state.getCounterForRead()[state.properties.chainsOfBindingCounterIdx] & 0xff) / 6.0f;
+                    return idx + 2;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 2;
+                }
+
+                @Override public String getDisplayString(GameState state) {
+                    return "Chains of Binding";
+                }
+            });
+            state.properties.addPreStartOfTurnHandler("ChainsOfBinding", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    int counterIdx = state.properties.chainsOfBindingCounterIdx;
+                    if ((state.getCounterForRead()[counterIdx] & CHAINS_OF_BINDING_ACTIVE) != 0) {
+                        state.getCounterForWrite()[counterIdx] = CHAINS_OF_BINDING_ACTIVE | 3;
+                    }
+                }
+            });
         }
 
         @Override public void nextMove(GameState state, RandomGen random) {

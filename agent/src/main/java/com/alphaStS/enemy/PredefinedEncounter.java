@@ -133,7 +133,7 @@ public enum PredefinedEncounter {
     KNIGHT_GANG("Knight Gang", 3, () -> List.of(new EnemyGlory.FlailKnight(), new EnemyGlory.SpectralKnight(), new EnemyGlory.MagiKnight())),
     MECHA_KNIGHT("Mecha Knight", 3, () -> List.of(new EnemyGlory.MechaKnight())),
     OWL_MAGISTRATE("Owl Magistrate", 3, () -> List.of(new EnemyGlory.OwlMagistrate())),
-    QUEEN("Queen", 3, () -> List.of(new EnemyGlory.Queen(), new EnemyGlory.TorchHeadAmalgam())),
+    QUEEN("Queen", 3, () -> List.of(new EnemyGlory.TorchHeadAmalgam(), new EnemyGlory.Queen())),
     SCROLL_OF_BITING("Scroll of Biting", 3, () -> List.of(new EnemyGlory.ScrollOfBiting())),
     SLIMED_BERSERKER("Slimed Berserker", 3, () -> List.of(new EnemyGlory.SlimedBerserker())),
     SOUL_NEXUS("Soul Nexus", 3, () -> List.of(new EnemyGlory.SoulNexus())),

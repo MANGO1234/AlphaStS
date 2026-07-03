@@ -6,6 +6,7 @@ import com.alphaStS.gameAction.GameActionCtx;
 import com.alphaStS.GameProperties;
 import com.alphaStS.GameState;
 import com.alphaStS.GameStateUtils;
+import com.alphaStS.PlayerBuff;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -160,6 +161,15 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         }
         var mod = new CardModification();
         mod.tmpRetain = true;
+        return new Card.CardWrapper(this, mod);
+    }
+
+    public Card getBoundIfPossible() {
+        if (this.energyCost < 0) {
+            return null;
+        }
+        var mod = new CardModification();
+        mod.bound = true;
         return new Card.CardWrapper(this, mod);
     }
 
@@ -326,6 +336,10 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         return false;
     }
 
+    public boolean isBound() {
+        return false;
+    }
+
     @Override public String toString() {
         return "Card{" +
                 "cardName='" + cardName + '\'' +
@@ -403,6 +417,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         public boolean sown = false;
         public boolean temporarilyDowngraded = false;
         public int vigorous = 0;
+        public boolean bound = false;
 
         public CardModification clone() {
             var copy = new CardModification();
@@ -433,6 +448,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
             copy.sown = sown;
             copy.temporarilyDowngraded = temporarilyDowngraded;
             copy.vigorous = vigorous;
+            copy.bound = bound;
             return copy;
         }
 
@@ -441,7 +457,8 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
                     || permEthereal || permRetain || adroit > 0 || corrupted || glam || imbued || inky
                     || instinct || momentum > 0 || momentumGained > 0 || nimble > 0 || perfectFit
                     || royallyApproved || sharp > 0 || soulsPower || spiral > 0 || steady || swift > 0
-                    || permSly || tmpSlyUntilEndOfTurn || sown || temporarilyDowngraded || vigorous > 0;
+                    || permSly || tmpSlyUntilEndOfTurn || sown || temporarilyDowngraded || vigorous > 0
+                    || bound;
         }
 
         public boolean hasEnchantment() {
@@ -553,6 +570,9 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
             if (mod.vigorous > 0) {
                 sb.append(" (Vigorous ").append(mod.vigorous).append(")");
             }
+            if (mod.bound) {
+                sb.append(" (Bound)");
+            }
             return sb.toString();
         }
 
@@ -622,6 +642,9 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
             }
             if (mod.corrupted) {
                 state.doNonAttackDamageToPlayer(2, false, this);
+            }
+            if (mod.bound) {
+                state.addBuff(PlayerBuff.BOUND_CARD_PLAYED);
             }
             return result;
         }
@@ -844,6 +867,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
             if (newMod.sown) { resultMod.sown = true; modified = true; }
             if (newMod.temporarilyDowngraded) { resultMod.temporarilyDowngraded = true; modified = true; }
             if (newMod.vigorous > 0) { resultMod.vigorous = newMod.vigorous; modified = true; }
+            if (newMod.bound) { resultMod.bound = true; modified = true; }
             if (!modified) {
                 return newCard;
             }
@@ -923,6 +947,18 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
             var newMod = mod.clone();
             newMod.tmpSlyUntilEndOfTurn = true;
             return wrap(card, newMod);
+        }
+
+        @Override
+        public Card getBoundIfPossible() {
+            var newMod = mod.clone();
+            newMod.bound = true;
+            return wrap(card, newMod);
+        }
+
+        @Override
+        public boolean isBound() {
+            return mod.bound;
         }
 
         @Override
