@@ -1223,6 +1223,9 @@ public final class GameState implements State {
         int cardIdx = deckArr[idx];
         getDeckArrForWrite()[idx] = deckArr[deckArrLen - 1];
         deckArrLen--;
+        if (deckArrFixedDrawLen > 0) {
+            deckArrFixedDrawLen--;
+        }
         return cardIdx;
     }
 
@@ -3957,8 +3960,8 @@ public final class GameState implements State {
                 setIsStochastic();
                 var idx = getSearchRandomGen().nextInt(this.deckArrLen - deckArrFixedDrawLen, RandomGenCtx.CardDraw);
                 var cardIdx = deckArr[idx];
-                deckArr[idx] = deckArr[deckArr.length - 1 - i];
-                deckArr[deckArr.length - 1 - i] = cardIdx;
+                deckArr[idx] = deckArr[deckArrLen - 1 - i];
+                deckArr[deckArrLen - 1 - i] = cardIdx;
                 deckArrFixedDrawLen++;
             }
         }
