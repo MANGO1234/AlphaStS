@@ -236,6 +236,29 @@ public final class GameState implements State {
         transformCardArray(getExhaustArrForWrite(), exhaustArrLen, transformIdxes);
     }
 
+    public void temporarilyDowngradeAllCards() {
+        handArrTransform(properties.temporaryDowngradeIdxes);
+        discardArrTransform(properties.temporaryDowngradeIdxes);
+        deckArrTransform(properties.temporaryDowngradeIdxes);
+        exhaustArrTransform(properties.temporaryDowngradeIdxes);
+    }
+
+    public void removeTemporaryDowngradesFromAllCards() {
+        handArrTransform(properties.temporaryDowngradeReverseIdxes);
+        discardArrTransform(properties.temporaryDowngradeReverseIdxes);
+        deckArrTransform(properties.temporaryDowngradeReverseIdxes);
+        exhaustArrTransform(properties.temporaryDowngradeReverseIdxes);
+    }
+
+    public boolean hasActiveMagiKnightDampen() {
+        for (var enemy : getEnemiesForRead()) {
+            if (enemy instanceof EnemyGlory.MagiKnight magiKnight && magiKnight.isAlive() && magiKnight.isDampenActive()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public void addNightmareCard(int idx) {
         if (idx >= properties.realCardsLen) {
             nightmareCards = cardIdxArrAdd(nightmareCards, true, nightmareCardsLen, properties.tmpModifiedCardReverseTransformIdxes[idx]);
@@ -844,6 +867,29 @@ public final class GameState implements State {
         return r;
     }
 
+    private int[] findTemporaryDowngradeIdxes(List<Card> cards) {
+        int[] r = new int[cards.size()];
+        Arrays.fill(r, -1);
+        for (int i = 0; i < r.length; i++) {
+            var downgrade = cards.get(i).getTemporarilyDowngraded(properties);
+            if (!cards.get(i).equals(downgrade)) {
+                r[i] = properties.findCardIndex(downgrade);
+            }
+        }
+        return r;
+    }
+
+    private int[] findTemporaryDowngradeReverseIdxes(List<Card> cards) {
+        int[] r = new int[cards.size()];
+        Arrays.fill(r, -1);
+        for (int i = 0; i < r.length; i++) {
+            if (cards.get(i).isTemporarilyDowngraded()) {
+                r[i] = properties.findCardIndex(cards.get(i).removeTemporarilyDowngradedMod(properties));
+            }
+        }
+        return r;
+    }
+
     private int[] findDiscardToKeepTrackOf(HashSet<Card> discardSet, List<Card> cards, List<Potion> potions) {
         Set<Integer> l = discardSet.stream().map((x) -> properties.findCardIndex(x)).collect(Collectors.toSet());
         for (int i = 0; i < cards.size(); i++) {
@@ -990,6 +1036,8 @@ public final class GameState implements State {
         }
 
         properties.upgradeIdxes = findUpgradeIdxes(cards);
+        properties.temporaryDowngradeIdxes = findTemporaryDowngradeIdxes(cards);
+        properties.temporaryDowngradeReverseIdxes = findTemporaryDowngradeReverseIdxes(cards);
         properties.discardIdxes = findDiscardToKeepTrackOf(discardSet, cards, potions);
         properties.discardReverseIdxes = new int[properties.realCardsLen];
         for (int i = 0; i < properties.discardIdxes.length; i++) {
@@ -3718,6 +3766,9 @@ public final class GameState implements State {
     public int createCard(int cardIdx) {
         for (int i = 0; i < properties.onCardCreationHandlers.size(); i++) {
             properties.onCardCreationHandlers.get(i).handle(this, cardIdx);
+        }
+        if (hasActiveMagiKnightDampen() && properties.temporaryDowngradeIdxes[cardIdx] >= 0) {
+            cardIdx = properties.temporaryDowngradeIdxes[cardIdx];
         }
         return cardIdx;
     }

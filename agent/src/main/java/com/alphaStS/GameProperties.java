@@ -137,6 +137,8 @@ public class GameProperties implements Cloneable {
     public int[] permSlyTransformIdxes;
     public int[] select1OutOf3CardsIdxes;
     public int[] select1OutOf3CardsReverseIdxes;
+    public int[] temporaryDowngradeIdxes;
+    public int[] temporaryDowngradeReverseIdxes;
     public int[] tmp0CostCardTransformIdxes;
     public int[] tmpModifiedCardReverseTransformIdxes;
     public int[] tmpSlyTransformIdxes;

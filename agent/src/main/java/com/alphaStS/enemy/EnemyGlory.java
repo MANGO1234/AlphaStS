@@ -900,6 +900,7 @@ public class EnemyGlory {
         public static final int RAM = 2;
         public static final int PREP = 3;
         public static final int MAGIC_BOMB = 4;
+        private boolean dampenActive;
 
         public MagiKnight() {
             this(89);
@@ -913,10 +914,15 @@ public class EnemyGlory {
 
         public MagiKnight(MagiKnight other) {
             super(other);
+            dampenActive = other.dampenActive;
         }
 
         @Override public Enemy copy() {
             return new MagiKnight(this);
+        }
+
+        public boolean isDampenActive() {
+            return dampenActive;
         }
 
         @Override public void doMove(GameState state, EnemyReadOnly self) {
@@ -924,7 +930,8 @@ public class EnemyGlory {
                 state.enemyDoDamageToPlayer(this, 7, 1);
                 gainBlock(9);
             } else if (move == DAMPEN) {
-                // TODO: Implement Dampen once global alive-enemy card downgrade handling exists.
+                dampenActive = true;
+                state.temporarilyDowngradeAllCards();
             } else if (move == RAM) {
                 state.enemyDoDamageToPlayer(this, 11, 1);
             } else if (move == PREP) {
@@ -932,6 +939,46 @@ public class EnemyGlory {
             } else if (move == MAGIC_BOMB) {
                 state.enemyDoDamageToPlayer(this, 40, 1);
             }
+        }
+
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            var result = new java.util.ArrayList<Card>();
+            for (Card card : cards) {
+                var downgraded = card.getTemporarilyDowngraded(properties);
+                if (downgraded != null && !card.equals(downgraded)) {
+                    result.add(downgraded);
+                }
+            }
+            return result;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            var idx = state.getEnemiesForRead().find(this);
+            state.properties.addOnEnemyDeathHandler("MagiKnightDampen" + idx, new GameEventEnemyHandler() {
+                @Override public void handle(GameState state, EnemyReadOnly enemy, EnemyDeathCause cause) {
+                    if (state.getEnemiesForRead().get(idx) != enemy) {
+                        return;
+                    }
+                    if (!(enemy instanceof MagiKnight magiKnight) || !magiKnight.dampenActive) {
+                        return;
+                    }
+                    if (state.hasActiveMagiKnightDampen()) {
+                        return;
+                    }
+                    state.removeTemporaryDowngradesFromAllCards();
+                }
+            });
+            state.properties.addNNInputHandler("MagiKnightDampen" + idx, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx2) {
+                    input[idx2] = state.getEnemiesForRead().get(idx) instanceof MagiKnight magiKnight
+                            && magiKnight.isAlive() && magiKnight.dampenActive ? 0.5f : -0.5f;
+                    return idx2 + 1;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
         }
 
         @Override public void nextMove(GameState state, RandomGen random) {

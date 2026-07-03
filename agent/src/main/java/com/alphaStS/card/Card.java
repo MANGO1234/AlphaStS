@@ -109,6 +109,10 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         return false;
     }
 
+    public boolean isTemporarilyDowngraded() {
+        return false;
+    }
+
     public GameActionCtx play(GameState state, int idx, int energyUsed) { return GameActionCtx.PLAY_CARD; }
     public void onExhaust(GameState state) {}
     public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) { return List.of(); }
@@ -357,6 +361,20 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         return card;
     }
 
+    public Card getTemporarilyDowngraded(GameProperties properties) {
+        var downgrade = getDowngrade(properties);
+        if (downgrade == null) {
+            return null;
+        }
+        var mod = new CardModification();
+        mod.temporarilyDowngraded = true;
+        return new CardWrapper(downgrade, mod);
+    }
+
+    public Card removeTemporarilyDowngradedMod(GameProperties properties) {
+        return this;
+    }
+
     public static class CardModification {
         public int tmpChangeCost = -1;
         public int tmpUntilPlayedCost = -1;
@@ -383,6 +401,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         public boolean permSly = false;
         public boolean tmpSlyUntilEndOfTurn = false;
         public boolean sown = false;
+        public boolean temporarilyDowngraded = false;
         public int vigorous = 0;
 
         public CardModification clone() {
@@ -412,8 +431,17 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
             copy.permSly = permSly;
             copy.tmpSlyUntilEndOfTurn = tmpSlyUntilEndOfTurn;
             copy.sown = sown;
+            copy.temporarilyDowngraded = temporarilyDowngraded;
             copy.vigorous = vigorous;
             return copy;
+        }
+
+        public boolean cardIsModded() {
+            return tmpChangeCost != -1 || tmpUntilPlayedCost != -1 || permChangeCost != -1 || tmpRetain
+                    || permEthereal || permRetain || adroit > 0 || corrupted || glam || imbued || inky
+                    || instinct || momentum > 0 || momentumGained > 0 || nimble > 0 || perfectFit
+                    || royallyApproved || sharp > 0 || soulsPower || spiral > 0 || steady || swift > 0
+                    || permSly || tmpSlyUntilEndOfTurn || sown || temporarilyDowngraded || vigorous > 0;
         }
 
         public boolean hasEnchantment() {
@@ -519,6 +547,9 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
             if (mod.steady) {
                 sb.append(" (Steady)");
             }
+            if (mod.temporarilyDowngraded) {
+                sb.append(" (Temporarily Downgraded)");
+            }
             if (mod.vigorous > 0) {
                 sb.append(" (Vigorous ").append(mod.vigorous).append(")");
             }
@@ -609,6 +640,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
                 var possibleInnerCards = card.getPossibleGeneratedCards(properties, cards);
                 var result = new ArrayList<>(possibleInnerCards);
                 if (hasTempMods) {
+                    // TODO: need to wrap if has non temp mods, integrate momentum change below
                     result.add(card);
                 }
                 if (mod.momentum > 0) {
@@ -743,6 +775,11 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         }
 
         @Override
+        public boolean isTemporarilyDowngraded() {
+            return mod.temporarilyDowngraded;
+        }
+
+        @Override
         public Card getBaseCard() {
             return card.getBaseCard();
         }
@@ -805,6 +842,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
             if (!newCard.retain && newMod.steady) { resultMod.steady = true; modified = true; }
             if (newMod.swift > 0) { resultMod.swift = newMod.swift; modified = true; }
             if (newMod.sown) { resultMod.sown = true; modified = true; }
+            if (newMod.temporarilyDowngraded) { resultMod.temporarilyDowngraded = true; modified = true; }
             if (newMod.vigorous > 0) { resultMod.vigorous = newMod.vigorous; modified = true; }
             if (!modified) {
                 return newCard;
@@ -1037,12 +1075,18 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
         @Override
         public Card getUpgrade() {
+            if (mod.temporarilyDowngraded) {
+                return null;
+            }
             var upgrade = card.getUpgrade();
             return wrapUpgrade(upgrade);
         }
 
         @Override
         public Card getUpgrade(GameProperties properties) {
+            if (mod.temporarilyDowngraded) {
+                return null;
+            }
             var upgrade = card.getUpgrade(properties);
             return wrapUpgrade(upgrade);
         }
@@ -1057,6 +1101,34 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         public Card getDowngrade(GameProperties properties) {
             var downgrade = card.getDowngrade(properties);
             return downgrade == null ? null : wrap(downgrade);
+        }
+
+        @Override
+        public Card getTemporarilyDowngraded(GameProperties properties) {
+            if (mod.temporarilyDowngraded) {
+                return this;
+            }
+            var downgrade = card.getDowngrade(properties);
+            if (downgrade == null) {
+                return this;
+            }
+            var newMod = mod.clone();
+            newMod.temporarilyDowngraded = true;
+            return wrap(downgrade, newMod);
+        }
+
+        @Override
+        public Card removeTemporarilyDowngradedMod(GameProperties properties) {
+            if (!mod.temporarilyDowngraded) {
+                return this;
+            }
+            var upgraded = card.getUpgrade(properties);
+            if (upgraded == null) {
+                upgraded = card;
+            }
+            var newMod = mod.clone();
+            newMod.temporarilyDowngraded = false;
+            return newMod.cardIsModded() ? wrap(upgraded, newMod) : upgraded;
         }
 
         private Card wrapUpgrade(Card upgrade) {
