@@ -396,7 +396,7 @@ public class EnemyEnding {
             state.properties.addOnDamageHandler(new OnDamageHandler() {
                 @Override public void handle(GameState state, Object source, boolean isAttack, int damageDealt) {
                     if (source instanceof CorruptHeart && ((CorruptHeart) source).buffCount >= 2 && isAttack && damageDealt > 0) {
-                        state.addCardToDiscard(properties.generatedCardIdxes[4]);
+                        state.addCardToDiscard(properties.generatedCardIdxes[4], false);
                     }
                 }
             });

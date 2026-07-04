@@ -947,7 +947,7 @@ public class Relic2 {
                     }
                     state.setIsStochastic();
                     int r = state.getSearchRandomGen().nextInt(generatedCardIdxes.length, RandomGenCtx.RandomCardGen);
-                    state.addCardToHand(state.createCard(generatedCardIdxes[r]));
+                    state.addCardToHand(state.createCard(generatedCardIdxes[r]), true);
                 }
             });
         }
@@ -1045,7 +1045,7 @@ public class Relic2 {
                     int exhaustedCardIdx = state.exhaustArr[state.exhaustArrLen - 1];
                     if (state.properties.cardDict[exhaustedCardIdx].cardType == Card.SKILL) {
                         state.getCounterForWrite()[counterIdx] = 1;
-                        state.addCardToHand(exhaustedCardIdx);
+                        state.addCardToHand(exhaustedCardIdx, false);
                     }
                 }
             });
@@ -1625,7 +1625,7 @@ public class Relic2 {
                     if (isRelicEnabledInScenario(state)) {
                         state.setIsStochastic();
                         int r = state.getSearchRandomGen().nextInt(generatedCardIdxes.length, RandomGenCtx.RandomCardGen);
-                        state.addCardToHand(generatedCardIdxes[r]);
+                        state.addCardToHand(generatedCardIdxes[r], true);
                     }
                 }
             });
@@ -1793,7 +1793,7 @@ public class Relic2 {
                     int permCostCardIdx = state.properties.findCardIndex(state.properties.cardDict[chosenCardIdx].getPermCostIfPossible(0));
                     state.getDeckArrForWrite()[chosenPos] = state.deckArr[state.deckArrLen - 1];
                     state.deckArrLen--;
-                    state.addCardToHand(permCostCardIdx);
+                    state.addCardToHand(permCostCardIdx, false);
                 }
             });
         }
@@ -1845,7 +1845,7 @@ public class Relic2 {
                     if (state.properties.cardDict[cardIdx].cardType == Card.ATTACK) {
                         state.removeBuff(PlayerBuff.MUSIC_BOX);
                         int etherealCardIdx = state.properties.findCardIndex(state.properties.cardDict[cardIdx].getPermEthereal());
-                        state.addCardToHand(state.createCard(etherealCardIdx));
+                        state.addCardToHand(state.createCard(etherealCardIdx), true);
                     }
                 }
             });
@@ -2041,7 +2041,7 @@ public class Relic2 {
             state.properties.addStartOfBattleHandler("RadiantPearl", new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     if (isRelicEnabledInScenario(state)) {
-                        state.addCardToHand(generatedCardIdx);
+                        state.addCardToHand(generatedCardIdx, true);
                     }
                 }
             });
@@ -2525,7 +2525,7 @@ public class Relic2 {
                         }
                     }
                     for (int i = 0; i < chosen.length; i++) {
-                        state.addCardToHand(chosen[i]);
+                        state.addCardToHand(chosen[i], false);
                         state.removeCardFromDeck(chosen[i], false);
                     }
                 }
@@ -2672,7 +2672,7 @@ public class Relic2 {
                     state.setIsStochastic();
                     for (int i = 0; i < 2; i++) {
                         int r = state.getSearchRandomGen().nextInt(generatedCardIdxes.length, RandomGenCtx.RandomCardGen);
-                        state.addCardToHand(state.createCard(generatedCardIdxes[r]));
+                        state.addCardToHand(state.createCard(generatedCardIdxes[r]), true);
                     }
                 }
             });
@@ -2721,7 +2721,7 @@ public class Relic2 {
                     state.setIsStochastic();
                     for (int i = 0; i < 2; i++) {
                         int r = state.getSearchRandomGen().nextInt(generatedCardIdxes.length, RandomGenCtx.RandomCardGen);
-                        state.addCardToHand(state.createCard(generatedCardIdxes[r]));
+                        state.addCardToHand(state.createCard(generatedCardIdxes[r]), true);
                     }
                 }
             });

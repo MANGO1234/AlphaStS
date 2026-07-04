@@ -124,7 +124,7 @@ public class CardOther {
         }
 
         @Override public void onExhaust(GameState state) {
-            state.addCardToHand(cardIndex);
+            state.addCardToHand(cardIndex, false);
         }
     }
 

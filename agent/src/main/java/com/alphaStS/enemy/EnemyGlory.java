@@ -56,8 +56,8 @@ public class EnemyGlory {
             } else if (move == EYE_LASERS) {
                 state.enemyDoDamageToPlayer(this, 12, 2);
             } else if (move == INCREASING_INTENSITY) {
-                state.addCardToDiscard(properties.generatedCardIdx);
-                state.addCardToDiscard(properties.generatedCardIdx);
+                state.addCardToDiscard(properties.generatedCardIdx, false);
+                state.addCardToDiscard(properties.generatedCardIdx, false);
                 gainStrength(3);
                 state.getCounterForWrite()[state.properties.aeonglassWitherCounterIdx]++;
             }
@@ -118,7 +118,7 @@ public class EnemyGlory {
                     counter[state.properties.aeonglassWitherCounterIdx + 1]++;
                     if (counter[state.properties.aeonglassWitherCounterIdx + 1] >= 6) {
                         counter[state.properties.aeonglassWitherCounterIdx + 1] = 0;
-                        state.addCardToHand(properties.generatedCardIdx);
+                        state.addCardToHand(properties.generatedCardIdx, false);
                     }
                 }
             });
@@ -580,7 +580,7 @@ public class EnemyGlory {
 
         @Override public void doMove(GameState state, EnemyReadOnly self) {
             state.addCardToDeck(properties.generatedCardIdx);
-            state.addCardToDiscard(properties.generatedCardIdx);
+            state.addCardToDiscard(properties.generatedCardIdx, false);
         }
 
         @Override public void nextMove(GameState state, RandomGen random) {
@@ -1052,10 +1052,10 @@ public class EnemyGlory {
             if (move == CHARGE) {
                 state.enemyDoDamageToPlayer(this, 30, 1);
             } else if (move == FLAMETHROWER) {
-                state.addCardToHand(properties.generatedCardIdx);
-                state.addCardToHand(properties.generatedCardIdx);
-                state.addCardToHand(properties.generatedCardIdx);
-                state.addCardToHand(properties.generatedCardIdx);
+                state.addCardToHand(properties.generatedCardIdx, false);
+                state.addCardToHand(properties.generatedCardIdx, false);
+                state.addCardToHand(properties.generatedCardIdx, false);
+                state.addCardToHand(properties.generatedCardIdx, false);
             } else if (move == WINDUP) {
                 gainBlock(15);
                 gainStrength(5);
@@ -1510,7 +1510,7 @@ public class EnemyGlory {
         @Override public void doMove(GameState state, EnemyReadOnly self) {
             if (move == VOMIT_ICHOR) {
                 for (int i = 0; i < 10; i++) {
-                    state.addCardToDiscard(properties.generatedCardIdx);
+                    state.addCardToDiscard(properties.generatedCardIdx, false);
                 }
             } else if (move == FURIOUS_PUMMELING) {
                 state.enemyDoDamageToPlayer(this, 5, 4);
@@ -1740,7 +1740,7 @@ public class EnemyGlory {
                 state.enemyDoDamageToPlayer(this, 45, 1);
             } else if (move == BURNING_GROWL) {
                 for (int i = 0; i < 5; i++) {
-                    state.addCardToDiscard(properties.generatedCardIdxes[1]);
+                    state.addCardToDiscard(properties.generatedCardIdxes[1], false);
                 }
                 gainStrength(3);
             }
@@ -1786,7 +1786,7 @@ public class EnemyGlory {
             state.properties.addOnDamageHandler("TestSubjectPainfulStabs", new OnDamageHandler() {
                 @Override public void handle(GameState state, Object source, boolean isAttack, int damageDealt) {
                     if (source instanceof TestSubject testSubject && testSubject.phase == 2 && isAttack && damageDealt > 0) {
-                        state.addCardToDiscard(properties.generatedCardIdxes[0]);
+                        state.addCardToDiscard(properties.generatedCardIdxes[0], false);
                     }
                 }
             });

@@ -8,6 +8,7 @@ import com.alphaStS.entity.Potion;
 import com.alphaStS.entity.Relic;
 import com.alphaStS.enums.*;
 import com.alphaStS.eventHandler.GameEventHandler;
+import com.alphaStS.eventHandler.OnCardCreationHandler;
 import com.alphaStS.eventHandler.OnDamageHandler;
 import com.alphaStS.gameAction.GameAction;
 import com.alphaStS.gameAction.GameActionCtx;
@@ -1206,7 +1207,7 @@ public final class GameState implements State {
             if (deckArrFixedDrawLen > 0) {
                 cardIdx = deckArr[deckArrLen - 1];
                 drawnIdx = cardIdx;
-                addCardToHand(cardIdx);
+                addCardToHand(cardIdx, false);
                 deckArrLen--;
                 deckArrFixedDrawLen--;
                 if (properties.enableSL != null && properties.isTraining) {
@@ -1230,7 +1231,7 @@ public final class GameState implements State {
                     Arrays.sort(getDeckArrForWrite(), 0, this.deckArrLen);
                 }
                 cardIdx = deckArr[i];
-                addCardToHand(deckArr[i]);
+                addCardToHand(deckArr[i], false);
                 if (properties.makingRealMove || properties.stateDescOn) {
                     if (firstRandomDraw) {
                         getStateDesc().append(getStateDesc().length() > 0 ? "; " : "").append("Draw ");
@@ -1250,16 +1251,16 @@ public final class GameState implements State {
                 var snecko = properties.sneckoIdxes[cardIdx];
                 if (snecko[0] == 1) {
                     cardIdx = snecko[1];
-                    addCardToHand(snecko[1]);
+                    addCardToHand(snecko[1], false);
                 } else {
                     cardIdx = snecko[getSearchRandomGen().nextInt(snecko[0], RandomGenCtx.Snecko, new Tuple<>(this, cardIdx)) + 1];
-                    addCardToHand(cardIdx);
+                    addCardToHand(cardIdx, false);
                 }
             }
             if (shouldBindStartOfTurnDraw() && properties.boundCardIdxes[cardIdx] >= 0) {
                 int boundCardIdx = properties.boundCardIdxes[cardIdx];
                 removeCardFromHand(cardIdx);
-                addCardToHand(boundCardIdx);
+                addCardToHand(boundCardIdx, false);
                 cardIdx = boundCardIdx;
                 getCounterForWrite()[properties.chainsOfBindingCounterIdx]--;
             }
@@ -1434,7 +1435,7 @@ public final class GameState implements State {
             }
             if (realEnergyCost < 0) {
                 if (properties.cardDict[cardIdx].cardType == Card.CURSE) {
-                    addCardToDiscard(cardIdx);
+                    addCardToDiscard(cardIdx, false);
                 }
                 if (runActionQueueOnEnd) {
                     runActionsInQueueIfNonEmpty();
@@ -1659,7 +1660,7 @@ public final class GameState implements State {
                 } else if (properties.cardDict[cardIdx].returnToTopOfDeckWhenPlay) {
                     addCardOnTopOfDeck(cardIdx);
                 } else if (properties.cardDict[cardIdx].returnToHandWhenPlay) {
-                    addCardToHand(cardIdx);
+                    addCardToHand(cardIdx, false);
                 } else if (properties.nostalgiaCounterIdx >= 0 && getCounterForRead()[properties.nostalgiaCounterIdx] > 0 && (properties.cardDict[cardIdx].cardType == Card.ATTACK || properties.cardDict[cardIdx].cardType == Card.SKILL)) {
                     getCounterForWrite()[properties.nostalgiaCounterIdx]--;
                     addCardOnTopOfDeck(cardIdx);
@@ -1668,17 +1669,17 @@ public final class GameState implements State {
                             && properties.cardDict[cardIdx].energyCost == 0
                             && properties.cardDict[cardIdx].cardType == Card.ATTACK) {
                         getCounterForWrite()[properties.feralCounterIdx]--;
-                        addCardToHand(cardIdx);
+                        addCardToHand(cardIdx, false);
                     } else if (properties.reboundCounterIdx >= 0 && getCounterForRead()[properties.reboundCounterIdx] > 0) {
                         if ((getCounterForRead()[properties.reboundCounterIdx] & (1 << 8)) != 0) {
-                            addCardToDiscard(cardIdx);
+                            addCardToDiscard(cardIdx, false);
                             getCounterForWrite()[properties.reboundCounterIdx]++;
                             getCounterForWrite()[properties.reboundCounterIdx] ^= 1 << 8;
                         } else {
                             addCardOnTopOfDeck(cardIdx);
                         }
                     } else {
-                        addCardToDiscard(cardIdx);
+                        addCardToDiscard(cardIdx, false);
                     }
                 }
                 if (properties.reboundCounterIdx >= 0 && getCounterForRead()[properties.reboundCounterIdx] > 0) {
@@ -2171,7 +2172,7 @@ public final class GameState implements State {
                 exhaustedCardHandle(handArr[i], false);
                 getHandArrForWrite()[i] = -1;
             } else if (properties.cardDict[handArr[i]].alwaysDiscard) {
-                addCardToDiscard(handArr[i]);
+                addCardToDiscard(handArr[i], false);
                 getHandArrForWrite()[i] = -1;
             } else if (properties.cardDict[handArr[i]].retain(this)) {
                 // Retain cards stay in hand, call onRetain handlers
@@ -2179,7 +2180,7 @@ public final class GameState implements State {
                     handler.handle(this, i, -1, -1, null, -1);
                 }
             } else if (isDiscardingCardEndOfTurn()) {
-                addCardToDiscard(handArr[i]);
+                addCardToDiscard(handArr[i], false);
                 getHandArrForWrite()[i] = -1;
             }
         }
@@ -2202,9 +2203,9 @@ public final class GameState implements State {
             if (properties.cardDict[chosenCardsArr[i]].ethereal() || spectralKnightHexActive) {
                 exhaustedCardHandle(chosenCardsArr[i], false);
             } else if (properties.cardDict[chosenCardsArr[i]].alwaysDiscard) {
-                addCardToDiscard(chosenCardsArr[i]);
+                addCardToDiscard(chosenCardsArr[i], false);
             } else {
-                addCardToHand(chosenCardsArr[i]);
+                addCardToHand(chosenCardsArr[i], false);
             }
         }
         chosenCardsArrLen = 0;
@@ -2366,7 +2367,7 @@ public final class GameState implements State {
                     addCardToDeck(action.idx(), false);
                     setActionCtx(GameActionCtx.BEGIN_BATTLE, null, null);
                 } else {
-                    addCardToHandGeneration(action.idx());
+                    addCardToHand(action.idx(), true);
                     beginTurnPart2();
                 }
             } else {
@@ -2375,7 +2376,7 @@ public final class GameState implements State {
                 } else if (properties.cardDict[action.idx()].select1OutOf3CardEffectCard) {
                     properties.cardDict[action.idx()].play(this, 0, 0);
                 } else {
-                    addCardToHandGeneration(action.idx());
+                    addCardToHand(action.idx(), true);
                 }
                 setActionCtx(GameActionCtx.PLAY_CARD, null, null);
             }
@@ -2451,7 +2452,7 @@ public final class GameState implements State {
                 continue;
             }
             if (isCardPlayBlocked()) {
-                addCardToDiscard(cardIdx);
+                addCardToDiscard(cardIdx, false);
                 continue;
             }
             if (properties.makingRealMove || properties.stateDescOn) {
@@ -3521,7 +3522,7 @@ public final class GameState implements State {
             cardIdx = properties.tmpModifiedCardReverseTransformIdxes[cardIdx];
         }
         if (fromCardPlay && properties.strangeSpoon != null && properties.strangeSpoon.isRelicEnabledInScenario(this) && getSearchRandomGen().nextBoolean(RandomGenCtx.Misc)) {
-            addCardToDiscard(cardIdx);
+            addCardToDiscard(cardIdx, false);
             return;
         }
         if (fromCardPlay && properties.blueCandle != null && properties.blueCandle.isRelicEnabledInScenario(this) && properties.cardDict[cardIdx].cardType == Card.CURSE) {
@@ -3536,7 +3537,7 @@ public final class GameState implements State {
 
     public boolean drawCardByIdx(int cardIdx, boolean addToHand) {
         if (removeCardFromDeck(cardIdx, false)) {
-            if (addToHand) addCardToHand(cardIdx);
+            if (addToHand) addCardToHand(cardIdx, false);
             return true;
         }
         return false;
@@ -3544,7 +3545,7 @@ public final class GameState implements State {
 
     public int discardHand(boolean triggerDiscard) {
         for (int i = handArrLen - 1; i >= 0; i--) {
-            addCardToDiscard(handArr[i]);
+            addCardToDiscard(handArr[i], false);
             if (triggerDiscard) {
                 triggerDiscardEffect(handArr[i]);
             }
@@ -3721,7 +3722,7 @@ public final class GameState implements State {
         if (properties.forgeCounterIdx < 0) return;
         if (properties.sovereignBladeCardIdx >= 0 && !hasSovereignBladeInHandDeckOrDiscard()) {
             getCounterForWrite()[properties.forgeCounterIdx] = 0;
-            addCardToHand(properties.sovereignBladeCardIdx);
+            addCardToHand(properties.sovereignBladeCardIdx, true);
         }
         getCounterForWrite()[properties.forgeCounterIdx] += amount;
     }
@@ -3750,27 +3751,17 @@ public final class GameState implements State {
         return base instanceof CardColorless2.SovereignBlade || base instanceof CardColorless2.SovereignBladeP;
     }
 
-    public void addCardToHand(int cardIndex) {
-        if (handArrLen >= GameState.HAND_LIMIT) {
-            addCardToDiscard(cardIndex);
-        } else {
-            handArr = cardIdxArrAdd(handArr, !handCloned, handArrLen, cardIndex);
-            handArrLen++;
-            handCloned = true;
-        }
-    }
-
-    public int addCardToHandGeneration(int cardIndex) {
+    private int cardGenerationAdditionalTransformation(int cardIndex) {
         if (properties.forceFieldCounterIdx >= 0) {
             var baseCard = properties.cardDict[cardIndex].getBaseCard();
             if (baseCard instanceof CardDefect.ForceField forceField) {
                 if (forceField.energyCost == 4) {
-                    cardIndex = properties.findCardIndex(properties.cardDict[cardIndex].wrap(new CardDefect.ForceField(Math.max(4 - getCounterForRead()[properties.forceFieldCounterIdx], 0))));
+                    return properties.findCardIndex(properties.cardDict[cardIndex].wrap(new CardDefect.ForceField(Math.max(4 - getCounterForRead()[properties.forceFieldCounterIdx], 0))));
                 }
             }
             if (baseCard instanceof CardDefect.ForceFieldP forceField) {
                 if (forceField.energyCost == 4) {
-                    cardIndex = properties.findCardIndex(properties.cardDict[cardIndex].wrap(new CardDefect.ForceFieldP(Math.max(4 - getCounterForRead()[properties.forceFieldCounterIdx], 0))));
+                    return properties.findCardIndex(properties.cardDict[cardIndex].wrap(new CardDefect.ForceFieldP(Math.max(4 - getCounterForRead()[properties.forceFieldCounterIdx], 0))));
                 }
             }
         }
@@ -3778,16 +3769,34 @@ public final class GameState implements State {
             var baseCard = properties.cardDict[cardIndex].getBaseCard();
             if (baseCard instanceof CardIronclad.BloodForBlood bloodForBlood) {
                 if (bloodForBlood.energyCost == 4) {
-                    cardIndex = properties.findCardIndex(properties.cardDict[cardIndex].wrap(new CardIronclad.BloodForBlood(Math.max(4 - getCounterForRead()[properties.bloodForBloodCounterIdx], 0))));
+                    return properties.findCardIndex(properties.cardDict[cardIndex].wrap(new CardIronclad.BloodForBlood(Math.max(4 - getCounterForRead()[properties.bloodForBloodCounterIdx], 0))));
                 }
             }
             if (baseCard instanceof CardIronclad.BloodForBloodP bloodForBlood) {
                 if (bloodForBlood.energyCost == 3) {
-                    cardIndex = properties.findCardIndex(properties.cardDict[cardIndex].wrap(new CardIronclad.BloodForBloodP(Math.max(3 - getCounterForRead()[properties.bloodForBloodCounterIdx], 0))));
+                    return properties.findCardIndex(properties.cardDict[cardIndex].wrap(new CardIronclad.BloodForBloodP(Math.max(3 - getCounterForRead()[properties.bloodForBloodCounterIdx], 0))));
                 }
             }
         }
-        addCardToHand(cardIndex);
+        return cardIndex;
+    }
+
+    public int addCardToHand(int cardIndex, boolean generateCard) {
+        if (generateCard) {
+            cardIndex = cardGenerationAdditionalTransformation(cardIndex);
+        }
+        if (handArrLen >= GameState.HAND_LIMIT) {
+            addCardToDiscard(cardIndex, false);
+        } else {
+            handArr = cardIdxArrAdd(handArr, !handCloned, handArrLen, cardIndex);
+            handArrLen++;
+            handCloned = true;
+        }
+        if (generateCard) {
+            for (OnCardCreationHandler handler : properties.onCardCreationHandlers) {
+                handler.handle(this, cardIndex);
+            }
+        }
         return cardIndex;
     }
 
@@ -3816,13 +3825,21 @@ public final class GameState implements State {
         getHandArrForWrite()[idx] = (short) newCardIdx;
     }
 
-    public void addCardToDiscard(int cardIndex) {
+    public void addCardToDiscard(int cardIndex, boolean generateCard) {
+        if (generateCard) {
+            cardIndex = cardGenerationAdditionalTransformation(cardIndex);
+        }
         if (properties.cardDict[cardIndex].isTmpModifiedUntilEndOfTurnCard()) {
             cardIndex = properties.tmpModifiedCardReverseTransformIdxes[cardIndex];
         }
         discardArr = cardIdxArrAdd(discardArr, !discardCloned, discardArrLen, cardIndex);
         discardArrLen++;
         discardCloned = true;
+        if (generateCard) {
+            for (OnCardCreationHandler handler : properties.onCardCreationHandlers) {
+                handler.handle(this, cardIndex);
+            }
+        }
     }
 
     public int createCard(int cardIdx) {
@@ -3924,14 +3941,14 @@ public final class GameState implements State {
 
     public void discardCardFromHand(int cardIndex) {
         if (removeCardFromHand(cardIndex)) {
-            addCardToDiscard(cardIndex);
+            addCardToDiscard(cardIndex, false);
             triggerDiscardEffect(cardIndex);
         }
     }
 
     public void discardCardFromHandByPosition(int idx, boolean updateImmediately) {
         var cardIdx = getHandArrForRead()[idx];
-        addCardToDiscard(cardIdx);
+        addCardToDiscard(cardIdx, false);
         triggerDiscardEffect(cardIdx);
         getHandArrForWrite()[idx] = -1;
         if (updateImmediately) {
@@ -3941,7 +3958,7 @@ public final class GameState implements State {
 
     public void discardCardFromHandByPositionNoTrigger(int idx) {
         var cardIdx = getHandArrForRead()[idx];
-        addCardToDiscard(cardIdx);
+        addCardToDiscard(cardIdx, false);
         getHandArrForWrite()[idx] = -1;
         updateHandArr();
     }

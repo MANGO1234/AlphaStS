@@ -1055,7 +1055,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                             }
                         }
                         state.removeCardFromHand(idx);
-                        state.addCardToHand(state.properties.tmp0CostCardTransformIdxes[idx]);
+                        state.addCardToHand(state.properties.tmp0CostCardTransformIdxes[idx], false);
                     }
                 }
             });
@@ -1342,7 +1342,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                                 return;
                             }
                             var idx = state.getSearchRandomGen().nextInt(generatedCardIdxes.length, RandomGenCtx.RandomCardGen, new Tuple<>(state, generatedCardIdxes));
-                            idx = state.addCardToHandGeneration(generatedCardIdxes[idx]);
+                            idx = state.addCardToHand(generatedCardIdxes[idx], true);
                             state.setIsStochastic();
                             if (state.getStateDesc().length() > 0) state.stateDesc.append(", ");
                             state.getStateDesc().append("Dead Branch -> ").append(state.properties.cardDict[idx].cardName);
@@ -2205,7 +2205,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                         state.setIsStochastic();
                         cardIdx = generatedCardIdxes[state.getSearchRandomGen().nextInt(generatedCardIdxes.length, RandomGenCtx.RandomCardGen, new Tuple<>(state, generatedCardIdxes))];
                     }
-                    state.addCardToHand(cardIdx);
+                    state.addCardToHand(cardIdx, true);
                 }
             });
         }
@@ -2655,9 +2655,9 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
             state.properties.addStartOfTurnHandler("NinjaScroll", new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     if (state.turnNum == 1 && isRelicEnabledInScenario(state)) {
-                        state.addCardToHand(generatedCardIdx);
-                        state.addCardToHand(generatedCardIdx);
-                        state.addCardToHand(generatedCardIdx);
+                        state.addCardToHand(generatedCardIdx, true);
+                        state.addCardToHand(generatedCardIdx, true);
+                        state.addCardToHand(generatedCardIdx, true);
                     }
                 }
             });
@@ -3216,7 +3216,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
             state.properties.addStartOfBattleHandler(new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     if (isRelicEnabledInScenario(state)) {
-                        state.addCardToHand(generatedCardIdx);
+                        state.addCardToHand(generatedCardIdx, true);
                     }
                 }
             });
@@ -3341,9 +3341,9 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
             state.properties.addStartOfBattleHandler(new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     if (isRelicEnabledInScenario(state)) {
-                        state.addCardToHand(generatedCardIdx);
-                        state.addCardToHand(generatedCardIdx);
-                        state.addCardToHand(generatedCardIdx);
+                        state.addCardToHand(generatedCardIdx, true);
+                        state.addCardToHand(generatedCardIdx, true);
+                        state.addCardToHand(generatedCardIdx, true);
                     }
                 }
             });

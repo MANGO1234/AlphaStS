@@ -1042,7 +1042,7 @@ public class CardIronclad2 {
                         state.getCounterForWrite()[counterIdx + 1]++;
                         if (state.getCounterForRead()[counterIdx + 1] == 3) {
                             for (int i = 0; i < state.getCounterForRead()[counterIdx]; i++) {
-                                state.addCardToHand(cardIdx);
+                                state.addCardToHand(cardIdx, true);
                             }
                         }
                     }
@@ -1701,7 +1701,7 @@ public class CardIronclad2 {
                         int cardIdx = discardArr[posInDiscard];
                         state.removeCardFromDiscardByPosition(posInDiscard);
                         int upgradedIdx = state.properties.upgradeIdxes[cardIdx];
-                        state.addCardToHand(upgradedIdx >= 0 ? upgradedIdx : cardIdx);
+                        state.addCardToHand(upgradedIdx >= 0 ? upgradedIdx : cardIdx, false);
                     }
                 }
             });

@@ -272,7 +272,7 @@ public class CardRegent2 {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), dmg, this);
-            state.addCardToHand(generatedCardIdx);
+            state.addCardToHand(generatedCardIdx, true);
             return GameActionCtx.PLAY_CARD;
         }
 
@@ -1646,7 +1646,7 @@ public class CardRegent2 {
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.playerGainBlock(block);
             int randomIdx = state.getSearchRandomGen().nextInt(generatedCardIdxes.length, RandomGenCtx.RandomCardGen, new Tuple<>(state, generatedCardIdxes));
-            state.addCardToHand(state.createCard(generatedCardIdxes[randomIdx]));
+            state.addCardToHand(state.createCard(generatedCardIdxes[randomIdx]), true);
             return GameActionCtx.PLAY_CARD;
         }
 
@@ -2318,7 +2318,7 @@ public class CardRegent2 {
                 if (base instanceof CardColorless2.SovereignBlade || base instanceof CardColorless2.SovereignBladeP) {
                     int foundIdx = state.getDeckArrForRead()[i];
                     state.removeCardFromDeck(foundIdx, false);
-                    state.addCardToHand(foundIdx);
+                    state.addCardToHand(foundIdx, false);
                 }
             }
             for (int i = state.discardArrLen - 1; i >= 0; i--) {
@@ -2326,7 +2326,7 @@ public class CardRegent2 {
                 if (base instanceof CardColorless2.SovereignBlade || base instanceof CardColorless2.SovereignBladeP) {
                     int foundIdx = state.getDiscardArrForRead()[i];
                     state.removeCardFromDiscard(foundIdx);
-                    state.addCardToHand(foundIdx);
+                    state.addCardToHand(foundIdx, false);
                 }
             }
             for (int i = state.exhaustArrLen - 1; i >= 0; i--) {
@@ -2334,7 +2334,7 @@ public class CardRegent2 {
                 if (base instanceof CardColorless2.SovereignBlade || base instanceof CardColorless2.SovereignBladeP) {
                     int foundIdx = state.getExhaustArrForRead()[i];
                     state.removeCardFromExhaust(foundIdx);
-                    state.addCardToHand(foundIdx);
+                    state.addCardToHand(foundIdx, false);
                 }
             }
             return GameActionCtx.PLAY_CARD;
@@ -2627,7 +2627,7 @@ public class CardRegent2 {
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             for (int i = 0; i < numCards; i++) {
                 int randomIdx = state.getSearchRandomGen().nextInt(generatedCardIdxes.length, RandomGenCtx.RandomCardGen, new Tuple<>(state, generatedCardIdxes));
-                state.addCardToHand(state.createCard(generatedCardIdxes[randomIdx]));
+                state.addCardToHand(state.createCard(generatedCardIdxes[randomIdx]), true);
             }
             return GameActionCtx.PLAY_CARD;
         }
@@ -2702,7 +2702,7 @@ public class CardRegent2 {
                 state.playerDoDamageToEnemy(enemy, damage, this);
             }
             while (state.handArrLen < GameState.HAND_LIMIT) {
-                state.addCardToHand(generatedCardIdx);
+                state.addCardToHand(generatedCardIdx, true);
             }
             return GameActionCtx.PLAY_CARD;
         }
@@ -2989,7 +2989,7 @@ public class CardRegent2 {
                 }
                 return GameActionCtx.PLAY_CARD;
             } else {
-                state.addCardToHand(idx);
+                state.addCardToHand(idx, true);
                 return GameActionCtx.PLAY_CARD;
             }
         }
@@ -3105,7 +3105,7 @@ public class CardRegent2 {
                         for (int i = state.discardArrLen - 1; i >= 0 && state.handArrLen < GameState.HAND_LIMIT; i--) {
                             var base = state.properties.cardDict[state.getDiscardArrForRead()[i]].getBaseCard();
                             if (base instanceof _MakeItSoT) {
-                                state.addCardToHand(state.getDiscardArrForRead()[i]);
+                                state.addCardToHand(state.getDiscardArrForRead()[i], false);
                                 state.removeCardFromDiscardByPosition(i);
                                 break;
                             }
@@ -3113,7 +3113,7 @@ public class CardRegent2 {
                         for (int i = state.deckArrLen - 1; i >= 0 && state.handArrLen < GameState.HAND_LIMIT; i--) {
                             var base = state.properties.cardDict[state.getDeckArrForRead()[i]].getBaseCard();
                             if (base instanceof _MakeItSoT) {
-                                state.addCardToHand(state.getDeckArrForRead()[i]);
+                                state.addCardToHand(state.getDeckArrForRead()[i], false);
                                 state.removeCardFromDeckByPosition(i);
                                 break;
                             }
@@ -3121,7 +3121,7 @@ public class CardRegent2 {
                         for (int i = state.exhaustArrLen - 1; i >= 0 && state.handArrLen < GameState.HAND_LIMIT; i--) {
                             var base = state.properties.cardDict[state.getExhaustArrForRead()[i]].getBaseCard();
                             if (base instanceof _MakeItSoT) {
-                                state.addCardToHand(state.getExhaustArrForRead()[i]);
+                                state.addCardToHand(state.getExhaustArrForRead()[i], false);
                                 state.removeCardFromExhaustByPosition(i);
                                 break;
                             }

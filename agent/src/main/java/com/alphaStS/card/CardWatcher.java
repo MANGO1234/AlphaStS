@@ -370,7 +370,7 @@ public class CardWatcher {
                         if (state.properties.cardDict[cardIdx].cardName.startsWith("Flurry of Blows")) {
                             state.removeCardFromDiscardByPosition(i);
                             i--;
-                            state.addCardToHand(cardIdx);
+                            state.addCardToHand(cardIdx, false);
                         }
                     }
                 }
@@ -765,7 +765,7 @@ public class CardWatcher {
                 @Override public void handle(GameState state) {
                     if (counterIdx >= 0 && state.getCounterForRead()[counterIdx] > 0) {
                         for (int i = 0; i < state.getCounterForRead()[counterIdx]; i++) {
-                            state.addCardToHand(generatedCardIdx);
+                            state.addCardToHand(generatedCardIdx, true);
                         }
                     }
                 }
@@ -803,7 +803,7 @@ public class CardWatcher {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.playerDoNonAttackDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, true);
-            state.addCardToHand(generatedCardIdx);
+            state.addCardToHand(generatedCardIdx, true);
             return GameActionCtx.PLAY_CARD;
         }
 
@@ -854,7 +854,7 @@ public class CardWatcher {
             state.properties.addStartOfTurnHandler("Collect", new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     if (state.getCounterForRead()[counterIdx] > 0) {
-                        state.addCardToHand(generatedCardIdx);
+                        state.addCardToHand(generatedCardIdx, true);
                         state.getCounterForWrite()[counterIdx]--;
                     }
                 }
@@ -926,7 +926,7 @@ public class CardWatcher {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.playerGainBlock(block);
-            state.addCardToHand(generatedCardIdx);
+            state.addCardToHand(generatedCardIdx, true);
             return GameActionCtx.PLAY_CARD;
         }
 
@@ -1285,10 +1285,10 @@ public class CardWatcher {
             if (state.handArrLen < GameState.HAND_LIMIT) {
                 Card retainedCard = state.properties.cardDict[idx].getTmpRetainIfPossible();
                 int retainedCardIdx = state.properties.findCardIndex(retainedCard);
-                state.addCardToHand(retainedCardIdx);
+                state.addCardToHand(retainedCardIdx, false);
             } else {
                 // No room in hand, just add the original card
-                state.addCardToHand(idx);
+                state.addCardToHand(idx, false);
             }
 
             // Check if we need to select more cards
@@ -2216,7 +2216,7 @@ public class CardWatcher {
                         if (state.properties.cardDict[cardIdx].cardName.startsWith("Weave")) {
                             state.removeCardFromDiscardByPosition(i);
                             i--;
-                            state.addCardToHand(cardIdx);
+                            state.addCardToHand(cardIdx, false);
                         }
                     }
                 }
@@ -2669,7 +2669,7 @@ public class CardWatcher {
                     if (state.properties.cardDict[cardIdx] instanceof _DeusExMachinaT deusEx) {
                         // Add Miracles to hand
                         for (int i = 0; i < deusEx.miracleCount; i++) {
-                            state.addCardToHand(generatedCardIdx);
+                            state.addCardToHand(generatedCardIdx, true);
                         }
                         // Exhaust this card - find and remove it from hand
                         for (int i = 0; i < state.handArrLen; i++) {

@@ -361,8 +361,8 @@ public class EnemyBeyond {
                 }
             } else if (move == BEAM) {
                 state.enemyDoDamageToPlayer(this, 12, 2);
-                state.addCardToDiscard(properties.generatedCardIdx);
-                state.addCardToDiscard(properties.generatedCardIdx);
+                state.addCardToDiscard(properties.generatedCardIdx, false);
+                state.addCardToDiscard(properties.generatedCardIdx, false);
             }
         }
 
@@ -511,8 +511,8 @@ public class EnemyBeyond {
             } else if (move == HEAD_SLAM) {
                 state.enemyDoDamageToPlayer(this, 32, 1);
                 state.getPlayerForWrite().applyDebuff(state, DebuffType.DRAW_REDUCTION, 2);
-                state.addCardToDiscard(properties.generatedCardIdx);
-                state.addCardToDiscard(properties.generatedCardIdx);
+                state.addCardToDiscard(properties.generatedCardIdx, false);
+                state.addCardToDiscard(properties.generatedCardIdx, false);
             } else if (move == RIPPLE) {
                 gainBlock(20);
                 state.getPlayerForWrite().applyDebuff(state, DebuffType.VULNERABLE, 1);
@@ -840,11 +840,11 @@ public class EnemyBeyond {
 
         @Override public void doMove(GameState state, EnemyReadOnly self) {
             if (move == DEBUFF) {
-                state.addCardToDiscard(properties.generatedCardIdx);
-                state.addCardToDiscard(properties.generatedCardIdx);
-                state.addCardToDiscard(properties.generatedCardIdx);
-                state.addCardToDiscard(properties.generatedCardIdx);
-                state.addCardToDiscard(properties.generatedCardIdx);
+                state.addCardToDiscard(properties.generatedCardIdx, false);
+                state.addCardToDiscard(properties.generatedCardIdx, false);
+                state.addCardToDiscard(properties.generatedCardIdx, false);
+                state.addCardToDiscard(properties.generatedCardIdx, false);
+                state.addCardToDiscard(properties.generatedCardIdx, false);
             } else if (move == ATTACK) {
                 state.enemyDoDamageToPlayer(this, 7, 3);
             } else if (move == SCYTHE) {
@@ -1228,7 +1228,7 @@ public class EnemyBeyond {
         @Override public void doMove(GameState state, EnemyReadOnly self) {
             if (move == STAB) {
                 state.enemyDoDamageToPlayer(this, 9, 1);
-                state.addCardToDiscard(properties.generatedCardIdx);
+                state.addCardToDiscard(properties.generatedCardIdx, false);
             } else if (move == EXPLODE) {
                 state.enemyDoDamageToPlayer(this, 25, 1);
                 state.killEnemy(state.getEnemiesForRead().find(self), true);
@@ -1601,7 +1601,7 @@ public class EnemyBeyond {
         @Override public void doMove(GameState state, EnemyReadOnly self) {
             if (move == LASER) {
                 state.enemyDoDamageToPlayer(this, 11, 1);
-                state.addCardToDiscard(properties.generatedCardIdx);
+                state.addCardToDiscard(properties.generatedCardIdx, false);
                 state.addCardToDeck(properties.generatedCardIdx);
             } else if (move == CLAW) {
                 state.enemyDoDamageToPlayer(this, 16, 1);

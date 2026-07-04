@@ -104,7 +104,7 @@ public class CardDefect2 {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.playerGainBlock(block);
-            state.addCardToDiscard(generatedCardIdx);
+            state.addCardToDiscard(generatedCardIdx, true);
             return GameActionCtx.PLAY_CARD;
         }
 
@@ -298,7 +298,7 @@ public class CardDefect2 {
             state.playerDoDamageToEnemy(enemy, damage, this);
             state.playerDoDamageToEnemy(enemy, damage, this);
             state.playerDoDamageToEnemy(enemy, damage, this);
-            state.addCardToDiscard(generatedCardIdx);
+            state.addCardToDiscard(generatedCardIdx, true);
             return GameActionCtx.PLAY_CARD;
         }
 
@@ -769,8 +769,8 @@ public class CardDefect2 {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.playerGainBlock(block);
-            state.addCardToDiscard(generatedCardIdx);
-            state.addCardToDiscard(generatedCardIdx);
+            state.addCardToDiscard(generatedCardIdx, true);
+            state.addCardToDiscard(generatedCardIdx, true);
             return GameActionCtx.PLAY_CARD;
         }
 
@@ -1542,7 +1542,7 @@ public class CardDefect2 {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
-            state.addCardToDiscard(state.createCard(generatedCardIdx));
+            state.addCardToDiscard(state.createCard(generatedCardIdx), true);
             return GameActionCtx.PLAY_CARD;
         }
 

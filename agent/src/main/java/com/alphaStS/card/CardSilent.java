@@ -200,7 +200,7 @@ public class CardSilent {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             for (int i = 0; i < n; i++) {
-                state.addCardToHand(generatedCardIdx);
+                state.addCardToHand(generatedCardIdx, true);
             }
             return GameActionCtx.PLAY_CARD;
         }
@@ -236,7 +236,7 @@ public class CardSilent {
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.playerGainBlock(6);
             for (int i = 0; i < n; i++) {
-                state.addCardToHand(generatedCardIdx);
+                state.addCardToHand(generatedCardIdx, true);
             }
             return GameActionCtx.PLAY_CARD;
         }
@@ -1265,7 +1265,7 @@ public class CardSilent {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             var r = state.getSearchRandomGen().nextInt(generatedCardIdxes.length, RandomGenCtx.RandomCardGen, new Tuple<>(state, generatedCardIdxes));
-            state.addCardToHand(generatedCardIdxes[r]);
+            state.addCardToHand(generatedCardIdxes[r], true);
             state.setIsStochastic();
             return GameActionCtx.PLAY_CARD;
         }
@@ -1318,7 +1318,7 @@ public class CardSilent {
                     state.addGameActionToStartOfDeque(new GameEnvironmentAction() {
                         @Override public void doAction(GameState state) {
                             if (isEndlessAgony[cardIdx]) {
-                                state.addCardToHand(cardIdx);
+                                state.addCardToHand(cardIdx, true);
                             }
                         }
                         @Override public boolean canHappenInsideCardPlay() {
@@ -1658,7 +1658,7 @@ public class CardSilent {
             state.properties.addPreStartOfTurnHandler("InfiniteBlade", new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     for (int i = 0; i < state.getCounterForRead()[counterIdx]; i++) {
-                        state.addCardToHand(generatedCardIdx);
+                        state.addCardToHand(generatedCardIdx, true);
                     }
                 }
             });
@@ -2997,9 +2997,9 @@ public class CardSilent {
             state.properties.addPreStartOfTurnHandler(new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     for (int i = 0; i < state.nightmareCardsLen; i++) {
-                        state.addCardToHand(state.nightmareCards[i]);
-                        state.addCardToHand(state.nightmareCards[i]);
-                        state.addCardToHand(state.nightmareCards[i]);
+                        state.addCardToHand(state.nightmareCards[i], true);
+                        state.addCardToHand(state.nightmareCards[i], true);
+                        state.addCardToHand(state.nightmareCards[i], true);
                     }
                     state.nightmareCardsLen = 0;
                 }
@@ -3069,7 +3069,7 @@ public class CardSilent {
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             int c = state.discardHand(true);
             for (int i = 0; i < c; i++) {
-                state.addCardToHand(upgraded ? generatedCardIdxes[1] : generatedCardIdxes[0]);
+                state.addCardToHand(upgraded ? generatedCardIdxes[1] : generatedCardIdxes[0], true);
             }
             return GameActionCtx.PLAY_CARD;
         }

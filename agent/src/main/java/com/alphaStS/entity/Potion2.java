@@ -300,7 +300,7 @@ public class Potion2 {
             }
             if (state.properties.tmp0CostCardTransformIdxes[idx] >= 0) {
                 state.removeCardFromHand(idx);
-                state.addCardToHand(state.properties.tmp0CostCardTransformIdxes[idx]);
+                state.addCardToHand(state.properties.tmp0CostCardTransformIdxes[idx], false);
             }
             if (state.properties.sacredBark != null && state.properties.sacredBark.isRelicEnabledInScenario(state)) {
                 state.getCounterForWrite()[counterIdx]++;
@@ -380,7 +380,7 @@ public class Potion2 {
                 return GameActionCtx.PLAY_CARD;
             }
             state.removeCardFromDeck(idx, false);
-            state.addCardToHand(idx);
+            state.addCardToHand(idx, false);
             if (state.properties.sacredBark != null && state.properties.sacredBark.isRelicEnabledInScenario(state)) {
                 state.getCounterForWrite()[counterIdx]++;
                 if (state.getCounterForRead()[counterIdx] == 2 || state.getNumCardsInDeck() == 0) {
@@ -477,11 +477,11 @@ public class Potion2 {
         @Override public GameActionCtx use(GameState state, int idx) {
             state.setIsStochastic();
             int r = state.getSearchRandomGen().nextInt(attackIdxes.length, RandomGenCtx.RandomCardGen, new Tuple<>(state, attackIdxes));
-            state.addCardToHand(state.createCard(attackIdxes[r]));
+            state.addCardToHand(state.createCard(attackIdxes[r]), true);
             r = state.getSearchRandomGen().nextInt(skillIdxes.length, RandomGenCtx.RandomCardGen, new Tuple<>(state, skillIdxes));
-            state.addCardToHand(state.createCard(skillIdxes[r]));
+            state.addCardToHand(state.createCard(skillIdxes[r]), true);
             r = state.getSearchRandomGen().nextInt(powerIdxes.length, RandomGenCtx.RandomCardGen, new Tuple<>(state, powerIdxes));
-            state.addCardToHand(state.createCard(powerIdxes[r]));
+            state.addCardToHand(state.createCard(powerIdxes[r]), true);
             return GameActionCtx.PLAY_CARD;
         }
 
@@ -696,7 +696,7 @@ public class Potion2 {
             state.setIsStochastic();
             for (int i = 0; i < 3; i++) {
                 int r = state.getSearchRandomGen().nextInt(generatedCardIdxes.length, RandomGenCtx.RandomCardGen, new Tuple<>(state, generatedCardIdxes));
-                state.addCardToHand(state.createCard(generatedCardIdxes[r]));
+                state.addCardToHand(state.createCard(generatedCardIdxes[r]), true);
             }
             return GameActionCtx.PLAY_CARD;
         }
@@ -750,8 +750,8 @@ public class Potion2 {
     //   Effect: Add 2 Souls into your Hand.
     public static class PotOfGhouls extends Potion {
         @Override public GameActionCtx use(GameState state, int idx) {
-            state.addCardToHand(generatedCardIdx);
-            state.addCardToHand(generatedCardIdx);
+            state.addCardToHand(generatedCardIdx, true);
+            state.addCardToHand(generatedCardIdx, true);
             return GameActionCtx.PLAY_CARD;
         }
 

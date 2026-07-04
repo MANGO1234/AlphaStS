@@ -1478,7 +1478,7 @@ public class InteractiveMode {
         for (int i = 0; i < state.properties.cardDict.length; i++) {
             out.println(i + ". " + state.properties.cardDict[i].cardName);
         }
-        state.addCardToHand(readIntCommand(reader, history, state.properties.cardDict.length));
+        state.addCardToHand(readIntCommand(reader, history, state.properties.cardDict.length), false);
     }
 
     private void addCardToDeckSelectScreen(BufferedReader reader, GameState state, List<String> history) throws IOException {
