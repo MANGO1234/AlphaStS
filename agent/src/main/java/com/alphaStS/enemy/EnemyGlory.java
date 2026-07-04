@@ -579,7 +579,7 @@ public class EnemyGlory {
         }
 
         @Override public void doMove(GameState state, EnemyReadOnly self) {
-            state.addCardToDeckRandom(properties.generatedCardIdx);
+            state.addCardToDeckRandom(properties.generatedCardIdx, false);
             state.addCardToDiscard(properties.generatedCardIdx, false);
         }
 

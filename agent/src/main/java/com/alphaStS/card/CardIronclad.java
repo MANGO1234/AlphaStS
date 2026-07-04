@@ -790,7 +790,7 @@ public class CardIronclad {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
-            state.addCardToDeckRandom(generatedCardIdx);
+            state.addCardToDeckRandom(generatedCardIdx, true);
             return GameActionCtx.PLAY_CARD;
         }
 
@@ -1938,7 +1938,7 @@ public class CardIronclad {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
-            state.addCardToDeckRandom(generatedCardIdx);
+            state.addCardToDeckRandom(generatedCardIdx, true);
             return GameActionCtx.PLAY_CARD;
         }
 

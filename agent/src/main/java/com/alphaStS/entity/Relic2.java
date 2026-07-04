@@ -1196,7 +1196,7 @@ public class Relic2 {
             state.properties.addStartOfBattleHandler("Byrdpip", new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     if (isRelicEnabledInScenario(state)) {
-                        state.addCardToDeckNonRandom(generatedCardIdx);
+                        state.addCardToDeckNonRandom(generatedCardIdx, false);
                     }
                 }
             });
@@ -1433,8 +1433,8 @@ public class Relic2 {
             state.properties.addStartOfBattleHandler("TeaOfDiscourtesy", new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     if (isRelicEnabledInScenario(state)) {
-                        state.addCardToDeckNonRandom(generatedCardIdx);
-                        state.addCardToDeckNonRandom(generatedCardIdx);
+                        state.addCardToDeckNonRandom(generatedCardIdx, false);
+                        state.addCardToDeckNonRandom(generatedCardIdx, false);
                     }
                 }
             });
@@ -1496,7 +1496,7 @@ public class Relic2 {
             state.properties.addOnShuffleHandler("BiiigHug", new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     if (isRelicEnabledInScenario(state)) {
-                        state.addCardToDeckNonRandom(generatedCardIdx);
+                        state.addCardToDeckNonRandom(generatedCardIdx, true);
                     }
                 }
             });
@@ -1523,9 +1523,9 @@ public class Relic2 {
             state.properties.addStartOfBattleHandler("BlessedAntler", new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     if (isRelicEnabledInScenario(state)) {
-                        state.addCardToDeckNonRandom(generatedCardIdx);
-                        state.addCardToDeckNonRandom(generatedCardIdx);
-                        state.addCardToDeckNonRandom(generatedCardIdx);
+                        state.addCardToDeckNonRandom(generatedCardIdx, false);
+                        state.addCardToDeckNonRandom(generatedCardIdx, false);
+                        state.addCardToDeckNonRandom(generatedCardIdx, false);
                     }
                 }
             });
@@ -1550,7 +1550,7 @@ public class Relic2 {
             state.properties.addStartOfBattleHandler("BloodSoakedRose", new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     if (isRelicEnabledInScenario(state)) {
-                        state.addCardToDeckNonRandom(generatedCardIdx);
+                        state.addCardToDeckNonRandom(generatedCardIdx, false);
                     }
                 }
             });
@@ -2112,11 +2112,11 @@ public class Relic2 {
                     }
                     for (int i = 0; i < 2; i++) {
                         int r = numCurses > 1 ? state.getSearchRandomGen().nextInt(numCurses, RandomGenCtx.RandomCardGen) : 0;
-                        state.addCardToDeckNonRandom(generatedCardIdxes[r]);
+                        state.addCardToDeckNonRandom(generatedCardIdxes[r], false);
                     }
-                    state.addCardToDeckNonRandom(wishIdx);
-                    state.addCardToDeckNonRandom(wishIdx);
-                    state.addCardToDeckNonRandom(wishIdx);
+                    state.addCardToDeckNonRandom(wishIdx, false);
+                    state.addCardToDeckNonRandom(wishIdx, false);
+                    state.addCardToDeckNonRandom(wishIdx, false);
                 }
             });
         }
@@ -2789,7 +2789,7 @@ public class Relic2 {
                 @Override public void handle(GameState state) {
                     if (!isRelicEnabledInScenario(state)) return;
                     for (int i = 0; i < 3; i++) {
-                        state.addCardToDeckNonRandom(generatedCardIdx);
+                        state.addCardToDeckNonRandom(generatedCardIdx, false);
                     }
                 }
             });

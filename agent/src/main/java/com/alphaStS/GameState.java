@@ -1656,7 +1656,7 @@ public final class GameState implements State {
                 } else if (hasBuff(PlayerBuff.CORRUPTION) && properties.cardDict[cardIdx].cardType == Card.SKILL) {
                     exhaustedCardHandle(cardIdx, true);
                 } else if (properties.cardDict[cardIdx].returnToDeckWhenPlay) {
-                    addCardToDeckRandom(cardIdx);
+                    addCardToDeckRandom(cardIdx, false);
                 } else if (properties.cardDict[cardIdx].returnToTopOfDeckWhenPlay) {
                     addCardOnTopOfDeck(cardIdx);
                 } else if (properties.cardDict[cardIdx].returnToHandWhenPlay) {
@@ -2359,12 +2359,12 @@ public final class GameState implements State {
             }
         } else if (action.type() == GameActionType.SELECT_CARD_1_OUT_OF_3) {
             if (currentAction != null && properties.nilroysCodexHelperCardIdx >= 0 && currentAction.idx() == properties.nilroysCodexHelperCardIdx) {
-                addCardToDeckRandom(action.idx());
+                addCardToDeckRandom(action.idx(), true);
                 setActionCtx(GameActionCtx.BEGIN_TURN, null, null);
                 completeEndTurnRemainder();
             } else if (turnNum == 0) {
                 if (Configuration.HEART_GAUNTLET_CARD_REWARD) { // todo
-                    addCardToDeckNonRandom(action.idx());
+                    addCardToDeckNonRandom(action.idx(), false);
                     setActionCtx(GameActionCtx.BEGIN_BATTLE, null, null);
                 } else {
                     addCardToHand(action.idx(), true);
@@ -3963,15 +3963,18 @@ public final class GameState implements State {
         updateHandArr();
     }
 
-    public void addCardToDeckRandom(int idx) {
-        addCardToDeckHelper(idx, true);
+    public void addCardToDeckRandom(int idx, boolean generateCard) {
+        addCardToDeckHelper(idx, true, generateCard);
     }
 
-    public void addCardToDeckNonRandom(int idx) {
-        addCardToDeckHelper(idx, false);
+    public void addCardToDeckNonRandom(int idx, boolean generateCard) {
+        addCardToDeckHelper(idx, false, generateCard);
     }
 
-    private void addCardToDeckHelper(int idx, boolean random) {
+    private void addCardToDeckHelper(int idx, boolean random, boolean generateCard) {
+        if (generateCard) {
+            idx = cardGenerationAdditionalTransformation(idx);
+        }
         deckArrLen += 1;
         getDeckArrForWrite(deckArrLen);
         if (properties.frozenEye != null && properties.frozenEye.isRelicEnabledInScenario(this) && random) {
@@ -3990,6 +3993,11 @@ public final class GameState implements State {
                 deckArr[i] = deckArr[i - 1];
             }
             deckArr[deckArrLen - 1 - deckArrFixedDrawLen] = (short) idx;
+        }
+        if (generateCard) {
+            for (OnCardCreationHandler handler : properties.onCardCreationHandlers) {
+                handler.handle(this, idx);
+            }
         }
     }
 

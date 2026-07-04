@@ -323,7 +323,7 @@ public class CardWatcher {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.playerGainBlock(block);
-            state.addCardToDeckRandom(generatedCardIdx);
+            state.addCardToDeckRandom(generatedCardIdx, true);
             return GameActionCtx.PLAY_CARD;
         }
 
@@ -1581,7 +1581,7 @@ public class CardWatcher {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.gainMantra(mantra);
-            state.addCardToDeckRandom(generatedCardIdx);
+            state.addCardToDeckRandom(generatedCardIdx, true);
             return GameActionCtx.PLAY_CARD;
         }
 
@@ -1620,7 +1620,7 @@ public class CardWatcher {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.playerDoNonAttackDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, true);
-            state.addCardToDeckRandom(generatedCardIdx);
+            state.addCardToDeckRandom(generatedCardIdx, true);
             return GameActionCtx.PLAY_CARD;
         }
 
@@ -1954,7 +1954,7 @@ public class CardWatcher {
                 @Override public void handle(GameState state) {
                     if (counterIdx >= 0 && state.getCounterForRead()[counterIdx] > 0) {
                         for (int i = 0; i < state.getCounterForRead()[counterIdx]; i++) {
-                            state.addCardToDeckRandom(generatedCardIdx);
+                            state.addCardToDeckRandom(generatedCardIdx, true);
                         }
                     }
                 }
@@ -2477,7 +2477,7 @@ public class CardWatcher {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.addCardToDeckRandom(generatedCardIdx);
+            state.addCardToDeckRandom(generatedCardIdx, true);
             return GameActionCtx.PLAY_CARD;
         }
 
@@ -2609,7 +2609,7 @@ public class CardWatcher {
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             int xValue = addExtraHit ? energyUsed + 1 : energyUsed;
             int indexToUse = Math.min(xValue, limit);
-            state.addCardToDeckRandom(generatedCardIdxes[indexToUse]);
+            state.addCardToDeckRandom(generatedCardIdxes[indexToUse], true);
             return GameActionCtx.PLAY_CARD;
         }
 

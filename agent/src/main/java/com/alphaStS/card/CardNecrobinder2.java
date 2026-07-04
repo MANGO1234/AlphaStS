@@ -442,7 +442,7 @@ public class CardNecrobinder2 {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.playerGainBlock(block);
-            state.addCardToDeckRandom(generatedCardIdx);
+            state.addCardToDeckRandom(generatedCardIdx, true);
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -648,7 +648,7 @@ public class CardNecrobinder2 {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
-            state.addCardToDeckRandom(generatedCardIdx);
+            state.addCardToDeckRandom(generatedCardIdx, true);
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -1082,7 +1082,7 @@ public class CardNecrobinder2 {
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.playerDoNonAttackDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), hpLoss, false);
             for (int i = 0; i < souls; i++) {
-                state.addCardToDeckRandom(generatedCardIdx);
+                state.addCardToDeckRandom(generatedCardIdx, true);
             }
             return GameActionCtx.PLAY_CARD;
         }
@@ -1486,7 +1486,7 @@ public class CardNecrobinder2 {
             if (energyUsed > 0) {
                 state.summon(summonPerX * energyUsed);
                 for (int i = 0; i < energyUsed; i++) {
-                    state.addCardToDeckRandom(generatedCardIdx);
+                    state.addCardToDeckRandom(generatedCardIdx, true);
                 }
             }
             return GameActionCtx.PLAY_CARD;
@@ -2217,7 +2217,7 @@ public class CardNecrobinder2 {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
-            state.addCardToDeckRandom(generatedCardIdx);
+            state.addCardToDeckRandom(generatedCardIdx, true);
             state.addCardToHand(generatedCardIdx, true);
             state.addCardToDiscard(generatedCardIdx, true);
             return GameActionCtx.PLAY_CARD;

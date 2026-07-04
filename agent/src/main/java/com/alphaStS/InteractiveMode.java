@@ -1485,7 +1485,7 @@ public class InteractiveMode {
         for (int i = 0; i < state.properties.realCardsLen; i++) {
             out.println(i + ". " + state.properties.cardDict[i].cardName);
         }
-        state.addCardToDeckRandom(readIntCommand(reader, history, state.properties.realCardsLen));
+        state.addCardToDeckRandom(readIntCommand(reader, history, state.properties.realCardsLen), false);
     }
 
     private void removeCardFromHandSelectScreen(BufferedReader reader, GameState state, List<String> history) throws IOException {

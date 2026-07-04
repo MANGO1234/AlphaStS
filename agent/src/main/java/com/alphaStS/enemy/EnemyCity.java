@@ -2022,7 +2022,7 @@ public class EnemyCity {
             state.properties.addOnCardPlayedHandler("Chosen", new GameEventCardHandler() {
                 @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
                     if (state.properties.cardDict[cardIdx].cardType != Card.ATTACK && state.hasBuff(PlayerBuff.HEX)) {
-                        state.addCardToDeckRandom(properties.generatedCardIdx);
+                        state.addCardToDeckRandom(properties.generatedCardIdx, false);
                     }
                 }
             });

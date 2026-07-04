@@ -112,7 +112,7 @@ public class EnemyBeyond {
                 state.enemyDoDamageToPlayer(this, 40, 1);
             } else if (move == SLUDGE) {
                 state.enemyDoDamageToPlayer(this, 18, 1);
-                state.addCardToDeckRandom(properties.generatedCardIdx);
+                state.addCardToDeckRandom(properties.generatedCardIdx, false);
             } else if (move == TACKLE) {
                 state.enemyDoDamageToPlayer(this, 10, 3);
             }
@@ -1602,7 +1602,7 @@ public class EnemyBeyond {
             if (move == LASER) {
                 state.enemyDoDamageToPlayer(this, 11, 1);
                 state.addCardToDiscard(properties.generatedCardIdx, false);
-                state.addCardToDeckRandom(properties.generatedCardIdx);
+                state.addCardToDeckRandom(properties.generatedCardIdx, false);
             } else if (move == CLAW) {
                 state.enemyDoDamageToPlayer(this, 16, 1);
             }
@@ -1977,8 +1977,8 @@ public class EnemyBeyond {
             if (move == BASH) {
                 state.enemyDoDamageToPlayer(this, 13, 1);
             } else if (move == REPULSE) {
-                state.addCardToDeckRandom(properties.generatedCardIdx);
-                state.addCardToDeckRandom(properties.generatedCardIdx);
+                state.addCardToDeckRandom(properties.generatedCardIdx, false);
+                state.addCardToDeckRandom(properties.generatedCardIdx, false);
             }
         }
 
