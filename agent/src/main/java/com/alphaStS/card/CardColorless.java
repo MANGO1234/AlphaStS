@@ -800,7 +800,7 @@ public class CardColorless {
                 state.setIsStochastic();
                 int randomIdx = state.getSearchRandomGen().nextInt(generatedCardIdxes.length, RandomGenCtx.RandomCardGen, new Tuple<>(state, generatedCardIdxes));
                 int cardIdx = generatedCardIdxes[randomIdx];
-                state.addCardToDeck(cardIdx);
+                state.addCardToDeckRandom(cardIdx);
             }
             return GameActionCtx.PLAY_CARD;
         }
@@ -1102,7 +1102,7 @@ public class CardColorless {
                 state.setIsStochastic();
                 int randomIdx = state.getSearchRandomGen().nextInt(generatedCardIdxes.length, RandomGenCtx.RandomCardGen, new Tuple<>(state, generatedCardIdxes));
                 int cardIdx = generatedCardIdxes[randomIdx];
-                state.addCardToDeck(cardIdx);
+                state.addCardToDeckRandom(cardIdx);
             }
             return GameActionCtx.PLAY_CARD;
         }
@@ -1912,7 +1912,7 @@ public class CardColorless {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.addCardToDeck(generatedCardIdx);
+            state.addCardToDeckRandom(generatedCardIdx);
             return GameActionCtx.PLAY_CARD;
         }
 

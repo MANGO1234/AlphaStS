@@ -465,7 +465,7 @@ public class EnemyHive {
             int dmg = super.damage(n, state);
             if (dmg > 0) {
                 for (int i = 0; i < personalHive; i++) {
-                    state.addCardToDeck(properties.generatedCardIdx);
+                    state.addCardToDeckRandom(properties.generatedCardIdx);
                 }
             }
             return dmg;
@@ -1478,7 +1478,7 @@ public class EnemyHive {
             if (move == LIQUIFY_GROUND) {
                 state.getCounterForWrite()[state.properties.sandpitCounterIdx] += 5;
                 for (int i = 0; i < 3; i++) {
-                    state.addCardToDeck(properties.generatedCardIdx);
+                    state.addCardToDeckRandom(properties.generatedCardIdx);
                     state.addCardToDiscard(properties.generatedCardIdx, false);
                 }
             } else if (move == THRASH_1 || move == THRASH_2) {

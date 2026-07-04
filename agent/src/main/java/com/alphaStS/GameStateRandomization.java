@@ -752,7 +752,7 @@ public interface GameStateRandomization {
 
             @Override public void modify(GameState state) {
                 for (Card card : cards) {
-                    state.addCardToDeck(state.properties.findCardIndex(card), false);
+                    state.addCardToDeckNonRandom(state.properties.findCardIndex(card));
                 }
             }
 
@@ -815,7 +815,7 @@ public interface GameStateRandomization {
                 ensureDeckHasCards(state, counts);
                 for (Card card : cards) {
                     state.removeCardFromDeck(state.properties.findCardIndex(card), false);
-                    state.addCardToDeck(state.properties.findCardIndex(card.getUpgrade(state.properties)), false);
+                    state.addCardToDeckNonRandom(state.properties.findCardIndex(card.getUpgrade(state.properties)));
                 }
             }
 
@@ -1040,7 +1040,7 @@ public interface GameStateRandomization {
             int cardIdx = state.getDeckArrForRead()[possibleCards.get(idx)];
             state.getStateDesc().append("Upgrade ").append(state.properties.cardDict[cardIdx].cardName);
             state.removeCardFromDeck(cardIdx, true);
-            state.addCardToDeck(state.properties.upgradeIdxes[cardIdx]);
+            state.addCardToDeckNonRandom(state.properties.upgradeIdxes[cardIdx]);
             return 0;
         }
 

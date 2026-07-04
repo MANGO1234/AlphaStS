@@ -1333,7 +1333,7 @@ public class EnemyUnderdock {
 
         @Override public void doMove(GameState state, EnemyReadOnly self) {
             if (move == BECKON) {
-                state.addCardToDeck(properties.generatedCardIdx);
+                state.addCardToDeckRandom(properties.generatedCardIdx);
                 state.addCardToDiscard(properties.generatedCardIdx, false);
             } else if (move == DE_GAS) {
                 state.enemyDoDamageToPlayer(this, 17, 1);

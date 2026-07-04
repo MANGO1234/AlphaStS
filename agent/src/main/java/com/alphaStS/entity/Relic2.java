@@ -1196,7 +1196,7 @@ public class Relic2 {
             state.properties.addStartOfBattleHandler("Byrdpip", new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     if (isRelicEnabledInScenario(state)) {
-                        state.addCardToDeck(generatedCardIdx, false);
+                        state.addCardToDeckNonRandom(generatedCardIdx);
                     }
                 }
             });
@@ -1433,8 +1433,8 @@ public class Relic2 {
             state.properties.addStartOfBattleHandler("TeaOfDiscourtesy", new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     if (isRelicEnabledInScenario(state)) {
-                        state.addCardToDeck(generatedCardIdx, false);
-                        state.addCardToDeck(generatedCardIdx, false);
+                        state.addCardToDeckNonRandom(generatedCardIdx);
+                        state.addCardToDeckNonRandom(generatedCardIdx);
                     }
                 }
             });
@@ -1496,7 +1496,7 @@ public class Relic2 {
             state.properties.addOnShuffleHandler("BiiigHug", new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     if (isRelicEnabledInScenario(state)) {
-                        state.addCardToDeck(generatedCardIdx, false);
+                        state.addCardToDeckNonRandom(generatedCardIdx);
                     }
                 }
             });
@@ -1523,9 +1523,9 @@ public class Relic2 {
             state.properties.addStartOfBattleHandler("BlessedAntler", new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     if (isRelicEnabledInScenario(state)) {
-                        state.addCardToDeck(generatedCardIdx, false);
-                        state.addCardToDeck(generatedCardIdx, false);
-                        state.addCardToDeck(generatedCardIdx, false);
+                        state.addCardToDeckNonRandom(generatedCardIdx);
+                        state.addCardToDeckNonRandom(generatedCardIdx);
+                        state.addCardToDeckNonRandom(generatedCardIdx);
                     }
                 }
             });
@@ -1550,7 +1550,7 @@ public class Relic2 {
             state.properties.addStartOfBattleHandler("BloodSoakedRose", new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     if (isRelicEnabledInScenario(state)) {
-                        state.addCardToDeck(generatedCardIdx, false);
+                        state.addCardToDeckNonRandom(generatedCardIdx);
                     }
                 }
             });
@@ -2112,11 +2112,11 @@ public class Relic2 {
                     }
                     for (int i = 0; i < 2; i++) {
                         int r = numCurses > 1 ? state.getSearchRandomGen().nextInt(numCurses, RandomGenCtx.RandomCardGen) : 0;
-                        state.addCardToDeck(generatedCardIdxes[r], false);
+                        state.addCardToDeckNonRandom(generatedCardIdxes[r]);
                     }
-                    state.addCardToDeck(wishIdx, false);
-                    state.addCardToDeck(wishIdx, false);
-                    state.addCardToDeck(wishIdx, false);
+                    state.addCardToDeckNonRandom(wishIdx);
+                    state.addCardToDeckNonRandom(wishIdx);
+                    state.addCardToDeckNonRandom(wishIdx);
                 }
             });
         }
@@ -2789,7 +2789,7 @@ public class Relic2 {
                 @Override public void handle(GameState state) {
                     if (!isRelicEnabledInScenario(state)) return;
                     for (int i = 0; i < 3; i++) {
-                        state.addCardToDeck(generatedCardIdx);
+                        state.addCardToDeckNonRandom(generatedCardIdx);
                     }
                 }
             });

@@ -1656,7 +1656,7 @@ public final class GameState implements State {
                 } else if (hasBuff(PlayerBuff.CORRUPTION) && properties.cardDict[cardIdx].cardType == Card.SKILL) {
                     exhaustedCardHandle(cardIdx, true);
                 } else if (properties.cardDict[cardIdx].returnToDeckWhenPlay) {
-                    addCardToDeck(cardIdx);
+                    addCardToDeckRandom(cardIdx);
                 } else if (properties.cardDict[cardIdx].returnToTopOfDeckWhenPlay) {
                     addCardOnTopOfDeck(cardIdx);
                 } else if (properties.cardDict[cardIdx].returnToHandWhenPlay) {
@@ -2359,12 +2359,12 @@ public final class GameState implements State {
             }
         } else if (action.type() == GameActionType.SELECT_CARD_1_OUT_OF_3) {
             if (currentAction != null && properties.nilroysCodexHelperCardIdx >= 0 && currentAction.idx() == properties.nilroysCodexHelperCardIdx) {
-                addCardToDeck(action.idx());
+                addCardToDeckRandom(action.idx());
                 setActionCtx(GameActionCtx.BEGIN_TURN, null, null);
                 completeEndTurnRemainder();
             } else if (turnNum == 0) {
                 if (Configuration.HEART_GAUNTLET_CARD_REWARD) { // todo
-                    addCardToDeck(action.idx(), false);
+                    addCardToDeckNonRandom(action.idx());
                     setActionCtx(GameActionCtx.BEGIN_BATTLE, null, null);
                 } else {
                     addCardToHand(action.idx(), true);
@@ -3963,11 +3963,15 @@ public final class GameState implements State {
         updateHandArr();
     }
 
-    public void addCardToDeck(int idx) {
-        addCardToDeck(idx, true);
+    public void addCardToDeckRandom(int idx) {
+        addCardToDeckHelper(idx, true);
     }
 
-    public void addCardToDeck(int idx, boolean random) {
+    public void addCardToDeckNonRandom(int idx) {
+        addCardToDeckHelper(idx, false);
+    }
+
+    private void addCardToDeckHelper(int idx, boolean random) {
         deckArrLen += 1;
         getDeckArrForWrite(deckArrLen);
         if (properties.frozenEye != null && properties.frozenEye.isRelicEnabledInScenario(this) && random) {
