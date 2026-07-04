@@ -2179,6 +2179,18 @@ public final class GameState implements State {
                 for (var handler : properties.onRetainHandlers) {
                     handler.handle(this, i, -1, -1, null, -1);
                 }
+                if (properties.establishmentCounterIdx >= 0 && getCounterForRead()[properties.establishmentCounterIdx] > 0) {
+                    if (properties.tmpModifiedCardReverseTransformIdxes != null && properties.cardDict[handArr[i]].isTmpModifiedUntilEndOfTurnCard()) {
+                        getHandArrForWrite()[i] = (short) properties.tmpModifiedCardReverseTransformIdxes[handArr[i]];
+                    }
+                    for (int j = 0; j < getCounterForRead()[properties.establishmentCounterIdx]; j++) {
+                        int newCardIdx = lowerCardCostForCombat(getHandArrForRead()[i]);
+                        if (newCardIdx == getHandArrForRead()[i]) {
+                            break;
+                        }
+                        getHandArrForWrite()[i] = (short) newCardIdx;
+                    }
+                }
             } else if (isDiscardingCardEndOfTurn()) {
                 addCardToDiscard(handArr[i], false);
                 getHandArrForWrite()[i] = -1;
@@ -3756,12 +3768,12 @@ public final class GameState implements State {
             var baseCard = properties.cardDict[cardIndex].getBaseCard();
             if (baseCard instanceof CardDefect.ForceField forceField) {
                 if (forceField.energyCost == 4) {
-                    return properties.findCardIndex(properties.cardDict[cardIndex].wrap(new CardDefect.ForceField(Math.max(4 - getCounterForRead()[properties.forceFieldCounterIdx], 0))));
+                    cardIndex = properties.findCardIndex(properties.cardDict[cardIndex].wrap(new CardDefect.ForceField(Math.max(4 - getCounterForRead()[properties.forceFieldCounterIdx], 0))));
                 }
             }
             if (baseCard instanceof CardDefect.ForceFieldP forceField) {
                 if (forceField.energyCost == 4) {
-                    return properties.findCardIndex(properties.cardDict[cardIndex].wrap(new CardDefect.ForceFieldP(Math.max(4 - getCounterForRead()[properties.forceFieldCounterIdx], 0))));
+                    cardIndex = properties.findCardIndex(properties.cardDict[cardIndex].wrap(new CardDefect.ForceFieldP(Math.max(4 - getCounterForRead()[properties.forceFieldCounterIdx], 0))));
                 }
             }
         }
@@ -3769,16 +3781,26 @@ public final class GameState implements State {
             var baseCard = properties.cardDict[cardIndex].getBaseCard();
             if (baseCard instanceof CardIronclad.BloodForBlood bloodForBlood) {
                 if (bloodForBlood.energyCost == 4) {
-                    return properties.findCardIndex(properties.cardDict[cardIndex].wrap(new CardIronclad.BloodForBlood(Math.max(4 - getCounterForRead()[properties.bloodForBloodCounterIdx], 0))));
+                    cardIndex = properties.findCardIndex(properties.cardDict[cardIndex].wrap(new CardIronclad.BloodForBlood(Math.max(4 - getCounterForRead()[properties.bloodForBloodCounterIdx], 0))));
                 }
             }
             if (baseCard instanceof CardIronclad.BloodForBloodP bloodForBlood) {
                 if (bloodForBlood.energyCost == 3) {
-                    return properties.findCardIndex(properties.cardDict[cardIndex].wrap(new CardIronclad.BloodForBloodP(Math.max(3 - getCounterForRead()[properties.bloodForBloodCounterIdx], 0))));
+                    cardIndex = properties.findCardIndex(properties.cardDict[cardIndex].wrap(new CardIronclad.BloodForBloodP(Math.max(3 - getCounterForRead()[properties.bloodForBloodCounterIdx], 0))));
                 }
             }
         }
+        if (hasBuff(PlayerBuff.MASTER_REALITY) && properties.upgradeIdxes[cardIndex] >= 0) {
+            return properties.upgradeIdxes[cardIndex];
+        }
         return cardIndex;
+    }
+
+    public int lowerCardCostForCombat(int cardIndex) {
+        if (cardIndex >= properties.realCardsLen || properties.cardDict[cardIndex].energyCost <= 0) {
+            return cardIndex;
+        }
+        return properties.findCardIndex(properties.cardDict[cardIndex].getPermCostIfPossible(properties.cardDict[cardIndex].energyCost - 1));
     }
 
     public int addCardToHand(int cardIndex, boolean generateCard) {

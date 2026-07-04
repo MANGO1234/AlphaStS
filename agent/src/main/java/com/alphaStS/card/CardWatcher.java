@@ -20,6 +20,16 @@ import java.util.Arrays;
 import java.util.List;
 
 public class CardWatcher {
+    private static final GameProperties.CounterRegistrant EstablishmentCounterRegistrant = new GameProperties.CounterRegistrant() {
+        @Override public void setCounterIdx(GameProperties gameProperties, int idx) {
+            gameProperties.establishmentCounterIdx = idx;
+        }
+
+        @Override public int getCounterIdx(GameProperties gameProperties) {
+            return gameProperties.establishmentCounterIdx;
+        }
+    };
+
     private static abstract class _EruptionT extends Card {
         public _EruptionT(String cardName, int energyCost) {
             super(cardName, Card.ATTACK, energyCost, Card.COMMON);
@@ -2810,8 +2820,19 @@ public class CardWatcher {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            // TODO: Implement effect - Whenever a card is Retained, lower its cost by 1
+            state.getCounterForWrite()[state.properties.establishmentCounterIdx]++;
             return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            return cards.stream()
+                    .filter(card -> !card.isTmpModifiedCard() && card.energyCost > 0)
+                    .map(card -> card.getPermCostIfPossible(card.energyCost - 1))
+                    .toList();
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("Establishment", EstablishmentCounterRegistrant, null);
         }
     }
 
@@ -2952,11 +2973,19 @@ public class CardWatcher {
     public static abstract class _MasterRealityT extends Card {
         public _MasterRealityT(String cardName, int energyCost) {
             super(cardName, Card.POWER, energyCost, Card.RARE);
+            entityProperty.addPossibleBuff(PlayerBuff.MASTER_REALITY);
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            // TODO: Implement effect - upgrade any cards created during combat
+            state.addBuff(PlayerBuff.MASTER_REALITY);
             return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            return cards.stream()
+                    .map(card -> card.getUpgrade(properties))
+                    .filter(card -> card != null)
+                    .toList();
         }
     }
 

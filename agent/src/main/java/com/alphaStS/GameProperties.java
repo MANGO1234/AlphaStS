@@ -238,6 +238,7 @@ public class GameProperties implements Cloneable {
     public int drawReductionCounterIdx = -1;
     public int echoFormCounterIdx = -1;
     public int electrodynamicsCounterIdx = -1;
+    public int establishmentCounterIdx = -1;
     public int envenomCounterIdx = -1;
     public int equilibriumCounterIdx = -1;
     public int eviscerateCounterIdx = -1;

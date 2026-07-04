@@ -2764,8 +2764,52 @@ public class Relic2 {
         }
     }
 
-    // TODO: Bookmark (Rare)
+    // Bookmark (Rare)
     //   Effect: At the end of each turn, lower the cost of a random Retained card by 1 until played.
+    public static class Bookmark extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.addEndOfTurnHandler("Bookmark", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (!isRelicEnabledInScenario(state)) {
+                        return;
+                    }
+                    int retainedCardCount = 0;
+                    for (int i = 0; i < state.handArrLen; i++) {
+                        int cardIdx = state.handArr[i];
+                        if (cardIdx < state.properties.realCardsLen && state.properties.cardDict[cardIdx].retain(state) && state.properties.cardDict[cardIdx].energyCost > 0) {
+                            retainedCardCount++;
+                        }
+                    }
+                    if (retainedCardCount == 0) {
+                        return;
+                    }
+                    int r = 0;
+                    if (retainedCardCount > 1) {
+                        state.setIsStochastic();
+                        r = state.getSearchRandomGen().nextInt(retainedCardCount, RandomGenCtx.RandomCardHand);
+                    }
+                    int retainedCardIdx = 0;
+                    for (int i = 0; i < state.handArrLen; i++) {
+                        int cardIdx = state.handArr[i];
+                        if (cardIdx < state.properties.realCardsLen && state.properties.cardDict[cardIdx].retain(state) && state.properties.cardDict[cardIdx].energyCost > 0) {
+                            if (retainedCardIdx == r) {
+                                state.getHandArrForWrite()[i] = (short) state.lowerCardCostForCombat(cardIdx);
+                                return;
+                            }
+                            retainedCardIdx++;
+                        }
+                    }
+                }
+            });
+        }
+
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            return cards.stream()
+                    .filter(card -> !card.isTmpModifiedCard() && card.energyCost > 0)
+                    .map(card -> card.getPermCostIfPossible(card.energyCost - 1))
+                    .toList();
+        }
+    }
 
     // Bound Phylactery (Starter)
     //   Effect: At the start of your turn, Summon 1.
