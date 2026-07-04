@@ -643,6 +643,12 @@ public final class GameState implements State {
                 properties.toolsOfTheTradeCardIdx = i;
             } else if (cards.get(i).cardName.equals("Foresight") || cards.get(i).cardName.equals("Foresight+")) {
                 properties.foresightCardIdx = i;
+            } else if (cards.get(i).getBaseCard() instanceof CardRegent2._ForegoneConclusionT) {
+                properties.foregoneConclusionCardIdx = i;
+            } else if (cards.get(i).getBaseCard() instanceof CardRegent2._TyrannyT) {
+                properties.tyrannyCardIdx = i;
+            } else if (cards.get(i).getBaseCard() instanceof CardColorless2._EntropyT) {
+                properties.entropyCardIdx = i;
             } else if (cards.get(i).cardName.equals("Gambling Chips")) {
                 properties.gamblingChipsCardIdx = i;
             }
@@ -1470,15 +1476,12 @@ public final class GameState implements State {
                 setActionCtx(GameActionCtx.SELECT_CARD_DISCARD, action, cloneSource);
             } else if (properties.cardDict[cardIdx].entityProperty.selectFromExhaust) {
                 setActionCtx(GameActionCtx.SELECT_CARD_EXHAUST, action, cloneSource);
-            } else if (properties.cardDict[cardIdx].entityProperty.selectFromDeck) {
+            } else if (properties.cardDict[cardIdx].entityProperty.selectFromDeck && !properties.cardDict[cardIdx].selectFromDeckLater) {
                 setActionCtx(GameActionCtx.SELECT_CARD_DECK, action, cloneSource);
             }
         }
 
-        boolean isCardPlayed = true;
-        if (actionCtx == GameActionCtx.SELECT_CARD_HAND && properties.toolsOfTheTradeCardIdx == currentAction.idx()) {
-            isCardPlayed = false;
-        }
+        boolean isCardPlayed = !isBeginTurnAction(currentAction);
 
         do {
             if (actionCtx == GameActionCtx.SELECT_ENEMY) {
@@ -1896,8 +1899,12 @@ public final class GameState implements State {
     }
 
     void beginTurn() {
-        actionsInCurTurn = 0;
-        if (turnNum == 0) { // start of turn 1
+        beginTurn(null);
+    }
+
+    void beginTurn(GameAction previousAction) {
+        int stage = getBeginTurnStage(previousAction);
+        if (stage < 1 && turnNum == 0) { // start of turn 1
             List<Integer> order = new ArrayList<>();
             for (int i = 0; i < deckArrLen; i++) { // todo: edge case more innate cards than first turn draw
                 if (properties.cardDict[deckArr[i]].innate()) {
@@ -1918,50 +1925,64 @@ public final class GameState implements State {
                 deckArrFixedDrawLen = deckArrLen;
             }
         }
-        runActionsInQueueIfNonEmpty();
-        playerTurnStartMaxPossibleHealth = getMaxPossibleHealth();
-        playerTurnStartPotionCount = getPotionCount();
-        playerTurnStartMaxHandOfGreed = (byte) CardColorless.HandOfGreed.getMaxPossibleHandOfGreed(this);
-        playerTurnStartMaxRitualDagger = (byte) CardColorless.RitualDagger.getMaxPossibleRitualDagger(this);
-        gainEnergy(energyRefill);
-        if (properties.character == CharacterEnum.WATCHER) {
-            exitDivinityAtStartOfTurn();
-        }
-        if (!hasBuff(PlayerBuff.USED_VAULT)) {
-            var enemies = getEnemiesForWrite();
-            for (int i = 0; i < enemies.size(); i++) {
-                var enemy = enemies.get(i);
-                if (enemy.isAlive() || enemy.canSelfRevive(this)) {
-                    var enemy2 = enemies.getForWrite(i);
-                    enemy2.endTurn(turnNum);
-                    if (!properties.isRunicDomeEnabled(this)) {
-                        var oldIsStochastic = isStochastic;
-                        isStochastic = false;
-                        enemy2.nextMove(this, getSearchRandomGen());
-                        if (properties.makingRealMove && isStochastic) {
-                            getStateDesc().append(getStateDesc().length() > 0 ? "; " : "").append(enemy2.getName()).append(" (").append(i).append(") choose move ").append(enemy2.getMoveString(this));
+        if (stage < 1) {
+            actionsInCurTurn = 0;
+            runActionsInQueueIfNonEmpty();
+            playerTurnStartMaxPossibleHealth = getMaxPossibleHealth();
+            playerTurnStartPotionCount = getPotionCount();
+            playerTurnStartMaxHandOfGreed = (byte) CardColorless.HandOfGreed.getMaxPossibleHandOfGreed(this);
+            playerTurnStartMaxRitualDagger = (byte) CardColorless.RitualDagger.getMaxPossibleRitualDagger(this);
+            gainEnergy(energyRefill);
+            if (properties.character == CharacterEnum.WATCHER) {
+                exitDivinityAtStartOfTurn();
+            }
+            if (!hasBuff(PlayerBuff.USED_VAULT)) {
+                var enemies = getEnemiesForWrite();
+                for (int i = 0; i < enemies.size(); i++) {
+                    var enemy = enemies.get(i);
+                    if (enemy.isAlive() || enemy.canSelfRevive(this)) {
+                        var enemy2 = enemies.getForWrite(i);
+                        enemy2.endTurn(turnNum);
+                        if (!properties.isRunicDomeEnabled(this)) {
+                            var oldIsStochastic = isStochastic;
+                            isStochastic = false;
+                            enemy2.nextMove(this, getSearchRandomGen());
+                            if (properties.makingRealMove && isStochastic) {
+                                getStateDesc().append(getStateDesc().length() > 0 ? "; " : "").append(enemy2.getName()).append(" (").append(i).append(") choose move ").append(enemy2.getMoveString(this));
+                            }
+                            isStochastic = oldIsStochastic | isStochastic;
+                        } else {
+                        // for enemy like GremlinLeader, we need to choose move based on the beginning of turn
+                        // currently doing it like this so instead of saving last 2 moves so that
+                        // enemyChooseMove leading to multiple tree where the turn is the same (since nn is passed in the same info)
+                        // we have one tree that has a chance event on beginning of turn
+                            enemy2.saveStateForNextMove(this);
                         }
-                        isStochastic = oldIsStochastic | isStochastic;
-                    } else {
-                    // for enemy like GremlinLeader, we need to choose move based on the beginning of turn
-                    // currently doing it like this so instead of saving last 2 moves so that
-                    // enemyChooseMove leading to multiple tree where the turn is the same (since nn is passed in the same info)
-                    // we have one tree that has a chance event on beginning of turn
-                        enemy2.saveStateForNextMove(this);
                     }
                 }
             }
+            triggerOrbsPassiveStartOfTurn();
+            removeBuff(PlayerBuff.USED_VAULT);
         }
-        triggerOrbsPassiveStartOfTurn();
-        removeBuff(PlayerBuff.USED_VAULT);
-        if (properties.toolbox != null && turnNum == 0 && properties.toolbox.isRelicEnabledInScenario(this)) {
+        if (stage < 1 && properties.toolbox != null && turnNum == 0 && properties.toolbox.isRelicEnabledInScenario(this)) {
             Relic.Toolbox.changeToSelectionCtx(this);
-        } else {
-            beginTurnPart2();
+            return;
         }
+        if (stage < 2 && properties.foregoneConclusionCounterIdx >= 0 && getCounterForRead()[properties.foregoneConclusionCounterIdx] > 0) {
+            if (getNumCardsInDeck() > 0) {
+                var action = properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][properties.foregoneConclusionCardIdx];
+                setActionCtx(GameActionCtx.SELECT_CARD_DECK, action, null);
+                return;
+            }
+            getCounterForWrite()[properties.foregoneConclusionCounterIdx] = 0;
+        }
+        if (stage < 3) {
+            beginTurnDraw();
+        }
+        continueBeginTurnAfterDraw(stage);
     }
 
-    void beginTurnPart2() {
+    void beginTurnDraw() {
         turnNum++;
         realTurnNum++;
         var drawCount = 5;
@@ -1974,6 +1995,9 @@ public final class GameState implements State {
         }
         if (properties.toolsOfTheTradeCounterIdx >= 0) {
             drawCount += getCounterForRead()[properties.toolsOfTheTradeCounterIdx];
+        }
+        if (properties.tyrannyCounterIdx >= 0) {
+            drawCount += getCounterForRead()[properties.tyrannyCounterIdx];
         }
         if (properties.sneckoEye != null && properties.sneckoEye.isRelicEnabledInScenario(this)) {
             drawCount += 2;
@@ -1992,13 +2016,47 @@ public final class GameState implements State {
         isStartOfTurnPhase = false;
         if (properties.toolsOfTheTradeCounterIdx >= 0 && getCounterForRead()[properties.toolsOfTheTradeCounterIdx] > 0) {
             getCounterForWrite()[properties.toolsOfTheTradeCounterIdx] += getCounterForRead()[properties.toolsOfTheTradeCounterIdx] << 16;
-            var action = properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][properties.toolsOfTheTradeCardIdx];
-            setActionCtx(GameActionCtx.SELECT_CARD_HAND, action, null);
-            return;
-        } else if (properties.foresightCounterIdx >= 0 && getCounterForRead()[properties.foresightCounterIdx] > 0) {
+        }
+        if (properties.tyrannyCounterIdx >= 0 && getCounterForRead()[properties.tyrannyCounterIdx] > 0) {
+            getCounterForWrite()[properties.tyrannyCounterIdx] += getCounterForRead()[properties.tyrannyCounterIdx] << 16;
+        }
+        if (properties.entropyCounterIdx >= 0 && getCounterForRead()[properties.entropyCounterIdx] > 0) {
+            getCounterForWrite()[properties.entropyCounterIdx] += getCounterForRead()[properties.entropyCounterIdx] << 16;
+        }
+    }
+
+    void continueBeginTurnAfterDraw(int stage) {
+        if (stage < 4 && properties.toolsOfTheTradeCounterIdx >= 0 && getCounterForRead()[properties.toolsOfTheTradeCounterIdx] >= (1 << 16)) {
+            if (getNumCardsInHand() > 0) {
+                var action = properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][properties.toolsOfTheTradeCardIdx];
+                setActionCtx(GameActionCtx.SELECT_CARD_HAND, action, null);
+                return;
+            }
+            getCounterForWrite()[properties.toolsOfTheTradeCounterIdx] = getCounterForRead()[properties.toolsOfTheTradeCounterIdx] & 0xffff;
+        }
+        if (stage < 5 && properties.foresightCounterIdx >= 0 && getCounterForRead()[properties.foresightCounterIdx] > 0) {
             var action = properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][properties.foresightCardIdx];
-            setActionCtx(startScry(getCounterForRead()[properties.foresightCounterIdx]), action, null);
-            return;
+            GameActionCtx ctx = startScry(getCounterForRead()[properties.foresightCounterIdx]);
+            if (ctx != GameActionCtx.PLAY_CARD) {
+                setActionCtx(ctx, action, null);
+                return;
+            }
+        }
+        if (stage < 6 && properties.tyrannyCounterIdx >= 0 && getCounterForRead()[properties.tyrannyCounterIdx] >= (1 << 16)) {
+            if (getNumCardsInHand() > 0) {
+                var action = properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][properties.tyrannyCardIdx];
+                setActionCtx(GameActionCtx.SELECT_CARD_HAND, action, null);
+                return;
+            }
+            getCounterForWrite()[properties.tyrannyCounterIdx] = getCounterForRead()[properties.tyrannyCounterIdx] & 0xffff;
+        }
+        if (stage < 7 && properties.entropyCounterIdx >= 0 && getCounterForRead()[properties.entropyCounterIdx] >= (1 << 16)) {
+            if (getNumCardsInHand() > 0) {
+                var action = properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][properties.entropyCardIdx];
+                setActionCtx(GameActionCtx.SELECT_CARD_HAND, action, null);
+                return;
+            }
+            getCounterForWrite()[properties.entropyCounterIdx] = getCounterForRead()[properties.entropyCounterIdx] & 0xffff;
         }
         if (properties.gamblingChipsCardIdx >= 0 && turnNum == 1) {
             var action = properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][properties.gamblingChipsCardIdx];
@@ -2007,6 +2065,43 @@ public final class GameState implements State {
             setActionCtx(GameActionCtx.PLAY_CARD, null, null);
             runActionsInQueueIfNonEmpty();
         }
+    }
+
+    private int getBeginTurnStage(GameAction previousAction) {
+        if (turnNum == 0 && actionCtx == GameActionCtx.SELECT_CARD_1_OUT_OF_3 && previousAction == null && currentAction == null) {
+            return 1;
+        }
+        GameAction action = previousAction != null ? previousAction : currentAction;
+        if (action == null || action.type() != GameActionType.PLAY_CARD) {
+            return 0;
+        }
+        int cardIdx = action.idx();
+        if (cardIdx == properties.foregoneConclusionCardIdx) {
+            return 2;
+        }
+        if (cardIdx == properties.toolsOfTheTradeCardIdx) {
+            return 4;
+        }
+        if (cardIdx == properties.foresightCardIdx) {
+            return 5;
+        }
+        if (cardIdx == properties.tyrannyCardIdx) {
+            return 6;
+        }
+        if (cardIdx == properties.entropyCardIdx) {
+            return 7;
+        }
+        return 0;
+    }
+
+    private boolean isBeginTurnAction(GameAction action) {
+        if (action == null || action.type() != GameActionType.PLAY_CARD) {
+            return false;
+        }
+        int cardIdx = action.idx();
+        return cardIdx == properties.foregoneConclusionCardIdx || cardIdx == properties.toolsOfTheTradeCardIdx ||
+                cardIdx == properties.foresightCardIdx || cardIdx == properties.tyrannyCardIdx ||
+                cardIdx == properties.entropyCardIdx;
     }
 
     public void selectBiasedCognitionLimit() {
@@ -2348,7 +2443,11 @@ public final class GameState implements State {
             }
         } else if (action.type() == GameActionType.SELECT_CARD_HAND) {
             if (currentAction.type() == GameActionType.PLAY_CARD) {
+                var previousAction = currentAction;
                 playCard(currentAction, action.idx(), true, actionCardCloneSource, true, false, -1, -1);
+                if (actionCtx == GameActionCtx.PLAY_CARD && isBeginTurnAction(previousAction)) {
+                    beginTurn(previousAction);
+                }
             } else if (currentAction.type() == GameActionType.USE_POTION) {
                 usePotion(currentAction, action.idx());
             }
@@ -2361,13 +2460,21 @@ public final class GameState implements State {
         } else if (action.type() == GameActionType.SELECT_CARD_EXHAUST) {
             playCard(currentAction, action.idx(), true, actionCardCloneSource, true, false, -1, -1);
         } else if (action.type() == GameActionType.SELECT_CARD_DECK) {
+            var previousAction = currentAction;
             playCard(currentAction, action.idx(), true, actionCardCloneSource, true, false, -1, -1);
+            if (actionCtx == GameActionCtx.PLAY_CARD && isBeginTurnAction(previousAction)) {
+                beginTurn(previousAction);
+            }
         } else if (action.type() == GameActionType.SCRY_KEEP_CARD) {
             if (handleScryCardDecision(action.idx())) { // finished scrying
                 for (var handler : properties.onScryHandlers) {
                     handler.handle(this);
                 }
+                var previousAction = currentAction;
                 playCard(currentAction, action.idx(), true, actionCardCloneSource, true, false, -1, -1);
+                if (actionCtx == GameActionCtx.PLAY_CARD && isBeginTurnAction(previousAction)) {
+                    beginTurn(previousAction);
+                }
             }
         } else if (action.type() == GameActionType.SELECT_CARD_1_OUT_OF_3) {
             if (currentAction != null && properties.nilroysCodexHelperCardIdx >= 0 && currentAction.idx() == properties.nilroysCodexHelperCardIdx) {
@@ -2380,7 +2487,7 @@ public final class GameState implements State {
                     setActionCtx(GameActionCtx.BEGIN_BATTLE, null, null);
                 } else {
                     addCardToHand(action.idx(), true);
-                    beginTurnPart2();
+                    beginTurn();
                 }
             } else {
                 if (currentAction != null && properties.cardDict[currentAction.idx()].select1OutOf3CardExtraEffect) {
@@ -2442,7 +2549,7 @@ public final class GameState implements State {
                 if (Configuration.HEART_GAUNTLET_CARD_REWARD) { // todo
                     setActionCtx(GameActionCtx.BEGIN_BATTLE, null, null);
                 } else {
-                    beginTurnPart2();
+                    beginTurn();
                 }
             } else {
                 setActionCtx(GameActionCtx.PLAY_CARD, null, null);

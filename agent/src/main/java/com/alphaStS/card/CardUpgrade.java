@@ -682,12 +682,12 @@ public class CardUpgrade {
         // map_sts2.put(new CardRegent2.Royalties(), new CardRegent2.RoyaltiesP()); // TODO
         map_sts2.put(new CardRegent2.SeekingEdge(), new CardRegent2.SeekingEdgeP());
         map_sts2.put(new CardRegent2.SwordSage(), new CardRegent2.SwordSageP());
-        // map_sts2.put(new CardRegent2.Tyranny(), new CardRegent2.TyrannyP()); // TODO
+        map_sts2.put(new CardRegent2.Tyranny(), new CardRegent2.TyrannyP());
         map_sts2.put(new CardRegent2.VoidForm(), new CardRegent2.VoidFormP());
         map_sts2.put(new CardRegent2.BigBang(), new CardRegent2.BigBangP());
         map_sts2.put(new CardRegent2.BundleOfJoy(), new CardRegent2.BundleOfJoyP());
         map_sts2.put(new CardRegent2.DecisionsDecisions(), new CardRegent2.DecisionsDecisionsP());
-        // map_sts2.put(new CardRegent2.ForegoneConclusion(), new CardRegent2.ForegoneConclusionP()); // TODO
+        map_sts2.put(new CardRegent2.ForegoneConclusion(), new CardRegent2.ForegoneConclusionP());
         map_sts2.put(new CardRegent2.Guards(), new CardRegent2.GuardsP());
         map_sts2.put(new CardRegent2.IAmInvincible(), new CardRegent2.IAmInvincibleP());
         map_sts2.put(new CardRegent2.TheSmith(), new CardRegent2.TheSmithP());
@@ -838,7 +838,7 @@ public class CardUpgrade {
         map_sts2.put(new CardColorless2.Rend(), new CardColorless2.RendP());
         map_sts2.put(new CardColorless2.Salvo(), new CardColorless2.SalvoP());
         map_sts2.put(new CardColorless2.Calamity(), new CardColorless2.CalamityP());
-        // map_sts2.put(new CardColorless2.Entropy(), new CardColorless2.EntropyP()); // TODO
+        map_sts2.put(new CardColorless2.Entropy(), new CardColorless2.EntropyP());
         map_sts2.put(new CardColorless2.EternalArmor(), new CardColorless2.EternalArmorP());
         map_sts2.put(new CardColorless2.Mayhem(), new CardColorless2.MayhemP());
         map_sts2.put(new CardColorless2.Nostalgia(), new CardColorless2.NostalgiaP());

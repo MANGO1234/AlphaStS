@@ -40,6 +40,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
     public boolean retain = false;
     public boolean delayUseEnergy;
     public boolean isXCost;
+    public boolean selectFromDeckLater;
     public boolean selectFromDiscardLater;
     public boolean selectFromHandLater;
     public boolean exhaustSkill;
@@ -589,6 +590,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
             retain = card.retain;
             delayUseEnergy = card.delayUseEnergy;
             isXCost = card.isXCost;
+            selectFromDeckLater = card.selectFromDeckLater;
             selectFromDiscardLater = card.selectFromDiscardLater;
             selectFromHandLater = card.selectFromHandLater;
             exhaustSkill = card.exhaustSkill;

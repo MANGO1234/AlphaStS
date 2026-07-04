@@ -115,6 +115,11 @@ public class GameProperties implements Cloneable {
     public final static int GENERATE_CARD_APOTHEOSIS = 1 << 9;
     public final static int GENERATE_CARD_SEARING_BLOW_UPGRADE = 1 << 10;
     public final static int GENERATE_CARD_DRAIN_POWER = 1 << 11;
+    public final static int GENERATE_CARD_SPLASH = 1 << 12;
+    public final static int GENERATE_CARD_CALAMITY = 1 << 13;
+    public final static int GENERATE_CARD_MAGNETISM = 1 << 14;
+    public final static int GENERATE_CARD_SPECTRUM_SHIFT = 1 << 14; // SAME AS GENERATE_CARD_MAGNETISM because they are subclasses
+    public final static int GENERATE_CARD_ENTROPY = 1 << 15;
     public final static int GENERATE_CARD_ALL_COLORLESS = GENERATE_CARD_DISCOVERY | GENERATE_CARD_METAMORPHOSIS | GENERATE_CARD_CHRYSALIS | GENERATE_CARD_MADNESS | GENERATE_CARD_ENLIGHTENMENT | GENERATE_CARD_APOTHEOSIS;
     public int generateCardOptions;
     // global limits and rewards
@@ -156,12 +161,15 @@ public class GameProperties implements Cloneable {
     public int echoFormCardIdx = -1;
     public int echoFormPCardIdx = -1;
     public int enthralledCardIdx = -1;
+    public int entropyCardIdx = -1;
     public int foresightCardIdx = -1;
+    public int foregoneConclusionCardIdx = -1;
     public int gamblingChipsCardIdx = -1;
     public int nilroysCodexHelperCardIdx = -1;
     public int normalityCardIdx = -1;
     public int sovereignBladeCardIdx = -1;
     public int toolsOfTheTradeCardIdx = -1;
+    public int tyrannyCardIdx = -1;
     public int wellLaidPlansCardIdx = -1;
     public int[] bloodForBloodPTransformIndexes;
     public int[] bloodForBloodTransformIndexes;
@@ -240,6 +248,7 @@ public class GameProperties implements Cloneable {
     public int electrodynamicsCounterIdx = -1;
     public int establishmentCounterIdx = -1;
     public int envenomCounterIdx = -1;
+    public int entropyCounterIdx = -1;
     public int equilibriumCounterIdx = -1;
     public int eviscerateCounterIdx = -1;
     public int exhaustedThisTurnCounterIdx = -1;
@@ -250,6 +259,7 @@ public class GameProperties implements Cloneable {
     public int feralCounterIdx = -1;
     public int forceFieldCounterIdx = -1;
     public int foresightCounterIdx = -1;
+    public int foregoneConclusionCounterIdx = -1;
     public int forgeCounterIdx = -1;
     public int geneticAlgorithmCounterIdx = -1;
     public int gigantificationCounterIdx = -1;
@@ -313,6 +323,7 @@ public class GameProperties implements Cloneable {
     public int timeEaterCounterIdx = -1;
     public int toolsOfTheTradeCounterIdx = -1;
     public int trackingCounterIdx = -1;
+    public int tyrannyCounterIdx = -1;
     public int unmovableCounterIdx = -1;
     public int unrelentingCounterIdx = -1;
     public int vambraceCounterIdx = -1;

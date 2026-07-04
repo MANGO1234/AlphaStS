@@ -1173,9 +1173,74 @@ public class CardColorless2 {
         }
     }
 
-    // TODO: Entropy (Rare) - 1 energy, Power
+    public static abstract class _EntropyT extends Card {
+        public _EntropyT(String cardName, boolean innate) {
+            super(cardName, Card.POWER, 1, Card.RARE);
+            this.innate = innate;
+            entityProperty.selectFromHand = true;
+            selectFromHandLater = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            if ((state.properties.generateCardOptions & GameProperties.GENERATE_CARD_ENTROPY) == 0) {
+                return GameActionCtx.PLAY_CARD;
+            }
+            if (state.actionCtx == GameActionCtx.PLAY_CARD) {
+                state.getCounterForWrite()[counterIdx]++;
+                return GameActionCtx.PLAY_CARD;
+            }
+            var hand = state.getHandArrForRead();
+            for (int i = 0; i < state.getNumCardsInHand(); i++) {
+                if (hand[i] == idx) {
+                    int randomIdx = state.getSearchRandomGen().nextInt(generatedCardIdxes.length, RandomGenCtx.RandomCardGen, new Tuple<>(state, generatedCardIdxes));
+                    state.transformCard(state.getHandArrForWrite(), i, state.createCard(generatedCardIdxes[randomIdx]));
+                    break;
+                }
+            }
+            state.getCounterForWrite()[counterIdx] -= 1 << 16;
+            return state.getCounterForRead()[counterIdx] < (1 << 16) ? GameActionCtx.PLAY_CARD : GameActionCtx.SELECT_CARD_HAND;
+        }
+
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            if ((properties.generateCardOptions & GameProperties.GENERATE_CARD_ENTROPY) == 0) {
+                return List.of();
+            }
+            return CardManager.getCharacterCards(properties.character, false);
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("Entropy", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] & 0xffff;
+                    input[idx + 1] = state.getCounterForRead()[counterIdx] >> 16;
+                    return idx + 2;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 2;
+                }
+
+                @Override public void onRegister(int counterIdx) {
+                    state.properties.entropyCounterIdx = counterIdx;
+                }
+            });
+        }
+    }
+
+    // Entropy (Rare) - 1 energy, Power
     //   Effect: At the start of your turn, Transform 1 card in your Hand.
     //   Upgraded Effect: Innate. At the start of your turn, Transform 1 card in your Hand.
+    public static class Entropy extends _EntropyT {
+        public Entropy() {
+            super("Entropy", false);
+        }
+    }
+
+    public static class EntropyP extends _EntropyT {
+        public EntropyP() {
+            super("Entropy+", true);
+        }
+    }
 
     private static abstract class _EternalArmorT extends Card {
         private final int amount;

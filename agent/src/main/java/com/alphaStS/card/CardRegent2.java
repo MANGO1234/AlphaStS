@@ -2816,9 +2816,64 @@ public class CardRegent2 {
         }
     }
 
-    // TODO: Foregone Conclusion (Rare) - 1 energy, Skill
+    public static abstract class _ForegoneConclusionT extends Card {
+        private final int cardCount;
+
+        public _ForegoneConclusionT(String cardName, int cardCount) {
+            super(cardName, Card.SKILL, 1, Card.RARE);
+            this.cardCount = cardCount;
+            exhaustWhenPlayed = true;
+            entityProperty.selectFromDeck = true;
+            selectFromDeckLater = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            if (state.actionCtx == GameActionCtx.PLAY_CARD) {
+                state.getCounterForWrite()[counterIdx] += cardCount;
+                return GameActionCtx.PLAY_CARD;
+            }
+            state.removeCardFromDeck(idx, false);
+            state.addCardToHand(idx, false);
+            state.getCounterForWrite()[counterIdx]--;
+            if (state.getCounterForRead()[counterIdx] <= 1 || state.getNumCardsInDeck() == 0) {
+                state.getCounterForWrite()[counterIdx] = 0;
+                return GameActionCtx.PLAY_CARD;
+            }
+            return GameActionCtx.SELECT_CARD_DECK;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("ForegoneConclusion", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 5.0f;
+                    return idx + 1;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+
+                @Override public void onRegister(int counterIdx) {
+                    state.properties.foregoneConclusionCounterIdx = counterIdx;
+                }
+            });
+        }
+    }
+
+    // Foregone Conclusion (Rare) - 1 energy, Skill
     //   Effect: Next turn, put 2 cards from your Draw Pile into your Hand.
     //   Upgraded Effect: Next turn, put 3 cards from your Draw Pile into your Hand.
+    public static class ForegoneConclusion extends _ForegoneConclusionT {
+        public ForegoneConclusion() {
+            super("Foregone Conclusion", 2);
+        }
+    }
+
+    public static class ForegoneConclusionP extends _ForegoneConclusionT {
+        public ForegoneConclusionP() {
+            super("Foregone Conclusion+", 3);
+        }
+    }
 
     private static abstract class _GuardsT extends Card {
         public _GuardsT(String cardName, int energyCost) {
@@ -3446,9 +3501,57 @@ public class CardRegent2 {
         }
     }
 
-    // TODO: Tyranny (Rare) - 1 energy, Power
+    public static abstract class _TyrannyT extends Card {
+        public _TyrannyT(String cardName, boolean innate) {
+            super(cardName, Card.POWER, 1, Card.RARE);
+            this.innate = innate;
+            entityProperty.selectFromHand = true;
+            selectFromHandLater = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            if (state.actionCtx == GameActionCtx.PLAY_CARD) {
+                state.getCounterForWrite()[counterIdx]++;
+                return GameActionCtx.PLAY_CARD;
+            }
+            state.exhaustCardFromHand(idx);
+            state.getCounterForWrite()[counterIdx] -= 1 << 16;
+            return state.getCounterForRead()[counterIdx] < (1 << 16) ? GameActionCtx.PLAY_CARD : GameActionCtx.SELECT_CARD_HAND;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("Tyranny", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] & 0xffff;
+                    input[idx + 1] = state.getCounterForRead()[counterIdx] >> 16;
+                    return idx + 2;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 2;
+                }
+
+                @Override public void onRegister(int counterIdx) {
+                    state.properties.tyrannyCounterIdx = counterIdx;
+                }
+            });
+        }
+    }
+
+    // Tyranny (Rare) - 1 energy, Power
     //   Effect: At the start of your turn, draw 1 card and Exhaust 1 card from your Hand.
     //   Upgraded Effect: Innate. At the start of your turn, draw 1 card and Exhaust 1 card from your Hand.
+    public static class Tyranny extends _TyrannyT {
+        public Tyranny() {
+            super("Tyranny", false);
+        }
+    }
+
+    public static class TyrannyP extends _TyrannyT {
+        public TyrannyP() {
+            super("Tyranny+", true);
+        }
+    }
 
     private static abstract class _VoidFormT extends Card {
         private final int freeCards;

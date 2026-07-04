@@ -159,7 +159,7 @@ public class CardManager {
         cards.add(new CardColorless2.Rend());
         cards.add(new CardColorless2.Salvo());
         cards.add(new CardColorless2.Calamity());
-        // cards.add(new CardColorless2.Entropy()); // TODO
+        cards.add(new CardColorless2.Entropy());
         cards.add(new CardColorless2.EternalArmor());
         cards.add(new CardColorless2.Mayhem());
         cards.add(new CardColorless2.Nostalgia());
@@ -1076,7 +1076,7 @@ public class CardManager {
             cards.add(new CardRegent2.BigBang());
             cards.add(new CardRegent2.BundleOfJoy());
             cards.add(new CardRegent2.DecisionsDecisions());
-            // cards.add(new CardRegent2.ForegoneConclusion()); // TODO
+            cards.add(new CardRegent2.ForegoneConclusion());
             cards.add(new CardRegent2.Guards());
             cards.add(new CardRegent2.IAmInvincible());
             cards.add(new CardRegent2.TheSmith());
@@ -1100,7 +1100,7 @@ public class CardManager {
             cards.add(new CardRegent2.Royalties(0.0));
             cards.add(new CardRegent2.SeekingEdge());
             cards.add(new CardRegent2.SwordSage());
-            // cards.add(new CardRegent2.Tyranny()); // TODO
+            cards.add(new CardRegent2.Tyranny());
             cards.add(new CardRegent2.VoidForm());
         }
 
