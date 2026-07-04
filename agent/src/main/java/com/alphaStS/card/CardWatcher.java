@@ -33,6 +33,9 @@ public class CardWatcher {
         }
     }
 
+    // Eruption (Basic) - 2 energy, Attack
+    //   Effect: Deal 9 damage. Enter Wrath.
+    //   Upgraded Effect (1 energy): Deal 9 damage. Enter Wrath.
     public static class Eruption extends _EruptionT {
         public Eruption() {
             super("Eruption", 2);
@@ -60,6 +63,9 @@ public class CardWatcher {
         }
     }
 
+    // Vigilance (Basic) - 2 energy, Skill
+    //   Effect: Gain 8 Block. Enter Calm.
+    //   Upgraded Effect: Gain 12 Block. Enter Calm.
     public static class Vigilance extends _VigilanceT {
         public Vigilance() {
             super("Vigilance", 8);
@@ -95,6 +101,9 @@ public class CardWatcher {
         }
     }
 
+    // Bowling Bash (Common) - 1 energy, Attack
+    //   Effect: Deal 7 damage for each enemy in combat.
+    //   Upgraded Effect: Deal 10 damage for each enemy in combat.
     public static class BowlingBash extends _BowlingBashT {
         public BowlingBash() {
             super("Bowling Bash", 7);
@@ -125,6 +134,9 @@ public class CardWatcher {
         }
     }
 
+    // Consecrate (Common) - 0 energy, Attack
+    //   Effect: Deal 5 damage to ALL enemies.
+    //   Upgraded Effect: Deal 8 damage to ALL enemies.
     public static class Consecrate extends _ConsecrateT {
         public Consecrate() {
             super("Consecrate", 5);
@@ -150,6 +162,9 @@ public class CardWatcher {
         }
     }
 
+    // Crescendo (Common) - 1 energy, Skill
+    //   Effect: Retain. Enter Wrath. Exhaust.
+    //   Upgraded Effect (0 energy): Retain. Enter Wrath. Exhaust.
     public static class Crescendo extends _CrescendoT {
         public Crescendo() {
             super("Crescendo", 1);
@@ -184,6 +199,9 @@ public class CardWatcher {
         }
     }
 
+    // Crush Joints (Common) - 1 energy, Attack
+    //   Effect: Deal 8 damage. If the last card played this combat was a Skill, apply 1 Vulnerable.
+    //   Upgraded Effect: Deal 10 damage. If the last card played this combat was a Skill, apply 2 Vulnerable.
     public static class CrushJoints extends _CrushJointsT {
         public CrushJoints() {
             super("Crush Joints", 8, 1);
@@ -219,6 +237,9 @@ public class CardWatcher {
         }
     }
 
+    // Cut Through Fate (Common) - 1 energy, Attack
+    //   Effect: Deal 7 damage. Scry 2. Draw 1 card.
+    //   Upgraded Effect: Deal 9 damage. Scry 3. Draw 1 card.
     public static class CutThroughFate extends _CutThroughFateT {
         public CutThroughFate() {
             super("Cut Through Fate", 7, 2);
@@ -246,6 +267,9 @@ public class CardWatcher {
         }
     }
 
+    // Empty Body (Common) - 1 energy, Skill
+    //   Effect: Gain 7 Block. Exit your Stance.
+    //   Upgraded Effect: Gain 10 Block. Exit your Stance.
     public static class EmptyBody extends _EmptyBodyT {
         public EmptyBody() {
             super("Empty Body", 7);
@@ -274,6 +298,9 @@ public class CardWatcher {
         }
     }
 
+    // Empty Fist (Common) - 1 energy, Attack
+    //   Effect: Deal 9 damage. Exit your Stance.
+    //   Upgraded Effect: Deal 14 damage. Exit your Stance.
     public static class EmptyFist extends _EmptyFistT {
         public EmptyFist() {
             super("Empty Fist", 9);
@@ -305,6 +332,9 @@ public class CardWatcher {
         }
     }
 
+    // Evaluate (Common) - 1 energy, Skill
+    //   Effect: Gain 6 Block. Shuffle an Insight into your draw pile.
+    //   Upgraded Effect: Gain 10 Block. Shuffle an Insight into your draw pile.
     public static class Evaluate extends _EvaluateT {
         public Evaluate() {
             super("Evaluate", 6);
@@ -348,6 +378,9 @@ public class CardWatcher {
         }
     }
 
+    // Flurry of Blows (Common) - 0 energy, Attack
+    //   Effect: Deal 4 damage. Whenever you change Stances, return this from the discard pile to your hand.
+    //   Upgraded Effect: Deal 6 damage. Whenever you change Stances, return this from the discard pile to your hand.
     public static class FlurryOfBlows extends _FlurryOfBlowsT {
         public FlurryOfBlows() {
             super("Flurry of Blows", 4);
@@ -377,6 +410,9 @@ public class CardWatcher {
         }
     }
 
+    // Flying Sleeves (Common) - 1 energy, Attack
+    //   Effect: Retain. Deal 4 damage twice.
+    //   Upgraded Effect: Retain. Deal 6 damage twice.
     public static class FlyingSleeves extends _FlyingSleevesT {
         public FlyingSleeves() {
             super("Flying Sleeves", 4);
@@ -408,6 +444,9 @@ public class CardWatcher {
         }
     }
 
+    // Follow-Up (Common) - 1 energy, Attack
+    //   Effect: Deal 7 damage. If the previous card played was an Attack, gain.
+    //   Upgraded Effect: Deal 11 damage. If the previous card played was an Attack, gain.
     public static class FollowUp extends _FollowUpT {
         public FollowUp() {
             super("Follow-Up", 7);
@@ -440,6 +479,9 @@ public class CardWatcher {
         }
     }
 
+    // Halt (Common) - 0 energy, Skill
+    //   Effect: Gain 3 Block. If you are in Wrath, gain 9 additional Block.
+    //   Upgraded Effect: Gain 4 Block. If you are in Wrath, gain 14 additional Block.
     public static class Halt extends _HaltT {
         public Halt() {
             super("Halt", 3, 9);
@@ -477,6 +519,9 @@ public class CardWatcher {
         }
     }
 
+    // Just Lucky (Common) - 0 energy, Attack
+    //   Effect: Scry 1. Gain 2 Block. Deal 3 damage.
+    //   Upgraded Effect: Scry 2. Gain 3 Block. Deal 4 damage.
     public static class JustLucky extends _JustLuckyT {
         public JustLucky() {
             super("Just Lucky", 1, 2, 3);
@@ -512,6 +557,9 @@ public class CardWatcher {
         }
     }
 
+    // Pressure Points (Common) - 1 energy, Skill
+    //   Effect: Apply 8 Mark. ALL enemies lose HP equal to their Mark.
+    //   Upgraded Effect: Apply 11 Mark. ALL enemies lose HP equal to their Mark.
     public static class PressurePoints extends _PressurePointsT {
         public PressurePoints() {
             super("Pressure Points", 8);
@@ -545,6 +593,9 @@ public class CardWatcher {
         }
     }
 
+    // Prostrate (Common) - 0 energy, Skill
+    //   Effect: Gain 2 Mantra. Gain 4 Block.
+    //   Upgraded Effect: Gain 3 Mantra. Gain 4 Block.
     public static class Prostrate extends _ProstrateT {
         public Prostrate() {
             super("Prostrate", 2, 3);
@@ -572,6 +623,9 @@ public class CardWatcher {
         }
     }
 
+    // Protect (Common) - 2 energy, Skill
+    //   Effect: Retain. Gain 12 Block.
+    //   Upgraded Effect: Retain. Gain 16 Block.
     public static class Protect extends _ProtectT {
         public Protect() {
             super("Protect", 12);
@@ -606,6 +660,9 @@ public class CardWatcher {
         }
     }
 
+    // Sash Whip (Common) - 1 energy, Attack
+    //   Effect: Deal 8 damage. If the last card played this combat was an Attack, apply 1 Weak.
+    //   Upgraded Effect: Deal 10 damage. If the last card played this combat was an Attack, apply 2 Weak.
     public static class SashWhip extends _SashWhipT {
         public SashWhip() {
             super("Sash Whip", 8, 1);
@@ -639,6 +696,9 @@ public class CardWatcher {
         }
     }
 
+    // Third Eye (Common) - 1 energy, Skill
+    //   Effect: Gain 7 Block. Scry 3.
+    //   Upgraded Effect: Gain 9 Block. Scry 5.
     public static class ThirdEye extends _ThirdEyeT {
         public ThirdEye() {
             super("Third Eye", 3, 7);
@@ -664,6 +724,9 @@ public class CardWatcher {
         }
     }
 
+    // Tranquility (Common) - 1 energy, Skill
+    //   Effect: Retain. Enter Calm. Exhaust.
+    //   Upgraded Effect (0 energy): Retain. Enter Calm. Exhaust.
     public static class Tranquility extends _TranquilityT {
         public Tranquility() {
             super("Tranquility", 1);
@@ -714,6 +777,9 @@ public class CardWatcher {
         }
     }
 
+    // Battle Hymn (Uncommon) - 1 energy, Power
+    //   Effect: At the start of each turn add a Smite into your hand.
+    //   Upgraded Effect: Innate. At the start of each turn add a Smite into your hand.
     public static class BattleHymn extends _BattleHymnT {
         public BattleHymn() {
             super("Battle Hymn", false);
@@ -746,6 +812,9 @@ public class CardWatcher {
         }
     }
 
+    // Carve Reality (Uncommon) - 1 energy, Attack
+    //   Effect: Deal 6 damage. Add a Smite into your hand.
+    //   Upgraded Effect: Deal 10 damage. Add a Smite into your hand.
     public static class CarveReality extends _CarveRealityT {
         public CarveReality() {
             super("Carve Reality", 6);
@@ -797,6 +866,9 @@ public class CardWatcher {
         }
     }
 
+    // Collect (Uncommon) - X energy, Skill
+    //   Effect: Put a Miracle+ into your hand at the start of your next X turns. Exhaust
+    //   Upgraded Effect: Put a Miracle+ into your hand at the start of your next X+1 turns. Exhaust
     public static class Collect extends _CollectT {
         public Collect() {
             super("Collect", 0);
@@ -829,6 +901,9 @@ public class CardWatcher {
         }
     }
 
+    // Conclude (Uncommon) - 1 energy, Attack
+    //   Effect: Deal 12 damage to ALL enemies. End your turn.
+    //   Upgraded Effect: Deal 16 damage to ALL enemies. End your turn.
     public static class Conclude extends _ConcludeT {
         public Conclude() {
             super("Conclude", 12);
@@ -860,6 +935,9 @@ public class CardWatcher {
         }
     }
 
+    // Deceive Reality (Uncommon) - 1 energy, Skill
+    //   Effect: Gain 4 Block. Add a Safety into your hand.
+    //   Upgraded Effect: Gain 7 Block. Add a Safety into your hand.
     public static class DeceiveReality extends _DeceiveRealityT {
         public DeceiveReality() {
             super("Deceive Reality", 4);
@@ -887,6 +965,9 @@ public class CardWatcher {
         }
     }
 
+    // Empty Mind (Uncommon) - 1 energy, Skill
+    //   Effect: Exit your Stance. Draw 2 cards.
+    //   Upgraded Effect: Exit your Stance. Draw 3 cards.
     public static class EmptyMind extends _EmptyMindT {
         public EmptyMind() {
             super("Empty Mind", 2);
@@ -941,6 +1022,9 @@ public class CardWatcher {
         }
     }
 
+    // Fasting (Uncommon) - 2 energy, Power
+    //   Effect: Gain 3 Strength. Gain 3 Dexterity. Gain 1 less at the start of each turn.
+    //   Upgraded Effect: Gain 4 Strength. Gain 4 Dexterity. Gain 1 less at the start of each turn.
     public static class Fasting extends _FastingT {
         public Fasting() {
             super("Fasting", 3);
@@ -971,6 +1055,9 @@ public class CardWatcher {
         }
     }
 
+    // Fear No Evil (Uncommon) - 1 energy, Attack
+    //   Effect: Deal 8 damage. If the enemy intends to Attack, enter Calm.
+    //   Upgraded Effect: Deal 11 damage. If the enemy intends to Attack, enter Calm.
     public static class FearNoEvil extends _FearNoEvilT {
         public FearNoEvil() {
             super("Fear No Evil", 8);
@@ -1003,6 +1090,9 @@ public class CardWatcher {
         }
     }
 
+    // Foreign Influence (Uncommon) - 0 energy, Skill
+    //   Effect: Choose 1 of 3 Attacks of any color to add to your hand. Exhaust.
+    //   Upgraded Effect: Choose 1 of 3 Attacks of any color to add to your hand.It costs 0 this turn. Exhaust.
     public static class ForeignInfluence extends _ForeignInfluenceT {
         public ForeignInfluence() {
             super("Foreign Influence", 1);
@@ -1046,6 +1136,9 @@ public class CardWatcher {
         }
     }
 
+    // Foresight (Uncommon) - 1 energy, Power
+    //   Effect: At the start of your turn, Scry 3.
+    //   Upgraded Effect: At the start of your turn, Scry 4.
     public static class Foresight extends _ForesightT {
         public Foresight() {
             super("Foresight", 3);
@@ -1079,6 +1172,9 @@ public class CardWatcher {
         }
     }
 
+    // Indignation (Uncommon) - 1 energy, Skill
+    //   Effect: If you are in Wrath, apply 3 Vulnerable to ALL enemies, otherwise enter Wrath.
+    //   Upgraded Effect: If you are in Wrath, apply 5 Vulnerable to ALL enemies, otherwise enter Wrath.
     public static class Indignation extends _IndignationT {
         public Indignation() {
             super("Indignation", 3);
@@ -1109,6 +1205,9 @@ public class CardWatcher {
         }
     }
 
+    // Inner Peace (Uncommon) - 1 energy, Skill
+    //   Effect: If you are in Calm, draw 3 cards, otherwise Enter Calm.
+    //   Upgraded Effect: If you are in Calm, draw 4 cards, otherwise Enter Calm.
     public static class InnerPeace extends _InnerPeaceT {
         public InnerPeace() {
             super("Inner Peace", 3);
@@ -1155,6 +1254,9 @@ public class CardWatcher {
         }
     }
 
+    // Like Water (Uncommon) - 1 energy, Power
+    //   Effect: At the end of your turn, if you are in Calm, gain 5 Block.
+    //   Upgraded Effect: At the end of your turn, if you are in Calm, gain 7 Block.
     public static class LikeWater extends _LikeWaterT {
         public LikeWater() {
             super("Like Water", 5);
@@ -1224,6 +1326,9 @@ public class CardWatcher {
         }
     }
 
+    // Meditate (Uncommon) - 1 energy, Skill
+    //   Effect: Put 1 card from your discard pile into your hand and Retain it. Enter Calm. End your turn.
+    //   Upgraded Effect: Put 2 cards from your discard pile into your hand and Retain them. Enter Calm. End your turn.
     public static class Meditate extends _MeditateT {
         public Meditate() {
             super("Meditate", 1, 1);
@@ -1270,6 +1375,9 @@ public class CardWatcher {
         }
     }
 
+    // Mental Fortress (Uncommon) - 1 energy, Power
+    //   Effect: Whenever you switch Stances, gain 4 Block.
+    //   Upgraded Effect: Whenever you switch Stances, gain 6 Block.
     public static class MentalFortress extends _MentalFortressT {
         public MentalFortress() {
             super("Mental Fortress", 4);
@@ -1315,6 +1423,9 @@ public class CardWatcher {
         }
     }
 
+    // Nirvana (Uncommon) - 1 energy, Power
+    //   Effect: Whenever you Scry, gain 3 Block.
+    //   Upgraded Effect: Whenever you Scry, gain 4 Block.
     public static class Nirvana extends _NirvanaT {
         public Nirvana() {
             super("Nirvana", 3);
@@ -1327,6 +1438,9 @@ public class CardWatcher {
         }
     }
 
+    // Perseverance (Uncommon) - 1 energy, Skill
+    //   Effect: Retain. Gain 5 Block. Whenever this card is Retained, increase its Block by 2.
+    //   Upgraded Effect: Retain. Gain 7 Block. Whenever this card is Retained, increase its Block by 3.
     public static class Perseverance extends Card {
         public int limit;
         private int block;
@@ -1480,6 +1594,9 @@ public class CardWatcher {
         }
     }
 
+    // Pray (Uncommon) - 1 energy, Skill
+    //   Effect: Gain 3 Mantra. Shuffle an Insight into your draw pile.
+    //   Upgraded Effect: Gain 4 Mantra. Shuffle an Insight into your draw pile.
     public static class Pray extends _PrayT {
         public Pray() {
             super("Pray", 3);
@@ -1512,6 +1629,9 @@ public class CardWatcher {
         }
     }
 
+    // Reach Heaven (Uncommon) - 2 energy, Attack
+    //   Effect: Deal 10 damage. Shuffle a Through Violence into your draw pile.
+    //   Upgraded Effect: Deal 15 damage. Shuffle a Through Violence into your draw pile.
     public static class ReachHeaven extends _ReachHeavenT {
         public ReachHeaven() {
             super("Reach Heaven", 10);
@@ -1558,6 +1678,9 @@ public class CardWatcher {
         }
     }
 
+    // Rushdown (Uncommon) - 1 energy, Power
+    //   Effect: Whenever you enter Wrath, draw 2 cards.
+    //   Upgraded Effect (0 energy): Whenever you enter Wrath, draw 2 cards.
     public static class Rushdown extends _RushdownT {
         public Rushdown() {
             super("Rushdown", 1);
@@ -1588,6 +1711,9 @@ public class CardWatcher {
         }
     }
 
+    // Sanctity (Uncommon) - 1 energy, Skill
+    //   Effect: Gain 6 Block. If the last card played this combat was a Skill, draw 2 cards.
+    //   Upgraded Effect: Gain 9 Block. If the last card played this combat was a Skill, draw 2 cards.
     public static class Sanctity extends _SanctityT {
         public Sanctity() {
             super("Sanctity", 6);
@@ -1600,6 +1726,9 @@ public class CardWatcher {
         }
     }
 
+    // Sands of Time (Uncommon) - 4 energy, Attack
+    //   Effect: Retain. Deal 20 damage. Whenever this card is Retained, lower its cost by 1.
+    //   Upgraded Effect: Retain. Deal 26 damage. Whenever this card is Retained, lower its cost by 1.
     public static class SandsOfTime extends Card {
         public SandsOfTime() {
             this(4);
@@ -1735,6 +1864,9 @@ public class CardWatcher {
         }
     }
 
+    // Signature Move (Uncommon) - 2 energy, Attack
+    //   Effect: Can only be played if this is the only Attack in your hand. Deal 30 damage.
+    //   Upgraded Effect: Can only be played if this is the only Attack in your hand. Deal 40 damage.
     public static class SignatureMove extends _SignatureMoveT {
         public SignatureMove() {
             super("Signature Move", 30);
@@ -1782,6 +1914,9 @@ public class CardWatcher {
         }
     }
 
+    // Simmering Fury (Uncommon) - 1 energy, Skill
+    //   Effect: At the start of your next turn, enter Wrath and draw 2 cards.
+    //   Upgraded Effect: At the start of your next turn, enter Wrath and draw 3 cards.
     public static class SimmeringFury extends _SimmeringFuryT {
         public SimmeringFury() {
             super("Simmering Fury", 2);
@@ -1831,6 +1966,9 @@ public class CardWatcher {
         }
     }
 
+    // Study (Uncommon) - 2 energy, Power
+    //   Effect: At the end of your turn, shuffle an Insight into your draw pile.
+    //   Upgraded Effect (1 energy): At the end of your turn, shuffle an Insight into your draw pile.
     public static class Study extends _StudyT {
         public Study() {
             super("Study", 2);
@@ -1882,6 +2020,9 @@ public class CardWatcher {
         }
     }
 
+    // Swivel (Uncommon) - 2 energy, Skill
+    //   Effect: Gain 8 Block. The next Attack you play costs 0.
+    //   Upgraded Effect: Gain 11 Block. The next Attack you play costs 0.
     public static class Swivel extends _SwivelT {
         public Swivel() {
             super("Swivel", 8);
@@ -1914,6 +2055,9 @@ public class CardWatcher {
         }
     }
 
+    // Talk to the Hand (Uncommon) - 1 energy, Attack
+    //   Effect: Deal 5 damage. Whenever you attack this enemy, gain 2 Block. Exhaust.
+    //   Upgraded Effect: Deal 7 damage. Whenever you attack this enemy, gain 3 Block. Exhaust.
     public static class TalkToTheHand extends _TalkToTheHandT {
         public TalkToTheHand() {
             super("Talk to the Hand", 5, 2);
@@ -1945,6 +2089,9 @@ public class CardWatcher {
         }
     }
 
+    // Tantrum (Uncommon) - 1 energy, Attack
+    //   Effect: Deal 3 damage 3 times. Enter Wrath. Shuffle this card into your draw pile.
+    //   Upgraded Effect: Deal 3 damage 4 times. Enter Wrath. Shuffle this card into your draw pile.
     public static class Tantrum extends _TantrumT {
         public Tantrum() {
             super("Tantrum", 3);
@@ -1976,6 +2123,9 @@ public class CardWatcher {
         }
     }
 
+    // Wallop (Uncommon) - 2 energy, Attack
+    //   Effect: Deal 9 damage. Gain Block equal to unblocked damage dealt.
+    //   Upgraded Effect: Deal 12 damage. Gain Block equal to unblocked damage dealt.
     public static class Wallop extends _WallopT {
         public Wallop() {
             super("Wallop", 9);
@@ -2029,6 +2179,9 @@ public class CardWatcher {
         }
     }
 
+    // Wave of the Hand (Uncommon) - 1 energy, Skill
+    //   Effect: Whenever you gain Block this turn, apply 1 Weak to ALL enemies.
+    //   Upgraded Effect: Whenever you gain Block this turn, apply 2 Weak to ALL enemies.
     public static class WaveOfTheHand extends _WaveOfTheHandT {
         public WaveOfTheHand() {
             super("Wave of the Hand", 1);
@@ -2071,6 +2224,9 @@ public class CardWatcher {
         }
     }
 
+    // Weave (Uncommon) - 0 energy, Attack
+    //   Effect: Deal 4 damage. Whenever you Scry, return this from the discard pile to your hand.
+    //   Upgraded Effect: Deal 6 damage. Whenever you Scry, return this from the discard pile to your hand.
     public static class Weave extends _WeaveT {
         public Weave() {
             super("Weave", 4);
@@ -2099,6 +2255,9 @@ public class CardWatcher {
         }
     }
 
+    // Wheel Kick (Uncommon) - 2 energy, Attack
+    //   Effect: Deal 15 damage. Draw 2 cards.
+    //   Upgraded Effect: Deal 20 damage. Draw 2 cards.
     public static class WheelKick extends _WheelKickT {
         public WheelKick() {
             super("Wheel Kick", 15);
@@ -2111,6 +2270,9 @@ public class CardWatcher {
         }
     }
 
+    // Windmill Strike (Uncommon) - 2 energy, Attack
+    //   Effect: Retain. Deal 7 damage. When Retained, increase its damage by 4 this combat.
+    //   Upgraded Effect: Retain. Deal 10 damage. When Retained, increase its damage by 5 this combat.
     public static class WindmillStrike extends Card {
         public int limit;
         private int damage;
@@ -2259,6 +2421,9 @@ public class CardWatcher {
         }
     }
 
+    // Worship (Uncommon) - 2 energy, Skill
+    //   Effect: Gain 5 Mantra.
+    //   Upgraded Effect: Retain. Gain 5 Mantra.
     public static class Worship extends _WorshipT {
         public Worship() {
             super("Worship", false);
@@ -2289,6 +2454,9 @@ public class CardWatcher {
         }
     }
 
+    // Wreath of Flame (Uncommon) - 1 energy, Skill
+    //   Effect: Your next Attack deals 5 additional damage.
+    //   Upgraded Effect: Your next Attack deals 8 additional damage.
     public static class WreathOfFlame extends _WreathOfFlameT {
         public WreathOfFlame() {
             super("Wreath of Flame", 5);
@@ -2318,6 +2486,9 @@ public class CardWatcher {
         }
     }
 
+    // Alpha (Rare) - 1 energy, Skill
+    //   Effect: Shuffle a Beta into your draw pile. Exhaust.
+    //   Upgraded Effect: Innate. Shuffle a Beta into your draw pile. Exhaust.
     public static class Alpha extends _AlphaT {
         public Alpha() {
             super("Alpha", false);
@@ -2356,6 +2527,9 @@ public class CardWatcher {
         }
     }
 
+    // Blasphemy (Rare) - 1 energy, Skill
+    //   Effect: Enter Divinity. Die next turn. Exhaust
+    //   Upgraded Effect: Retain. Enter Divinity. Die next turn. Exhaust
     public static class Blasphemy extends _BlasphemyT {
         public Blasphemy() {
             super("Blasphemy", false);
@@ -2405,6 +2579,9 @@ public class CardWatcher {
         }
     }
 
+    // Brilliance (Rare) - 1 energy, Attack
+    //   Effect: Deal 12 damage. Deals additional damage equal to Mantra gained this combat.
+    //   Upgraded Effect: Deal 16 damage. Deals additional damage equal to Mantra gained this combat.
     public static class Brilliance extends _BrillianceT {
         public Brilliance() {
             super("Brilliance", 12);
@@ -2445,6 +2622,9 @@ public class CardWatcher {
         }
     }
 
+    // Conjure Blade (Rare) - X energy, Skill
+    //   Effect: Shuffle an Expunger into your draw pile. Exhaust.
+    //   Upgraded Effect: Shuffle an Expunger with X+1 into your draw pile. Exhaust.
     public static class ConjureBlade extends _ConjureBladeT {
         public ConjureBlade() { this(1); }
 
@@ -2509,6 +2689,9 @@ public class CardWatcher {
         }
     }
 
+    // Deus Ex Machina (Rare) - Unplayable, Skill
+    //   Effect: Unplayable. When you draw this card, add 2 Miracles to your hand and Exhaust.
+    //   Upgraded Effect: Unplayable. When you draw this card, add 3 Miracles to your hand and Exhaust.
     public static class DeusExMachina extends _DeusExMachinaT {
         public DeusExMachina() {
             super("Deus Ex Machina", 2);
@@ -2556,6 +2739,9 @@ public class CardWatcher {
         }
     }
 
+    // Deva Form (Rare) - 3 energy, Power
+    //   Effect: Ethereal. At the start of your turn, gain and increase this gain by 1.
+    //   Upgraded Effect: At the start of your turn, gain and increase this gain by 1.
     public static class DevaForm extends _DevaFormT {
         public DevaForm() {
             super("Deva Form", true);
@@ -2603,6 +2789,9 @@ public class CardWatcher {
         }
     }
 
+    // Devotion (Rare) - 1 energy, Power
+    //   Effect: At the start of your turn, gain 2 Mantra.
+    //   Upgraded Effect: At the start of your turn, gain 3 Mantra.
     public static class Devotion extends _DevotionT {
         public Devotion() {
             super("Devotion", 2);
@@ -2626,6 +2815,9 @@ public class CardWatcher {
         }
     }
 
+    // Establishment (Rare) - 1 energy, Power
+    //   Effect: Whenever a card is Retained, lower its cost by 1.
+    //   Upgraded Effect: Innate. Whenever a card is Retained, lower its cost by 1.
     public static class Establishment extends _EstablishmentT {
         public Establishment() {
             super("Establishment", 1);
@@ -2656,6 +2848,9 @@ public class CardWatcher {
         }
     }
 
+    // Judgment (Rare) - 1 energy, Skill
+    //   Effect: If the enemy has 30 or less HP, set their HP to 0.
+    //   Upgraded Effect: If the enemy has 40 or less HP, set their HP to 0.
     public static class Judgment extends _JudgmentT {
         public Judgment() {
             super("Judgment", 30);
@@ -2727,6 +2922,9 @@ public class CardWatcher {
         }
     }
 
+    // Lesson Learned (Rare) - 2 energy, Attack
+    //   Effect: Deal 10 damage. If Fatal, Upgrade a random card in your deck. Exhaust.
+    //   Upgraded Effect: Deal 13 damage. If Fatal, Upgrade a random card in your deck. Exhaust.
     public static class LessonLearned extends _LessonLearnedT {
         public LessonLearned() { this(2); }
 
@@ -2762,6 +2960,9 @@ public class CardWatcher {
         }
     }
 
+    // Master Reality (Rare) - 1 energy, Power
+    //   Effect: Whenever a card is created during combat, Upgrade it.
+    //   Upgraded Effect (0 energy): Whenever a card is created during combat, Upgrade it.
     public static class MasterReality extends _MasterRealityT {
         public MasterReality() {
             super("Master Reality", 1);
@@ -2809,6 +3010,9 @@ public class CardWatcher {
         }
     }
 
+    // Omniscience (Rare) - 4 energy, Skill
+    //   Effect: Choose a card in your draw pile. Play the chosen card twice and Exhaust it. Exhaust.
+    //   Upgraded Effect (3 energy): Choose a card in your draw pile. Play the chosen card twice and Exhaust it. Exhaust.
     public static class Omniscience extends _OmniscienceT {
         public Omniscience() {
             super("Omniscience", 4);
@@ -2842,6 +3046,9 @@ public class CardWatcher {
         }
     }
 
+    // Ragnarok (Rare) - 3 energy, Attack
+    //   Effect: Deal 5 damage to a random enemy 5 times.
+    //   Upgraded Effect: Deal 6 damage to a random enemy 6 times.
     public static class Ragnarok extends _RagnarokT {
         public Ragnarok() {
             super("Ragnarok", 5, 5);
@@ -2866,6 +3073,9 @@ public class CardWatcher {
         }
     }
 
+    // Scrawl (Rare) - 1 energy, Skill
+    //   Effect: Draw cards until your hand is full. Exhaust.
+    //   Upgraded Effect (0 energy): Draw cards until your hand is full. Exhaust.
     public static class Scrawl extends _ScrawlT {
         public Scrawl() {
             super("Scrawl", 1);
@@ -2892,6 +3102,9 @@ public class CardWatcher {
         }
     }
 
+    // Spirit Shield (Rare) - 2 energy, Skill
+    //   Effect: Gain 3 Block for each card in your hand.
+    //   Upgraded Effect: Gain 4 Block for each card in your hand.
     public static class SpiritShield extends _SpiritShieldT {
         public SpiritShield() {
             super("Spirit Shield", 3);
@@ -2919,6 +3132,9 @@ public class CardWatcher {
         }
     }
 
+    // Vault (Rare) - 3 energy, Skill
+    //   Effect: Take an extra turn after this one. End your turn. Exhaust.
+    //   Upgraded Effect (2 energy): Take an extra turn after this one. End your turn. Exhaust.
     public static class Vault extends _VaultT {
         public Vault() {
             super("Vault", 3);
@@ -2980,6 +3196,9 @@ public class CardWatcher {
         }
     }
 
+    // Wish (Rare) - 3 energy, Skill
+    //   Effect: Choose one: Gain 6 Plated Armor, 3 Strength, or 25 Gold. Exhaust.
+    //   Upgraded Effect: Choose one: Gain 8 Plated Armor, 4 Strength, or 30 Gold. Exhaust.
     public static class Wish extends _WishT {
         public Wish() { this(2); }
 

@@ -22,6 +22,9 @@ import java.util.List;
 import com.alphaStS.enums.CharacterEnum;
 
 public class CardSilent {
+    // Neutralize (Basic) - 0 energy, Attack
+    //   Effect: Deal 3 damage. Apply 1 Weak.
+    //   Upgraded Effect: Deal 4 damage. Apply 2 Weak.
     public static class Neutralize extends Card {
         public Neutralize() {
             super("Neutralize", Card.ATTACK, 0, Card.COMMON);
@@ -72,6 +75,9 @@ public class CardSilent {
         }
     }
 
+    // Survivor (Basic) - 1 energy, Skill
+    //   Effect: Gain 8 Block. Discard 1 card.
+    //   Upgraded Effect: Gain 11 Block. Discard 1 card.
     public static class Survivor extends _SurvivorT {
         public Survivor() {
             super("Survivor", 8);
@@ -106,6 +112,9 @@ public class CardSilent {
         }
     }
 
+    // Acrobatics (Common) - 1 energy, Skill
+    //   Effect: Draw 3 cards. Discard 1 card.
+    //   Upgraded Effect: Draw 4 cards. Discard 1 card.
     public static class Acrobatics extends _AcrobaticsT {
         public Acrobatics() {
             super("Acrobatics", 3);
@@ -133,6 +142,9 @@ public class CardSilent {
         }
     }
 
+    // Backflip (Common) - 1 energy, Skill
+    //   Effect: Gain 5 Block. Draw 2 cards.
+    //   Upgraded Effect: Gain 8 Block. Draw 2 cards.
     public static class Backflip extends _BackflipT {
         public Backflip() {
             super("Backflip", 5);
@@ -163,6 +175,9 @@ public class CardSilent {
         }
     }
 
+    // Bane (Common) - 1 energy, Attack
+    //   Effect: Deal 7 damage. If the enemy has Poison, deal 7 damage again.
+    //   Upgraded Effect: Deal 10 damage. If the enemy has Poison, deal 10 damage again.
     public static class Bane extends _BaneT {
         public Bane() {
             super("Bane", 7);
@@ -195,6 +210,9 @@ public class CardSilent {
         }
     }
 
+    // Blade Dance (Common) - 1 energy, Skill
+    //   Effect: Add 3 Shivs into your hand.
+    //   Upgraded Effect: Add 4 Shivs into your hand.
     public static class BladeDance extends _BladeDanceT {
         public BladeDance() {
             super("Blade Dance", 3);
@@ -228,6 +246,9 @@ public class CardSilent {
         }
     }
 
+    // Cloak and Dagger (Common) - 1 energy, Skill
+    //   Effect: Gain 6 Block. Add 1 Shiv into your hand.
+    //   Upgraded Effect: Gain 6 Block. Add 2 Shivs into your hand.
     public static class CloakAndDagger extends _CloakAndDaggerT {
         public CloakAndDagger() {
             super("Cloak and Dagger", 1);
@@ -258,6 +279,9 @@ public class CardSilent {
         }
     }
 
+    // Dagger Spray (Common) - 1 energy, Attack
+    //   Effect: Deal 4 damage to ALL enemies twice.
+    //   Upgraded Effect: Deal 6 damage to ALL enemies twice.
     public static class DaggerSpray extends _DaggerSprayT {
         public DaggerSpray() {
             super("Dagger Spray", 4);
@@ -294,6 +318,9 @@ public class CardSilent {
         }
     }
 
+    // Dagger Throw (Common) - 1 energy, Attack
+    //   Effect: Deal 9 damage. Draw 1 card. Discard 1 card.
+    //   Upgraded Effect: Deal 12 damage. Draw 1 card. Discard 1 card.
     public static class DaggerThrow extends _DaggerThrowT {
         public DaggerThrow() {
             super("Dagger Throw", 9);
@@ -322,6 +349,9 @@ public class CardSilent {
         }
     }
 
+    // Deadly Poison (Common) - 1 energy, Skill
+    //   Effect: Apply 5 Poison.
+    //   Upgraded Effect: Apply 7 Poison.
     public static class DeadlyPoison extends _DeadlyPoisonT {
         public DeadlyPoison() {
             super("Deadly Poison", 5);
@@ -348,6 +378,9 @@ public class CardSilent {
         }
     }
 
+    // Deflect (Common) - 0 energy, Skill
+    //   Effect: Gain 4 Block.
+    //   Upgraded Effect: Gain 7 Block.
     public static class Deflect extends _DeflectT {
         public Deflect() {
             super("Deflect", 4);
@@ -379,6 +412,9 @@ public class CardSilent {
         }
     }
 
+    // Dodge and Roll (Common) - 1 energy, Skill
+    //   Effect: Gain 4 Block. Next turn, gain 4 Block.
+    //   Upgraded Effect: Gain 6 Block. Next turn, gain 6 Block.
     public static class DodgeAndRoll extends _DodgeAndRollT {
         public DodgeAndRoll() {
             super("Dodge and Roll", 4);
@@ -428,6 +464,9 @@ public class CardSilent {
         }
     }
 
+    // Flying Knee (Common) - 1 energy, Attack
+    //   Effect: Deal 8 damage. Next turn, gain.
+    //   Upgraded Effect: Deal 11 damage. Next turn, gain.
     public static class FlyingKnee extends _FlyingKneeT {
         public FlyingKnee() {
             super("Flying Knee", 8);
@@ -458,6 +497,8 @@ public class CardSilent {
         }
     }
 
+    // Outmaneuver (Common) - 1 energy, Skill
+    //   Effect: Next turn, gain.
     public static class Outmaneuver extends _OutmaneuverT {
         public Outmaneuver() {
             super("Outmaneuver", 2);
@@ -489,6 +530,9 @@ public class CardSilent {
         }
     }
 
+    // Piercing Wail (Common) - 1 energy, Skill
+    //   Effect: ALL enemies lose 6 Strength this turn. Exhaust.
+    //   Upgraded Effect: ALL enemies lose 8 Strength this turn. Exhaust.
     public static class PiercingWail extends _PiercingWailT {
         public PiercingWail() {
             super("Piercing Wail", 6);
@@ -519,6 +563,9 @@ public class CardSilent {
         }
     }
 
+    // Poisoned Stab (Common) - 1 energy, Attack
+    //   Effect: Deal 6 damage. Apply 3 Poison.
+    //   Upgraded Effect: Deal 8 damage. Apply 4 Poison.
     public static class PoisonedStab extends _PoisonedStabT {
         public PoisonedStab() {
             super("Poisoned Stab", 6);
@@ -579,6 +626,9 @@ public class CardSilent {
         }
     }
 
+    // Prepared (Common) - 0 energy, Skill
+    //   Effect: Draw 1 card. Discard 1 card.
+    //   Upgraded Effect: Draw 2 cards. Discard 2 cards.
     public static class Prepared extends _PreparedT {
         public Prepared() {
             super("Prepared", 1);
@@ -607,6 +657,9 @@ public class CardSilent {
         }
     }
 
+    // Quick Slash (Common) - 1 energy, Attack
+    //   Effect: Deal 8 damage. Draw 1 card.
+    //   Upgraded Effect: Deal 12 damage. Draw 1 card.
     public static class QuickSlash extends _QuickSlashT {
         public QuickSlash() {
             super("Quick Slash", 8);
@@ -634,6 +687,9 @@ public class CardSilent {
         }
     }
 
+    // Slice (Common) - 0 energy, Attack
+    //   Effect: Deal 6 damage.
+    //   Upgraded Effect: Deal 9 damage.
     public static class Slice extends _SliceT {
         public Slice() {
             super("Slice", 6);
@@ -686,6 +742,9 @@ public class CardSilent {
         }
     }
 
+    // Sneaky Strike (Common) - 2 energy, Attack
+    //   Effect: Deal 12 damage. If you have discarded a card this turn, gain.
+    //   Upgraded Effect: Deal 16 damage. If you have discarded a card this turn, gain.
     public static class SneakyStrike extends _SneakyStrikeT {
         public SneakyStrike() {
             super("Sneaky Strike", 12);
@@ -717,6 +776,9 @@ public class CardSilent {
         }
     }
 
+    // Sucker Punch (Common) - 1 energy, Attack
+    //   Effect: Deal 7 damage. Apply 1 Weak.
+    //   Upgraded Effect: Deal 9 damage. Apply 2 Weak.
     public static class SuckerPunch extends _SuckerPunchT {
         public SuckerPunch() {
             super("Sucker Punch", 7, 1);
@@ -760,6 +822,9 @@ public class CardSilent {
         }
     }
 
+    // Accuracy (Uncommon) - 1 energy, Power
+    //   Effect: Shivs deal 4 additional damage.
+    //   Upgraded Effect: Shivs deal 6 additional damage.
     public static class Accuracy extends _AccuracyT {
         public Accuracy() {
             super("Accuracy", 4);
@@ -807,6 +872,9 @@ public class CardSilent {
         }
     }
 
+    // All-Out Attack (Uncommon) - 1 energy, Attack
+    //   Effect: Deal 10 damage to ALL enemies. Discard 1 card at random.
+    //   Upgraded Effect: Deal 14 damage to ALL enemies. Discard 1 card at random.
     public static class AllOutAttack extends _AllOutAttackT {
         public AllOutAttack() {
             super("All-Out Attack", 10);
@@ -836,6 +904,9 @@ public class CardSilent {
         }
     }
 
+    // Backstab (Uncommon) - 0 energy, Attack
+    //   Effect: Innate. Deal 11 damage. Exhaust.
+    //   Upgraded Effect: Innate. Deal 15 damage. Exhaust.
     public static class Backstab extends _BackstabT {
         public Backstab() {
             super("Backstab", 11);
@@ -880,6 +951,9 @@ public class CardSilent {
         }
     }
 
+    // Blur (Uncommon) - 1 energy, Skill
+    //   Effect: Gain 5 Block. Block is not removed at the start of your next turn.
+    //   Upgraded Effect: Gain 8 Block. Block is not removed at the start of your next turn.
     public static class Blur extends _BlurT {
         public Blur() {
             super("Blur", 5);
@@ -912,6 +986,9 @@ public class CardSilent {
         }
     }
 
+    // Bouncing Flask (Uncommon) - 2 energy, Skill
+    //   Effect: Apply 3 Poison to a random enemy 3 times.
+    //   Upgraded Effect: Apply 3 Poison to a random enemy 4 times.
     public static class BouncingFlask extends _BouncingFlaskT {
         public BouncingFlask() {
             super("Bouncing Flask", 3);
@@ -937,6 +1014,9 @@ public class CardSilent {
         }
     }
 
+    // Calculated Gamble (Uncommon) - 0 energy, Skill
+    //   Effect: Discard your hand, then draw that many cards. Exhaust.
+    //   Upgraded Effect: Discard your hand, then draw that many cards.
     public static class CalculatedGamble extends _CalculatedGambleT {
         public CalculatedGamble() {
             super("Calculated Gamble", true);
@@ -967,6 +1047,9 @@ public class CardSilent {
         }
     }
 
+    // Caltrops (Uncommon) - 1 energy, Power
+    //   Effect: Whenever you are attacked, deal 3 damage back.
+    //   Upgraded Effect: Whenever you are attacked, deal 5 damage back.
     public static class Caltrops extends _CaltropsT {
         public Caltrops() {
             super("Caltrops", 3);
@@ -999,6 +1082,9 @@ public class CardSilent {
         }
     }
 
+    // Catalyst (Uncommon) - 1 energy, Skill
+    //   Effect: Double the enemy's Poison. Exhaust.
+    //   Upgraded Effect: Triple the enemy's Poison. Exhaust.
     public static class Catalyst extends _CatalystT {
         public Catalyst() {
             super("Catalyst", 2);
@@ -1040,6 +1126,9 @@ public class CardSilent {
         }
     }
 
+    // Choke (Uncommon) - 2 energy, Attack
+    //   Effect: Deal 12 damage. Whenever you play a card this turn, the enemy loses 3 HP.
+    //   Upgraded Effect: Deal 12 damage. Whenever you play a card this turn, the enemy loses 5 HP.
     public static class Choke extends _ChokeT {
         public Choke() {
             super("Choke", 3);
@@ -1087,6 +1176,9 @@ public class CardSilent {
         }
     }
 
+    // Concentrate (Uncommon) - 0 energy, Skill
+    //   Effect: Discard 3 cards. Gain.
+    //   Upgraded Effect: Discard 2 cards. Gain.
     public static class Concentrate extends _ConcentrateT {
         public Concentrate() {
             super("Concentrate", 3);
@@ -1119,6 +1211,9 @@ public class CardSilent {
         }
     }
 
+    // Crippling Cloud (Uncommon) - 2 energy, Skill
+    //   Effect: Apply 4 Poison and 2 Weak to ALL enemies. Exhaust.
+    //   Upgraded Effect: Apply 7 Poison and 2 Weak to ALL enemies. Exhaust.
     public static class CripplingCloud extends _CripplingCloudT {
         public CripplingCloud() {
             super("Crippling Cloud", 4);
@@ -1147,6 +1242,9 @@ public class CardSilent {
         }
     }
 
+    // Dash (Uncommon) - 2 energy, Attack
+    //   Effect: Gain 10 Block. Deal 10 damage.
+    //   Upgraded Effect: Gain 13 Block. Deal 13 damage.
     public static class Dash extends _DashT {
         public Dash() {
             super("Dash", 10);
@@ -1177,6 +1275,9 @@ public class CardSilent {
         }
     }
 
+    // Distraction (Uncommon) - 1 energy, Skill
+    //   Effect: Add a random Skill into your hand. It costs 0 this turn. Exhaust.
+    //   Upgraded Effect (0 energy): Add a random Skill into your hand. It costs 0 this turn. Exhaust.
     public static class Distraction extends _DistractionT {
         public Distraction() {
             super("Distraction", 1);
@@ -1233,6 +1334,9 @@ public class CardSilent {
         }
     }
 
+    // Endless Agony (Uncommon) - 0 energy, Attack
+    //   Effect: Whenever you draw this card, add a copy of it into your hand. Deal 4 damage. Exhaust.
+    //   Upgraded Effect: Whenever you draw this card, add a copy of it into your hand. Deal 6 damage. Exhaust.
     public static class EndlessAgony extends _EndlessAgonyT {
         public EndlessAgony() {
             super("Endless Agony", 4);
@@ -1262,6 +1366,9 @@ public class CardSilent {
         }
     }
 
+    // Escape Plan (Uncommon) - 0 energy, Skill
+    //   Effect: Draw 1 card. If you draw a Skill, gain 3 Block.
+    //   Upgraded Effect: Draw 1 card. If you draw a Skill, gain 5 Block.
     public static class EscapePlan extends _EscapePlanT {
         public EscapePlan() {
             super("Escape Plan", 3);
@@ -1318,6 +1425,9 @@ public class CardSilent {
         }
     }
 
+    // Eviscerate (Uncommon) - 3 energy, Attack
+    //   Effect: Costs 1 less for each card discarded this turn. Deal 7 damage 3 times.
+    //   Upgraded Effect: Costs 1 less for each card discarded this turn. Deal 9 damage 3 times.
     public static class Eviscerate extends _EviscerateT {
         public Eviscerate() {
             super("Eviscerate", 7);
@@ -1347,6 +1457,9 @@ public class CardSilent {
         }
     }
 
+    // Expertise (Uncommon) - 1 energy, Skill
+    //   Effect: Draw cards until you have 6 in your hand.
+    //   Upgraded Effect: Draw cards until you have 7 in your hand.
     public static class Expertise extends _ExpertiseT {
         public Expertise() {
             super("Expertise", 6);
@@ -1403,6 +1516,9 @@ public class CardSilent {
         }
     }
 
+    // Finisher (Uncommon) - 1 energy, Attack
+    //   Effect: Deal 6 damage for each Attack played this turn.
+    //   Upgraded Effect: Deal 8 damage for each Attack played this turn.
     public static class Finisher extends _FinisherT {
         public Finisher() {
             super("Finisher", 6);
@@ -1434,6 +1550,9 @@ public class CardSilent {
         }
     }
 
+    // Flechettes (Uncommon) - 1 energy, Attack
+    //   Effect: Deal 4 damage for each Skill in your hand.
+    //   Upgraded Effect: Deal 6 damage for each Skill in your hand.
     public static class Flechettes extends _FlechettesT {
         public Flechettes() {
             super("Flechettes", 4);
@@ -1460,6 +1579,9 @@ public class CardSilent {
         }
     }
 
+    // Footwork (Uncommon) - 1 energy, Power
+    //   Effect: Gain 2 Dexterity.
+    //   Upgraded Effect: Gain 3 Dexterity.
     public static class Footwork extends _FootworkT {
         public Footwork() {
             super("Footwork", 2);
@@ -1492,6 +1614,9 @@ public class CardSilent {
         }
     }
 
+    // Heel Hook (Uncommon) - 1 energy, Attack
+    //   Effect: Deal 5 damage. If the enemy has Weak, gain and draw 1 card.
+    //   Upgraded Effect: Deal 8 damage. If the enemy has Weak, gain and draw 1 card.
     public static class HeelHook extends _HeelHookT {
         public HeelHook() {
             super("Heel Hook", 5);
@@ -1540,6 +1665,9 @@ public class CardSilent {
         }
     }
 
+    // Infinite Blades (Uncommon) - 1 energy, Power
+    //   Effect: At the start of your turn, add a Shiv into your hand.
+    //   Upgraded Effect: Innate. At the start of your turn, add a Shiv into your hand.
     public static class InfiniteBlades extends _InfiniteBladeT {
         public InfiniteBlades() {
             super("Infinite Blades", false);
@@ -1571,6 +1699,9 @@ public class CardSilent {
         }
     }
 
+    // Leg Sweep (Uncommon) - 2 energy, Skill
+    //   Effect: Apply 2 Weak. Gain 11 Block.
+    //   Upgraded Effect: Apply 3 Weak. Gain 14 Block.
     public static class LegSweep extends _LegSweepT {
         public LegSweep() {
             super("Leg Sweep", 11, 2);
@@ -1583,6 +1714,9 @@ public class CardSilent {
         }
     }
 
+    // Masterful Stab (Uncommon) - 0 energy, Attack
+    //   Effect: Costs 1 additional for each time you lose HP this combat. Deal 12 damage.
+    //   Upgraded Effect: Costs 1 additional for each time you lose HP this combat. Deal 16 damage.
     public static class MasterfulStab extends Card {
         private final int maxEnergyCost;
 
@@ -1740,6 +1874,9 @@ public class CardSilent {
         }
     }
 
+    // Noxious Fumes (Uncommon) - 1 energy, Power
+    //   Effect: At the start of your turn, apply 2 Poison to ALL enemies.
+    //   Upgraded Effect: At the start of your turn, apply 3 Poison to ALL enemies.
     public static class NoxiousFumes extends _NoxiousFumesT {
         public NoxiousFumes() {
             super("Noxious Fumes", 2);
@@ -1789,6 +1926,9 @@ public class CardSilent {
         }
     }
 
+    // Predator (Uncommon) - 2 energy, Attack
+    //   Effect: Deal 15 damage. Next turn, draw 2 additional cards.
+    //   Upgraded Effect: Deal 20 damage. Next turn, draw 2 additional cards.
     public static class Predator extends _PredatorT {
         public Predator() {
             super("Predator", 15);
@@ -1818,6 +1958,9 @@ public class CardSilent {
         }
     }
 
+    // Reflex (Uncommon) - Unplayable, Skill
+    //   Effect: Unplayable. If this card is discarded from your hand, draw 2 cards.
+    //   Upgraded Effect: Unplayable. If this card is discarded from your hand, draw 3 cards.
     public static class Reflex extends _ReflexT {
         public Reflex() {
             super("Reflex", 2);
@@ -1847,6 +1990,9 @@ public class CardSilent {
         }
     }
 
+    // Riddle with Holes (Uncommon) - 2 energy, Attack
+    //   Effect: Deal 3 damage 5 times.
+    //   Upgraded Effect: Deal 4 damage 5 times.
     public static class RiddleWithHoles extends _RiddleWithHolesT {
         public RiddleWithHoles() {
             super("Riddle with Holes", 3);
@@ -1887,6 +2033,9 @@ public class CardSilent {
         }
     }
 
+    // Setup (Uncommon) - 1 energy, Skill
+    //   Effect: Put a card from your hand on top of your draw pile. It costs 0 until played.
+    //   Upgraded Effect (0 energy): Put a card from your hand on top of your draw pile. It costs 0 until played.
     public static class Setup extends _SetupT {
         public Setup() { this(true); }
 
@@ -1938,6 +2087,9 @@ public class CardSilent {
         }
     }
 
+    // Skewer (Uncommon) - X energy, Attack
+    //   Effect: Deal 7 damage X times.
+    //   Upgraded Effect: Deal 10 damage X times.
     public static class Skewer extends _SkewerT {
         public Skewer() {
             super("Skewer", 7);
@@ -1967,6 +2119,8 @@ public class CardSilent {
         }
     }
 
+    // Tactician (Uncommon) - Unplayable, Skill
+    //   Effect: Unplayable. If this card is discarded from your hand, gain.
     public static class Tactician extends _TacticianT {
         public Tactician() {
             super("Tactician", 1);
@@ -1993,6 +2147,9 @@ public class CardSilent {
         }
     }
 
+    // Terror (Uncommon) - 1 energy, Skill
+    //   Effect: Apply 99 Vulnerable. Exhaust.
+    //   Upgraded Effect (0 energy): Apply 99 Vulnerable. Exhaust.
     public static class Terror extends _TerrorT {
         public Terror() {
             super("Terror", 1);
@@ -2056,6 +2213,9 @@ public class CardSilent {
         }
     }
 
+    // Well-Laid Plans (Uncommon) - 1 energy, Power
+    //   Effect: At the end of your turn, Retain up to 1 card.
+    //   Upgraded Effect: At the end of your turn, Retain up to 2 cards.
     public static class WellLaidPlans extends _WellLaidPlansT {
         public WellLaidPlans() {
             super("Well-Laid Plans", 1);
@@ -2110,6 +2270,9 @@ public class CardSilent {
         }
     }
 
+    // A Thousand Cuts (Rare) - 2 energy, Power
+    //   Effect: Whenever you play a card, deal 1 damage to ALL enemies.
+    //   Upgraded Effect: Whenever you play a card, deal 2 damage to ALL enemies.
     public static class AThousandCuts extends _AThousandCutsT {
         public AThousandCuts() {
             super("A Thousand Cuts", 1);
@@ -2138,6 +2301,8 @@ public class CardSilent {
         }
     }
 
+    // Adrenaline (Rare) - 0 energy, Skill
+    //   Effect: Gain. Draw 2 cards. Exhaust.
     public static class Adrenaline extends _AdrenalineT {
         public Adrenaline() {
             super("Adrenaline", 1);
@@ -2181,6 +2346,9 @@ public class CardSilent {
         }
     }
 
+    // After Image (Rare) - 1 energy, Power
+    //   Effect: Whenever you play a card, gain 1 Block.
+    //   Upgraded Effect: Innate. Whenever you play a card, gain 1 Block.
     public static class AfterImage extends _AfterImageT {
         public AfterImage() {
             super("After Image", false);
@@ -2302,6 +2470,9 @@ public class CardSilent {
         }
     }
 
+    // Alchemize (Rare) - 1 energy, Skill
+    //   Effect: Obtain a random potion. Exhaust.
+    //   Upgraded Effect (0 energy): Obtain a random potion. Exhaust.
     public static class Alchemize extends CardSilent._AlchemizeT {
         public Alchemize() { this(100, 0, 0); }
 
@@ -2343,6 +2514,9 @@ public class CardSilent {
         }
     }
 
+    // Bullet Time (Rare) - 3 energy, Skill
+    //   Effect: You cannot draw additional cards this turn. Reduce the cost of all cards in your hand to 0 this turn.
+    //   Upgraded Effect (2 energy): You cannot draw additional cards this turn. Reduce the cost of all cards in your hand to 0 this turn.
     public static class BulletTime extends _BulletTimeT {
         public BulletTime() {
             super("Bullet Time", 3);
@@ -2418,6 +2592,9 @@ public class CardSilent {
         }
     }
 
+    // Burst (Rare) - 1 energy, Skill
+    //   Effect: This turn, your next Skill is played twice.
+    //   Upgraded Effect: This turn, your next 2 Skills are played twice.
     public static class Burst extends _BurstT {
         public Burst() {
             super("Burst", 1);
@@ -2465,6 +2642,9 @@ public class CardSilent {
         }
     }
 
+    // Corpse Explosion (Rare) - 2 energy, Skill
+    //   Effect: Apply 6 Poison. When the enemy dies, deal damage equal to its max HP to ALL enemies.
+    //   Upgraded Effect: Apply 9 Poison. When the enemy dies, deal damage equal to its max HP to ALL enemies.
     public static class CorpseExplosion extends _CorpseExplosionT {
         public CorpseExplosion() {
             super("Corpse Explosion", 6);
@@ -2494,6 +2674,9 @@ public class CardSilent {
         }
     }
 
+    // Die Die Die (Rare) - 1 energy, Attack
+    //   Effect: Deal 13 damage to ALL enemies. Exhaust.
+    //   Upgraded Effect: Deal 17 damage to ALL enemies. Exhaust.
     public static class DieDieDie extends _DieDieDieT {
         public DieDieDie() {
             super("Die Die Die", 13);
@@ -2548,6 +2731,9 @@ public class CardSilent {
         }
     }
 
+    // Doppelganger (Rare) - X energy, Skill
+    //   Effect: Next turn, draw X cards and gain X. Exhaust.
+    //   Upgraded Effect: Next turn, draw X+1 cards and gain X+1. Exhaust.
     public static class Doppelganger extends _DoppelgangerT {
         public Doppelganger() {
             super("Doppelganger", false);
@@ -2591,6 +2777,9 @@ public class CardSilent {
         }
     }
 
+    // Envenom (Rare) - 2 energy, Power
+    //   Effect: Whenever an Attack deals unblocked damage, apply 1 Poison.
+    //   Upgraded Effect (1 energy): Whenever an Attack deals unblocked damage, apply 1 Poison.
     public static class Envenom extends _EnvenomT {
         public Envenom() {
             super("Envenom", 2, 1);
@@ -2603,6 +2792,9 @@ public class CardSilent {
         }
     }
 
+    // Glass Knife (Rare) - 1 energy, Attack
+    //   Effect: Deal 8 damage twice. Decrease the damage of this card by 2 this combat.
+    //   Upgraded Effect: Deal 12 damage twice. Decrease the damage of this card by 2 this combat.
     public static class GlassKnife extends Card {
         public int limit;
         private int dmg;
@@ -2730,6 +2922,9 @@ public class CardSilent {
         }
     }
 
+    // Grand Finale (Rare) - 0 energy, Attack
+    //   Effect: Can only be played if there are no cards in your draw pile. Deal 50 damage to ALL enemies.
+    //   Upgraded Effect: Can only be played if there are no cards in your draw pile. Deal 60 damage to ALL enemies.
     public static class GrandFinale extends _GrandFinaleT {
         public GrandFinale() {
             super("Grand Finale", 50);
@@ -2770,6 +2965,9 @@ public class CardSilent {
         }
     }
 
+    // Malaise (Rare) - X energy, Skill
+    //   Effect: Enemy loses X Strength. Apply X Weak. Exhaust.
+    //   Upgraded Effect: Enemy loses X+1 Strength. Apply X+1 Weak. Exhaust.
     public static class Malaise extends _MalaiseT {
         public Malaise() {
             super("Malaise", false);
@@ -2813,6 +3011,9 @@ public class CardSilent {
         }
     }
 
+    // Nightmare (Rare) - 3 energy, Skill
+    //   Effect: Choose a card. Next turn, add 3 copies of that card into your hand. Exhaust.
+    //   Upgraded Effect (2 energy): Choose a card. Next turn, add 3 copies of that card into your hand. Exhaust.
     public static class Nightmare extends _NightmareT {
         public Nightmare() {
             super("Nightmare", 3);
@@ -2841,6 +3042,9 @@ public class CardSilent {
         }
     }
 
+    // Phantasmal Killer (Rare) - 1 energy, Skill
+    //   Effect: Next turn, your Attacks deal double damage.
+    //   Upgraded Effect (0 energy): Next turn, your Attacks deal double damage.
     public static class PhantasmalKiller extends _PhantasmalKillerT {
         public PhantasmalKiller() {
             super("Phantasmal Killer", 1);
@@ -2875,6 +3079,9 @@ public class CardSilent {
         }
     }
 
+    // Storm of Steel (Rare) - 1 energy, Skill
+    //   Effect: Discard your hand. Add 1 Shiv into your hand for each card discarded.
+    //   Upgraded Effect: Discard your hand. Add 1 Shiv+ into your hand for each card discarded.
     public static class StormOfSteel extends _StormOfSteelT {
         public StormOfSteel() {
             super("Storm of Steel", false);
@@ -2922,6 +3129,9 @@ public class CardSilent {
         }
     }
 
+    // Tools of the Trade (Rare) - 1 energy, Power
+    //   Effect: At the start of your turn, draw 1 card and discard 1 card.
+    //   Upgraded Effect (0 energy): At the start of your turn, draw 1 card and discard 1 card.
     public static class ToolsOfTheTrade extends _ToolsOfTheTradeT {
         public ToolsOfTheTrade() {
             super("Tools of the Trade", 1);
@@ -2956,6 +3166,9 @@ public class CardSilent {
         }
     }
 
+    // Unload (Rare) - 1 energy, Attack
+    //   Effect: Deal 14 damage. Discard all non-Attack cards in your hand.
+    //   Upgraded Effect: Deal 18 damage. Discard all non-Attack cards in your hand.
     public static class Unload extends _UnloadT {
         public Unload() {
             super("Unload", 14);
@@ -3009,6 +3222,9 @@ public class CardSilent {
         }
     }
 
+    // Wraith Form (Rare) - 3 energy, Power
+    //   Effect: Gain 2 Intangible. At the end of your turn, lose 1 Dexterity.
+    //   Upgraded Effect: Gain 3 Intangible. At the end of your turn, lose 1 Dexterity.
     public static class WraithForm extends _WraithFormT {
         public WraithForm() {
             super("Wraith Form", 2);

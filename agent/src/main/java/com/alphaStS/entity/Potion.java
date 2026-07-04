@@ -83,6 +83,8 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         return displayString;
     }
 
+    // Fear Potion (Common)
+    //   Effect: Apply 3 ( 6) Vulnerable to target enemy.
     public static class FearPotion extends Potion {
         public FearPotion() {
             entityProperty.vulnEnemy = true;
@@ -96,6 +98,8 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
     }
 
+    // Weak Potion (Common)
+    //   Effect: Apply 3 ( 6) Weak to target enemy.
     public static class WeakPotion extends Potion {
         public WeakPotion() {
             entityProperty.weakEnemy = true;
@@ -109,6 +113,8 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
     }
 
+    // Fire Potion (Common)
+    //   Effect: Deal 20 ( 40) damage to target enemy.
     public static class FirePotion extends Potion {
         public FirePotion() {
             entityProperty.selectEnemy = true;
@@ -121,6 +127,8 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
     }
 
+    // Explosive Potion (Common)
+    //   Effect: Deal 10 ( 20) damage to all enemies.
     public static class ExplosivePotion extends Potion {
         @Override public GameActionCtx use(GameState state, int idx) {
             int n = state.properties.sacredBark != null && state.properties.sacredBark.isRelicEnabledInScenario(state) ? 20 : 10;
@@ -131,6 +139,8 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
     }
 
+    // Cunning Potion (Uncommon)
+    //   Effect: Add 3 ( 6) Shivs+ to your hand.
     public static class CunningPotion extends Potion {
         @Override public GameActionCtx use(GameState state, int idx) {
             int n = state.properties.sacredBark != null && state.properties.sacredBark.isRelicEnabledInScenario(state) ? 6 : 3;
@@ -145,6 +155,8 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
     }
 
+    // Poison Potion (Common)
+    //   Effect: Apply 6 ( 12) Poison to target enemy.
     public static class PoisonPotion extends Potion {
         public PoisonPotion() {
             entityProperty.selectEnemy = true;
@@ -158,6 +170,8 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
     }
 
+    // Strength Potion (Common)
+    //   Effect: Gain 2 ( 4) Strength.
     public static class StrengthPotion extends Potion {
         public StrengthPotion() {
             entityProperty.changePlayerStrength = true;
@@ -170,6 +184,8 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
     }
 
+    // Dexterity Potion (Common)
+    //   Effect: Gain 2 ( 4) Dexterity.
     public static class DexterityPotion extends Potion {
         public DexterityPotion() {
             entityProperty.changePlayerDexterity = true;
@@ -182,6 +198,8 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
     }
 
+    // Flex Potion (Common)
+    //   Effect: Gain 5 ( 10) Strength. At the end of your turn, lose 5 ( 10) Strength.
     public static class FlexPotion extends Potion {
         public FlexPotion() {
             entityProperty.changePlayerStrength = true;
@@ -196,6 +214,8 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
     }
 
+    // Speed Potion (Common)
+    //   Effect: Gain 5 ( 10) Dexterity. At the end of your turn, lose 5 ( 10) Dexterity.
     public static class SpeedPotion extends Potion {
         public SpeedPotion() {
             entityProperty.changePlayerDexterity = true;
@@ -210,6 +230,8 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
     }
 
+    // Block Potion (Common)
+    //   Effect: Gain 12 ( 24) Block.
     public static class BlockPotion extends Potion {
         public int getBlockAmount(GameState state) {
             return state.properties.sacredBark != null && state.properties.sacredBark.isRelicEnabledInScenario(state) ? 24 : 12;
@@ -221,6 +243,8 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
     }
 
+    // Duplication Potion (Uncommon)
+    //   Effect: This turn, your next card is ( two cards are) played twice.
     public static class DuplicationPotion extends Potion {
         @Override public GameActionCtx use(GameState state, int idx) {
             state.getCounterForWrite()[counterIdx] += state.properties.sacredBark != null && state.properties.sacredBark.isRelicEnabledInScenario(state) ? 2 : 1;
@@ -277,6 +301,8 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
     }
 
+    // Potion of Capacity (Uncommon)
+    //   Effect: Gain 2 ( 4) Orb slots.
     public static class PotionOfCapacity extends Potion {
         @Override public GameActionCtx use(GameState state, int idx) {
             state.gainOrbSlot(state.properties.sacredBark != null && state.properties.sacredBark.isRelicEnabledInScenario(state) ? 4 : 2);
@@ -288,6 +314,8 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
     }
 
+    // Essence of Darkness (Rare)
+    //   Effect: Channel 1 ( 2) Dark for each orb slot.
     public static class EssenceOfDarkness extends Potion {
         public EssenceOfDarkness() {
             entityProperty.orbGenerationPossible |= OrbType.DARK.mask;
@@ -304,6 +332,8 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
     }
 
+    // Blood Potion (Common)
+    //   Effect: Heal for 20% ( 40%) of your Max HP.
     public static class BloodPotion extends Potion {
         int heal;
 
@@ -327,6 +357,8 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
     }
 
+    // Regen Potion (Uncommon)
+    //   Effect: Gain 5 ( 10) Regeneration.
     public static class RegenPotion extends Potion {
         public RegenPotion() {
             healPlayer = true;
@@ -371,6 +403,8 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
     }
 
+    // Ancient Potion (Uncommon)
+    //   Effect: Gain 1 ( 2) Artifact.
     public static class AncientPotion extends Potion {
         public AncientPotion() {
             entityProperty.changePlayerArtifact = true;
@@ -383,6 +417,8 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
     }
 
+    // Energy Potion (Common)
+    //   Effect: Gain 2 ( 4) Energy.
     public static class EnergyPotion extends Potion {
         @Override public GameActionCtx use(GameState state, int idx) {
             int n = state.properties.sacredBark != null && state.properties.sacredBark.isRelicEnabledInScenario(state) ? 4 : 2;
@@ -391,6 +427,8 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
     }
 
+    // Swift Potion (Common)
+    //   Effect: Draw 3 ( 6) cards.
     public static class SwiftPotion extends Potion {
         @Override public GameActionCtx use(GameState state, int idx) {
             int n = state.properties.sacredBark != null && state.properties.sacredBark.isRelicEnabledInScenario(state) ? 6 : 3;
@@ -399,6 +437,8 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
     }
 
+    // Liquid Bronze (Uncommon)
+    //   Effect: Gain 3 ( 6) Thorns.
     public static class LiquidBronze extends Potion {
         @Override public GameActionCtx use(GameState state, int idx) {
             state.getCounterForWrite()[counterIdx] += 3;
@@ -410,6 +450,8 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
     }
 
+    // Liquid Memories (Uncommon)
+    //   Effect: Choose a card ( 2 cards) in your discard pile and return it to your hand. It costs ( They cost) 0 this turn.
     public static class LiquidMemories extends Potion {
         public LiquidMemories() {
             entityProperty.selectFromDiscard = true;
@@ -455,6 +497,8 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
     }
 
+    // Distilled Chaos (Uncommon)
+    //   Effect: Play the top 3 ( 6) cards of your draw pile.
     public static class DistilledChaos extends Potion {
         @Override public GameActionCtx use(GameState state, int idx) {
             state.getCounterForWrite()[state.properties.playCardOnTopOfDeckCounterIdx] += state.properties.sacredBark != null && state.properties.sacredBark.isRelicEnabledInScenario(state) ? 6 : 3;
@@ -466,6 +510,8 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
     }
 
+    // Blessing of the Forge (Common)
+    //   Effect: Upgrade all cards in your hand for the rest of combat.
     public static class BlessingOfTheForge extends Potion {
         @Override public GameActionCtx use(GameState state, int idx) {
             state.handArrTransform(state.properties.upgradeIdxes);
@@ -477,6 +523,8 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
     }
 
+    // Essence of Steel (Uncommon)
+    //   Effect: Gain 4 ( 8) Plated Armor.
     public static class EssenceOfSteel extends Potion {
         @Override public GameActionCtx use(GameState state, int idx) {
             int platedArmorAmount = state.properties.sacredBark != null && state.properties.sacredBark.isRelicEnabledInScenario(state) ? 8 : 4;
@@ -489,6 +537,8 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
     }
 
+    // Attack Potion (Common)
+    //   Effect: Choose 1 of 3 random Attack cards to add ( two copies of it) to your hand. It costs ( They cost) 0 this turn.
     public static class AttackPotion extends Potion {
         @Override public GameActionCtx use(GameState state, int idx) {
             state.setSelect1OutOf3Idxes(generatedCardIdxes);
@@ -504,6 +554,8 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
     }
 
+    // Skill Potion (Common)
+    //   Effect: Choose 1 of 3 random Skill cards to add ( two copies of) to your hand. It costs ( They cost) 0 this turn.
     public static class SkillPotion extends Potion {
         @Override public GameActionCtx use(GameState state, int idx) {
             state.setSelect1OutOf3Idxes(generatedCardIdxes);
@@ -519,6 +571,8 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
     }
 
+    // Power Potion (Common)
+    //   Effect: Choose 1 of 3 random Power cards to add ( two copies of it) to your hand. It costs ( They cost) 0 this turn.
     public static class PowerPotion extends Potion {
         @Override public GameActionCtx use(GameState state, int idx) {
             state.setSelect1OutOf3Idxes(generatedCardIdxes);
@@ -534,6 +588,8 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
     }
 
+    // Colorless Potion (Common)
+    //   Effect: Choose 1 of 3 random Colorless cards to add ( 2 copies of) to your hand. It costs ( They cost) 0 this turn.
     public static class ColorlessPotion extends Potion {
         @Override public GameActionCtx use(GameState state, int idx) {
             state.setSelect1OutOf3Idxes(generatedCardIdxes);
@@ -549,6 +605,8 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
     }
 
+    // Snecko Oil (Uncommon)
+    //   Effect: Draw 5 ( 10) Cards. Randomize the cost of cards in your hand
     public static class SneckoOil extends Potion {
         @Override public GameActionCtx use(GameState state, int idx) {
             state.draw(5);
@@ -570,6 +628,8 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
     }
 
+    // Cultist Potion (Rare)
+    //   Effect: Gain 1 ( 2) Ritual.
     public static class CultistPotion extends Potion {
         public CultistPotion() {
             entityProperty.changePlayerStrength = true;
@@ -600,6 +660,8 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
     }
 
+    // Gambler's Brew (Uncommon)
+    //   Effect: Discard any number of cards, then draw that many.
     public static class GamblersBrew extends Potion {
         public GamblersBrew() {
             entityProperty.selectFromHand = true;
@@ -629,6 +691,8 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
     }
 
+    // Fairy in a Bottle (Rare)
+    //   Effect: When you would die, heal to 30% ( 60%) of your Max HP instead and discard this potion.
     public static class FairyInABottle extends Potion {
         public int getHealAmount(GameState state) {
             return (int) ((state.properties.sacredBark != null && state.properties.sacredBark.isRelicEnabledInScenario(state) ? 0.6 : 0.3) * state.getPlayerForRead().getInBattleMaxHealth());
@@ -646,6 +710,8 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
     }
 
+    // Focus Potion (Common)
+    //   Effect: Gain 2 ( 4) Focus.
     public static class FocusPotion extends Potion {
         public FocusPotion() {
             entityProperty.changePlayerFocus = true;
@@ -657,6 +723,8 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
     }
 
+    // Smoke Bomb (Uncommon)
+    //   Effect: Escape from a non-boss combat. Receive no rewards.
     public static class SmokeBomb extends Potion {
         @Override public GameActionCtx use(GameState state, int idx) {
             for (int i = 0; i < state.getEnemiesForWrite().size(); i++) {
@@ -668,6 +736,8 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
     }
 
+    // Entropic Brew (Rare)
+    //   Effect: Fill all your empty potion slots with random potions.
     public static class EntropicBrew extends Potion {
         public int possibleGeneratedPotions;
 
@@ -1040,6 +1110,8 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
     }
 
+    // Ghost in a Jar (Rare)
+    //   Effect: Gain 1 ( 2) Intangible.
     public static class GhostInAJar extends Potion {
         @Override public GameActionCtx use(GameState state, int idx) {
             state.getCounterForWrite()[state.properties.intangibleCounterIdx]++;
@@ -1057,6 +1129,8 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
     }
 
+    // Elixir (Uncommon)
+    //   Effect: Exhaust any number of cards in your hand.
     public static class Elixir extends Potion {
         public Elixir() {
             entityProperty.selectFromHand = true;
@@ -1071,6 +1145,8 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
     }
 
+    // Heart of Iron (Rare)
+    //   Effect: Gain 6 ( 12) Metallicize.
     public static class HeartOfIron extends Potion {
         @Override public GameActionCtx use(GameState state, int idx) {
             int metallicizeAmount = state.properties.sacredBark != null && state.properties.sacredBark.isRelicEnabledInScenario(state) ? 12 : 6;
@@ -1083,6 +1159,8 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
     }
 
+    // Bottled Miracle (Common)
+    //   Effect: Add 2 ( 4) Miracles to your hand.
     public static class BottledMiracle extends Potion {
         @Override public GameActionCtx use(GameState state, int idx) {
             int miracleCount = state.properties.sacredBark != null && state.properties.sacredBark.isRelicEnabledInScenario(state) ? 6 : 3;
@@ -1097,6 +1175,8 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
     }
 
+    // Ambrosia (Rare)
+    //   Effect: Enter Divinity.
     public static class Ambrosia extends Potion {
         @Override public GameActionCtx use(GameState state, int idx) {
             state.changeStance(com.alphaStS.enums.Stance.DIVINITY);
@@ -1104,6 +1184,8 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
     }
 
+    // Stance Potion (Uncommon)
+    //   Effect: Enter Calm or Wrath.
     public static class StancePotion extends Potion {
         @Override public GameActionCtx use(GameState state, int idx) {
             state.setSelect1OutOf3Idxes(

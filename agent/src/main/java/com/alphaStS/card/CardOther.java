@@ -15,6 +15,9 @@ public class CardOther {
     // ********************************************* Statuses ***************************************************
     // **********************************************************************************************************
 
+    // Burn (Common) - Unplayable, Status
+    //   Effect: Unplayable. At the end of your turn, take 2 damage.
+    //   Upgraded Effect: Unplayable. At the end of your turn, take 4 damage.
     public static class Burn extends Card {
         public Burn() {
             super("Burn", Card.STATUS, -1, Card.COMMON);
@@ -37,6 +40,8 @@ public class CardOther {
         }
     }
 
+    // Dazed (Common) - Unplayable, Status
+    //   Effect: Unplayable. Ethereal.
     public static class Dazed extends Card {
         public Dazed() {
             super("Dazed", Card.STATUS, -1, Card.COMMON);
@@ -44,6 +49,8 @@ public class CardOther {
         }
     }
 
+    // Slimed (Common) - 1 energy, Status
+    //   Effect: Exhaust.
     public static class Slimed extends Card {
         public Slimed() {
             super("Slimed", Card.STATUS, 1, Card.COMMON);
@@ -51,12 +58,16 @@ public class CardOther {
         }
     }
 
+    // Wound (Common) - Unplayable, Status
+    //   Effect: Unplayable.
     public static class Wound extends Card {
         public Wound() {
             super("Wound", Card.STATUS, -1, Card.COMMON);
         }
     }
 
+    // Void (Common) - Unplayable, Status
+    //   Effect: Unplayable. Ethereal. Whenever this card is drawn, lose 1 Energy.
     public static class Void extends Card {
         public Void() {
             super("Void", Card.STATUS, -1, Card.COMMON);
@@ -78,6 +89,8 @@ public class CardOther {
     // ********************************************** Curses ****************************************************
     // **********************************************************************************************************
 
+    // Ascender's Bane (Curse) - Unplayable, Curse
+    //   Effect: Unplayable. Ethereal. Cannot be removed from your deck.
     public static class AscendersBane extends Card {
         public AscendersBane() {
             super("Ascender's Bane", Card.CURSE, -1, Card.COMMON);
@@ -86,6 +99,8 @@ public class CardOther {
         }
     }
 
+    // Clumsy (Curse) - Unplayable, Curse
+    //   Effect: Unplayable. Ethereal.
     public static class Clumsy extends Card {
         public Clumsy() {
             super("Clumsy", Card.CURSE, -1, Card.COMMON);
@@ -94,6 +109,8 @@ public class CardOther {
         }
     }
 
+    // Necronomicurse (Curse) - Unplayable, Curse
+    //   Effect: Unplayable. There is no escape from this curse.
     public static class Necronomicurse extends Card {
         public Necronomicurse() {
             super("Necronomicurse", Card.CURSE, -1, Card.COMMON);
@@ -111,6 +128,8 @@ public class CardOther {
         }
     }
 
+    // Decay (Curse) - Unplayable, Curse
+    //   Effect: Unplayable. At the end of your turn, take 2 damage.
     public static class Decay extends Card {
         public Decay() {
             super("Decay", Card.CURSE, -1, Card.COMMON);
@@ -123,6 +142,8 @@ public class CardOther {
         }
     }
 
+    // Doubt (Curse) - Unplayable, Curse
+    //   Effect: Unplayable. At the end of your turn, gain 1 Weak.
     public static class Doubt extends Card {
         public Doubt() {
             super("Doubt", Card.CURSE, -1, Card.COMMON);
@@ -135,6 +156,8 @@ public class CardOther {
         }
     }
 
+    // Normality (Curse) - Unplayable, Curse
+    //   Effect: Unplayable. While in hand, you cannot play more than 3 cards this turn.
     public static class Normality extends Card {
         public Normality() {
             super("Normality", Card.CURSE, -1, Card.COMMON);
@@ -169,6 +192,8 @@ public class CardOther {
         }
     }
 
+    // Pain (Curse) - Unplayable, Curse
+    //   Effect: Unplayable. While in hand, lose 1 HP when other cards are played.
     public static class Pain extends Card {
         public Pain() {
             super("Pain", Card.CURSE, -1, Card.COMMON);
@@ -189,6 +214,8 @@ public class CardOther {
         }
     }
 
+    // Regret (Curse) - Unplayable, Curse
+    //   Effect: Unplayable. At the end of your turn, lose HP equal to the number of cards in your hand.
     public static class Regret extends Card {
         public Regret() {
             super("Regret", Card.CURSE, -1, Card.COMMON);
@@ -201,6 +228,8 @@ public class CardOther {
         }
     }
 
+    // Shame (Curse) - Unplayable, Curse
+    //   Effect: Unplayable. At the end of your turn, gain 1 Frail.
     public static class Shame extends Card {
         public Shame() {
             super("Shame", Card.CURSE, -1, Card.COMMON);
@@ -213,6 +242,8 @@ public class CardOther {
         }
     }
 
+    // Writhe (Curse) - Unplayable, Curse
+    //   Effect: Unplayable. Innate.
     public static class Writhe extends Card {
         public Writhe() {
             super("Writhe", Card.CURSE, -1, Card.COMMON);
@@ -221,6 +252,8 @@ public class CardOther {
         }
     }
 
+    // Parasite (Curse) - Unplayable, Curse
+    //   Effect: Unplayable. If transformed or removed from your deck, lose 3 Max HP.
     public static class Parasite extends Card {
         public Parasite() {
             super("Parasite", Card.CURSE, -1, Card.COMMON);
@@ -228,6 +261,8 @@ public class CardOther {
         }
     }
 
+    // Injury (Curse) - Unplayable, Curse
+    //   Effect: Unplayable.
     public static class Injury extends Card {
         public Injury() {
             super("Injury", Card.CURSE, -1, Card.COMMON);
@@ -235,6 +270,8 @@ public class CardOther {
         }
     }
 
+    // Curse of the Bell (Curse) - Unplayable, Curse
+    //   Effect: Unplayable. Cannot be removed from your deck.
     public static class CurseOfTheBell extends Card {
         public CurseOfTheBell() {
             super("Curse of the Bell", Card.CURSE, -1, Card.COMMON);
@@ -590,4 +627,10 @@ public class CardOther {
             return GameActionCtx.PLAY_CARD;
         }
     }
+
+    // **************************************************************************************************
+    // ********************************************* Curse  *********************************************
+    // **************************************************************************************************
+
+    // No need to implement Pride: Unplayable special curse
 }

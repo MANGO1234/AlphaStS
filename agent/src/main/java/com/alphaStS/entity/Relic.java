@@ -135,6 +135,8 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     // ************************************************************* Common Relics ******************************************************************
     // **********************************************************************************************************************************************
 
+    // Akabeko (Common)
+    //   Effect: Your first Attack each combat deals 8 additional damage
     public static class Akabeko extends Relic {
         public Akabeko() {
             entityProperty.addPossibleBuff(PlayerBuff.AKABEKO);
@@ -158,6 +160,8 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
+    // Anchor (Common)
+    //   Effect: Start each combat with 10 Block.
     public static class Anchor extends Relic {
         private final int block;
 
@@ -180,6 +184,8 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
+    // Ancient Tea Set (Common)
+    //   Effect: Whenever you enter a Rest Site, start the next combat with 2 extra Energy.
     public static class AncientTeaSet extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addStartOfBattleHandler(new GameEventHandler() {
@@ -192,6 +198,8 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
+    // Art of War (Common)
+    //   Effect: If you do not play any Attacks during your turn, gain an additional Energy next turn.
     public static class ArtOfWar extends Relic {
         public ArtOfWar() {
             entityProperty.addPossibleBuff(PlayerBuff.ART_OF_WAR);
@@ -222,6 +230,8 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
+    // Bag of Marbles (Common)
+    //   Effect: At the start of each combat, apply 1 Vulnerable to ALL enemies.
     public static class BagOfMarbles extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             entityProperty.vulnEnemy = true;
@@ -237,6 +247,8 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
+    // Bag of Preparation (Common)
+    //   Effect: At the start of each combat, draw 2 additional cards.
     public static class BagOfPreparation extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addStartOfTurnHandler("BagOfPreparation", new GameEventHandler() {
@@ -249,6 +261,8 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
+    // Blood Vial (Common)
+    //   Effect: At the start of each combat, heal 2 HP.
     public static class BloodVial extends Relic {
         private final int heal;
 
@@ -272,6 +286,8 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
+    // Bronze Scales (Common)
+    //   Effect: Start each combat with 3 Thorns.
     public static class BronzeScales extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.registerThornCounter(state, this);
@@ -285,6 +301,8 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
+    // Centennial Puzzle (Common)
+    //   Effect: The first time you lose HP each combat, draw 3 cards.
     public static class CentennialPuzzle extends Relic {
         public CentennialPuzzle() {
             entityProperty.addPossibleBuff(PlayerBuff.CENTENNIAL_PUZZLE);
@@ -313,6 +331,8 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     // No need to implement Ceramic Fish
     // No need to implement Dream Catcher
 
+    // Happy Flower (Common)
+    //   Effect: Every 3 turns, gain 1 Energy.
     public static class HappyFlower extends Relic {
         int n;
         int healthReward;
@@ -395,6 +415,8 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     // No need to implement Juzu Bracelet
 
+    // Lantern (Common)
+    //   Effect: Gain 1 Energy on the first turn of each combat.
     public static class Lantern extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addStartOfBattleHandler("BagOfPreparation", new GameEventHandler() {
@@ -410,6 +432,8 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     // No need to implement Maw Bank
     // No need to implement Meal Ticket
 
+    // Nunchaku (Common)
+    //   Effect: Every time you play 10 Attacks, gain 1 Energy.
     public static class Nunchaku extends Relic {
         int n;
         int healthReward;
@@ -485,6 +509,8 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     // No need to implement Omamori
 
+    // Orichalcum (Common)
+    //   Effect: If you end your turn without Block, gain 6 Block.
     public static class Orichalcum extends Relic {
         private final int gainBlock;
 
@@ -507,6 +533,8 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
+    // Pen Nib (Common)
+    //   Effect: Every 10th Attack you play deals double damage.
     public static class PenNib extends Relic {
         int n;
         int healthReward;
@@ -581,12 +609,16 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
+    // Potion Belt (Common)
+    //   Effect: Upon pickup, gain 2 Potion slots.
     public static class PotionBelt extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.numOfPotionSlots = 4;
         }
     }
 
+    // Preserved Insect (Common)
+    //   Effect: Enemies in Elite combats have 25% less HP.
     public static class PreservedInsect extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addStartOfBattleHandler(new GameEventHandler() {
@@ -605,6 +637,8 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     // No need to implement Smiling Mask
     // No need to implement Strawberry
 
+    // The Boot (Common)
+    //   Effect: Whenever you would deal 4 or less unblocked Attack damage, increase it to 5.
     public static class TheBoot extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.boot = this;
@@ -613,6 +647,8 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     // No need to implement Tiny Chest
 
+    // Toy Ornithopter (Common)
+    //   Effect: Whenever you use a potion, heal 5 HP.
     public static class ToyOrnithopter extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.toyOrnithopter = this;
@@ -620,6 +656,8 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
+    // Vajra (Common)
+    //   Effect: At the start of each combat, gain 1 Strength.
     public static class Vajra extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addStartOfTurnHandler("OddlySmoothStone", new GameEventHandler() {
@@ -632,6 +670,8 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
+    // War Paint (Common)
+    //   Effect: Upon pick up, Upgrade 2 random Skills.
     public static class WarPaint extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addStartOfBattleHandler(new GameEventHandler() {
@@ -666,6 +706,8 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
+    // Whetstone (Common)
+    //   Effect: Upon pickup, Upgrade 2 random Attacks.
     public static class WhetStone extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addStartOfBattleHandler(new GameEventHandler() {
@@ -704,6 +746,8 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     // ************************************************************ Uncommon Relics *****************************************************************
     // **********************************************************************************************************************************************
 
+    // Blue Candle (Uncommon)
+    //   Effect: Unplayable Curse cards can now be played. Whenever you play a Curse, lose 1 HP and Exhaust it.
     public static class BlueCandle extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.blueCandle = this;
@@ -718,18 +762,24 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
+    // Bottled Flame (Uncommon)
+    //   Effect: Upon pickup, choose an Attack card. At the start of each combat, this card will be in your hand.
     public static class BottledFlame extends _BottledRelic {
         public BottledFlame(Card card) {
             super(card);
         }
     }
 
+    // Bottled Lightning (Uncommon)
+    //   Effect: Upon pickup, choose a Skill card. At the start of each combat, this card will be in your hand.
     public static class BottledLightning extends _BottledRelic {
         public BottledLightning(Card card) {
             super(card);
         }
     }
 
+    // Bottled Tornado (Uncommon)
+    //   Effect: Upon pickup, choose a Power card. At the start of each combat, this card will be in your hand.
     public static class BottledTornado extends _BottledRelic {
         public BottledTornado(Card card) {
             super(card);
@@ -740,6 +790,8 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     // No need to implement Eternal Feather
     // No need to implement Frozen Egg
 
+    // Gremlin Horn (Uncommon)
+    //   Effect: Whenever an enemy dies, gain 1 Energy and draw 1 card.
     public static class GremlinHorn extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addOnEnemyDeathHandler("GremlinHorn", new GameEventEnemyHandler() {
@@ -753,6 +805,8 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
+    // Horn Cleat (Uncommon)
+    //   Effect: At the start of your 2nd turn, gain 14 Block.
     public static class HornCleat extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addNNInputHandler("HornCleat", new GameProperties.NetworkInputHandler() {
@@ -774,6 +828,8 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
+    // Ink Bottle (Uncommon)
+    //   Effect: Whenever you play 10 cards, draw 1 card.
     public static class InkBottle extends Relic {
         int n;
         int healthReward;
@@ -846,6 +902,8 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
+    // Kunai (Uncommon)
+    //   Effect: Every time you play 3 Attacks in a single turn, gain 1 Dexterity
     public static class Kunai extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             entityProperty.changePlayerDexterity = true;
@@ -884,6 +942,8 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
+    // Letter Opener (Uncommon)
+    //   Effect: Every time you play 3 Skills in a single turn, deal 5 damage to ALL enemies.
     public static class LetterOpener extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.registerCounter("LetterOpener", this, new GameProperties.NetworkInputHandler() {
@@ -925,6 +985,8 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     // No need to implement Matryoshka
 
+    // Meat on the Bone (Uncommon)
+    //   Effect: If your HP is at or below 50% at the end of combat, heal 12 HP.
     public static class MeatOnTheBone extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.meatOnTheBone = this;
@@ -938,6 +1000,8 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
+    // Mercury Hourglass (Uncommon)
+    //   Effect: At the start of your turn, deal 3 damage to ALL enemies.
     public static class MercuryHourglass extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addStartOfTurnHandler(new GameEventHandler() {
@@ -954,6 +1018,8 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     // No need to implement Molten Egg
 
+    // Mummified Hand (Uncommon)
+    //   Effect: Whenever you play a Power card, a random card in your hand costs 0 that turn.
     public static class MummifiedHand extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addOnCardPlayedHandler(new GameEventCardHandler() {
@@ -1003,6 +1069,8 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
+    // Ornamental Fan (Uncommon)
+    //   Effect: Every time you play 3 Attacks in a single turn, gain 4 Block.
     public static class OrnamentalFan extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.registerCounter("OrnamentalFan", this, new GameProperties.NetworkInputHandler() {
@@ -1040,6 +1108,8 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
+    // Pantograph (Uncommon)
+    //   Effect: At the start of Boss combats, heal 25 HP.
     public static class Pantograph extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addStartOfBattleHandler("Pantograph", new GameEventHandler() {
@@ -1060,6 +1130,8 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     // No need to implement Pear
     // No need to implement Question Card
 
+    // Shuriken (Uncommon)
+    //   Effect: Every time you play 3 Attacks in a single turn, gain 1 Strength.
     public static class Shuriken extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             entityProperty.changePlayerStrength = true;
@@ -1100,12 +1172,16 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     // No need to implement Singing Bowl
 
+    // Strike Dummy (Uncommon)
+    //   Effect: Cards containing "Strike" deal 3 additional damage.
     public static class StrikeDummy extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.strikeDummy = this;
         }
     }
 
+    // Sundial (Uncommon)
+    //   Effect: Every 3 times you shuffle your draw pile, gain 2 Energy.
     public static class Sundial extends Relic {
         private final int n;
         private final int healthReward;
@@ -1186,6 +1262,8 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     // ************************************************************** Rare Relics *******************************************************************
     // **********************************************************************************************************************************************
 
+    // Bird-Faced Urn (Rare)
+    //   Effect: Whenever you play a Power card, heal 2 HP.
     public static class BirdFacedUrn extends Relic {
         public BirdFacedUrn() {
             healPlayer = true;
@@ -1206,12 +1284,16 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
+    // Calipers (Rare)
+    //   Effect: At the start of your turn, lose 15 Block rather than all of your Block.
     public static class Calipers extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.calipers = this;
         }
     }
 
+    // Oddly Smooth Stone (Common)
+    //   Effect: At the start of each combat, gain 1 Dexterity.
     public static class OddlySmoothStone extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addStartOfTurnHandler("OddlySmoothStone", new GameEventHandler() {
@@ -1224,6 +1306,8 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
+    // Captain's Wheel (Rare)
+    //   Effect: At the start of your 3rd turn, gain 18 Block.
     public static class CaptainsWheel extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addNNInputHandler("CaptainsWheel", new GameProperties.NetworkInputHandler() {
@@ -1245,6 +1329,8 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
+    // Dead Branch (Rare)
+    //   Effect: Whenever you Exhaust a card, add a random card to your hand.
     public static class DeadBranch extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.deadBranch = this;
@@ -1271,6 +1357,8 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
+    // Du-Vu Doll (Rare)
+    //   Effect: For each Curse in your deck, start each combat with 1 Strength.
     public static class DuVuDoll extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addStartOfBattleHandler(new GameEventHandler() {
@@ -1287,6 +1375,8 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
+    // Fossilized Helix (Rare)
+    //   Effect: Prevent the first time you would lose HP in combat.
     public static class FossilizedHelix extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.registerBufferCounter(state, this);
@@ -1301,18 +1391,24 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
+    // Gambling Chip (Rare)
+    //   Effect: At the start of each combat, discard any number of cards, then draw that many cards.
     public static class GamblingChip extends Relic {
         @Override public List<Card> getPossibleGeneratedCards(GameProperties gameProperties, List<Card> cards) {
             return List.of(new CardOther.GamblingChips());
         }
     }
 
+    // Ginger (Rare)
+    //   Effect: You can no longer become Weakened.
     public static class Ginger extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.ginger = this;
         }
     }
 
+    // Girya (Rare)
+    //   Effect: You can now gain Strength at Rest Sites (up to 3 times).
     public static class Girya extends Relic {
         private final int strength;
 
@@ -1329,12 +1425,16 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
+    // Ice Cream (Rare)
+    //   Effect: Energy is now conserved between turns.
     public static class IceCream extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.iceCream = this;
         }
     }
 
+    // Incense Burner (Rare)
+    //   Effect: Every 6 turns, gain 1 Intangible.
     public static class IncenseBurner extends Relic {
         public static int DEFAULT_REWARD = 0;
         public static int NEXT_FIGHT_IS_SPEAR_AND_SHIELD_REWARD = 0;
@@ -1453,6 +1553,8 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
+    // Lizard Tail (Rare)
+    //   Effect: When you would die, heal to 50% of your Max HP instead (works once).
     public static class LizardTail extends Relic {
     }
 
@@ -1460,6 +1562,8 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     // No need to implement Old Coin
     // No need to implement Peace Pipe
 
+    // Pocketwatch (Rare)
+    //   Effect: Whenever you play 3 or less cards during your turn, draw 3 additional cards at the start of your next turn.
     public static class Pocketwatch extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.registerCounter("Pocketwatch", this, new GameProperties.NetworkInputHandler() {
@@ -1501,6 +1605,8 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     // No need to implement Prayer Wheel
     // No need to implement Shovel
 
+    // Stone Calendar (Rare)
+    //   Effect: At the end of turn 7, deal 52 damage to ALL enemies.
     public static class StoneCalendar extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addNNInputHandler("StoneCalendar", new GameProperties.NetworkInputHandler() {
@@ -1524,6 +1630,8 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
+    // Thread and Needle (Rare)
+    //   Effect: At the start of each combat, gain 4 Plated Armor.
     public static class ThreadAndNeedle extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.registerPlatedArmorCounter();
@@ -1537,24 +1645,32 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
+    // Torii (Rare)
+    //   Effect: Whenever you would receive 5 or less unblocked Attack damage, reduce it to 1.
     public static class Torii extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.torii = this;
         }
     }
 
+    // Tungsten Rod (Rare)
+    //   Effect: Whenever you would lose HP, lose 1 less.
     public static class TungstenRod extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.tungstenRod = this;
         }
     }
 
+    // Turnip (Rare)
+    //   Effect: You can no longer become Frail.
     public static class Turnip extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.turnip = this;
         }
     }
 
+    // Unceasing Top (Rare)
+    //   Effect: Whenever you have no cards in hand during your turn, draw a card.
     public static class UnceasingTop extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.unceasingTop = this;
@@ -1568,12 +1684,16 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     // No need to implement Wing Boots
     // No need to implement Cauldron
 
+    // Chemical X (Shop)
+    //   Effect: The effects of your cost X cards are increased by 2.
     public static class ChemicalX extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.chemicalX = this;
         }
     }
 
+    // Clockwork Souvenir (Shop)
+    //   Effect: Start each combat with 1 Artifact.
     public static class ClockworkSouvenir extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addStartOfBattleHandler("ClockworkSouvenir", new GameEventHandler() {
@@ -1588,6 +1708,8 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     // No need to implement Dolly's Mirror
 
+    // Frozen Eye (Shop)
+    //   Effect: When viewing your Draw Pile, the cards are now shown in order.
     public static class FrozenEye extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.frozenEye = this;
@@ -1595,6 +1717,8 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
+    // Hand Drill (Shop)
+    //   Effect: Whenever you break an enemy's Block, apply 2 Vulnerable.
     public static class HandDrill extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.handDrill = this;
@@ -1603,6 +1727,8 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     // No need to implement Lee's Waffle
 
+    // Medical Kit (Shop)
+    //   Effect: Unplayable Status cards can now be played. Whenever you play a Status card, Exhaust it.
     public static class MedicalKit extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.medicalKit = this;
@@ -1611,6 +1737,8 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     // No need to implement Membership Card
 
+    // Orange Pellets (Shop)
+    //   Effect: Whenever you play a Power, Attack, and Skill in the same turn, remove all of your debuffs.
     public static class OrangePellets extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.registerCounter("OrangePellets", this, new GameProperties.NetworkInputHandler() {
@@ -1658,6 +1786,8 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     // No need to implement Orrery
     // No need to implement Prismatic Shard
 
+    // Sling of Courage (Shop)
+    //   Effect: Start each Elite combat with 2 Strength.
     public static class SlingOfCourage extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addStartOfTurnHandler("SlingOfCourage", new GameEventHandler() {
@@ -1672,12 +1802,16 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
+    // Strange Spoon (Shop)
+    //   Effect: Cards which Exhaust when played will instead discard 50% of the time.
     public static class StrangeSpoon extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.strangeSpoon = this;
         }
     }
 
+    // The Abacus (Shop)
+    //   Effect: Whenever you shuffle your draw pile, gain 6 Block.
     public static class TheAbacus extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addOnShuffleHandler("TheAbacus", new GameEventHandler() {
@@ -1690,6 +1824,8 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
+    // Toolbox (Shop)
+    //   Effect: At the start of each combat, choose 1 of 3 random Colorless cards and add the chosen card into your hand.
     public static class Toolbox extends Relic {
         private List<Card> filter;
 
@@ -1720,6 +1856,8 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     // **********************************************************************************************************************************************
     // ************************************************************** Boss Relics *******************************************************************
     // **********************************************************************************************************************************************
+    // Astrolabe (Boss)
+    //   Effect: Upon pickup, Transform 3 cards, then Upgrade them.
     public static class Astrolabe extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.astrolabeCardsIdxes = generatedCardIdxes;
@@ -1757,6 +1895,8 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     // No need to implement Black Star
 
+    // Busted Crown (Boss)
+    //   Effect: Gain 1 Energy at the start of your turn. Future card rewards have 2 less cards to choose from.
     public static class BustedCrown extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addStartOfBattleHandler(new GameEventHandler() {
@@ -1771,6 +1911,8 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     // No need to implement Calling Bell
 
+    // Coffee Dripper (Boss)
+    //   Effect: Gain 1 Energy at the start of your turn. You can no longer Rest at Rest Sites.
     public static class CoffeeDripper extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addStartOfBattleHandler(new GameEventHandler() {
@@ -1783,6 +1925,8 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
+    // Cursed Key (Boss)
+    //   Effect: Gain 1 Energy at the start of your turn. Whenever you open a non-Boss chest, obtain a Curse.
     public static class CursedKey extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addStartOfBattleHandler(new GameEventHandler() {
@@ -1795,6 +1939,8 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
+    // Ectoplasm (Boss)
+    //   Effect: Gain 1 Energy at the start of your turn. You can no longer gain Gold.
     public static class Ectoplasm extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addStartOfBattleHandler(new GameEventHandler() {
@@ -1809,6 +1955,8 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     // No need to implement Empty Cage
 
+    // Fusion Hammer (Boss)
+    //   Effect: Gain 1 Energy at the start of your turn. You can no longer Smith at Rest Sites.
     public static class FusionHammer extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addStartOfBattleHandler(new GameEventHandler() {
@@ -1821,6 +1969,8 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
+    // Pandora's Box (Boss)
+    //   Effect: Upon pickup, Transform all Strike and Defend cards.
     public static class PandorasBox extends Relic {
         private final int n;
         private boolean upgradeSkill = false;
@@ -1872,6 +2022,8 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
+    // Philosopher's Stone (Boss)
+    //   Effect: Gain 1 Energy at the start of your turn. ALL enemies start combat with 1 Strength.
     public static class PhilosophersStone extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addStartOfBattleHandler(new GameEventHandler() {
@@ -1888,6 +2040,8 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
+    // Runic Dome (Boss)
+    //   Effect: Gain 1 Energy at the start of your turn. You can no longer see enemy intents.
     public static class RunicDome extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addStartOfBattleHandler(new GameEventHandler() {
@@ -1901,18 +2055,24 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
+    // Runic Pyramid (Boss)
+    //   Effect: At the end of your turn, you no longer discard your hand.
     public static class RunicPyramid extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.runicPyramid = this;
         }
     }
 
+    // Sacred Bark (Boss)
+    //   Effect: Double the effectiveness of potions.
     public static class SacredBark extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.sacredBark = this;
         }
     }
 
+    // Slaver's Collar (Boss)
+    //   Effect: During Boss and Elite combats, gain 1 Energy at the start of your turn.
     public static class SlaversCollar extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addStartOfBattleHandler(new GameEventHandler() {
@@ -1927,6 +2087,8 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
+    // Snecko Eye (Boss)
+    //   Effect: At the start of your turn, draw 2 additional cards. Start each combat Confused.
     public static class SneckoEye extends Relic {
         @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
             return GameProperties.generateSneckoCards(cards);
@@ -1946,6 +2108,8 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
+    // Sozu (Boss)
+    //   Effect: Gain 1 Energy at the start of your turn. You can no longer obtain potions.
     public static class Sozu extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addStartOfBattleHandler(new GameEventHandler() {
@@ -1959,6 +2123,8 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     }
 
     // No need to implement Tiny House
+    // Velvet Choker (Boss)
+    //   Effect: Gain 1 Energy at the start of your turn. You cannot play more than 6 cards per turn.
     public static class VelvetChoker extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addStartOfBattleHandler(new GameEventHandler() {
@@ -2002,6 +2168,8 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     // ************************************************************** Event Relics ******************************************************************
     // **********************************************************************************************************************************************
 
+    // Bloody Idol (Event)
+    //   Effect: Whenever you gain Gold, heal 5 HP.
     public static class BloodyIdol extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.bloodyIdol = this;
@@ -2015,6 +2183,8 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     // No need to implement Cultist Headpiece
 
+    // Enchiridion (Event)
+    //   Effect: At the start of each combat, add a random Power card into your hand. It costs 0 for that turn.
     public static class Enchiridion extends Relic {
         private Card filter;
 
@@ -2048,6 +2218,8 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     // No need to implement Face of Cleric
     // No need to implement Golden Idol
 
+    // Gremlin Visage (Event)
+    //   Effect: Start each combat with 1 Weak.
     public static class GremlinVisage extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addStartOfBattleHandler(new GameEventHandler() {
@@ -2058,12 +2230,16 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
+    // Mark of the Bloom (Event)
+    //   Effect: You can no longer heal.
     public static class MarkOfTheBloom extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.markOfTheBloom = this;
         }
     }
 
+    // Mutagenic Strength (Event)
+    //   Effect: Start each combat with 3 Strength. At the end of your first turn, lose 3 Strength.
     public static class MutagenicStrength extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addStartOfBattleHandler(new GameEventHandler() {
@@ -2083,6 +2259,8 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     // No need to implement N'loth's Mask
     // No need to implement Neow's Lament
 
+    // Necronomicon (Event)
+    //   Effect: The first Attack played each turn that costs 2 or more is played twice. Upon pickup, obtain a special Curse.
     public static class Necronomicon extends Relic {
         public Necronomicon() {
             entityProperty.addPossibleBuff(PlayerBuff.NECRONOMICON);
@@ -2127,6 +2305,8 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     // No need to implement Neows Blessing
 
+    // Nilry's Codex (Event)
+    //   Effect: At the end of each turn, you may shuffle 1 of 3 random cards to shuffle into your draw pile.
     public static class NilrysCodex extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.nilrysCodex = this;
@@ -2156,12 +2336,16 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
+    // Odd Mushroom (Event)
+    //   Effect: When Vulnerable, take 25% more attack damage rather than 50%.
     public static class OddMushroom extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.oddMushroom = this;
         }
     }
 
+    // Red Mask (Event)
+    //   Effect: At the start of each combat, apply 1 Weak to ALL enemies.
     public static class RedMask extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             entityProperty.weakEnemy = true;
@@ -2180,6 +2364,8 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     // No need to implement Spirit Poop
     // No need to implement Ssserpent Head
 
+    // Warped Tongs (Event)
+    //   Effect: At the start of your turn, Upgrade a random card in your hand for the rest of combat.
     public static class WarpedTongs extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addStartOfTurnHandler(new GameEventHandler(100) {
@@ -2229,6 +2415,8 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     // ******************************************************** Ironclad Specific Relics ************************************************************
     // **********************************************************************************************************************************************
 
+    // Burning Blood (Starter)
+    //   Effect: At the end of combat, heal 6 HP.
     public static class BurningBlood extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.burningBlood = this;
@@ -2242,6 +2430,8 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
+    // Red Skull (Common)
+    //   Effect: While your HP is at or below 50%, you have 3 additional Strength.
     public static class RedSkull extends Relic {
         public RedSkull() {
             entityProperty.changePlayerStrength = true;
@@ -2282,12 +2472,16 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
+    // Paper Phrog (Uncommon)
+    //   Effect: Enemies with Vulnerable take 75% more damage rather than 50%.
     public static class PaperPhrog extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.paperPhrog = this;
         }
     }
 
+    // Self-Forming Clay (Uncommon)
+    //   Effect: Whenever you lose HP, gain 3 Block next turn.
     public static class SelfFormingClay extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.registerCounter("SelfFormingClay", this, new GameProperties.NetworkInputHandler() {
@@ -2320,12 +2514,16 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
+    // Champion Belt (Rare)
+    //   Effect: Whenever you apply Vulnerable, also apply 1 Weak.
     public static class ChampionBelt extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.championBelt = this;
         }
     }
 
+    // Charon's Ashes (Rare)
+    //   Effect: Whenever you Exhaust a card, deal 3 damage to ALL enemies.
     public static class CharonsAshes extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addOnExhaustHandler("CharonsAshes", new GameEventHandler() {
@@ -2340,12 +2538,16 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
+    // Magic Flower (Rare)
+    //   Effect: Healing is 50% more effective during combat.
     public static class MagicFlower extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.magicFlower = this;
         }
     }
 
+    // Brimstone (Shop)
+    //   Effect: At the start of your turn, gain 2 Strength and ALL enemies gain 1 Strength.
     public static class Brimstone extends Relic {
         public Brimstone() {
             entityProperty.changePlayerStrength = true;
@@ -2366,6 +2568,8 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
+    // Black Blood (Boss)
+    //   Effect: Replaces Burning Blood. At the end of combat, heal 12 HP.
     public static class BlackBlood extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.blackBlood = this;
@@ -2379,6 +2583,8 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
+    // Mark of Pain (Boss)
+    //   Effect: Gain 1 Energy at the start of your turn. At the start of combat, shuffle 2 Wounds into your draw pile.
     public static class MarkOfPain extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addStartOfTurnHandler("MarkOfPain", new GameEventHandler() {
@@ -2402,6 +2608,8 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
             return List.of(new CardOther.Wound());
         }
     }
+    // Runic Cube (Boss)
+    //   Effect: Whenever you lose HP, draw 1 card.
     public static class RunicCube extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addOnDamageHandler(new OnDamageHandler() {
@@ -2418,6 +2626,8 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     // ********************************************************** Silent Specific Relics ************************************************************
     // **********************************************************************************************************************************************
 
+    // Ring of the Snake (Starter)
+    //   Effect: At the start of each combat, draw 2 additional cards.
     public static class RingOfTheSnake extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addStartOfTurnHandler("RingOfSnake", new GameEventHandler() {
@@ -2430,12 +2640,16 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
+    // Snecko Skull (Common)
+    //   Effect: Whenever you apply Poison, apply an additional 1 Poison.
     public static class SneckoSkull extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.sneckoSkull = this;
         }
     }
 
+    // Ninja Scroll (Uncommon)
+    //   Effect: At the start each combat, add 3 Shivs into your hand.
     public static class NinjaScroll extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addStartOfTurnHandler("NinjaScroll", new GameEventHandler() {
@@ -2454,12 +2668,16 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
+    // Paper Krane (Uncommon)
+    //   Effect: Enemies with Weak deal 40% less damage rather than 25%.
     public static class PaperKrane extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.paperKrane = this;
         }
     }
 
+    // The Specimen (Rare)
+    //   Effect: Whenever an enemy dies, transfer any Poison it has to a random enemy.
     public static class TheSpecimen extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addOnEnemyDeathHandler("Specimen", new GameEventEnemyHandler() {
@@ -2478,18 +2696,24 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
+    // Tingsha (Rare)
+    //   Effect: Whenever you discard a card during your turn, deal 3 damage to a random enemy.
     public static class Tingsha extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.tingsha = this;
         }
     }
 
+    // Tough Bandages (Rare)
+    //   Effect: Whenever you discard a card during your turn, gain 3 Block.
     public static class ToughBandages extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.toughBandages = this;
         }
     }
 
+    // Twisted Funnel (Shop)
+    //   Effect: At the start of each combat, apply 4 Poison to ALL enemies.
     public static class TwistedFunnel extends Relic {
         public TwistedFunnel() {
             entityProperty.poisonEnemy = true;
@@ -2508,6 +2732,8 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
+    // Ring of the Serpent (Boss)
+    //   Effect: Replaces Ring of the Snake. At the start of your turn, draw 1 additional card.
     public static class RingOfTheSerpent extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addStartOfTurnHandler("RingOfTheSerpent", new GameEventHandler() {
@@ -2520,12 +2746,16 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
+    // Wrist Blade (Boss)
+    //   Effect: Attacks that cost 0 deal 4 additional damage.
     public static class WristBlade extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.wristBlade = this;
         }
     }
 
+    // Hovering Kite (Boss)
+    //   Effect: The first time you discard a card each turn, gain 1 Energy.
     public static class HoveringKite extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.registerCounter("Hovering Kite", this, new GameProperties.NetworkInputHandler() {
@@ -2548,6 +2778,8 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     // ********************************************************** Defect Specific Relics ************************************************************
     // **********************************************************************************************************************************************
 
+    // Cracked Core (Starter)
+    //   Effect: At the start of each combat, Channel 1 Lightning.
     public static class CrackedCore extends Relic {
         public CrackedCore() {
             entityProperty.orbGenerationPossible |= OrbType.LIGHTNING.mask;
@@ -2564,6 +2796,8 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
+    // Data Disk (Common)
+    //   Effect: Start each combat with 1 Focus.
     public static class DataDisk extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addStartOfBattleHandler(new GameEventHandler() {
@@ -2576,6 +2810,8 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
+    // Emotion Chip (Rare)
+    //   Effect: If you lost HP during the previous turn, trigger the passive ability of all Orbs at the start of your turn.
     public static class EmotionChip extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.registerCounter("EmotionChip", this, new GameProperties.NetworkInputHandler() {
@@ -2609,6 +2845,8 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
+    // Frozen Core (Boss)
+    //   Effect: Replaces Cracked Core. If you end your turn with any empty Orb slots, Channel 1 Frost.
     public static class FrozenCore extends Relic {
         public FrozenCore() {
             entityProperty.orbGenerationPossible |= OrbType.FROST.mask;
@@ -2633,12 +2871,16 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
+    // Gold-Plated Cables (Uncommon)
+    //   Effect: Your rightmost Orb triggers its passive an additional time.
     public static class GoldPlatedCables extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.goldPlatedCables = this;
         }
     }
 
+    // Nuclear Battery (Boss)
+    //   Effect: At the start of each combat, Channel 1 Plasma.
     public static class NuclearBattery extends Relic {
         public NuclearBattery() {
             entityProperty.orbGenerationPossible |= OrbType.PLASMA.mask;
@@ -2655,6 +2897,8 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
+    // Runic Capacitor (Shop)
+    //   Effect: Start each combat with 3 additional Orb slots.
     public static class RunicCapacitor extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.maxNumOfOrbs = Math.min(state.properties.maxNumOfOrbs + 3, 10);
@@ -2668,6 +2912,8 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
+    // Inserter (Boss)
+    //   Effect: Every 2 turns, gain 1 Orb slot.
     public static class Inserter extends Relic {
         int n;
         int healthReward;
@@ -2736,6 +2982,8 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
+    // Symbiotic Virus (Uncommon)
+    //   Effect: At the start of each combat, Channel 1 Dark.
     public static class SymbioticVirus extends Relic {
         public SymbioticVirus() {
             entityProperty.orbGenerationPossible |= OrbType.DARK.mask;
@@ -2961,6 +3209,8 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     // ********************************************************** Watcher Specific Relics ***********************************************************
     // **********************************************************************************************************************************************
 
+    // Pure Water (Starter)
+    //   Effect: At the start of each combat, add 1 Miracle into your hand.
     public static class PureWater extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addStartOfBattleHandler(new GameEventHandler() {
@@ -2977,6 +3227,8 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
+    // Damaru (Common)
+    //   Effect: At the start of your turn, gain 1 Mantra.
     public static class Damaru extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.registerMantraCounter();
@@ -2990,6 +3242,8 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
+    // Duality (Uncommon)
+    //   Effect: Whenever you play an Attack, gain 1 temporary Dexterity.
     public static class Duality extends Relic {
         public Duality() {
             entityProperty.changePlayerDexterity = true;
@@ -3010,6 +3264,8 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
+    // Teardrop Locket (Uncommon)
+    //   Effect: Start each combat in Calm.
     public static class TeardropLocket extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addStartOfBattleHandler(new GameEventHandler() {
@@ -3022,6 +3278,8 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
+    // Cloak Clasp (Rare)
+    //   Effect: At the end of your turn, gain 1 Block for each card in your hand.
     public static class CloakClasp extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addEndOfTurnHandler(new GameEventHandler() {
@@ -3037,12 +3295,16 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
+    // Golden Eye (Rare)
+    //   Effect: Whenever you Scry, Scry 2 additional cards.
     public static class GoldenEye extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.goldenEye = this;
         }
     }
 
+    // Melange (Shop)
+    //   Effect: Whenever you shuffle your draw pile, Scry 3.
     public static class Melange extends Relic {
         public Melange() {
             scry = true;
@@ -3072,6 +3334,8 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
+    // Holy Water (Boss)
+    //   Effect: Replaces Pure Water. At the start of each combat, add 3 Miracles into your hand.
     public static class HolyWater extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addStartOfBattleHandler(new GameEventHandler() {
@@ -3090,6 +3354,8 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
+    // Violet Lotus (Boss)
+    //   Effect: Whenever you exit Calm, gain an additional Energy.
     public static class VioletLotus extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.violetLotus = this;
