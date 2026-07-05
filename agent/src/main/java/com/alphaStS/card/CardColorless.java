@@ -660,6 +660,11 @@ public class CardColorless {
                 return GameActionCtx.PLAY_CARD;
             }
         }
+
+        @Override public GameActionCtx endSelectHandAction(GameState state) {
+            state.getCounterForWrite()[counterIdx] = 0;
+            return GameActionCtx.PLAY_CARD;
+        }
     }
 
     // Purity (Uncommon) - 0 energy, Skill

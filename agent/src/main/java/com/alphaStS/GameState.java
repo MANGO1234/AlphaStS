@@ -2538,7 +2538,12 @@ public final class GameState implements State {
             if (currentAction.type() == GameActionType.USE_POTION) {
                 setActionCtx(properties.potions.get(currentAction.idx()).use(this, properties.cardDict.length), action, null);
             } else if (currentAction.type() == GameActionType.PLAY_CARD) {
-                endTurn();
+                var selectingCard = properties.cardDict[currentAction.idx()];
+                if (currentAction.idx() == properties.wellLaidPlansCardIdx || currentAction.idx() == properties.gamblingChipsCardIdx) {
+                    endTurn();
+                } else {
+                    setActionCtx(selectingCard.endSelectHandAction(this), action, null);
+                }
                 runActionsInQueueIfNonEmpty();
             }
         } else if (action.type() == GameActionType.END_SELECT_CARD_1_OUT_OF_3) {
@@ -3502,6 +3507,8 @@ public final class GameState implements State {
                     var canEndSelect = currentAction.idx() == properties.wellLaidPlansCardIdx;
                     canEndSelect |= currentAction.idx() == properties.gamblingChipsCardIdx;
                     canEndSelect |= properties.cardDict[currentAction.idx()].getBaseCard() instanceof CardColorless.Purity;
+                    canEndSelect |= properties.cardDict[currentAction.idx()].getBaseCard() instanceof CardRegent2.Guards;
+                    canEndSelect |= properties.cardDict[currentAction.idx()].getBaseCard() instanceof CardRegent2.GuardsP;
                     if (canEndSelect) {
                         getLegalActionsSelectCardFromArr(handArr, handArrLen, properties.cardDict[currentAction.idx()], properties.actionsByCtx[GameActionCtx.SELECT_CARD_HAND.ordinal()].length - 1);
                     } else {

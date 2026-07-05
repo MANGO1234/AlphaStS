@@ -1337,9 +1337,75 @@ public class CardColorless2 {
         }
     }
 
-    // TODO: Hidden Gem (Rare) - 1 energy, Skill
+    private static abstract class _HiddenGemT extends Card {
+        private final int replay;
+        private int[] replayTransformIdxes;
+
+        public _HiddenGemT(String cardName, int replay) {
+            super(cardName, Card.SKILL, 1, Card.RARE);
+            this.replay = replay;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            int count = 0;
+            var deckArr = state.getDeckArrForRead();
+            for (int i = 0; i < state.deckArrLen; i++) {
+                if (replayTransformIdxes[deckArr[i]] >= 0) {
+                    count++;
+                }
+            }
+            if (count == 0) {
+                return GameActionCtx.PLAY_CARD;
+            }
+            int selected = state.getSearchRandomGen().nextInt(count, RandomGenCtx.RandomCardGen, new Tuple<>(state, replayTransformIdxes));
+            for (int i = 0; i < state.deckArrLen; i++) {
+                int transformIdx = replayTransformIdxes[deckArr[i]];
+                if (transformIdx >= 0 && selected-- == 0) {
+                    state.transformCard(state.getDeckArrForWrite(), i, transformIdx);
+                    break;
+                }
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            return cards.stream()
+                    .filter(card -> !hasReplay(card))
+                    .map(card -> card.enchantReplay(replay))
+                    .filter(Objects::nonNull)
+                    .toList();
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            replayTransformIdxes = new int[state.properties.cardDict.length];
+            Arrays.fill(replayTransformIdxes, -1);
+            for (int i = 0; i < state.properties.cardDict.length; i++) {
+                var card = state.properties.cardDict[i];
+                if (!hasReplay(card)) {
+                    replayTransformIdxes[i] = state.properties.findCardIndex(card.enchantReplay(replay));
+                }
+            }
+        }
+
+        private boolean hasReplay(Card card) {
+            return card instanceof CardWrapper cw && cw.mod.replay > 0;
+        }
+    }
+
+    // Hidden Gem (Rare) - 1 energy, Skill
     //   Effect: A random card in your Draw Pile without Replay gains Replay 2.
     //   Upgraded Effect: A random card in your Draw Pile without Replay gains Replay 3.
+    public static class HiddenGem extends _HiddenGemT {
+        public HiddenGem() {
+            super("Hidden Gem", 2);
+        }
+    }
+
+    public static class HiddenGemP extends _HiddenGemT {
+        public HiddenGemP() {
+            super("Hidden Gem+", 3);
+        }
+    }
 
     // TODO: Jackpot (Rare) - 3 energy, Attack
     //   Effect: Deal 25 damage. Add 3 random 0 energy cards into your Hand.

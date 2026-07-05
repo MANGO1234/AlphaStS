@@ -2908,8 +2908,18 @@ public class CardRegent2 {
                     state.getCounterForWrite()[counterIdx] = 0;
                 }
             });
-            // TODO: handle END_SELECT_CARD_HAND for Guards — add counterIdx copies of the appropriate
-            //   MinionSacrifice variant to hand, then reset the counter.
+        }
+
+        @Override public GameActionCtx endSelectHandAction(GameState state) {
+            int count = state.getCounterForRead()[counterIdx];
+            int cardIdx = state.properties.findCardIndex(isUpgraded()
+                    ? new CardColorless2.MinionSacrificeP()
+                    : new CardColorless2.MinionSacrifice());
+            for (int i = 0; i < count; i++) {
+                state.addCardToHand(cardIdx, true);
+            }
+            state.getCounterForWrite()[counterIdx] = 0;
+            return GameActionCtx.PLAY_CARD;
         }
 
         @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {

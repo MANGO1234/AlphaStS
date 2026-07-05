@@ -117,6 +117,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public GameActionCtx play(GameState state, int idx, int energyUsed) { return GameActionCtx.PLAY_CARD; }
     public void onExhaust(GameState state) {}
+    public GameActionCtx endSelectHandAction(GameState state) { return GameActionCtx.PLAY_CARD; }
     public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) { return List.of(); }
     public List<Card> getPossibleSelect1OutOf3Cards(GameProperties gameProperties) { return List.of(); }
     public List<Card> getPossibleTransformTmpCostCards(List<Card> cards) { return List.of(); }
@@ -297,6 +298,15 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         return new CardWrapper(this, mod);
     }
 
+    public Card enchantReplay(int replay) {
+        if (replay <= 0) {
+            return this;
+        }
+        var mod = new CardModification();
+        mod.replay = replay;
+        return new CardWrapper(this, mod);
+    }
+
     public Card enchantSoulsPower() {
         var mod = new CardModification();
         mod.soulsPower = true;
@@ -408,6 +418,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         public int nimble = 0;
         public boolean perfectFit = false;
         public boolean royallyApproved = false;
+        public int replay = 0;
         public int sharp = 0;
         public boolean soulsPower = false;
         public int spiral = 0;
@@ -439,6 +450,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
             copy.nimble = nimble;
             copy.perfectFit = perfectFit;
             copy.royallyApproved = royallyApproved;
+            copy.replay = replay;
             copy.sharp = sharp;
             copy.soulsPower = soulsPower;
             copy.spiral = spiral;
@@ -457,14 +469,14 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
             return tmpChangeCost != -1 || tmpUntilPlayedCost != -1 || permChangeCost != -1 || tmpRetain
                     || permEthereal || permRetain || adroit > 0 || corrupted || glam || imbued || inky
                     || instinct || momentum > 0 || momentumGained > 0 || nimble > 0 || perfectFit
-                    || royallyApproved || sharp > 0 || soulsPower || spiral > 0 || steady || swift > 0
-                    || permSly || tmpSlyUntilEndOfTurn || sown || temporarilyDowngraded || vigorous > 0
-                    || bound;
+                    || royallyApproved || replay > 0 || sharp > 0 || soulsPower || spiral > 0
+                    || steady || swift > 0 || permSly || tmpSlyUntilEndOfTurn || sown
+                    || temporarilyDowngraded || vigorous > 0 || bound;
         }
 
         public boolean hasEnchantment() {
             return adroit > 0 || corrupted || glam || imbued || inky || instinct || momentum > 0
-                    || nimble > 0 || perfectFit || royallyApproved || sharp > 0 || soulsPower
+                    || nimble > 0 || perfectFit || royallyApproved || replay > 0 || sharp > 0 || soulsPower
                     || spiral > 0 || steady || swift > 0 || sown || vigorous > 0;
         }
     }
@@ -531,6 +543,9 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
             }
             if (mod.royallyApproved) {
                 sb.append(" (Royally Approved)");
+            }
+            if (mod.replay > 0) {
+                sb.append(" (Replay ").append(mod.replay).append(")");
             }
             if (mod.sharp > 0) {
                 sb.append(" (Sharp ").append(mod.sharp).append(")");
@@ -657,6 +672,11 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         }
 
         @Override
+        public GameActionCtx endSelectHandAction(GameState state) {
+            return card.endSelectHandAction(state);
+        }
+
+        @Override
         public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
             boolean hasTempMods = mod.tmpChangeCost != -1 || mod.tmpUntilPlayedCost != -1
                     || mod.tmpRetain || mod.swift > 0 || mod.sown || mod.glam || mod.vigorous > 0
@@ -664,14 +684,14 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
             if (hasTempMods || mod.momentum > 0) {
                 var possibleInnerCards = card.getPossibleGeneratedCards(properties, cards);
                 var result = new ArrayList<>(possibleInnerCards);
+                var strippedMod = getModAfterPlay();
                 if (hasTempMods) {
-                    // TODO: need to wrap if has non temp mods, integrate momentum change below
-                    result.add(card);
+                    result.add(wrap(card, strippedMod));
                 }
                 if (mod.momentum > 0) {
-                    addMomentumGainedCards(result, properties, card);
+                    addMomentumGainedCards(result, properties, card, strippedMod);
                     for (Card possibleInnerCard : possibleInnerCards) {
-                        addMomentumGainedCards(result, properties, possibleInnerCard);
+                        addMomentumGainedCards(result, properties, possibleInnerCard, strippedMod);
                     }
                 }
                 return result;
@@ -679,16 +699,8 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
             return card.getPossibleGeneratedCards(properties, cards);
         }
 
-        private void addMomentumGainedCards(List<Card> result, GameProperties properties, Card baseCard) {
-            var newMod = mod.clone();
-            newMod.tmpChangeCost = -1;
-            newMod.tmpUntilPlayedCost = -1;
-            newMod.tmpRetain = false;
-            newMod.swift = 0;
-            newMod.tmpSlyUntilEndOfTurn = false;
-            newMod.sown = false;
-            newMod.glam = false;
-            newMod.vigorous = 0;
+        private void addMomentumGainedCards(List<Card> result, GameProperties properties, Card baseCard, CardModification strippedMod) {
+            var newMod = strippedMod.clone();
             for (int gained = mod.momentum; gained < properties.maxMomentumGained; gained += mod.momentum) {
                 newMod.momentumGained = gained;
                 result.add(wrap(baseCard, newMod));
@@ -749,18 +761,20 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         @Override
         public void gamePropertiesSetup(GameState state) {
             card.gamePropertiesSetup(state);
-            if (mod.glam || mod.spiral > 0) {
+            if (mod.glam || mod.spiral > 0 || mod.replay > 0) {
                 state.properties.addOnCardPlayedHandler("Replay", new GameEventCardHandler(GameEventCardHandler.CLONE_CARD_PRIORITY) {
                     @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
                         if (cloneSource != null) return;
                         if (!(state.properties.cardDict[cardIdx] instanceof CardWrapper cw)) return;
-                        if (!cw.mod.glam && cw.mod.spiral <= 0) return;
-                        state.addGameActionToStartOfDeque(curState -> {
-                            var action = curState.properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][cardIdx];
-                            if (curState.playCard(action, lastIdx, false, CardWrapper.class, false, false, energyUsed, cloneParentLocation)) {
-                                curState.runActionsInQueueIfNonEmpty();
-                            }
-                        });
+                        int replays = (cw.mod.glam || cw.mod.spiral > 0 ? 1 : 0) + cw.mod.replay;
+                        for (int i = 0; i < replays; i++) {
+                            state.addGameActionToStartOfDeque(curState -> {
+                                var action = curState.properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][cardIdx];
+                                if (curState.playCard(action, lastIdx, false, CardWrapper.class, false, false, energyUsed, cloneParentLocation)) {
+                                    curState.runActionsInQueueIfNonEmpty();
+                                }
+                            });
+                        }
                     }
                 });
             }
@@ -861,6 +875,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
             if (newMod.nimble > 0) { resultMod.nimble = newMod.nimble; modified = true; }
             if (newMod.perfectFit) { resultMod.perfectFit = true; modified = true; }
             if (!newCard.retain && newMod.royallyApproved) { resultMod.royallyApproved = true; modified = true; }
+            if (newMod.replay > 0) { resultMod.replay = newMod.replay; modified = true; }
             if (newMod.sharp > 0) { resultMod.sharp = newMod.sharp; modified = true; }
             if (newMod.soulsPower) { resultMod.soulsPower = true; modified = true; }
             if (newMod.spiral > 0) { resultMod.spiral = newMod.spiral; modified = true; }
@@ -883,6 +898,11 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
         @Override
         public Card wrapAfterPlay(Card newCard) {
+            var newMod = getModAfterPlay();
+            return wrap(newCard, newMod);
+        }
+
+        private CardModification getModAfterPlay() {
             var newMod = mod.clone();
             newMod.tmpChangeCost = -1;
             newMod.tmpUntilPlayedCost = -1;
@@ -892,7 +912,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
             newMod.sown = false;
             newMod.glam = false;
             newMod.vigorous = 0;
-            return wrap(newCard, newMod);
+            return newMod;
         }
 
         @Override
@@ -1030,6 +1050,16 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         public Card enchantSharp(int sharp) {
             var newMod = mod.clone();
             newMod.sharp = sharp;
+            return new CardWrapper(card, newMod);
+        }
+
+        @Override
+        public Card enchantReplay(int replay) {
+            if (replay <= 0) {
+                return this;
+            }
+            var newMod = mod.clone();
+            newMod.replay = replay;
             return new CardWrapper(card, newMod);
         }
 
