@@ -93,6 +93,7 @@ public class EnemyGlory {
 
         // TODO: better to have aeonglassWitherCounterIdx + 1 be an internal field with nninput within enemy
         @Override public void gamePropertiesSetup(GameState state) {
+            var idx = state.getEnemiesForRead().find(this);
             state.properties.registerCounter("Aeonglass Wither", new GameProperties.CounterRegistrant() {
                 @Override public void setCounterIdx(GameProperties gameProperties, int idx) {
                     gameProperties.aeonglassWitherCounterIdx = idx;
@@ -114,6 +115,9 @@ public class EnemyGlory {
             });
             state.properties.addOnCardPlayedHandler("Withering Presence", new GameEventCardHandler() {
                 @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                    if (idx < 0 || !state.getEnemiesForRead().get(idx).isAlive()) {
+                        return;
+                    }
                     int[] counter = state.getCounterForWrite();
                     counter[state.properties.aeonglassWitherCounterIdx + 1]++;
                     if (counter[state.properties.aeonglassWitherCounterIdx + 1] >= 6) {
