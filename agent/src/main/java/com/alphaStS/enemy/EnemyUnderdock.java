@@ -674,11 +674,11 @@ public class EnemyUnderdock {
 
         @Override public void doMove(GameState state, EnemyReadOnly self) {
             if (move == HAUNT) {
-                state.addCardToDiscard(properties.generatedCardIdx, false);
-                state.addCardToDiscard(properties.generatedCardIdx, false);
-                state.addCardToDiscard(properties.generatedCardIdx, false);
-                state.addCardToDiscard(properties.generatedCardIdx, false);
-                state.addCardToDiscard(properties.generatedCardIdx, false);
+                state.addCardToDiscard(properties.generatedCardIdx);
+                state.addCardToDiscard(properties.generatedCardIdx);
+                state.addCardToDiscard(properties.generatedCardIdx);
+                state.addCardToDiscard(properties.generatedCardIdx);
+                state.addCardToDiscard(properties.generatedCardIdx);
             } else if (move == RAMMING_SPEED) {
                 state.enemyDoDamageToPlayer(this, 11, 1);
                 state.getPlayerForWrite().applyDebuff(state, DebuffType.WEAK, 1);
@@ -1333,13 +1333,13 @@ public class EnemyUnderdock {
 
         @Override public void doMove(GameState state, EnemyReadOnly self) {
             if (move == BECKON) {
-                state.addCardToDeckRandom(properties.generatedCardIdx, false);
-                state.addCardToDiscard(properties.generatedCardIdx, false);
+                state.addCardToDeckRandom(properties.generatedCardIdx);
+                state.addCardToDiscard(properties.generatedCardIdx);
             } else if (move == DE_GAS) {
                 state.enemyDoDamageToPlayer(this, 17, 1);
             } else if (move == GAZE) {
                 state.enemyDoDamageToPlayer(this, 8, 1);
-                state.addCardToDiscard(properties.generatedCardIdx, false);
+                state.addCardToDiscard(properties.generatedCardIdx);
             } else if (move == FADE) {
                 intangible += 2;
             } else if (move == SCREAM) {

@@ -51,21 +51,21 @@ public class CardColorless2 {
             int baseIdx = returnTransform[state.getDiscardArrForRead()[i]];
             if (baseIdx >= 0) {
                 state.removeCardFromDiscardByPosition(i);
-                state.addCardToHand(baseIdx, false);
+                state.addCardToHand(baseIdx);
             }
         }
         for (int i = state.deckArrLen - 1; i >= 0; i--) {
             int baseIdx = returnTransform[state.getDeckArrForRead()[i]];
             if (baseIdx >= 0) {
                 state.removeCardFromDeckByPosition(i);
-                state.addCardToHand(baseIdx, false);
+                state.addCardToHand(baseIdx);
             }
         }
         for (int i = state.exhaustArrLen - 1; i >= 0; i--) {
             int baseIdx = returnTransform[state.getExhaustArrForRead()[i]];
             if (baseIdx >= 0) {
                 state.removeCardFromExhaustByPosition(i);
-                state.addCardToHand(baseIdx, false);
+                state.addCardToHand(baseIdx);
             }
         }
     }
@@ -619,7 +619,7 @@ public class CardColorless2 {
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             if (state.actionCtx == GameActionCtx.SELECT_CARD_1_OUT_OF_3) {
                 state.removeCardFromDeck(idx, false);
-                state.addCardToHand(idx, false);
+                state.addCardToHand(idx);
                 return GameActionCtx.PLAY_CARD;
             }
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
@@ -1003,7 +1003,7 @@ public class CardColorless2 {
             }
             for (int i = len - 1; i >= 0; i--) {
                 state.removeCardFromDeck(rareIdxes[i], false);
-                state.addCardToHand(rareIdxes[i], false);
+                state.addCardToHand(rareIdxes[i]);
             }
             return GameActionCtx.PLAY_CARD;
         }
@@ -1194,7 +1194,7 @@ public class CardColorless2 {
                     if (state.getCounterForRead()[counterIdx] > 0 && state.properties.cardDict[cardIdx].cardType == Card.ATTACK) {
                         for (int i = 0; i < state.getCounterForRead()[counterIdx]; i++) {
                             int randomIdx = state.getSearchRandomGen().nextInt(generatedCardIdxes.length, RandomGenCtx.RandomCardGen, new Tuple<>(state, generatedCardIdxes));
-                            state.addCardToHand(state.createCard(generatedCardIdxes[randomIdx]), true);
+                            state.addCardToHand(state.createCard(generatedCardIdxes[randomIdx]));
                         }
                     }
                 }
@@ -1466,7 +1466,7 @@ public class CardColorless2 {
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             for (int i = 0; i < 3; i++) {
                 int randomIdx = state.getSearchRandomGen().nextInt(generatedCardIdxes.length, RandomGenCtx.RandomCardGen, new Tuple<>(state, generatedCardIdxes));
-                state.addCardToHand(state.createCard(generatedCardIdxes[randomIdx]), true);
+                state.addCardToHand(state.createCard(generatedCardIdxes[randomIdx]));
             }
             return GameActionCtx.PLAY_CARD;
         }
@@ -2264,7 +2264,7 @@ public class CardColorless2 {
             }
             if (state.getNumCardsInHand() < GameState.HAND_LIMIT) {
                 state.removeCardFromDiscard(idx);
-                state.addCardToHand(idx, false);
+                state.addCardToHand(idx);
             }
             state.getCounterForWrite()[counterIdx]--;
             if (state.getCounterForRead()[counterIdx] > 0 && state.getNumCardsInDiscard() > 0) {
@@ -2376,7 +2376,7 @@ public class CardColorless2 {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.removeCardFromDeck(idx, false);
-            state.addCardToHand(idx, false);
+            state.addCardToHand(idx);
             return GameActionCtx.PLAY_CARD;
         }
     }

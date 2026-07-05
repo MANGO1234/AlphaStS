@@ -568,9 +568,9 @@ public class EnemyOvergrowth {
 
         @Override public void doMove(GameState state, EnemyReadOnly self) {
             if (move == DISTRACT) {
-                state.addCardToDiscard(properties.generatedCardIdx, false);
-                state.addCardToDiscard(properties.generatedCardIdx, false);
-                state.addCardToDiscard(properties.generatedCardIdx, false);
+                state.addCardToDiscard(properties.generatedCardIdx);
+                state.addCardToDiscard(properties.generatedCardIdx);
+                state.addCardToDiscard(properties.generatedCardIdx);
             }
         }
 
@@ -948,9 +948,9 @@ public class EnemyOvergrowth {
 
         @Override public void doMove(GameState state, EnemyReadOnly self) {
             if (move == INFECT) {
-                state.addCardToDiscard(properties.generatedCardIdx, false);
-                state.addCardToDiscard(properties.generatedCardIdx, false);
-                state.addCardToDiscard(properties.generatedCardIdx, false);
+                state.addCardToDiscard(properties.generatedCardIdx);
+                state.addCardToDiscard(properties.generatedCardIdx);
+                state.addCardToDiscard(properties.generatedCardIdx);
             } else if (move == LASH) {
                 state.enemyDoDamageToPlayer(this, 5, 4);
             }
@@ -1325,7 +1325,7 @@ public class EnemyOvergrowth {
             if (move == TACKLE) {
                 state.enemyDoDamageToPlayer(this, 4, 1);
             } else if (move == GOOP) {
-                state.addCardToDiscard(properties.generatedCardIdx, false);
+                state.addCardToDiscard(properties.generatedCardIdx);
             }
         }
 
@@ -1387,8 +1387,8 @@ public class EnemyOvergrowth {
             if (move == CLUMP_SHOT) {
                 state.enemyDoDamageToPlayer(this, 9, 1);
             } else if (move == STICKY_SHOT) {
-                state.addCardToDiscard(properties.generatedCardIdx, false);
-                state.addCardToDiscard(properties.generatedCardIdx, false);
+                state.addCardToDiscard(properties.generatedCardIdx);
+                state.addCardToDiscard(properties.generatedCardIdx);
             }
         }
 
@@ -1489,7 +1489,7 @@ public class EnemyOvergrowth {
             if (move == CHOMP) {
                 state.enemyDoDamageToPlayer(this, 12, 1);
             } else if (move == STICKY_SHOT) {
-                state.addCardToDiscard(properties.generatedCardIdx, false);
+                state.addCardToDiscard(properties.generatedCardIdx);
             }
         }
 
@@ -1864,9 +1864,9 @@ public class EnemyOvergrowth {
                 state.enemyDoDamageToPlayer(this, 7, 2);
             } else if (move == DISMEMBER) {
                 state.enemyDoDamageToPlayer(this, 30, 1);
-                state.addCardToDiscard(properties.generatedCardIdx, false);
-                state.addCardToDiscard(properties.generatedCardIdx, false);
-                state.addCardToDiscard(properties.generatedCardIdx, false);
+                state.addCardToDiscard(properties.generatedCardIdx);
+                state.addCardToDiscard(properties.generatedCardIdx);
+                state.addCardToDiscard(properties.generatedCardIdx);
             } else if (move == PREPARE) {
                 gainStrength(2);
             }

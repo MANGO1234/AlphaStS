@@ -145,7 +145,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         @Override public GameActionCtx use(GameState state, int idx) {
             int n = state.properties.sacredBark != null && state.properties.sacredBark.isRelicEnabledInScenario(state) ? 6 : 3;
             for (int i = 0; i < n; i++) {
-                state.addCardToHand(generatedCardIdx, true);
+                state.addCardToHand(state.createCard(generatedCardIdx));
             }
             return GameActionCtx.PLAY_CARD;
         }
@@ -463,9 +463,9 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
             }
             state.removeCardFromDiscard(idx);
             if (state.properties.tmp0CostCardTransformIdxes[idx] >= 0) {
-                state.addCardToHand(state.properties.tmp0CostCardTransformIdxes[idx], false);
+                state.addCardToHand(state.properties.tmp0CostCardTransformIdxes[idx]);
             } else {
-                state.addCardToHand(idx, false);
+                state.addCardToHand(idx);
             }
             if (state.properties.sacredBark != null && state.properties.sacredBark.isRelicEnabledInScenario(state)) {
                 state.getCounterForWrite()[counterIdx]++;
@@ -1165,7 +1165,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         @Override public GameActionCtx use(GameState state, int idx) {
             int miracleCount = state.properties.sacredBark != null && state.properties.sacredBark.isRelicEnabledInScenario(state) ? 6 : 3;
             for (int i = 0; i < miracleCount; i++) {
-                state.addCardToHand(generatedCardIdx, true);
+                state.addCardToHand(state.createCard(generatedCardIdx));
             }
             return GameActionCtx.PLAY_CARD;
         }

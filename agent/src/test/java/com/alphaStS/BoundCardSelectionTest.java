@@ -30,9 +30,9 @@ public class BoundCardSelectionTest {
         int defendIdx = state.properties.findCardIndex(new Card.Defend());
         int minionStrikeIdx = state.properties.findCardIndex(new CardColorless2.MinionStrike());
 
-        state.addCardToHand(begoneIdx, false);
-        state.addCardToHand(strikeIdx, false);
-        state.addCardToHand(defendIdx, false);
+        state.addCardToHand(begoneIdx);
+        state.addCardToHand(strikeIdx);
+        state.addCardToHand(defendIdx);
         state.setActionCtx(GameActionCtx.PLAY_CARD, null, null);
         state.energy = 1;
         state.doAction(actionPosition(state.getLegalActions(), begoneIdx));

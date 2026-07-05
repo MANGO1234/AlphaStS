@@ -683,7 +683,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                     if (cards.size() == 1) {
                         var r1 = state.getSearchRandomGen().nextInt(cards.size(), RandomGenCtx.Misc);
                         state.removeCardFromDeck(cards.get(r1).v1(), false);
-                        state.addCardToDeckNonRandom(state.properties.findCardIndex(cards.get(r1).v2()), false);
+                        state.addCardToDeckNonRandom(state.properties.findCardIndex(cards.get(r1).v2()));
                         state.getStateDesc().append("War Paint: ").append(cards.get(r1).v2().cardName);
                     } else if (cards.size() > 1) {
                         var r1 = state.getSearchRandomGen().nextInt(cards.size(), RandomGenCtx.Misc);
@@ -692,9 +692,9 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                             r2 += 1;
                         }
                         state.removeCardFromDeck(cards.get(r1).v1(), false);
-                        state.addCardToDeckNonRandom(state.properties.findCardIndex(cards.get(r1).v2()), false);
+                        state.addCardToDeckNonRandom(state.properties.findCardIndex(cards.get(r1).v2()));
                         state.removeCardFromDeck(cards.get(r2).v1(), false);
-                        state.addCardToDeckNonRandom(state.properties.findCardIndex(cards.get(r2).v2()), false);
+                        state.addCardToDeckNonRandom(state.properties.findCardIndex(cards.get(r2).v2()));
                         state.getStateDesc().append("War Paint: ").append(cards.get(r1).v2().cardName).append(", ").append(cards.get(r2).v2().cardName);
                     }
                 }
@@ -719,7 +719,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                     if (cards.size() == 1) {
                         var r1 = state.getSearchRandomGen().nextInt(cards.size(), RandomGenCtx.Misc);
                         state.removeCardFromDeck(cards.get(r1).v1(), false);
-                        state.addCardToDeckNonRandom(state.properties.findCardIndex(cards.get(r1).v2()), false);
+                        state.addCardToDeckNonRandom(state.properties.findCardIndex(cards.get(r1).v2()));
                         state.getStateDesc().append("Whet Stone: ").append(cards.get(r1).v2().cardName);
                     } else if (cards.size() > 1) {
                         var r1 = state.getSearchRandomGen().nextInt(cards.size(), RandomGenCtx.Misc);
@@ -728,9 +728,9 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                             r2 += 1;
                         }
                         state.removeCardFromDeck(cards.get(r1).v1(), false);
-                        state.addCardToDeckNonRandom(state.properties.findCardIndex(cards.get(r1).v2()), false);
+                        state.addCardToDeckNonRandom(state.properties.findCardIndex(cards.get(r1).v2()));
                         state.removeCardFromDeck(cards.get(r2).v1(), false);
-                        state.addCardToDeckNonRandom(state.properties.findCardIndex(cards.get(r2).v2()), false);
+                        state.addCardToDeckNonRandom(state.properties.findCardIndex(cards.get(r2).v2()));
                         state.getStateDesc().append("Whet Stone: ").append(cards.get(r1).v2().cardName).append(", ").append(cards.get(r2).v2().cardName);
                     }
                 }
@@ -1055,7 +1055,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                             }
                         }
                         state.removeCardFromHand(idx);
-                        state.addCardToHand(state.properties.tmp0CostCardTransformIdxes[idx], false);
+                        state.addCardToHand(state.properties.tmp0CostCardTransformIdxes[idx]);
                     }
                 }
             });
@@ -1342,7 +1342,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                                 return;
                             }
                             var idx = state.getSearchRandomGen().nextInt(generatedCardIdxes.length, RandomGenCtx.RandomCardGen, new Tuple<>(state, generatedCardIdxes));
-                            idx = state.addCardToHand(generatedCardIdxes[idx], true);
+                            idx = state.addCardToHand(state.createCard(generatedCardIdxes[idx]));
                             state.setIsStochastic();
                             if (state.getStateDesc().length() > 0) state.stateDesc.append(", ");
                             state.getStateDesc().append("Dead Branch -> ").append(state.properties.cardDict[idx].cardName);
@@ -1874,7 +1874,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                     state.getStateDesc().append("Astrolabe -> ");
                     for (int i = 0; i < 3; i++) {
                         var idx = state.getSearchRandomGen().nextInt(generatedCardIdxes.length, RandomGenCtx.RandomCardGen, new Tuple<>(state, generatedCardIdxes));
-                        state.addCardToDeckNonRandom(generatedCardIdxes[idx], false);
+                        state.addCardToDeckNonRandom(generatedCardIdxes[idx]);
                         if (i > 0) state.stateDesc.append(" + ");
                         state.getStateDesc().append(state.properties.cardDict[generatedCardIdxes[idx]].cardName);
                         if (state.properties.makingRealMove) {
@@ -1997,7 +1997,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                     state.getStateDesc().append("Pandora's Box -> ");
                     for (int i = 0; i < n; i++) {
                         var idx = state.getSearchRandomGen().nextInt(generatedCardIdxes.length, RandomGenCtx.RandomCardGen, new Tuple<>(state, generatedCardIdxes));
-                        state.addCardToDeckNonRandom(generatedCardIdxes[idx], false);
+                        state.addCardToDeckNonRandom(generatedCardIdxes[idx]);
                         if (i > 0)
                             state.stateDesc.append(" + ");
                         state.getStateDesc().append(state.properties.cardDict[generatedCardIdxes[idx]].cardName);
@@ -2205,7 +2205,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                         state.setIsStochastic();
                         cardIdx = generatedCardIdxes[state.getSearchRandomGen().nextInt(generatedCardIdxes.length, RandomGenCtx.RandomCardGen, new Tuple<>(state, generatedCardIdxes))];
                     }
-                    state.addCardToHand(cardIdx, true);
+                    state.addCardToHand(state.createCard(cardIdx));
                 }
             });
         }
@@ -2270,7 +2270,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
             state.properties.addStartOfBattleHandler(new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     if (isRelicEnabledInScenario(state)) {
-                        state.addCardToDeckNonRandom(state.properties.findCardIndex(new CardOther.Necronomicurse()), false);
+                        state.addCardToDeckNonRandom(state.properties.findCardIndex(new CardOther.Necronomicurse()));
                     }
                 }
             });
@@ -2597,8 +2597,8 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
             state.properties.addStartOfBattleHandler("MarkOfPain", new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     if (isRelicEnabledInScenario(state)) {
-                        state.addCardToDeckNonRandom(generatedCardIdx, false);
-                        state.addCardToDeckNonRandom(generatedCardIdx, false);
+                        state.addCardToDeckNonRandom(generatedCardIdx);
+                        state.addCardToDeckNonRandom(generatedCardIdx);
                     }
                 }
             });
@@ -2655,9 +2655,9 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
             state.properties.addStartOfTurnHandler("NinjaScroll", new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     if (state.turnNum == 1 && isRelicEnabledInScenario(state)) {
-                        state.addCardToHand(generatedCardIdx, true);
-                        state.addCardToHand(generatedCardIdx, true);
-                        state.addCardToHand(generatedCardIdx, true);
+                        state.addCardToHand(state.createCard(generatedCardIdx));
+                        state.addCardToHand(state.createCard(generatedCardIdx));
+                        state.addCardToHand(state.createCard(generatedCardIdx));
                     }
                 }
             });
@@ -3054,7 +3054,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                     if (cards.size() == 1) {
                         var r1 = state.getSearchRandomGen().nextInt(cards.size(), RandomGenCtx.Misc);
                         state.removeCardFromDeck(cards.get(r1).v1(), false);
-                        state.addCardToDeckNonRandom(state.properties.findCardIndex(cards.get(r1).v2()), false);
+                        state.addCardToDeckNonRandom(state.properties.findCardIndex(cards.get(r1).v2()));
                         state.getStateDesc().append("Shining Light Event: ").append(cards.get(r1).v2().cardName);
                     } else if (cards.size() > 1) {
                         var r1 = state.getSearchRandomGen().nextInt(cards.size(), RandomGenCtx.Misc);
@@ -3063,9 +3063,9 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                             r2 += 1;
                         }
                         state.removeCardFromDeck(cards.get(r1).v1(), false);
-                        state.addCardToDeckNonRandom(state.properties.findCardIndex(cards.get(r1).v2()), false);
+                        state.addCardToDeckNonRandom(state.properties.findCardIndex(cards.get(r1).v2()));
                         state.removeCardFromDeck(cards.get(r2).v1(), false);
-                        state.addCardToDeckNonRandom(state.properties.findCardIndex(cards.get(r2).v2()), false);
+                        state.addCardToDeckNonRandom(state.properties.findCardIndex(cards.get(r2).v2()));
                         state.getStateDesc().append("Shining Light Event: ").append(cards.get(r1).v2().cardName).append(", ").append(cards.get(r2).v2().cardName);
                     }
                 }
@@ -3150,11 +3150,11 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
             state.properties.addStartOfBattleHandler(new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     if (isRelicEnabledInScenario(state)) {
-                        state.addCardToDeckNonRandom(generatedCardIdx, false);
-                        state.addCardToDeckNonRandom(generatedCardIdx, false);
-                        state.addCardToDeckNonRandom(generatedCardIdx, false);
-                        state.addCardToDeckNonRandom(generatedCardIdx, false);
-                        state.addCardToDeckNonRandom(generatedCardIdx, false);
+                        state.addCardToDeckNonRandom(generatedCardIdx);
+                        state.addCardToDeckNonRandom(generatedCardIdx);
+                        state.addCardToDeckNonRandom(generatedCardIdx);
+                        state.addCardToDeckNonRandom(generatedCardIdx);
+                        state.addCardToDeckNonRandom(generatedCardIdx);
                         state.getPlayerForWrite().setInBattleMaxHealth((int) Math.floor(state.getPlayerForWrite().getMaxHealth() * 0.7));
                     }
                 }
@@ -3174,7 +3174,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                         state.setIsStochastic();
                         int idx = state.getSearchRandomGen().nextInt(generatedCardIdxes.length, RandomGenCtx.RandomCardGen, new Tuple<>(state, generatedCardIdxes));
                         state.getStateDesc().append("Random Rare Card (").append(state.properties.cardDict[generatedCardIdxes[idx]].cardName).append(")");
-                        state.addCardToDeckNonRandom(generatedCardIdxes[idx], false);
+                        state.addCardToDeckNonRandom(generatedCardIdxes[idx]);
                     }
                 }
             });
@@ -3191,9 +3191,9 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                 @Override public void handle(GameState state) {
                     if (isRelicEnabledInScenario(state)) {
                         state.getPlayerForWrite().setInBattleMaxHealth(state.getPlayerForWrite().getInBattleMaxHealth() / 2);
-                        state.addCardToDeckNonRandom(generatedCardIdx, false);
-                        state.addCardToDeckNonRandom(generatedCardIdx, false);
-                        state.addCardToDeckNonRandom(generatedCardIdx, false);
+                        state.addCardToDeckNonRandom(generatedCardIdx);
+                        state.addCardToDeckNonRandom(generatedCardIdx);
+                        state.addCardToDeckNonRandom(generatedCardIdx);
                     }
                 }
             });
@@ -3216,7 +3216,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
             state.properties.addStartOfBattleHandler(new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     if (isRelicEnabledInScenario(state)) {
-                        state.addCardToHand(generatedCardIdx, true);
+                        state.addCardToHand(state.createCard(generatedCardIdx));
                     }
                 }
             });
@@ -3341,9 +3341,9 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
             state.properties.addStartOfBattleHandler(new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     if (isRelicEnabledInScenario(state)) {
-                        state.addCardToHand(generatedCardIdx, true);
-                        state.addCardToHand(generatedCardIdx, true);
-                        state.addCardToHand(generatedCardIdx, true);
+                        state.addCardToHand(state.createCard(generatedCardIdx));
+                        state.addCardToHand(state.createCard(generatedCardIdx));
+                        state.addCardToHand(state.createCard(generatedCardIdx));
                     }
                 }
             });

@@ -410,7 +410,7 @@ public class CardNecrobinder2 {
             } else {
                 if (state.getNumCardsInHand() < GameState.HAND_LIMIT) {
                     state.removeCardFromDiscard(idx);
-                    state.addCardToHand(idx, false);
+                    state.addCardToHand(idx);
                 }
                 return GameActionCtx.PLAY_CARD;
             }
@@ -442,7 +442,7 @@ public class CardNecrobinder2 {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.playerGainBlock(block);
-            state.addCardToDeckRandom(generatedCardIdx, true);
+            state.addCardToDeckRandom(state.createCard(generatedCardIdx));
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -648,7 +648,7 @@ public class CardNecrobinder2 {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
-            state.addCardToDeckRandom(generatedCardIdx, true);
+            state.addCardToDeckRandom(state.createCard(generatedCardIdx));
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -1082,7 +1082,7 @@ public class CardNecrobinder2 {
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.playerDoNonAttackDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), hpLoss, false);
             for (int i = 0; i < souls; i++) {
-                state.addCardToDeckRandom(generatedCardIdx, true);
+                state.addCardToDeckRandom(state.createCard(generatedCardIdx));
             }
             return GameActionCtx.PLAY_CARD;
         }
@@ -1486,7 +1486,7 @@ public class CardNecrobinder2 {
             if (energyUsed > 0) {
                 state.summon(summonPerX * energyUsed);
                 for (int i = 0; i < energyUsed; i++) {
-                    state.addCardToDeckRandom(generatedCardIdx, true);
+                    state.addCardToDeckRandom(state.createCard(generatedCardIdx));
                 }
             }
             return GameActionCtx.PLAY_CARD;
@@ -1531,7 +1531,7 @@ public class CardNecrobinder2 {
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.removeCardFromDiscard(idx);
             if (state.handArrLen < GameState.HAND_LIMIT) {
-                state.addCardToHand(idx, false);
+                state.addCardToHand(idx);
             }
             state.getCounterForWrite()[counterIdx]++;
             if (state.getCounterForWrite()[counterIdx] < 3) {
@@ -2182,7 +2182,7 @@ public class CardNecrobinder2 {
                             if (state.properties.cardDict[cIdx].getBaseCard() instanceof _RightHandHandT) {
                                 state.removeCardFromDiscardByPosition(i);
                                 i--;
-                                state.addCardToHand(cIdx, false);
+                                state.addCardToHand(cIdx);
                             }
                         }
                     }
@@ -2217,9 +2217,9 @@ public class CardNecrobinder2 {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
-            state.addCardToDeckRandom(generatedCardIdx, true);
-            state.addCardToHand(generatedCardIdx, true);
-            state.addCardToDiscard(generatedCardIdx, true);
+            state.addCardToDeckRandom(state.createCard(generatedCardIdx));
+            state.addCardToHand(state.createCard(generatedCardIdx));
+            state.addCardToDiscard(state.createCard(generatedCardIdx));
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -2536,7 +2536,7 @@ public class CardNecrobinder2 {
                 @Override public void handle(GameState state) {
                     state.setIsStochastic();
                     int randomIdx = state.getSearchRandomGen().nextInt(generatedCardIdxes.length, RandomGenCtx.RandomCardGen, new Tuple<>(state, generatedCardIdxes));
-                    state.addCardToHand(generatedCardIdxes[randomIdx], true);
+                    state.addCardToHand(state.createCard(generatedCardIdxes[randomIdx]));
                 }
             });
         }
@@ -3089,7 +3089,7 @@ public class CardNecrobinder2 {
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             for (int i = 0; i < state.deckArrLen; i++) {
                 if (state.deckArr[i] == idx) {
-                    state.transformCard(state.deckArr, i, generatedCardIdx);
+                    state.transformCard(state.deckArr, i, state.createCard(generatedCardIdx));
                     break;
                 }
             }
@@ -3132,7 +3132,7 @@ public class CardNecrobinder2 {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addStartOfTurnHandler("SentryMode", new GameEventHandler() {
                 @Override public void handle(GameState state) {
-                    state.addCardToHand(generatedCardIdx, true);
+                    state.addCardToHand(state.createCard(generatedCardIdx));
                 }
             });
         }
@@ -3490,7 +3490,7 @@ public class CardNecrobinder2 {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.playerGainBlock(block);
-            state.addCardToDiscard(state.currentlyPlayedCardIdx, true);
+            state.addCardToDiscard(state.createCard(state.currentlyPlayedCardIdx));
             return GameActionCtx.PLAY_CARD;
         }
     }

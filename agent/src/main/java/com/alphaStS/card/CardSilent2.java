@@ -249,8 +249,8 @@ public class CardSilent2 {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n, this);
-            state.addCardToHand(generatedCardIdx, true);
-            state.addCardToHand(generatedCardIdx, true);
+            state.addCardToHand(state.createCard(generatedCardIdx));
+            state.addCardToHand(state.createCard(generatedCardIdx));
             return GameActionCtx.PLAY_CARD;
         }
 
@@ -765,8 +765,8 @@ public class CardSilent2 {
                 return GameActionCtx.SELECT_CARD_HAND;
             }
             state.getCounterForWrite()[counterIdx] = 0;
-            state.addCardToHand(generatedCardIdx, true);
-            state.addCardToHand(generatedCardIdx, true);
+            state.addCardToHand(state.createCard(generatedCardIdx));
+            state.addCardToHand(state.createCard(generatedCardIdx));
             return GameActionCtx.PLAY_CARD;
         }
 
@@ -1416,7 +1416,7 @@ public class CardSilent2 {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             for (int i = 0; i < 3; i++) {
-                state.addCardToHand(generatedCardIdx, true);
+                state.addCardToHand(state.createCard(generatedCardIdx));
             }
             return GameActionCtx.PLAY_CARD;
         }
@@ -1452,7 +1452,7 @@ public class CardSilent2 {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             for (int i = 0; i < 4; i++) {
-                state.addCardToHand(generatedCardIdx, true);
+                state.addCardToHand(state.createCard(generatedCardIdx));
             }
             return GameActionCtx.PLAY_CARD;
         }
@@ -1637,7 +1637,7 @@ public class CardSilent2 {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             for (int i = 0; i < n; i++) {
-                state.addCardToHand(generatedCardIdx, true);
+                state.addCardToHand(state.createCard(generatedCardIdx));
             }
             return GameActionCtx.PLAY_CARD;
         }
@@ -1804,7 +1804,7 @@ public class CardSilent2 {
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.getCounterForWrite()[counterIdx] += 1;
             for (int i = 0; i < n; i++) {
-                state.addCardToHand(generatedCardIdx, true);
+                state.addCardToHand(state.createCard(generatedCardIdx));
             }
             return GameActionCtx.PLAY_CARD;
         }

@@ -112,7 +112,7 @@ public class EnemyBeyond {
                 state.enemyDoDamageToPlayer(this, 40, 1);
             } else if (move == SLUDGE) {
                 state.enemyDoDamageToPlayer(this, 18, 1);
-                state.addCardToDeckRandom(properties.generatedCardIdx, false);
+                state.addCardToDeckRandom(properties.generatedCardIdx);
             } else if (move == TACKLE) {
                 state.enemyDoDamageToPlayer(this, 10, 3);
             }
@@ -361,8 +361,8 @@ public class EnemyBeyond {
                 }
             } else if (move == BEAM) {
                 state.enemyDoDamageToPlayer(this, 12, 2);
-                state.addCardToDiscard(properties.generatedCardIdx, false);
-                state.addCardToDiscard(properties.generatedCardIdx, false);
+                state.addCardToDiscard(properties.generatedCardIdx);
+                state.addCardToDiscard(properties.generatedCardIdx);
             }
         }
 
@@ -511,8 +511,8 @@ public class EnemyBeyond {
             } else if (move == HEAD_SLAM) {
                 state.enemyDoDamageToPlayer(this, 32, 1);
                 state.getPlayerForWrite().applyDebuff(state, DebuffType.DRAW_REDUCTION, 2);
-                state.addCardToDiscard(properties.generatedCardIdx, false);
-                state.addCardToDiscard(properties.generatedCardIdx, false);
+                state.addCardToDiscard(properties.generatedCardIdx);
+                state.addCardToDiscard(properties.generatedCardIdx);
             } else if (move == RIPPLE) {
                 gainBlock(20);
                 state.getPlayerForWrite().applyDebuff(state, DebuffType.VULNERABLE, 1);
@@ -840,11 +840,11 @@ public class EnemyBeyond {
 
         @Override public void doMove(GameState state, EnemyReadOnly self) {
             if (move == DEBUFF) {
-                state.addCardToDiscard(properties.generatedCardIdx, false);
-                state.addCardToDiscard(properties.generatedCardIdx, false);
-                state.addCardToDiscard(properties.generatedCardIdx, false);
-                state.addCardToDiscard(properties.generatedCardIdx, false);
-                state.addCardToDiscard(properties.generatedCardIdx, false);
+                state.addCardToDiscard(properties.generatedCardIdx);
+                state.addCardToDiscard(properties.generatedCardIdx);
+                state.addCardToDiscard(properties.generatedCardIdx);
+                state.addCardToDiscard(properties.generatedCardIdx);
+                state.addCardToDiscard(properties.generatedCardIdx);
             } else if (move == ATTACK) {
                 state.enemyDoDamageToPlayer(this, 7, 3);
             } else if (move == SCYTHE) {
@@ -1228,7 +1228,7 @@ public class EnemyBeyond {
         @Override public void doMove(GameState state, EnemyReadOnly self) {
             if (move == STAB) {
                 state.enemyDoDamageToPlayer(this, 9, 1);
-                state.addCardToDiscard(properties.generatedCardIdx, false);
+                state.addCardToDiscard(properties.generatedCardIdx);
             } else if (move == EXPLODE) {
                 state.enemyDoDamageToPlayer(this, 25, 1);
                 state.killEnemy(state.getEnemiesForRead().find(self), true);
@@ -1601,8 +1601,8 @@ public class EnemyBeyond {
         @Override public void doMove(GameState state, EnemyReadOnly self) {
             if (move == LASER) {
                 state.enemyDoDamageToPlayer(this, 11, 1);
-                state.addCardToDiscard(properties.generatedCardIdx, false);
-                state.addCardToDeckRandom(properties.generatedCardIdx, false);
+                state.addCardToDiscard(properties.generatedCardIdx);
+                state.addCardToDeckRandom(properties.generatedCardIdx);
             } else if (move == CLAW) {
                 state.enemyDoDamageToPlayer(this, 16, 1);
             }
@@ -1977,8 +1977,8 @@ public class EnemyBeyond {
             if (move == BASH) {
                 state.enemyDoDamageToPlayer(this, 13, 1);
             } else if (move == REPULSE) {
-                state.addCardToDeckRandom(properties.generatedCardIdx, false);
-                state.addCardToDeckRandom(properties.generatedCardIdx, false);
+                state.addCardToDeckRandom(properties.generatedCardIdx);
+                state.addCardToDeckRandom(properties.generatedCardIdx);
             }
         }
 

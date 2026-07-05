@@ -124,7 +124,7 @@ public class CardOther {
         }
 
         @Override public void onExhaust(GameState state) {
-            state.addCardToHand(cardIndex, false);
+            state.addCardToHand(cardIndex);
         }
     }
 
@@ -331,7 +331,7 @@ public class CardOther {
             }
             state.getCounterForWrite()[counterIdx]++;
             state.removeCardFromDeck(idx, false);
-            state.addCardToDeckNonRandom(state.properties.findCardIndex(state.properties.cardDict[idx].getUpgrade(state.properties)), false);
+            state.addCardToDeckNonRandom(state.properties.findCardIndex(state.properties.cardDict[idx].getUpgrade(state.properties)));
             if (state.getCounterForRead()[counterIdx] >= count) {
                 state.getCounterForWrite()[counterIdx] = 0;
                 return GameActionCtx.START_OF_BATTLE;
@@ -428,7 +428,7 @@ public class CardOther {
             }
             state.removeCardFromExhaust(state.properties.findCardIndex(this));
             if (!(state.properties.cardDict[idx] instanceof AddCardBeforeBattleStarts)) {
-                state.addCardToDeckNonRandom(idx, false);
+                state.addCardToDeckNonRandom(idx);
             }
             state.getCounterForWrite()[counterIdx]++;
             if (state.getCounterForRead()[counterIdx] >= this.cards.size()) {

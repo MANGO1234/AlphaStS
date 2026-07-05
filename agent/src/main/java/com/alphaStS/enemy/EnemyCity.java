@@ -317,7 +317,7 @@ public class EnemyCity {
             int prevHealth = health;
             var dmg = super.damage(n, state);
             if (prevHealth > 0 && health <= 0 && usedStasis && stasisCardIdx >= 0) {
-                state.addCardToHand(stasisCardIdx, false);
+                state.addCardToHand(stasisCardIdx);
             }
             return dmg;
         }
@@ -326,7 +326,7 @@ public class EnemyCity {
             int prevHealth = health;
             super.nonAttackDamage(n, blockable, state);
             if (prevHealth > 0 && health <= 0 && usedStasis && stasisCardIdx >= 0) {
-                state.addCardToHand(stasisCardIdx, false);
+                state.addCardToHand(stasisCardIdx);
             }
         }
 
@@ -1068,7 +1068,7 @@ public class EnemyCity {
             state.properties.addOnDamageHandler("BookOfStabbing", new OnDamageHandler() {
                 @Override public void handle(GameState state, Object source, boolean isAttack, int damageDealt) {
                     if (source instanceof BookOfStabbing && damageDealt > 0) {
-                        state.addCardToDiscard(properties.generatedCardIdx, false);
+                        state.addCardToDiscard(properties.generatedCardIdx);
                     }
                 }
             });
@@ -1101,9 +1101,9 @@ public class EnemyCity {
             if (move == SCOURING_WHIP) {
                 state.enemyDoDamageToPlayer(this, 7, 1);
                 gainStrength(1);
-                state.addCardToDiscard(properties.generatedCardIdx, false);
-                state.addCardToDiscard(properties.generatedCardIdx, false);
-                state.addCardToDiscard(properties.generatedCardIdx, false);
+                state.addCardToDiscard(properties.generatedCardIdx);
+                state.addCardToDiscard(properties.generatedCardIdx);
+                state.addCardToDiscard(properties.generatedCardIdx);
             }
         }
 
@@ -2022,7 +2022,7 @@ public class EnemyCity {
             state.properties.addOnCardPlayedHandler("Chosen", new GameEventCardHandler() {
                 @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
                     if (state.properties.cardDict[cardIdx].cardType != Card.ATTACK && state.hasBuff(PlayerBuff.HEX)) {
-                        state.addCardToDeckRandom(properties.generatedCardIdx, false);
+                        state.addCardToDeckRandom(properties.generatedCardIdx);
                     }
                 }
             });

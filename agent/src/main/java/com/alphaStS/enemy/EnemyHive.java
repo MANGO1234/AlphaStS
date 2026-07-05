@@ -282,9 +282,9 @@ public class EnemyHive {
             if (move == CLAMP) {
                 state.enemyDoDamageToPlayer(this, 9, 2);
             } else if (move == SCREECH) {
-                state.addCardToDiscard(properties.generatedCardIdx, false);
-                state.addCardToDiscard(properties.generatedCardIdx, false);
-                state.addCardToDiscard(properties.generatedCardIdx, false);
+                state.addCardToDiscard(properties.generatedCardIdx);
+                state.addCardToDiscard(properties.generatedCardIdx);
+                state.addCardToDiscard(properties.generatedCardIdx);
             }
         }
 
@@ -465,7 +465,7 @@ public class EnemyHive {
             int dmg = super.damage(n, state);
             if (dmg > 0) {
                 for (int i = 0; i < personalHive; i++) {
-                    state.addCardToDeckRandom(properties.generatedCardIdx, false);
+                    state.addCardToDeckRandom(properties.generatedCardIdx);
                 }
             }
             return dmg;
@@ -843,7 +843,7 @@ public class EnemyHive {
         @Override public void doMove(GameState state, EnemyReadOnly self) {
             if (move == CURSE_OF_KNOWLEDGE) {
                 // TODO: Implement choosing one of two status cards for each Knowledge Demon set.
-                state.addCardToDiscard(properties.generatedCardIdx, false);
+                state.addCardToDiscard(properties.generatedCardIdx);
                 curseCount++;
             } else if (move == SLAP) {
                 state.enemyDoDamageToPlayer(this, 18, 1);
@@ -1045,8 +1045,8 @@ public class EnemyHive {
 
         @Override public void doMove(GameState state, EnemyReadOnly self) {
             if (move == TOXIC_CORNUCOPIA) {
-                state.addCardToHand(properties.generatedCardIdx, false);
-                state.addCardToHand(properties.generatedCardIdx, false);
+                state.addCardToHand(properties.generatedCardIdx);
+                state.addCardToHand(properties.generatedCardIdx);
             } else if (move == BITE) {
                 state.enemyDoDamageToPlayer(this, 15, 1);
             } else if (move == SUCK) {
@@ -1478,8 +1478,8 @@ public class EnemyHive {
             if (move == LIQUIFY_GROUND) {
                 state.getCounterForWrite()[state.properties.sandpitCounterIdx] += 5;
                 for (int i = 0; i < 3; i++) {
-                    state.addCardToDeckRandom(properties.generatedCardIdx, false);
-                    state.addCardToDiscard(properties.generatedCardIdx, false);
+                    state.addCardToDeckRandom(properties.generatedCardIdx);
+                    state.addCardToDiscard(properties.generatedCardIdx);
                 }
             } else if (move == THRASH_1 || move == THRASH_2) {
                 state.enemyDoDamageToPlayer(this, 9, 2);

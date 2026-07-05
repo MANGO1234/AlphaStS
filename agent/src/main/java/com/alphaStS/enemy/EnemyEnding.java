@@ -313,11 +313,11 @@ public class EnemyEnding {
                 state.getPlayerForWrite().applyDebuff(state, DebuffType.VULNERABLE, 2);
                 state.getPlayerForWrite().applyDebuff(state, DebuffType.WEAK, 2);
                 state.getPlayerForWrite().applyDebuff(state, DebuffType.FRAIL, 2);
-                state.addCardToDeckRandom(properties.generatedCardIdxes[0], false);
-                state.addCardToDeckRandom(properties.generatedCardIdxes[1], false);
-                state.addCardToDeckRandom(properties.generatedCardIdxes[2], false);
-                state.addCardToDeckRandom(properties.generatedCardIdxes[3], false);
-                state.addCardToDeckRandom(properties.generatedCardIdxes[4], false);
+                state.addCardToDeckRandom(properties.generatedCardIdxes[0]);
+                state.addCardToDeckRandom(properties.generatedCardIdxes[1]);
+                state.addCardToDeckRandom(properties.generatedCardIdxes[2]);
+                state.addCardToDeckRandom(properties.generatedCardIdxes[3]);
+                state.addCardToDeckRandom(properties.generatedCardIdxes[4]);
             } else if (move == BLOOD_SHOT) {
                 state.enemyDoDamageToPlayer(this, 2, 15);
             } else if (move == ECHO) {
@@ -396,7 +396,7 @@ public class EnemyEnding {
             state.properties.addOnDamageHandler(new OnDamageHandler() {
                 @Override public void handle(GameState state, Object source, boolean isAttack, int damageDealt) {
                     if (source instanceof CorruptHeart && ((CorruptHeart) source).buffCount >= 2 && isAttack && damageDealt > 0) {
-                        state.addCardToDiscard(properties.generatedCardIdxes[4], false);
+                        state.addCardToDiscard(properties.generatedCardIdxes[4]);
                     }
                 }
             });

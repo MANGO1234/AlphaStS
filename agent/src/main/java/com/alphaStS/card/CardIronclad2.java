@@ -1044,7 +1044,7 @@ public class CardIronclad2 {
                         state.getCounterForWrite()[counterIdx + 1]++;
                         if (state.getCounterForRead()[counterIdx + 1] == 3) {
                             for (int i = 0; i < state.getCounterForRead()[counterIdx]; i++) {
-                                state.addCardToHand(cardIdx, true);
+                                state.addCardToHand(state.createCard(cardIdx));
                             }
                         }
                     }
@@ -1703,7 +1703,7 @@ public class CardIronclad2 {
                         int cardIdx = discardArr[posInDiscard];
                         state.removeCardFromDiscardByPosition(posInDiscard);
                         int upgradedIdx = state.properties.upgradeIdxes[cardIdx];
-                        state.addCardToHand(upgradedIdx >= 0 ? upgradedIdx : cardIdx, false);
+                        state.addCardToHand(upgradedIdx >= 0 ? upgradedIdx : cardIdx);
                     }
                 }
             });
@@ -2346,7 +2346,7 @@ public class CardIronclad2 {
             state.updateHandArr();
             for (int i = 0; i < c; i++) {
                 int randomIdx = state.getSearchRandomGen().nextInt(generatedCardIdxes.length, RandomGenCtx.RandomCardGen, new Tuple<>(state, generatedCardIdxes));
-                state.addCardToHand(state.createCard(generatedCardIdxes[randomIdx]), true);
+                state.addCardToHand(state.createCard(generatedCardIdxes[randomIdx]));
             }
             return GameActionCtx.PLAY_CARD;
         }

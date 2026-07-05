@@ -12,7 +12,7 @@ public class AddCardToDiscardAction implements GameEnvironmentAction {
     }
 
     @Override public void doAction(GameState state) {
-        state.addCardToDiscard(cardIdx, false);
+        state.addCardToDiscard(cardIdx);
     }
 
     @Override public boolean equals(Object o) {

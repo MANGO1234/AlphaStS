@@ -947,7 +947,7 @@ public class Relic2 {
                     }
                     state.setIsStochastic();
                     int r = state.getSearchRandomGen().nextInt(generatedCardIdxes.length, RandomGenCtx.RandomCardGen);
-                    state.addCardToHand(state.createCard(generatedCardIdxes[r]), true);
+                    state.addCardToHand(state.createCard(generatedCardIdxes[r]));
                 }
             });
         }
@@ -1045,7 +1045,7 @@ public class Relic2 {
                     int exhaustedCardIdx = state.exhaustArr[state.exhaustArrLen - 1];
                     if (state.properties.cardDict[exhaustedCardIdx].cardType == Card.SKILL) {
                         state.getCounterForWrite()[counterIdx] = 1;
-                        state.addCardToHand(exhaustedCardIdx, false);
+                        state.addCardToHand(exhaustedCardIdx);
                     }
                 }
             });
@@ -1196,7 +1196,7 @@ public class Relic2 {
             state.properties.addStartOfBattleHandler("Byrdpip", new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     if (isRelicEnabledInScenario(state)) {
-                        state.addCardToDeckNonRandom(generatedCardIdx, false);
+                        state.addCardToDeckNonRandom(generatedCardIdx);
                     }
                 }
             });
@@ -1433,8 +1433,8 @@ public class Relic2 {
             state.properties.addStartOfBattleHandler("TeaOfDiscourtesy", new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     if (isRelicEnabledInScenario(state)) {
-                        state.addCardToDeckNonRandom(generatedCardIdx, false);
-                        state.addCardToDeckNonRandom(generatedCardIdx, false);
+                        state.addCardToDeckNonRandom(generatedCardIdx);
+                        state.addCardToDeckNonRandom(generatedCardIdx);
                     }
                 }
             });
@@ -1496,7 +1496,7 @@ public class Relic2 {
             state.properties.addOnShuffleHandler("BiiigHug", new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     if (isRelicEnabledInScenario(state)) {
-                        state.addCardToDeckNonRandom(generatedCardIdx, true);
+                        state.addCardToDeckNonRandom(state.createCard(generatedCardIdx));
                     }
                 }
             });
@@ -1523,9 +1523,9 @@ public class Relic2 {
             state.properties.addStartOfBattleHandler("BlessedAntler", new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     if (isRelicEnabledInScenario(state)) {
-                        state.addCardToDeckNonRandom(generatedCardIdx, false);
-                        state.addCardToDeckNonRandom(generatedCardIdx, false);
-                        state.addCardToDeckNonRandom(generatedCardIdx, false);
+                        state.addCardToDeckNonRandom(generatedCardIdx);
+                        state.addCardToDeckNonRandom(generatedCardIdx);
+                        state.addCardToDeckNonRandom(generatedCardIdx);
                     }
                 }
             });
@@ -1550,7 +1550,7 @@ public class Relic2 {
             state.properties.addStartOfBattleHandler("BloodSoakedRose", new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     if (isRelicEnabledInScenario(state)) {
-                        state.addCardToDeckNonRandom(generatedCardIdx, false);
+                        state.addCardToDeckNonRandom(generatedCardIdx);
                     }
                 }
             });
@@ -1625,7 +1625,7 @@ public class Relic2 {
                     if (isRelicEnabledInScenario(state)) {
                         state.setIsStochastic();
                         int r = state.getSearchRandomGen().nextInt(generatedCardIdxes.length, RandomGenCtx.RandomCardGen);
-                        state.addCardToHand(generatedCardIdxes[r], true);
+                        state.addCardToHand(state.createCard(generatedCardIdxes[r]));
                     }
                 }
             });
@@ -1793,7 +1793,7 @@ public class Relic2 {
                     int permCostCardIdx = state.properties.findCardIndex(state.properties.cardDict[chosenCardIdx].getPermCostIfPossible(0));
                     state.getDeckArrForWrite()[chosenPos] = state.deckArr[state.deckArrLen - 1];
                     state.deckArrLen--;
-                    state.addCardToHand(permCostCardIdx, false);
+                    state.addCardToHand(permCostCardIdx);
                 }
             });
         }
@@ -1845,7 +1845,7 @@ public class Relic2 {
                     if (state.properties.cardDict[cardIdx].cardType == Card.ATTACK) {
                         state.removeBuff(PlayerBuff.MUSIC_BOX);
                         int etherealCardIdx = state.properties.findCardIndex(state.properties.cardDict[cardIdx].getPermEthereal());
-                        state.addCardToHand(state.createCard(etherealCardIdx), true);
+                        state.addCardToHand(state.createCard(etherealCardIdx));
                     }
                 }
             });
@@ -2041,7 +2041,7 @@ public class Relic2 {
             state.properties.addStartOfBattleHandler("RadiantPearl", new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     if (isRelicEnabledInScenario(state)) {
-                        state.addCardToHand(generatedCardIdx, true);
+                        state.addCardToHand(state.createCard(generatedCardIdx));
                     }
                 }
             });
@@ -2112,11 +2112,11 @@ public class Relic2 {
                     }
                     for (int i = 0; i < 2; i++) {
                         int r = numCurses > 1 ? state.getSearchRandomGen().nextInt(numCurses, RandomGenCtx.RandomCardGen) : 0;
-                        state.addCardToDeckNonRandom(generatedCardIdxes[r], false);
+                        state.addCardToDeckNonRandom(generatedCardIdxes[r]);
                     }
-                    state.addCardToDeckNonRandom(wishIdx, false);
-                    state.addCardToDeckNonRandom(wishIdx, false);
-                    state.addCardToDeckNonRandom(wishIdx, false);
+                    state.addCardToDeckNonRandom(wishIdx);
+                    state.addCardToDeckNonRandom(wishIdx);
+                    state.addCardToDeckNonRandom(wishIdx);
                 }
             });
         }
@@ -2525,7 +2525,7 @@ public class Relic2 {
                         }
                     }
                     for (int i = 0; i < chosen.length; i++) {
-                        state.addCardToHand(chosen[i], false);
+                        state.addCardToHand(chosen[i]);
                         state.removeCardFromDeck(chosen[i], false);
                     }
                 }
@@ -2672,7 +2672,7 @@ public class Relic2 {
                     state.setIsStochastic();
                     for (int i = 0; i < 2; i++) {
                         int r = state.getSearchRandomGen().nextInt(generatedCardIdxes.length, RandomGenCtx.RandomCardGen);
-                        state.addCardToHand(state.createCard(generatedCardIdxes[r]), true);
+                        state.addCardToHand(state.createCard(generatedCardIdxes[r]));
                     }
                 }
             });
@@ -2721,7 +2721,7 @@ public class Relic2 {
                     state.setIsStochastic();
                     for (int i = 0; i < 2; i++) {
                         int r = state.getSearchRandomGen().nextInt(generatedCardIdxes.length, RandomGenCtx.RandomCardGen);
-                        state.addCardToHand(state.createCard(generatedCardIdxes[r]), true);
+                        state.addCardToHand(state.createCard(generatedCardIdxes[r]));
                     }
                 }
             });
@@ -2833,7 +2833,7 @@ public class Relic2 {
                 @Override public void handle(GameState state) {
                     if (!isRelicEnabledInScenario(state)) return;
                     for (int i = 0; i < 3; i++) {
-                        state.addCardToDeckNonRandom(generatedCardIdx, false);
+                        state.addCardToDeckNonRandom(generatedCardIdx);
                     }
                 }
             });

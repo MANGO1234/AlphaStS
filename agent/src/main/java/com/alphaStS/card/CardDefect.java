@@ -524,7 +524,7 @@ public class CardDefect {
             } else {
                 if (state.getNumCardsInHand() < GameState.HAND_LIMIT) {
                     state.removeCardFromDiscard(idx);
-                    state.addCardToHand(idx, false);
+                    state.addCardToHand(idx);
                 }
                 return GameActionCtx.PLAY_CARD;
             }
@@ -924,7 +924,7 @@ public class CardDefect {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.gainEnergy(n);
-            state.addCardToDiscard(generatedCardIdx, true);
+            state.addCardToDiscard(state.createCard(generatedCardIdx));
             return GameActionCtx.PLAY_CARD;
         }
 
@@ -1957,7 +1957,7 @@ public class CardDefect {
                     for (int i = 0; i < state.getCounterForRead()[counterIdx]; i++) {
                         state.setIsStochastic();
                         var r = state.getSearchRandomGen().nextInt(generatedCardIdxes.length, RandomGenCtx.RandomCardGen, new Tuple<>(state, generatedCardIdxes));
-                        state.addCardToHand(generatedCardIdxes[r], true);
+                        state.addCardToHand(state.createCard(generatedCardIdxes[r]));
                     }
                 }
             });
@@ -2103,7 +2103,7 @@ public class CardDefect {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.draw(n);
-            state.addCardToDiscard(generatedCardIdx, true);
+            state.addCardToDiscard(state.createCard(generatedCardIdx));
             return GameActionCtx.PLAY_CARD;
         }
 
@@ -2579,7 +2579,7 @@ public class CardDefect {
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.setIsStochastic();
             var r = state.getSearchRandomGen().nextInt(generatedCardIdxes.length, RandomGenCtx.RandomCardGen, new Tuple<>(state, generatedCardIdxes));
-            state.addCardToHand(generatedCardIdxes[r], true);
+            state.addCardToHand(state.createCard(generatedCardIdxes[r]));
             return GameActionCtx.PLAY_CARD;
         }
 
@@ -2632,7 +2632,7 @@ public class CardDefect {
                 if (state.properties.cardDict[cardIdx].energyCost == 0) {
                     state.removeCardFromDiscardByPosition(i);
                     i--;
-                    state.addCardToHand(cardIdx, false);
+                    state.addCardToHand(cardIdx);
                 }
             }
             return GameActionCtx.PLAY_CARD;
@@ -2905,7 +2905,7 @@ public class CardDefect {
                     for (int i = 0; i < state.getCounterForRead()[counterIdx]; i++) {
                         state.setIsStochastic();
                         var r = state.getSearchRandomGen().nextInt(generatedCardIdxes.length, RandomGenCtx.RandomCardGen, new Tuple<>(state, generatedCardIdxes));
-                        state.addCardToHand(generatedCardIdxes[r], true);
+                        state.addCardToHand(state.createCard(generatedCardIdxes[r]));
                     }
                 }
             });
@@ -3357,7 +3357,7 @@ public class CardDefect {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.removeCardFromDeck(idx, false);
-            state.addCardToHand(idx, false);
+            state.addCardToHand(idx);
             if (!isUpgraded) {
                 return GameActionCtx.PLAY_CARD;
             }
