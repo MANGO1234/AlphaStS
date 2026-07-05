@@ -1733,28 +1733,49 @@ public class CardRegent2 {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getCounterForWrite()[counterIdx]++;
             return GameActionCtx.PLAY_CARD;
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
-            state.properties.registerCounter("Orbit", this, new GameProperties.NetworkInputHandler() {
+            state.properties.registerCounter("Orbit", this, 4, new GameProperties.NetworkInputHandler() {
                 @Override public int addToInput(GameState state, float[] input, int idx) {
                     input[idx] = state.getCounterForRead()[counterIdx] / 4.0f;
-                    return idx + 1;
+                    input[idx + 1] = state.getCounterForRead()[counterIdx + 1] / 4.0f;
+                    input[idx + 2] = state.getCounterForRead()[counterIdx + 2] / 4.0f;
+                    input[idx + 3] = state.getCounterForRead()[counterIdx + 3] / 4.0f;
+                    return idx + 4;
                 }
 
                 @Override public int getInputLenDelta() {
-                    return 1;
+                    return 4;
                 }
             });
             state.properties.addOnEnergySpendHandler("Orbit", new OnEnergySpendHandler() {
                 @Override public void handle(GameState state, int energySpent) {
-                    int carry = state.getCounterForRead()[counterIdx] + energySpent;
-                    int gains = carry / 4;
-                    if (gains > 0) {
+                    int[] counts = new int[4];
+                    int total = 0;
+                    for (int i = 0; i < 4; i++) {
+                        counts[i] = state.getCounterForRead()[counterIdx + i];
+                        total += counts[i];
+                    }
+                    if (total == 0) {
+                        return;
+                    }
+
+                    int[] nextCounts = new int[4];
+                    int gains = 0;
+                    for (int i = 0; i < 4; i++) {
+                        int carry = i + energySpent;
+                        gains += counts[i] * (carry / 4);
+                        nextCounts[carry % 4] += counts[i];
+                    }
+                    for (int i = 0; i < 4; i++) {
+                        state.getCounterForWrite()[counterIdx + i] = nextCounts[i];
+                    }
+                    if (gains != 0) {
                         state.gainEnergy(gains);
                     }
-                    state.getCounterForWrite()[counterIdx] = carry % 4;
                 }
             });
         }
@@ -2961,13 +2982,26 @@ public class CardRegent2 {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getCounterForWrite()[counterIdx] += starAmount;
             return GameActionCtx.PLAY_CARD;
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("Genesis", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 10.0f;
+                    return idx + 1;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
             state.properties.addStartOfTurnHandler("Genesis", new GameEventHandler() {
                 @Override public void handle(GameState state) {
-                    state.gainStar(starAmount);
+                    if (state.getCounterForRead()[counterIdx] > 0) {
+                        state.gainStar(state.getCounterForRead()[counterIdx]);
+                    }
                 }
             });
         }
@@ -3220,17 +3254,28 @@ public class CardRegent2 {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getCounterForWrite()[counterIdx]++;
             return GameActionCtx.PLAY_CARD;
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("MonarchsGaze", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 3.0f;
+                    return idx + 1;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
             state.properties.addOnCardPlayedHandler("MonarchsGaze", new GameEventCardHandler() {
                 @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
-                    if (state.properties.cardDict[cardIdx].cardType != Card.ATTACK) {
+                    if (state.getCounterForRead()[counterIdx] == 0 || state.properties.cardDict[cardIdx].cardType != Card.ATTACK) {
                         return;
                     }
                     for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
-                        enemy.applyDebuff(state, DebuffType.LOSE_STRENGTH_EOT, 1);
+                        enemy.applyDebuff(state, DebuffType.LOSE_STRENGTH_EOT, state.getCounterForRead()[counterIdx]);
                     }
                 }
             });
@@ -3298,37 +3343,41 @@ public class CardRegent2 {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getCounterForWrite()[counterIdx]++;
             return GameActionCtx.PLAY_CARD;
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
-            state.properties.registerCounter("RoyaltiesGold", this, healthRewardRatio == 0 ? null : new GameProperties.NetworkInputHandler() {
+            state.properties.registerCounter("RoyaltiesGold", this, 2, healthRewardRatio == 0 ? null : new GameProperties.NetworkInputHandler() {
                 @Override public int addToInput(GameState state, float[] input, int idx) {
-                    input[idx] = state.getCounterForRead()[counterIdx] / 100.0f;
-                    return idx + 1;
+                    input[idx] = state.getCounterForRead()[counterIdx] / 3.0f;
+                    input[idx + 1] = state.getCounterForRead()[counterIdx + 1] / 100.0f;
+                    return idx + 2;
                 }
-                @Override public int getInputLenDelta() { return 1; }
+                @Override public int getInputLenDelta() { return 2; }
             });
             if (healthRewardRatio > 0) {
                 state.properties.addExtraTrainingTarget("RoyaltiesGold", this, new TrainingTarget() {
                     @Override public void fillVArray(GameState state, VArray v, int isTerminal) {
                         if (isTerminal > 0) {
-                            v.setVExtra(vExtraIdx, state.getCounterForRead()[counterIdx] / 100.0);
+                            v.setVExtra(vExtraIdx, state.getCounterForRead()[counterIdx + 1] / 100.0);
                         } else if (isTerminal == 0) {
-                            double vGold = Math.max(state.getCounterForRead()[counterIdx] / 100.0, Math.min((state.getCounterForRead()[counterIdx] + goldAmount) / 100.0, state.getVExtra(vExtraIdx)));
+                            int goldReward = goldAmount * state.getCounterForRead()[counterIdx];
+                            double vGold = Math.max(state.getCounterForRead()[counterIdx + 1] / 100.0, Math.min((state.getCounterForRead()[counterIdx + 1] + goldReward) / 100.0, state.getVExtra(vExtraIdx)));
                             v.setVExtra(vExtraIdx, vGold);
                         }
                     }
                     @Override public void updateQValues(GameState state, VArray v) {
-                        double vGold = Math.max(state.getCounterForRead()[counterIdx] / 100.0, Math.min((state.getCounterForRead()[counterIdx] + goldAmount) / 100.0, v.getVExtra(vExtraIdx)));
+                        int goldReward = goldAmount * state.getCounterForRead()[counterIdx];
+                        double vGold = Math.max(state.getCounterForRead()[counterIdx + 1] / 100.0, Math.min((state.getCounterForRead()[counterIdx + 1] + goldReward) / 100.0, v.getVExtra(vExtraIdx)));
                         v.add(GameState.V_HEALTH_IDX, 100 * vGold * healthRewardRatio / 20.0 / state.getPlayerForRead().getMaxHealth());
                     }
                 });
             }
             state.properties.addEndOfBattleHandler("RoyaltiesGold", new GameEventHandler() {
                 @Override public void handle(GameState state) {
-                    if (state.isTerminal() > 0) {
-                        state.getCounterForWrite()[counterIdx] += goldAmount;
+                    if (state.isTerminal() > 0 && state.getCounterForRead()[counterIdx] > 0) {
+                        state.getCounterForWrite()[counterIdx + 1] += goldAmount * state.getCounterForRead()[counterIdx];
                     }
                 }
             });
@@ -3336,11 +3385,11 @@ public class CardRegent2 {
 
         @Override public void setCounterIdx(GameProperties gameProperties, int idx) {
             counterIdx = idx;
-            gameProperties.royaltiesGoldCounterIdx = idx;
+            gameProperties.royaltiesGoldCounterIdx = idx + 1;
         }
 
         @Override public CounterStat getCounterStat() {
-            return new CounterStat(counterIdx, "Royalties Gold").setShowFrequency(true);
+            return new CounterStat(counterIdx + 1, "Royalties Gold").setShowFrequency(true);
         }
     }
 
@@ -3678,13 +3727,26 @@ public class CardRegent2 {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getCounterForWrite()[counterIdx]++;
             return GameActionCtx.PLAY_CARD;
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("TheSealedThrone", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 3.0f;
+                    return idx + 1;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
             state.properties.addOnCardPlayedHandler("TheSealedThrone", new GameEventCardHandler() {
                 @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
-                    state.gainStar(1);
+                    if (state.getCounterForRead()[counterIdx] > 0) {
+                        state.gainStar(state.getCounterForRead()[counterIdx]);
+                    }
                 }
             });
         }

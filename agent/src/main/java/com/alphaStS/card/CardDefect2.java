@@ -877,18 +877,32 @@ public class CardDefect2 {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getCounterForWrite()[counterIdx] += damage;
             return GameActionCtx.PLAY_CARD;
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("Hailstorm", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 20.0f;
+                    return idx + 1;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
             state.properties.addEndOfTurnHandler(cardName, new GameEventHandler() {
                 @Override public void handle(GameState state) {
+                    if (state.getCounterForRead()[counterIdx] == 0) {
+                        return;
+                    }
                     short[] orbs = state.getOrbs();
                     if (orbs == null) return;
                     for (int i = 0; i < orbs.length; i += 2) {
                         if (orbs[i] == OrbType.FROST.ordinal()) {
                             for (var enemy : state.getEnemiesForWrite().iterateOverAlive()) {
-                                state.playerDoNonAttackDamageToEnemy(enemy, damage, true);
+                                state.playerDoNonAttackDamageToEnemy(enemy, state.getCounterForRead()[counterIdx], true);
                             }
                             return;
                         }
@@ -1287,14 +1301,25 @@ public class CardDefect2 {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getCounterForWrite()[counterIdx]++;
             return GameActionCtx.PLAY_CARD;
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("Subroutine", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 3.0f;
+                    return idx + 1;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
             state.properties.addOnCardPlayedHandler("Subroutine", new GameEventCardHandler() {
                 @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
-                    if (state.properties.cardDict[cardIdx].cardType == Card.POWER) {
-                        state.gainEnergy(1);
+                    if (state.getCounterForRead()[counterIdx] > 0 && state.properties.cardDict[cardIdx].cardType == Card.POWER) {
+                        state.gainEnergy(state.getCounterForRead()[counterIdx]);
                     }
                 }
             });

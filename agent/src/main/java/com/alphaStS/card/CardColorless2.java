@@ -80,26 +80,31 @@ public class CardColorless2 {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getCounterForWrite()[counterIdx]++;
             return GameActionCtx.PLAY_CARD;
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
-            state.properties.registerCounter("Automation", this, new GameProperties.NetworkInputHandler() {
+            state.properties.registerCounter("Automation", this, 2, new GameProperties.NetworkInputHandler() {
                 @Override public int addToInput(GameState state, float[] input, int idx) {
-                    input[idx] = state.getCounterForRead()[counterIdx] / 10.0f;
-                    return idx + 1;
+                    input[idx] = state.getCounterForRead()[counterIdx] / 3.0f;
+                    input[idx + 1] = state.getCounterForRead()[counterIdx] / 10.0f;
+                    return idx + 2;
                 }
 
                 @Override public int getInputLenDelta() {
-                    return 1;
+                    return 2;
                 }
             });
             state.properties.addOnCardDrawnHandler("Automation", new GameEventCardHandler() {
                 @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
-                    state.getCounterForWrite()[counterIdx]++;
-                    if (state.getCounterForRead()[counterIdx] == 10) {
+                    if (state.getCounterForRead()[counterIdx] == 0) {
+                        return;
+                    }
+                    state.getCounterForWrite()[counterIdx + 1]++;
+                    if (state.getCounterForRead()[counterIdx + 1] == 10) {
                         state.gainEnergy(1);
-                        state.getCounterForWrite()[counterIdx] = 0;
+                        state.getCounterForWrite()[counterIdx + 1] = 0;
                     }
                 }
             });
@@ -434,14 +439,28 @@ public class CardColorless2 {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getCounterForWrite()[counterIdx] += vigor;
             return GameActionCtx.PLAY_CARD;
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
-            state.properties.registerVigorCounter(this);
+            state.properties.registerCounter("PrepTime", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 10.0f;
+                    return idx + 1;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            var vigorRegistrant = new GameProperties.LocalCounterRegistrant();
+            state.properties.registerVigorCounter(vigorRegistrant);
             state.properties.addStartOfTurnHandler("PrepTime", new GameEventHandler() {
                 @Override public void handle(GameState state) {
-                    state.getCounterForWrite()[state.properties.vigorCounterIdx] += vigor;
+                    if (state.getCounterForRead()[counterIdx] > 0) {
+                        state.getCounterForWrite()[state.properties.vigorCounterIdx] += state.getCounterForRead()[counterIdx];
+                    }
                 }
             });
         }

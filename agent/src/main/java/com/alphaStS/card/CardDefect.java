@@ -201,8 +201,10 @@ public class CardDefect {
             });
             state.properties.addStartOfTurnHandler("ChargeBattery", new GameEventHandler() {
                 @Override public void handle(GameState state) {
-                    state.gainEnergy(state.getCounterForWrite()[counterIdx]);
-                    state.getCounterForWrite()[counterIdx] = 0;
+                    if (state.getCounterForRead()[counterIdx] > 0) {
+                        state.gainEnergy(state.getCounterForWrite()[counterIdx]);
+                        state.getCounterForWrite()[counterIdx] = 0;
+                    }
                 }
             });
         }
@@ -2335,7 +2337,7 @@ public class CardDefect {
             });
             state.properties.addEndOfBattleHandler("SelfRepair", new GameEventHandler() {
                 @Override public void handle(GameState state) {
-                    if (!state.isEncounter(PredefinedEncounter.CORRUPT_HEART)) {
+                    if (state.getCounterForRead()[counterIdx] > 0 && !state.isEncounter(PredefinedEncounter.CORRUPT_HEART)) {
                         state.healPlayer(state.getCounterForRead()[counterIdx]);
                     }
                 }
@@ -3193,7 +3195,9 @@ public class CardDefect {
             });
             state.properties.addStartOfTurnHandler("MachineLearning", new GameEventHandler() {
                 @Override public void handle(GameState state) {
-                    state.draw(state.getCounterForRead()[counterIdx]);
+                    if (state.getCounterForRead()[counterIdx] > 0) {
+                        state.draw(state.getCounterForRead()[counterIdx]);
+                    }
                 }
             });
         }

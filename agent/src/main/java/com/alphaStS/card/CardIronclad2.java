@@ -1248,8 +1248,9 @@ public class CardIronclad2 {
             });
             state.properties.addOnDamageHandler("Rupture2", new OnDamageHandler() {
                 @Override public void handle(GameState state, Object source, boolean isAttack, int damageDealt) {
-                    if (damageDealt > 0) {
-                        state.playerGainStrength(state.getCounterForRead()[counterIdx]);
+                    int strength = state.getCounterForRead()[counterIdx];
+                    if (damageDealt > 0 && strength > 0) {
+                        state.playerGainStrength(strength);
                     }
                 }
             });

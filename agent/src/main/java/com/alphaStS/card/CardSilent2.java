@@ -932,28 +932,30 @@ public class CardSilent2 {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.getCounterForWrite()[counterIdx] = 0;
+            state.getCounterForWrite()[counterIdx] += n;
             return GameActionCtx.PLAY_CARD;
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
-            state.properties.registerCounter("Outbreak", this, new GameProperties.NetworkInputHandler() {
+            state.properties.registerCounter("Outbreak", this, 2, new GameProperties.NetworkInputHandler() {
                 @Override public int addToInput(GameState state, float[] input, int idx) {
-                    input[idx] = state.getCounterForRead()[counterIdx] / 3.0f;
-                    return idx + 1;
+                    input[idx] = state.getCounterForRead()[counterIdx] / 20.0f;
+                    input[idx + 1] = state.getCounterForRead()[counterIdx + 1] / 3.0f;
+                    return idx + 2;
                 }
 
                 @Override public int getInputLenDelta() {
-                    return 1;
+                    return 2;
                 }
             });
             state.properties.addOnEnemyDebuffHandler("Outbreak", new GameEventEnemyDebuffHandler() {
                 @Override public void handle(GameState state, EnemyReadOnly enemy, DebuffType type, int amount) {
-                    if (type == DebuffType.POISON) {
-                        state.getCounterForWrite()[counterIdx]++;
-                        if (state.getCounterForRead()[counterIdx] % 3 == 0) {
+                    int damage = state.getCounterForRead()[counterIdx];
+                    if (damage > 0 && type == DebuffType.POISON) {
+                        state.getCounterForWrite()[counterIdx + 1]++;
+                        if (state.getCounterForRead()[counterIdx + 1] % 3 == 0) {
                             for (Enemy e : state.getEnemiesForWrite().iterateOverAlive()) {
-                                state.playerDoNonAttackDamageToEnemy(e, n, true);
+                                state.playerDoNonAttackDamageToEnemy(e, damage, true);
                             }
                         }
                     }

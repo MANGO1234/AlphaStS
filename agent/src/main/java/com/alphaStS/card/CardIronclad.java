@@ -1091,6 +1091,9 @@ public class CardIronclad {
             state.properties.addPreEndOfTurnHandler(name, new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     var counter = state.getCounterForRead()[counterIdx];
+                    if (counter == 0) {
+                        return;
+                    }
                     var selfDmg = counter >> 16;
                     var enemyDmg = counter & ((1 << 16) - 1);
                     state.doNonAttackDamageToPlayer(selfDmg, false, _this);
@@ -1320,7 +1323,7 @@ public class CardIronclad {
             });
             state.properties.addOnCardDrawnHandler("Evolve", new GameEventCardHandler() {
                 @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
-                    if (state.properties.cardDict[cardIdx].cardType == Card.STATUS) {
+                    if (state.getCounterForRead()[counterIdx] > 0 && state.properties.cardDict[cardIdx].cardType == Card.STATUS) {
                         state.addGameActionToEndOfDeque(new CardDrawAction(state.getCounterForRead()[counterIdx]));
                     }
                 }
@@ -1368,7 +1371,9 @@ public class CardIronclad {
             });
             state.properties.addOnExhaustHandler("FNP", new GameEventHandler() {
                 @Override public void handle(GameState state) {
-                    state.playerGainBlockNotFromCardPlay(state.getCounterForRead()[counterIdx]);
+                    if (state.getCounterForRead()[counterIdx] > 0) {
+                        state.playerGainBlockNotFromCardPlay(state.getCounterForRead()[counterIdx]);
+                    }
                 }
             });
         }
@@ -1414,9 +1419,12 @@ public class CardIronclad {
             });
             state.properties.addOnCardDrawnHandler("FireBreathing", new GameEventCardHandler() {
                 @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                    int dmg = state.getCounterForRead()[counterIdx];
+                    if (dmg == 0) {
+                        return;
+                    }
                     var card = state.properties.cardDict[cardIdx];
                     if (card.cardType == Card.STATUS || card.cardType == Card.CURSE) {
-                        int dmg = state.getCounterForRead()[counterIdx];
                         for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
                             state.playerDoNonAttackDamageToEnemy(enemy, dmg, true);
                         }
@@ -1787,7 +1795,7 @@ public class CardIronclad {
             });
             state.properties.addOnCardPlayedHandler("Rage", new GameEventCardHandler() {
                 @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
-                    if (state.properties.cardDict[cardIdx].cardType == Card.ATTACK) {
+                    if (state.getCounterForRead()[counterIdx] > 0 && state.properties.cardDict[cardIdx].cardType == Card.ATTACK) {
                         state.playerGainBlockNotFromCardPlay(state.getCounterForRead()[counterIdx]);
                     }
                 }
@@ -1988,7 +1996,7 @@ public class CardIronclad {
             });
             state.properties.addOnDamageHandler("Rupture", new OnDamageHandler() {
                 @Override public void handle(GameState state, Object source, boolean isAttack, int damageDealt) {
-                    if (damageDealt > 0 && source instanceof Card) {
+                    if (state.getCounterForRead()[counterIdx] > 0 && damageDealt > 0 && source instanceof Card) {
                         state.playerGainStrength(state.getCounterForRead()[counterIdx]);
                     }
                 }
@@ -2458,6 +2466,9 @@ public class CardIronclad {
             state.properties.addStartOfTurnHandler("Brutality", new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     int n = state.getCounterForRead()[counterIdx];
+                    if (n == 0) {
+                        return;
+                    }
                     state.doNonAttackDamageToPlayer(n, false, _this);
                     state.draw(n);
                 }
@@ -2534,7 +2545,9 @@ public class CardIronclad {
             });
             state.properties.addStartOfTurnHandler("DemonForm", new GameEventHandler() {
                 @Override public void handle(GameState state) {
-                    state.playerGainStrength(state.getCounterForRead()[counterIdx]);
+                    if (state.getCounterForRead()[counterIdx] > 0) {
+                        state.playerGainStrength(state.getCounterForRead()[counterIdx]);
+                    }
                 }
             });
         }
@@ -2993,6 +3006,9 @@ public class CardIronclad {
             });
             state.properties.addOnBlockHandler("Juggernaut", new GameEventHandler() {
                 @Override public void handle(GameState state) {
+                    if (state.getCounterForRead()[counterIdx] == 0) {
+                        return;
+                    }
                     int i = 0;
                     if (state.enemiesAlive > 1) {
                         i = state.getSearchRandomGen().nextInt(state.enemiesAlive, RandomGenCtx.RandomEnemyJuggernaut, state);

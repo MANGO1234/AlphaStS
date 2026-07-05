@@ -2522,6 +2522,7 @@ public class CardNecrobinder2 {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getCounterForWrite()[counterIdx]++;
             return GameActionCtx.PLAY_CARD;
         }
 
@@ -2532,11 +2533,23 @@ public class CardNecrobinder2 {
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("CallOfTheVoid", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 3.0f;
+                    return idx + 1;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
             state.properties.addStartOfTurnHandler("CallOfTheVoid", new GameEventHandler() {
                 @Override public void handle(GameState state) {
-                    state.setIsStochastic();
-                    int randomIdx = state.getSearchRandomGen().nextInt(generatedCardIdxes.length, RandomGenCtx.RandomCardGen, new Tuple<>(state, generatedCardIdxes));
-                    state.addCardToHand(state.createCard(generatedCardIdxes[randomIdx]));
+                    for (int i = 0; i < state.getCounterForRead()[counterIdx]; i++) {
+                        state.setIsStochastic();
+                        int randomIdx = state.getSearchRandomGen().nextInt(generatedCardIdxes.length, RandomGenCtx.RandomCardGen, new Tuple<>(state, generatedCardIdxes));
+                        state.addCardToHand(state.createCard(generatedCardIdxes[randomIdx]));
+                    }
                 }
             });
         }
@@ -2853,14 +2866,27 @@ public class CardNecrobinder2 {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.summon(summonAmt);
+            state.getCounterForWrite()[counterIdx]++;
             return GameActionCtx.PLAY_CARD;
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("NecroMastery", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 3.0f;
+                    return idx + 1;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
             state.properties.addOnOtsyLosesHPHandler("NecroMastery", new OnOtsyDamageHandler() {
                 @Override public void handle(GameState state, int amount) {
-                    for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
-                        state.playerDoNonAttackDamageToEnemy(enemy, amount, false);
+                    if (state.getCounterForRead()[counterIdx] > 0) {
+                        for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
+                            state.playerDoNonAttackDamageToEnemy(enemy, amount * state.getCounterForRead()[counterIdx], false);
+                        }
                     }
                 }
             });
@@ -3126,13 +3152,26 @@ public class CardNecrobinder2 {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getCounterForWrite()[counterIdx]++;
             return GameActionCtx.PLAY_CARD;
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("SentryMode", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 3.0f;
+                    return idx + 1;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
             state.properties.addStartOfTurnHandler("SentryMode", new GameEventHandler() {
                 @Override public void handle(GameState state) {
-                    state.addCardToHand(state.createCard(generatedCardIdx));
+                    for (int i = 0; i < state.getCounterForRead()[counterIdx]; i++) {
+                        state.addCardToHand(state.createCard(generatedCardIdx));
+                    }
                 }
             });
         }
