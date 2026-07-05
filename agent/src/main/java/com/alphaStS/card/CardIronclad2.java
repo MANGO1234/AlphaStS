@@ -11,10 +11,12 @@ import com.alphaStS.eventHandler.GameEventHandler;
 import com.alphaStS.eventHandler.OnDamageHandler;
 import com.alphaStS.gameAction.GameActionCtx;
 import com.alphaStS.random.RandomGenCtx;
+import com.alphaStS.utils.Tuple;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 public class CardIronclad2 {
     // **************************************************************************************************
@@ -2342,26 +2344,41 @@ public class CardIronclad2 {
                 state.exhaustCardFromHandByPosition(i, false);
             }
             state.updateHandArr();
-            state.draw(c);
+            for (int i = 0; i < c; i++) {
+                int randomIdx = state.getSearchRandomGen().nextInt(generatedCardIdxes.length, RandomGenCtx.RandomCardGen, new Tuple<>(state, generatedCardIdxes));
+                state.addCardToHand(state.createCard(generatedCardIdxes[randomIdx]), true);
+            }
             return GameActionCtx.PLAY_CARD;
         }
+
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            var generatedCards = CardManager.getCharacterCards(properties.character, false);
+            return upgraded() ? generatedCards.stream().map(Card::getUpgrade).filter(Objects::nonNull).toList() : generatedCards;
+        }
+
+        protected abstract boolean upgraded();
     }
 
     // Stoke (Rare) - 1 energy, Skill
-    //   Effect: Exhaust your Hand. Draw a card for each card Exhausted. Exhaust.
-    //   Upgraded Effect (0 energy): Exhaust your Hand. Draw a card for each card Exhausted. Exhaust.
-    // TODO CHANGED: Stoke (Rare) - 1 energy, Skill
     //   Effect: Exhaust your Hand. Add 1 random card into your Hand for each card Exhausted.
     //   Upgraded Effect: Exhaust your Hand. Add 1 random Upgraded card into your Hand for each card Exhausted.
     public static class Stoke extends _StokeT {
         public Stoke() {
             super("Stoke", 1);
         }
+
+        @Override protected boolean upgraded() {
+            return false;
+        }
     }
 
     public static class StokeP extends _StokeT {
         public StokeP() {
             super("Stoke+", 0);
+        }
+
+        @Override protected boolean upgraded() {
+            return true;
         }
     }
 
@@ -2485,9 +2502,36 @@ public class CardIronclad2 {
         }
     }
 
-    // TODO: Not Yet (Rare) - 2 energy, Skill
+    // Not Yet (Rare) - 2 energy, Skill
     //   Effect: Heal 10 HP. Exhaust.
     //   Upgraded Effect: Heal 13 HP. Exhaust.
+    private static abstract class _NotYetT extends Card {
+        private final int heal;
+
+        public _NotYetT(String cardName, int heal) {
+            super(cardName, Card.SKILL, 2, Card.RARE);
+            this.heal = heal;
+            healPlayer = true;
+            exhaustWhenPlayed = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.healPlayer(heal);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class NotYet extends _NotYetT {
+        public NotYet() {
+            super("Not Yet", 10);
+        }
+    }
+
+    public static class NotYetP extends _NotYetT {
+        public NotYetP() {
+            super("Not Yet+", 13);
+        }
+    }
 
     // **************************************************************************************************
     // ********************************************* Event  *********************************************

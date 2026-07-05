@@ -187,7 +187,7 @@ public class CardManager {
         cards.add(new CardColorless2.Panache());
         cards.add(new CardColorless2.PrepTime());
         cards.add(new CardColorless2.Prowess());
-        // cards.add(new CardColorless2.Stratagem()); // TODO
+        cards.add(new CardColorless2.Stratagem());
         cards.add(new CardColorless2.Catastrophe());
         cards.add(new CardColorless2.DarkShackles());
         cards.add(new CardColorless2.Discovery());
@@ -756,7 +756,9 @@ public class CardManager {
             cards.add(new CardIronclad2.Brand());
             cards.add(new CardIronclad2.Cascade());
             cards.add(new CardIronclad2.Impervious());
-            // cards.add(new CardIronclad2.NotYet()); // TODO
+            if (generateHealingCard) {
+                cards.add(new CardIronclad2.NotYet());
+            }
             cards.add(new CardIronclad2.Offering());
             cards.add(new CardIronclad2.OneTwoPunch());
             cards.add(new CardIronclad2.PrimalForce());

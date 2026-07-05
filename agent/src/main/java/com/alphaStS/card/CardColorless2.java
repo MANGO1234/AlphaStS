@@ -704,9 +704,50 @@ public class CardColorless2 {
         }
     }
 
-    // TODO: Stratagem (Uncommon) - 1 energy, Power
+    // Stratagem (Uncommon) - 1 energy, Power
     //   Effect: Whenever you shuffle your Draw Pile, choose a card from it to put into your Hand.
     //   Upgraded Effect (0 energy): Whenever you shuffle your Draw Pile, choose a card from it to put into your Hand.
+    private static abstract class _StratagemT extends Card {
+        public _StratagemT(String cardName, int energyCost) {
+            super(cardName, Card.POWER, energyCost, Card.UNCOMMON);
+            // entityProperty.selectFromDeck = true;
+            // selectFromDeckLater = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            // TODO: this seem very hard to implement...
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            // state.properties.registerCounter("Stratagem", this, new GameProperties.NetworkInputHandler() {
+            //     @Override public int addToInput(GameState state, float[] input, int idx) {
+            //         input[idx] = state.getCounterForRead()[counterIdx] / 3.0f;
+            //         return idx + 1;
+            //     }
+
+            //     @Override public int getInputLenDelta() {
+            //         return 1;
+            //     }
+
+            //     @Override public void onRegister(int counterIdx) {
+            //         state.properties.stratagemCounterIdx = counterIdx;
+            //     }
+            // });
+        }
+    }
+
+    public static class Stratagem extends _StratagemT {
+        public Stratagem() {
+            super("Stratagem", 1);
+        }
+    }
+
+    public static class StratagemP extends _StratagemT {
+        public StratagemP() {
+            super("Stratagem+", 0);
+        }
+    }
 
     // No need to implement Tag Team: Multiplayer
 

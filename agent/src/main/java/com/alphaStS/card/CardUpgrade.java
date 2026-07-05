@@ -418,7 +418,7 @@ public class CardUpgrade {
         map_sts2.put(new CardIronclad2.Brand(), new CardIronclad2.BrandP());
         map_sts2.put(new CardIronclad2.Cascade(), new CardIronclad2.CascadeP());
         map_sts2.put(new CardIronclad2.Impervious(), new CardIronclad2.ImperviousP());
-        // map_sts2.put(new CardIronclad2.NotYet(), new CardIronclad2.NotYetP()); // TODO
+        map_sts2.put(new CardIronclad2.NotYet(), new CardIronclad2.NotYetP());
         map_sts2.put(new CardIronclad2.Offering(), new CardIronclad2.OfferingP());
         map_sts2.put(new CardIronclad2.OneTwoPunch(), new CardIronclad2.OneTwoPunchP());
         map_sts2.put(new CardIronclad2.PrimalForce(), new CardIronclad2.PrimalForceP());
@@ -876,7 +876,7 @@ public class CardUpgrade {
         map_sts2.put(new CardColorless2.Panache(), new CardColorless2.PanacheP());
         map_sts2.put(new CardColorless2.PrepTime(), new CardColorless2.PrepTimeP());
         map_sts2.put(new CardColorless2.Prowess(), new CardColorless2.ProwessP());
-        // map_sts2.put(new CardColorless2.Stratagem(), new CardColorless2.StratagemP()); // TODO
+        map_sts2.put(new CardColorless2.Stratagem(), new CardColorless2.StratagemP());
         map_sts2.put(new CardColorless2.Catastrophe(), new CardColorless2.CatastropheP());
         map_sts2.put(new CardColorless2.DarkShackles(), new CardColorless2.DarkShacklesP());
         map_sts2.put(new CardColorless2.Discovery(), new CardColorless2.DiscoveryP());
