@@ -167,7 +167,6 @@ public class CardManager {
         cards.add(new CardColorless2.Alchemize(0, 0, 0));
         cards.add(new CardColorless2.Anointed());
         cards.add(new CardColorless2.BeatDown());
-        // cards.add(new CardColorless2.HiddenGem()); // TODO
         cards.add(new CardColorless2.MasterOfStrategy());
         cards.add(new CardColorless2.Scrawl());
         cards.add(new CardColorless2.SecretTechnique());
@@ -224,6 +223,8 @@ public class CardManager {
             // cards.add(new CardColorless2.MadScience()); // TODO
             cards.add(new CardColorless2.Metamorphosis());
             cards.add(new CardColorless2.ToricToughness());
+            cards.add(new CardColorless2.Alchemize(0, 0, 0));
+            cards.add(new CardColorless2.HiddenGem());
             cards.add(new CardColorless2.GiantRock());
             cards.add(new CardColorless2.MinionDiveBomb());
             cards.add(new CardColorless2.MinionStrike());
@@ -234,43 +235,6 @@ public class CardManager {
             cards.add(new CardColorless2.Luminesce());
             cards.add(new CardColorless2.MinionSacrifice());
             cards.add(new CardColorless2.Soul());
-            cards.add(new CardOther2.AscendersBane());
-            cards.add(new CardOther2.BadLuck());
-            cards.add(new CardOther2.Clumsy());
-            cards.add(new CardOther2.CurseOfTheBell());
-            // cards.add(new CardOther2.Debt()); // TODO
-            cards.add(new CardOther2.Decay());
-            cards.add(new CardOther2.Doubt());
-            cards.add(new CardOther2.Enthralled());
-            cards.add(new CardOther2.Folly());
-            cards.add(new CardOther2.Greed());
-            cards.add(new CardOther2.Guilty());
-            cards.add(new CardOther2.Injury());
-            cards.add(new CardOther2.Normality());
-            cards.add(new CardOther2.PoorSleep());
-            cards.add(new CardOther2.Regret());
-            cards.add(new CardOther2.Shame());
-            cards.add(new CardOther2.SporeMind());
-            cards.add(new CardOther2.Writhe());
-            cards.add(new CardOther2.ByrdonisEgg());
-            cards.add(new CardOther2.LanternKey());
-            cards.add(new CardOther2.SpoilsMap());
-            cards.add(new CardOther2.Beckon());
-            cards.add(new CardOther2.Burn());
-            cards.add(new CardOther2.Dazed());
-            cards.add(new CardOther2.Debris());
-            cards.add(new CardOther2.Disintegration());
-            cards.add(new CardOther2.FranticEscape());
-            cards.add(new CardOther2.Infection());
-            // cards.add(new CardOther2.MindRot()); // TODO
-            cards.add(new CardOther2.Slimed());
-            // cards.add(new CardOther2.Sloth()); // TODO
-            cards.add(new CardOther2.Soot());
-            cards.add(new CardOther2.Toxic());
-            cards.add(new CardOther2.Void());
-            // cards.add(new CardOther2.WasteAway()); // TODO
-            cards.add(new CardOther2.Wither());
-            cards.add(new CardOther2.Wound());
         }
         return cards;
     }
