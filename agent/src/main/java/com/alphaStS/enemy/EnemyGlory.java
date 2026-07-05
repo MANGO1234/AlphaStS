@@ -14,6 +14,7 @@ import com.alphaStS.eventHandler.OnDamageHandler;
 import com.alphaStS.random.RandomGen;
 import com.alphaStS.random.RandomGenCtx;
 
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -225,6 +226,10 @@ public class EnemyGlory {
             return "Axebot";
         }
 
+        @Override public void interactiveModePrint(GameState state, PrintStream out) {
+            out.println("  Stock: " + stock);
+        }
+
         @Override public String toString(GameState state) {
             String s = super.toString(state);
             return stock == 2 ? s : s.subSequence(0, s.length() - 1) + ", stock=" + stock + "}";
@@ -424,6 +429,10 @@ public class EnemyGlory {
                 input[idx + 3] = 0.5f;
             }
             return 4;
+        }
+
+        @Override public void interactiveModePrint(GameState state, PrintStream out) {
+            out.println("  Last Summoned Bot: " + (lastSummonedBot == null ? "None" : lastSummonedBot.getSimpleName()));
         }
     }
 
@@ -703,6 +712,10 @@ public class EnemyGlory {
         @Override public int writeNNInput(GameProperties prop, float[] input, int idx) {
             input[idx] = usedBeetleCharge ? 0.5f : 0.0f;
             return 1;
+        }
+
+        @Override public void interactiveModePrint(GameState state, PrintStream out) {
+            out.println("  Used Beetle Charge: " + usedBeetleCharge);
         }
     }
 
@@ -1023,6 +1036,10 @@ public class EnemyGlory {
         @Override public String getName() {
             return "Magi Knight";
         }
+
+        @Override public void interactiveModePrint(GameState state, PrintStream out) {
+            out.println("  Dampen Active: " + dampenActive);
+        }
     }
 
     public static class MechaKnight extends Enemy {
@@ -1203,6 +1220,10 @@ public class EnemyGlory {
         @Override public int writeNNInput(GameProperties prop, float[] input, int idx) {
             input[idx] = soar / 2f;
             return 1;
+        }
+
+        @Override public void interactiveModePrint(GameState state, PrintStream out) {
+            out.println("  Soar: " + soar);
         }
     }
 
@@ -1879,6 +1900,10 @@ public class EnemyGlory {
             return 3;
         }
 
+        @Override public void interactiveModePrint(GameState state, PrintStream out) {
+            out.println("  Intangible: " + intangible);
+        }
+
         @Override public List<Card> getPossibleGeneratedCards(GameProperties prop, List<Card> cards) {
             return List.of(new CardOther2.Wound(), new CardOther2.Burn());
         }
@@ -1972,6 +1997,10 @@ public class EnemyGlory {
         @Override public int writeNNInput(GameProperties prop, float[] input, int idx) {
             input[idx] = stolenStrength / 10f;
             return 1;
+        }
+
+        @Override public void interactiveModePrint(GameState state, PrintStream out) {
+            out.println("  Stolen Strength: " + stolenStrength);
         }
     }
 
@@ -2072,6 +2101,10 @@ public class EnemyGlory {
             input[idx] = stolenDexterity / 10f;
             input[idx + 1] = dexterity / 10f;
             return 2;
+        }
+
+        @Override public void interactiveModePrint(GameState state, PrintStream out) {
+            out.println("  Stolen Dexterity: " + stolenDexterity);
         }
     }
 

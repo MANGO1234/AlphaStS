@@ -256,6 +256,10 @@ public class EnemyUnderdock {
             input[idx + 1] = vigor / 12.0f;
             return 2;
         }
+
+        @Override public void interactiveModePrint(GameState state, PrintStream out) {
+            out.println("  Vigor: " + vigor);
+        }
     }
 
     public static class CorpseSlug extends Enemy {
@@ -1501,6 +1505,10 @@ public class EnemyUnderdock {
             input[idx] = thorn / 10.0f;
             return 1;
         }
+
+        @Override public void interactiveModePrint(GameState state, PrintStream out) {
+            out.println("  Thorns: " + thorn);
+        }
     }
 
     public static class TwoTailedRat extends Enemy {
@@ -1650,6 +1658,12 @@ public class EnemyUnderdock {
             input[idx + 1] = summonedBackup ? 0.5f : 0.0f;
             return 2;
         }
+
+        @Override public void interactiveModePrint(GameState state, PrintStream out) {
+            if (summonedBackup) {
+                out.println("  Summoned Backup: " + summonedBackup);
+            }
+        }
     }
 
     public static class WaterfallGiant extends Enemy {
@@ -1796,6 +1810,11 @@ public class EnemyUnderdock {
         @Override public boolean equals(Object o) {
             return super.equals(o) && steamEruption == ((WaterfallGiant) o).steamEruption &&
                     pressureGunCount == ((WaterfallGiant) o).pressureGunCount;
+        }
+
+        @Override public void interactiveModePrint(GameState state, PrintStream out) {
+            out.println("  Steam Eruption: " + steamEruption);
+            out.println("  Pressure Gun Current Damage: " + getPressureGunDamage());
         }
 
         @Override public int getNNInputLen(GameProperties prop) {

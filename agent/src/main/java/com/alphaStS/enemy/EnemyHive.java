@@ -535,6 +535,10 @@ public class EnemyHive {
             input[idx] = personalHive / 3.0f;
             return 1;
         }
+
+        @Override public void interactiveModePrint(GameState state, PrintStream out) {
+            out.println("  Personal Hive: " + personalHive);
+        }
     }
 
     public static class Exoskeleton extends Enemy {
@@ -916,6 +920,10 @@ public class EnemyHive {
             input[idx] = curseCount / 3.0f;
             return 1;
         }
+
+        @Override public void interactiveModePrint(GameState state, PrintStream out) {
+            out.println("  Curse Count: " + curseCount);
+        }
     }
 
     public static class LouseProgenitor extends Enemy {
@@ -1010,6 +1018,10 @@ public class EnemyHive {
         @Override public int writeNNInput(GameProperties prop, float[] input, int idx) {
             input[idx] = hasCurledUp ? 0.5f : 0.0f;
             return 1;
+        }
+
+        @Override public void interactiveModePrint(GameState state, PrintStream out) {
+            out.println("  Curled Up: " + hasCurledUp);
         }
     }
 
@@ -1262,6 +1274,11 @@ public class EnemyHive {
             input[idx + 1] = hatchling ? 0.5f : 0.0f;
             return 2;
         }
+
+        @Override public void interactiveModePrint(GameState state, PrintStream out) {
+            out.println("  Hatch Timer: " + hatchTimer);
+            out.println("  Hatchling: " + hatchling);
+        }
     }
 
     public static class SlumberingBeetle extends Enemy {
@@ -1442,6 +1459,10 @@ public class EnemyHive {
         @Override public int writeNNInput(GameProperties prop, float[] input, int idx) {
             input[idx] = thorn / 15.0f;
             return 1;
+        }
+
+        @Override public void interactiveModePrint(GameState state, PrintStream out) {
+            out.println("  Thorns: " + thorn);
         }
 
         public int getThorn() {
@@ -1803,6 +1824,12 @@ public class EnemyHive {
                     && flutter == ((ThievingHopper) o).flutter
                     && flutterHits == ((ThievingHopper) o).flutterHits
                     && stolenCards == ((ThievingHopper) o).stolenCards;
+        }
+
+        @Override public void interactiveModePrint(GameState state, PrintStream out) {
+            if (flutter) {
+                out.println("  Flutter Remaining Hits: " + (5 - flutterHits));
+            }
         }
 
         @Override public int getNNInputLen(GameProperties prop) {

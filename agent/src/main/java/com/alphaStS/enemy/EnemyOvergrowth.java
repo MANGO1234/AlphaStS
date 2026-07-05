@@ -127,6 +127,10 @@ public class EnemyOvergrowth {
             input[idx] = slow / 20.0f;
             return 1;
         }
+
+        @Override public void interactiveModePrint(GameState state, PrintStream out) {
+            out.println("  Slow: " + slow);
+        }
     }
 
     public static class Byrdonis extends Enemy {
@@ -292,6 +296,10 @@ public class EnemyOvergrowth {
 
         @Override public String getName() {
             return "Ceremonial Beast";
+        }
+
+        @Override public void interactiveModePrint(GameState state, PrintStream out) {
+            out.println("  Plow Triggered: " + plowTriggered);
         }
     }
 
@@ -536,6 +544,20 @@ public class EnemyOvergrowth {
             input[idx] = randomPickNext ? 0.5f : 0.0f;
             return 1;
         }
+
+        @Override public void interactiveModePrint(GameState state, PrintStream out) {
+            if (randomPickNext) {
+                out.println("  Next Determined Move: Random");
+            } else if (move < 0) {
+                out.println("  Next Determined Move: " + getMoveString(state, ILLUSORY_SPORES));
+            } else if (move == ILLUSORY_SPORES) {
+                out.println("  Next Determined Move: " + getMoveString(state, THWACK));
+            } else if (move == THWACK) {
+                out.println("  Next Determined Move: " + getMoveString(state, HEADBUTT));
+            } else if (move == HEADBUTT) {
+                out.println("  Next Determined Move: " + getMoveString(state, THWACK));
+            }
+        }
     }
 
     // TODO: missing self revive
@@ -771,6 +793,10 @@ public class EnemyOvergrowth {
             input[idx] = ((float) slippery) / 9.0f;
             return 1;
         }
+
+        @Override public void interactiveModePrint(GameState state, PrintStream out) {
+            out.println("  Slippery: " + slippery);
+        }
     }
 
     public static class Mawler extends Enemy {
@@ -857,6 +883,10 @@ public class EnemyOvergrowth {
         @Override public int writeNNInput(GameProperties prop, float[] input, int idx) {
             input[idx] = usedRoar ? 0.5f : 0.0f;
             return 1;
+        }
+
+        @Override public void interactiveModePrint(GameState state, PrintStream out) {
+            out.println("  Used Roar: " + usedRoar);
         }
     }
 
@@ -1837,7 +1867,7 @@ public class EnemyOvergrowth {
         }
 
         @Override public void interactiveModePrint(GameState state, PrintStream out) {
-            out.println("  Slippery " + slippery);
+            out.println("  Slippery: " + slippery);
         }
 
         @Override public int damage(double n, GameState state) {
