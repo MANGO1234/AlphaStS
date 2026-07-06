@@ -220,7 +220,15 @@ public class CardManager {
             cards.add(new CardColorless2.Squash());
             cards.add(new CardColorless2.Enlightenment());
             cards.add(new CardColorless2.FeedingFrenzy());
-            // cards.add(new CardColorless2.MadScience()); // TODO
+            cards.add(new CardColorless2.MadScienceChaos());
+            cards.add(new CardColorless2.MadScienceChoking());
+            cards.add(new CardColorless2.MadScienceCurious());
+            cards.add(new CardColorless2.MadScienceEnergized());
+            cards.add(new CardColorless2.MadScienceExpertise());
+            cards.add(new CardColorless2.MadScienceImprovement(0.0));
+            cards.add(new CardColorless2.MadScienceSapping());
+            cards.add(new CardColorless2.MadScienceViolence());
+            cards.add(new CardColorless2.MadScienceWisdom());
             cards.add(new CardColorless2.Metamorphosis());
             cards.add(new CardColorless2.ToricToughness());
             cards.add(new CardColorless2.Alchemize(0, 0, 0));

@@ -1361,6 +1361,10 @@ public final class GameState implements State {
         if (properties.borrowedTimeCounterIdx >= 0) {
             cost += counter[properties.borrowedTimeCounterIdx];
         }
+        if (properties.madScienceCuriousCounterIdx >= 0 && properties.cardDict[cardIdx].cardType == Card.POWER) {
+            cost -= counter[properties.madScienceCuriousCounterIdx];
+            cost = Math.max(0, cost);
+        }
         return cost;
     }
 

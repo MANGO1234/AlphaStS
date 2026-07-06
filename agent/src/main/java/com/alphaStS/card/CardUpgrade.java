@@ -828,7 +828,15 @@ public class CardUpgrade {
         map_sts2.put(new CardColorless2.Squash(), new CardColorless2.SquashP());
         map_sts2.put(new CardColorless2.Enlightenment(), new CardColorless2.EnlightenmentP());
         map_sts2.put(new CardColorless2.FeedingFrenzy(), new CardColorless2.FeedingFrenzyP());
-        // map_sts2.put(new CardColorless2.MadScience(), new CardColorless2.MadScienceP()); // TODO
+        map_sts2.put(new CardColorless2.MadScienceChaos(), new CardColorless2.MadScienceChaosP());
+        map_sts2.put(new CardColorless2.MadScienceChoking(), new CardColorless2.MadScienceChokingP());
+        map_sts2.put(new CardColorless2.MadScienceCurious(), new CardColorless2.MadScienceCuriousP());
+        map_sts2.put(new CardColorless2.MadScienceEnergized(), new CardColorless2.MadScienceEnergizedP());
+        map_sts2.put(new CardColorless2.MadScienceExpertise(), new CardColorless2.MadScienceExpertiseP());
+        map_sts2.put(new CardColorless2.MadScienceImprovement(0.0), new CardColorless2.MadScienceImprovementP(0.0));
+        map_sts2.put(new CardColorless2.MadScienceSapping(), new CardColorless2.MadScienceSappingP());
+        map_sts2.put(new CardColorless2.MadScienceViolence(), new CardColorless2.MadScienceViolenceP());
+        map_sts2.put(new CardColorless2.MadScienceWisdom(), new CardColorless2.MadScienceWisdomP());
         map_sts2.put(new CardColorless2.Metamorphosis(), new CardColorless2.MetamorphosisP());
         map_sts2.put(new CardColorless2.ToricToughness(), new CardColorless2.ToricToughnessP());
         map_sts2.put(new CardColorless2.Bolas(), new CardColorless2.BolasP());

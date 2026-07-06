@@ -4,6 +4,7 @@ import com.alphaStS.*;
 import com.alphaStS.action.BeatDownContinueAction;
 import com.alphaStS.action.CatastropheContinueAction;
 import com.alphaStS.enemy.Enemy;
+import com.alphaStS.enemy.PredefinedEncounter;
 import com.alphaStS.enums.CharacterEnum;
 import com.alphaStS.enums.DebuffType;
 import com.alphaStS.eventHandler.GameEventCardHandler;
@@ -1483,6 +1484,9 @@ public class CardColorless2 {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
+            if ((state.properties.generateCardOptions & GameProperties.GENERATE_CARD_JACKPOT) == 0) {
+                return GameActionCtx.PLAY_CARD;
+            }
             for (int i = 0; i < 3; i++) {
                 int randomIdx = state.getSearchRandomGen().nextInt(generatedCardIdxes.length, RandomGenCtx.RandomCardGen, new Tuple<>(state, generatedCardIdxes));
                 state.addCardToHand(state.createCard(generatedCardIdxes[randomIdx]));
@@ -1491,6 +1495,9 @@ public class CardColorless2 {
         }
 
         @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            if ((properties.generateCardOptions & GameProperties.GENERATE_CARD_JACKPOT) == 0) {
+                return List.of();
+            }
             var zeroCostCards = CardManager.getCharacter0CostCardsByType(properties.character);
             return upgraded ? zeroCostCards.stream().map(Card::getUpgrade).filter(Objects::nonNull).toList() : zeroCostCards;
         }
@@ -2014,9 +2021,349 @@ public class CardColorless2 {
         }
     }
 
-    // TODO: Mad Science (Event) - 1 energy, Skill
-    //   Effect: This card can be created and customized at the event Tinker Time.
-    //   Upgraded Effect: Innate This card can be created and customized at the event Tinker Time.
+    private static abstract class _MadScienceChaosT extends Card {
+        public _MadScienceChaosT(String cardName, boolean innate) {
+            super(cardName, Card.SKILL, 1, Card.RARE);
+            this.innate = innate;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.playerGainBlock(8);
+            if ((state.properties.generateCardOptions & GameProperties.GENERATE_CARD_MAD_SCIENCE_CHAOS) != 0) {
+                int randomIdx = state.getSearchRandomGen().nextInt(generatedCardIdxes.length, RandomGenCtx.RandomCardGen, new Tuple<>(state, generatedCardIdxes));
+                state.addCardToHand(state.createCard(generatedCardIdxes[randomIdx]));
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            if ((properties.generateCardOptions & GameProperties.GENERATE_CARD_MAD_SCIENCE_CHAOS) == 0) {
+                return List.of();
+            }
+            return CardManager.getCharacterCardsTmp0Cost(properties.character, false);
+        }
+    }
+
+    // Mad Science (Chaos) (Event) - 1 energy, Skill
+    //   Effect: Gain 8 Block. Add a random card into your Hand. It's free to play this turn.
+    //   Upgraded Effect: Innate. Gain 8 Block. Add a random card into your Hand. It's free to play this turn.
+    public static class MadScienceChaos extends _MadScienceChaosT {
+        public MadScienceChaos() {
+            super("Mad Science - Chaos", false);
+        }
+    }
+
+    public static class MadScienceChaosP extends _MadScienceChaosT {
+        public MadScienceChaosP() {
+            super("Mad Science - Chaos+", true);
+        }
+    }
+
+    private static abstract class _MadScienceChokingT extends Card {
+        public _MadScienceChokingT(String cardName, boolean innate) {
+            super(cardName, Card.ATTACK, 1, Card.RARE);
+            this.innate = innate;
+            this.entityProperty.chokeEnemy = true;
+            entityProperty.selectEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), 12, this);
+            state.getEnemiesForWrite().getForWrite(idx).applyDebuff(state, DebuffType.CHOKE, 6);
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.addOnPreCardPlayedHandler("Choke", new GameEventCardHandler() {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                    for (int i = 0; i < state.getEnemiesForRead().size(); i++) {
+                        if (state.getEnemiesForRead().get(i).getChoke() > 0) {
+                            state.playerDoNonAttackDamageToEnemy(state.getEnemiesForWrite().getForWrite(i), state.getEnemiesForRead().get(i).getChoke(), false);
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    // Mad Science (Choking) (Event) - 1 energy, Attack
+    //   Effect: Deal 12 damage. Whenever you play a card this turn, the enemy loses 6 HP.
+    //   Upgraded Effect: Innate. Deal 12 damage. Whenever you play a card this turn, the enemy loses 6 HP.
+    public static class MadScienceChoking extends _MadScienceChokingT {
+        public MadScienceChoking() {
+            super("Mad Science - Choking", false);
+        }
+    }
+
+    public static class MadScienceChokingP extends _MadScienceChokingT {
+        public MadScienceChokingP() {
+            super("Mad Science - Choking+", true);
+        }
+    }
+
+    // Mad Science (Curious) (Event) - 1 energy, Power
+    //   Effect: Powers cost 1 energy less.
+    //   Upgraded Effect: Innate. Powers cost 1 energy less.
+    private static abstract class _MadScienceCuriousT extends Card {
+        public _MadScienceCuriousT(String cardName, boolean innate) {
+            super(cardName, Card.POWER, 1, Card.RARE);
+            this.innate = innate;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getCounterForWrite()[counterIdx]++;
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("MadScienceCurious", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 3.0f;
+                    return idx + 1;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+        }
+
+        @Override public void setCounterIdx(GameProperties gameProperties, int idx) {
+            super.setCounterIdx(gameProperties, idx);
+            gameProperties.madScienceCuriousCounterIdx = idx;
+        }
+    }
+
+    public static class MadScienceCurious extends _MadScienceCuriousT {
+        public MadScienceCurious() {
+            super("Mad Science - Curious", false);
+        }
+    }
+
+    public static class MadScienceCuriousP extends _MadScienceCuriousT {
+        public MadScienceCuriousP() {
+            super("Mad Science - Curious+", true);
+        }
+    }
+
+    private static abstract class _MadScienceEnergizedT extends Card {
+        public _MadScienceEnergizedT(String cardName, boolean innate) {
+            super(cardName, Card.SKILL, 1, Card.RARE);
+            this.innate = innate;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.playerGainBlock(8);
+            state.gainEnergy(2);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    // Mad Science (Energized) (Event) - 1 energy, Skill
+    //   Effect: Gain 8 Block. Gain 2 energy.
+    //   Upgraded Effect: Innate. Gain 8 Block. Gain 2 energy.
+    public static class MadScienceEnergized extends _MadScienceEnergizedT {
+        public MadScienceEnergized() {
+            super("Mad Science - Energized", false);
+        }
+    }
+
+    public static class MadScienceEnergizedP extends _MadScienceEnergizedT {
+        public MadScienceEnergizedP() {
+            super("Mad Science - Energized+", true);
+        }
+    }
+
+    // Mad Science (Expertise) (Event) - 1 energy, Power
+    //   Effect: Gain 2 Strength. Gain 2 Dexterity.
+    //   Upgraded Effect: Innate. Gain 2 Strength. Gain 2 Dexterity.
+    private static abstract class _MadScienceExpertiseT extends Card {
+        public _MadScienceExpertiseT(String cardName, boolean innate) {
+            super(cardName, Card.POWER, 1, Card.RARE);
+            this.innate = innate;
+            entityProperty.changePlayerStrength = true;
+            entityProperty.changePlayerDexterity = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.playerGainStrength(2);
+            state.getPlayerForWrite().gainDexterity(2);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class MadScienceExpertise extends _MadScienceExpertiseT {
+        public MadScienceExpertise() {
+            super("Mad Science - Expertise", false);
+        }
+    }
+
+    public static class MadScienceExpertiseP extends _MadScienceExpertiseT {
+        public MadScienceExpertiseP() {
+            super("Mad Science - Expertise+", true);
+        }
+    }
+
+    // Mad Science (Improvement) (Event) - 1 energy, Power
+    //   Effect: At the end of combat, Upgrade a random card.
+    //   Upgraded Effect: Innate. At the end of combat, Upgrade a random card.
+    private static abstract class _MadScienceImprovementT extends Card {
+        private final double healthRewardRatio;
+
+        public _MadScienceImprovementT(String cardName, boolean innate, double healthRewardRatio) {
+            super(cardName, Card.POWER, 1, Card.RARE);
+            this.innate = innate;
+            this.healthRewardRatio = healthRewardRatio;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getCounterForWrite()[counterIdx]++;
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            if ((properties.generateCardOptions & GameProperties.GENERATE_CARD_MAD_SCIENCE_IMPROVEMENT) == 0) {
+                return List.of();
+            }
+            return cards.stream().map(Card::getUpgrade).filter(Objects::nonNull).toList();
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("MadScienceImprovement", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 3.0f;
+                    return idx + 1;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            if (healthRewardRatio > 0) {
+                state.properties.addExtraTrainingTarget("MadScienceImprovement", this, new TrainingTarget() {
+                    @Override public void fillVArray(GameState state, VArray v, int isTerminal) {
+                        if (isTerminal > 0) {
+                            v.setVExtra(vExtraIdx, state.getCounterForRead()[counterIdx] / 10.0);
+                        }
+                    }
+
+                    @Override public void updateQValues(GameState state, VArray v) {
+                        if (!state.isEncounter(PredefinedEncounter.CORRUPT_HEART)) {
+                            v.add(GameState.V_HEALTH_IDX, 10 * v.getVExtra(vExtraIdx) * healthRewardRatio / state.getPlayerForRead().getMaxHealth());
+                        }
+                    }
+                });
+            }
+        }
+    }
+
+    public static class MadScienceImprovement extends _MadScienceImprovementT {
+        public MadScienceImprovement() { this(2); }
+
+        public MadScienceImprovement(double healthRewardRatio) {
+            super("Mad Science - Improvement", false, healthRewardRatio);
+        }
+    }
+
+    public static class MadScienceImprovementP extends _MadScienceImprovementT {
+        public MadScienceImprovementP() { this(2); }
+
+        public MadScienceImprovementP(double healthRewardRatio) {
+            super("Mad Science - Improvement+", true, healthRewardRatio);
+        }
+    }
+
+    private static abstract class _MadScienceSappingT extends Card {
+        public _MadScienceSappingT(String cardName, boolean innate) {
+            super(cardName, Card.ATTACK, 1, Card.RARE);
+            this.innate = innate;
+            this.entityProperty.vulnEnemy = true;
+            this.entityProperty.weakEnemy = true;
+            entityProperty.selectEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            Enemy enemy = state.getEnemiesForWrite().getForWrite(idx);
+            state.playerDoDamageToEnemy(enemy, 12, this);
+            enemy.applyDebuff(state, DebuffType.WEAK, 2);
+            enemy.applyDebuff(state, DebuffType.VULNERABLE, 2);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    // Mad Science (Sapping) (Event) - 1 energy, Attack
+    //   Effect: Deal 12 damage. Apply 2 Weak. Apply 2 Vulnerable.
+    //   Upgraded Effect: Innate. Deal 12 damage. Apply 2 Weak. Apply 2 Vulnerable.
+    public static class MadScienceSapping extends _MadScienceSappingT {
+        public MadScienceSapping() {
+            super("Mad Science - Sapping", false);
+        }
+    }
+
+    public static class MadScienceSappingP extends _MadScienceSappingT {
+        public MadScienceSappingP() {
+            super("Mad Science - Sapping+", true);
+        }
+    }
+
+    private static abstract class _MadScienceViolenceT extends Card {
+        public _MadScienceViolenceT(String cardName, boolean innate) {
+            super(cardName, Card.ATTACK, 1, Card.RARE);
+            this.innate = innate;
+            entityProperty.selectEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            Enemy enemy = state.getEnemiesForWrite().getForWrite(idx);
+            for (int i = 0; i < 3; i++) {
+                state.playerDoDamageToEnemy(enemy, 12, this);
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    // Mad Science (Violence) (Event) - 1 energy, Attack
+    //   Effect: Deal 12 damage 3 times.
+    //   Upgraded Effect: Innate. Deal 12 damage 3 times.
+    public static class MadScienceViolence extends _MadScienceViolenceT {
+        public MadScienceViolence() {
+            super("Mad Science - Violence", false);
+        }
+    }
+
+    public static class MadScienceViolenceP extends _MadScienceViolenceT {
+        public MadScienceViolenceP() {
+            super("Mad Science - Violence+", true);
+        }
+    }
+
+    private static abstract class _MadScienceWisdomT extends Card {
+        public _MadScienceWisdomT(String cardName, boolean innate) {
+            super(cardName, Card.SKILL, 1, Card.RARE);
+            this.innate = innate;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.playerGainBlock(8);
+            state.draw(3);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    // Mad Science (Wisdom) (Event) - 1 energy, Skill
+    //   Effect: Gain 8 Block. Draw 3 cards.
+    //   Upgraded Effect: Innate. Gain 8 Block. Draw 3 cards.
+    public static class MadScienceWisdom extends _MadScienceWisdomT {
+        public MadScienceWisdom() {
+            super("Mad Science - Wisdom", false);
+        }
+    }
+
+    public static class MadScienceWisdomP extends _MadScienceWisdomT {
+        public MadScienceWisdomP() {
+            super("Mad Science - Wisdom+", true);
+        }
+    }
 
     // **************************************************************************************************
     // ********************************************* Ancient *********************************************
