@@ -899,6 +899,9 @@ public class MCTS {
         if (state.properties.happyFlowerCounterIdx >= 0 && state.getCounterForRead()[state.properties.happyFlowerCounterIdx] < 2) {
             return false;
         }
+        if (state.properties.pendulumCounterIdx >= 0 && state.getCounterForRead()[state.properties.pendulumCounterIdx] < 2) {
+            return false;
+        }
         if (state.properties.geneticAlgorithmCounterIdx >= 0 && CardDefect.GeneticAlgorithm.getMaxPossibleGARemaining(state) != 0) {
             return false;
         }

@@ -296,6 +296,7 @@ public class GameProperties implements Cloneable {
     public int otsyMaxHPCounterIdx = -1;
     public int paelsLegionCounterIdx = -1;
     public int penNibCounterIdx = -1;
+    public int pendulumCounterIdx = -1;
     public int phantasmalKillerCounterIdx = -1;
     public int phantomBladesCounterIdx = -1;
     public int platedArmorCounterIdx = -1;

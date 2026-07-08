@@ -4,6 +4,7 @@ import com.alphaStS.*;
 import com.alphaStS.card.CardColorless2;
 import com.alphaStS.enemy.Enemy;
 import com.alphaStS.enemy.EnemyReadOnly;
+import com.alphaStS.enemy.PredefinedEncounter;
 import com.alphaStS.enums.DebuffType;
 import com.alphaStS.enums.EnemyDeathCause;
 import com.alphaStS.enums.OrbType;
@@ -112,14 +113,76 @@ public class Relic2 {
     // Pendulum (Common)
     //   Effect: Every 3 turns, draw 1 card.
     public static class Pendulum extends Relic {
+        int n;
+        int healthReward;
+
+        public Pendulum() {
+            this(0, 0);
+        }
+
+        public Pendulum(int n, int healthReward) {
+            this.n = n;
+            this.healthReward = healthReward;
+        }
+
         @Override public void gamePropertiesSetup(GameState state) {
-            state.properties.addStartOfTurnHandler("Pendulum", new GameEventHandler() {
+            state.properties.registerCounter("Pendulum", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    var counter = state.getCounterForRead();
+                    input[idx] = (counter[counterIdx] == 0 ? 3 : counter[counterIdx]) / 3.0f;
+                    return idx + 1;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            }, true);
+            state.properties.addStartOfBattleHandler(new GameEventHandler() {
                 @Override public void handle(GameState state) {
-                    if (isRelicEnabledInScenario(state) && state.turnNum % 3 == 0) {
+                    if (isRelicEnabledInScenario(state)) {
+                        state.getCounterForWrite()[counterIdx] = n;
+                    }
+                }
+            });
+            state.properties.addStartOfTurnHandler(new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (!isRelicEnabledInScenario(state)) {
+                        return;
+                    }
+                    var counter = state.getCounterForWrite();
+                    counter[counterIdx]++;
+                    if (counter[counterIdx] == 3) {
+                        counter[counterIdx] = 0;
                         state.draw(1);
                     }
                 }
             });
+            if (healthReward > 0) {
+                state.properties.addExtraTrainingTarget("Pendulum", this, new TrainingTarget() {
+                    @Override public void fillVArray(GameState state, VArray v, int isTerminal) {
+                        if (isTerminal > 0) {
+                            v.setVExtra(vExtraIdx, state.getCounterForRead()[counterIdx] / 3.0);
+                        } else if (isTerminal == 0) {
+                            v.setVExtra(vExtraIdx, state.getVExtra(vExtraIdx));
+                        }
+                    }
+
+                    @Override public void updateQValues(GameState state, VArray v) {
+                        if (!state.isEncounter(PredefinedEncounter.CORRUPT_HEART)) {
+                            v.add(GameState.V_HEALTH_IDX, healthReward * v.getVExtra(vExtraIdx) / state.getPlayerForRead().getMaxHealth());
+                        }
+                    }
+                });
+            }
+        }
+
+        @Override public void setCounterIdx(GameProperties properties, int counterIdx) {
+            super.setCounterIdx(properties, counterIdx);
+            properties.pendulumCounterIdx = counterIdx;
+        }
+
+        @Override public CounterStat getCounterStat() {
+            return new CounterStat(counterIdx, "Pendulum").setShowFrequency(true);
         }
     }
 
