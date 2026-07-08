@@ -1,6 +1,8 @@
 package com.alphaStS;
 
+import java.util.EnumSet;
 import java.util.List;
+import java.util.Set;
 
 public class EntityProperty {
     public boolean changePlayerArtifact;
@@ -45,6 +47,7 @@ public class EntityProperty {
     public boolean canForge;
     public boolean needToKeepTrackOfEnemyHitCount;
     public boolean otsyAttack;
+    public Set<CombatExtraReward.CombatExtraRewardType> possibleCombatRewards = EnumSet.noneOf(CombatExtraReward.CombatExtraRewardType.class);
 
     public void addPossibleBuff(PlayerBuff buff) {
         possibleBuffs |= buff.mask();
@@ -96,6 +99,7 @@ public class EntityProperty {
         canForge |= other.canForge;
         needToKeepTrackOfEnemyHitCount |= other.needToKeepTrackOfEnemyHitCount;
         otsyAttack |= other.otsyAttack;
+        possibleCombatRewards.addAll(other.possibleCombatRewards);
     }
 
     public static EntityProperty aggregate(List<EntityProperty> list) {

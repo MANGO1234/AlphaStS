@@ -266,7 +266,7 @@ public class GameProperties implements Cloneable {
     public int forgeCounterIdx = -1;
     public int geneticAlgorithmCounterIdx = -1;
     public int gigantificationCounterIdx = -1;
-    public int handOfGreedCounterIdx = -1;
+    public int goldRewardCounterIdx = -1;
     public int happyFlowerCounterIdx = -1;
     public int havocCounterIdx = -1;
     public int hoveringKiteCounterIdx = -1;
@@ -307,7 +307,6 @@ public class GameProperties implements Cloneable {
     public int regenerationCounterIdx = -1;
     public int retainHandCounterIdx = -1;
     public int ritualDaggerCounterIdx = -1;
-    public int royaltiesGoldCounterIdx = -1;
     public int sadisticNatureCounterIdx = -1;
     public int sandpitCounterIdx = -1;
     public int selfRepairCounterIdx = -1;
@@ -409,8 +408,10 @@ public class GameProperties implements Cloneable {
     public int fightProgressVExtraIdx = -1;
     public int turnsLeftVExtraIdx = -1;
     public int zeroDmgProbVExtraIdx = -1;
+    public int goldRewardVExtraIdx = -1;
     public int alchemizeVExtraIdx = -1;
     public int[] potionsVExtraIdx;
+    public CombatExtraReward combatExtraReward = new CombatExtraReward();
 
     // ***************************************************************************************************************
     // ************************************************* Main ********************************************************

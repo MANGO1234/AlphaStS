@@ -843,6 +843,9 @@ public class CardColorless {
             this.n = n;
             entityProperty.selectEnemy = true;
             this.healthRewardRatio = healthRewardRatio;
+            if (healthRewardRatio > 0) {
+                entityProperty.possibleCombatRewards.add(CombatExtraReward.CombatExtraRewardType.GOLD_REWARD);
+            }
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -851,85 +854,25 @@ public class CardColorless {
                 if (state.getEnemiesForRead().get(idx) instanceof EnemyBeyond.Darkling ||
                         state.getEnemiesForRead().get(idx) instanceof EnemyBeyond.AwakenedOne) {
                     if (state.isTerminal() > 0) {
-                        state.getCounterForWrite()[counterIdx] += n;
+                        gainCombatGoldReward(state);
                     }
                 } else if (!(state.getEnemiesForRead().get(idx) instanceof EnemyEnding.CorruptHeart)) {
-                    state.getCounterForWrite()[counterIdx] += n;
+                    gainCombatGoldReward(state);
                 }
             }
             return GameActionCtx.PLAY_CARD;
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
-            state.properties.registerCounter("HandOFGreed", this, healthRewardRatio == 0 ? null : new GameProperties.NetworkInputHandler() {
-                @Override public int addToInput(GameState state, float[] input, int idx) {
-                    input[idx] = state.getCounterForRead()[counterIdx] / 100.0f;
-                    return idx + 1;
-                }
-                @Override public int getInputLenDelta() {
-                    return 1;
-                }
-            });
             if (healthRewardRatio > 0) {
-                state.properties.addExtraTrainingTarget("HandOFGreed", this, new TrainingTarget() {
-                    @Override public void fillVArray(GameState state, VArray v, int isTerminal) {
-                        if (isTerminal > 0) {
-                            v.setVExtra(vExtraIdx, state.getCounterForRead()[counterIdx] / 100.0);
-                        } else if (isTerminal == 0) {
-                            int minHandOfGreed = state.getCounterForRead()[counterIdx];
-                            int maxHandOfGreedRemaining = getMaxPossibleHandOfGreedRemaining(state, true);
-                            double vHandOfGreed = Math.max(minHandOfGreed / 100.0, Math.min((minHandOfGreed + maxHandOfGreedRemaining) / 100.0, state.getVExtra(vExtraIdx)));
-                            v.setVExtra(vExtraIdx, vHandOfGreed);
-                        }
-                    }
-
-                    @Override public void updateQValues(GameState state, VArray v) {
-                        int minHandOfGreed = state.getCounterForRead()[counterIdx];
-                        int maxHandOfGreedRemaining = getMaxPossibleHandOfGreedRemaining(state, true);
-                        double vHandOfGreed = Math.max(minHandOfGreed / 100.0, Math.min((minHandOfGreed + maxHandOfGreedRemaining) / 100.0, v.getVExtra(vExtraIdx)));
-                        if (!state.isEncounter(PredefinedEncounter.CORRUPT_HEART)) {
-                            v.add(GameState.V_HEALTH_IDX, 100 * vHandOfGreed * healthRewardRatio / 20.0 / state.getPlayerForRead().getMaxHealth());
-                        }
-                    }
-                });
+                state.properties.combatExtraReward.setExtraReward(CombatExtraReward.CombatExtraRewardType.GOLD_REWARD, healthRewardRatio);
             }
         }
 
-        @Override public void setCounterIdx(GameProperties gameProperties, int idx) {
-            counterIdx = idx;
-            gameProperties.handOfGreedCounterIdx = idx;
-        }
-
-        @Override public CounterStat getCounterStat() {
-            return new CounterStat(counterIdx, "Hand of Greed").setShowFrequency(true);
-        }
-
-        public static int getMaxPossibleHandOfGreedRemaining(GameState state, boolean checkEndOfGame) {
-            if (state.properties.handOfGreedCounterIdx < 0) {
-                return 0;
+        private void gainCombatGoldReward(GameState state) {
+            if (state.properties.goldRewardCounterIdx >= 0) {
+                state.getCounterForWrite()[state.properties.goldRewardCounterIdx] += n;
             }
-            if (checkEndOfGame && state.isTerminal() != 0) {
-                return 0;
-            }
-            int nonUpgrade = state.getNonExhaustCount("Hand of Greed");
-            boolean canUpgrade = false; // todo
-            if (!canUpgrade) {
-                int upgrade = state.getNonExhaustCount("Hand of Greed+");
-                if (upgrade > 0) {
-                    canUpgrade = true;
-                }
-            }
-            if (nonUpgrade == 0) {
-                return 0;
-            }
-            return canUpgrade ? 25 * state.enemiesAlive : 20 * state.enemiesAlive;
-        }
-
-        public static int getMaxPossibleHandOfGreed(GameState state) {
-            if (state.properties.handOfGreedCounterIdx < 0) {
-                return 0;
-            }
-            return state.getCounterForRead()[state.properties.handOfGreedCounterIdx] + getMaxPossibleHandOfGreedRemaining(state, false);
         }
     }
 

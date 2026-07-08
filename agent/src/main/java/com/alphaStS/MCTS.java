@@ -881,7 +881,7 @@ public class MCTS {
         if (state.playerTurnStartPotionCount != state.getPotionCount()) {
             return false;
         }
-        if (state.properties.handOfGreedCounterIdx >= 0 && state.playerTurnStartMaxHandOfGreed != state.getCounterForRead()[state.properties.handOfGreedCounterIdx]) {
+        if (state.properties.goldRewardCounterIdx >= 0 && state.playerTurnStartMaxGoldReward != state.getCounterForRead()[state.properties.goldRewardCounterIdx]) {
             return false;
         }
         if (state.properties.ritualDaggerCounterIdx >= 0 && state.playerTurnStartMaxRitualDagger != state.getCounterForRead()[state.properties.ritualDaggerCounterIdx]) {

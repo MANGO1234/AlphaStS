@@ -89,7 +89,7 @@ public final class GameState implements State {
     public short actionsInCurTurn;
     int playerTurnStartMaxPossibleHealth;
     byte playerTurnStartPotionCount;
-    byte playerTurnStartMaxHandOfGreed;
+    byte playerTurnStartMaxGoldReward;
     byte playerTurnStartMaxRitualDagger;
     public int preBattleRandomizationIdxChosen = -1;
     public int preBattleScenariosChosenIdx = -1;
@@ -688,6 +688,8 @@ public final class GameState implements State {
         if (Configuration.HEART_GAUNTLET_CARD_REWARD) {
             EnemyEncounter.heartGauntletSetup(this);
         }
+        properties.setupEntityProperties(cards, relics, potions, enemiesArg, getPlayerForRead().getArtifact() > 0);
+        properties.combatExtraReward.gamePropertiesSetup(this);
         if (properties.anyEntityProperty.canSummon) {
             properties.registerCounter("OtsyHP", new GameProperties.CounterRegistrant() {
                 @Override public void setCounterIdx(GameProperties gp, int idx) { gp.otsyHPCounterIdx = idx; }
@@ -739,7 +741,6 @@ public final class GameState implements State {
             properties.actionsByCtx[GameActionCtx.AFTER_RANDOMIZATION.ordinal()] = new GameAction[] { new GameAction(GameActionType.AFTER_RANDOMIZATION, 0) };
         }
 
-        properties.setupEntityProperties(cards, relics, potions, enemiesArg, getPlayerForRead().getArtifact() > 0);
         properties.previousCardPlayTracking = cards.stream().anyMatch((x) -> x.needsLastCardType);
 
         if (Configuration.USE_FIGHT_PROGRESS_WHEN_LOSING) {
@@ -1123,7 +1124,7 @@ public final class GameState implements State {
         actionsInCurTurn = other.actionsInCurTurn;
         playerTurnStartMaxPossibleHealth = other.playerTurnStartMaxPossibleHealth;
         playerTurnStartPotionCount = other.playerTurnStartPotionCount;
-        playerTurnStartMaxHandOfGreed = other.playerTurnStartMaxHandOfGreed;
+        playerTurnStartMaxGoldReward = other.playerTurnStartMaxGoldReward;
         playerTurnStartMaxRitualDagger = other.playerTurnStartMaxRitualDagger;
         preBattleRandomizationIdxChosen = other.preBattleRandomizationIdxChosen;
         preBattleScenariosChosenIdx = other.preBattleScenariosChosenIdx;
@@ -1933,7 +1934,7 @@ public final class GameState implements State {
             runActionsInQueueIfNonEmpty();
             playerTurnStartMaxPossibleHealth = getMaxPossibleHealth();
             playerTurnStartPotionCount = getPotionCount();
-            playerTurnStartMaxHandOfGreed = (byte) CardColorless.HandOfGreed.getMaxPossibleHandOfGreed(this);
+            playerTurnStartMaxGoldReward = (byte) CombatExtraReward.getMaxPossibleGoldReward(this, false);
             playerTurnStartMaxRitualDagger = (byte) CardColorless.RitualDagger.getMaxPossibleRitualDagger(this);
             gainEnergy(energyRefill);
             if (properties.character == CharacterEnum.WATCHER) {

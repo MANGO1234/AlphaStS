@@ -3340,56 +3340,22 @@ public class CardRegent2 {
             super(cardName, Card.POWER, 1, Card.RARE);
             this.goldAmount = goldAmount;
             this.healthRewardRatio = healthRewardRatio;
+            if (healthRewardRatio > 0) {
+                entityProperty.possibleCombatRewards.add(CombatExtraReward.CombatExtraRewardType.GOLD_REWARD);
+            }
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.getCounterForWrite()[counterIdx]++;
+            if (state.properties.goldRewardCounterIdx >= 0) {
+                state.getCounterForWrite()[state.properties.goldRewardCounterIdx] += goldAmount;
+            }
             return GameActionCtx.PLAY_CARD;
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
-            state.properties.registerCounter("RoyaltiesGold", this, 2, healthRewardRatio == 0 ? null : new GameProperties.NetworkInputHandler() {
-                @Override public int addToInput(GameState state, float[] input, int idx) {
-                    input[idx] = state.getCounterForRead()[counterIdx] / 3.0f;
-                    input[idx + 1] = state.getCounterForRead()[counterIdx + 1] / 100.0f;
-                    return idx + 2;
-                }
-                @Override public int getInputLenDelta() { return 2; }
-            });
             if (healthRewardRatio > 0) {
-                state.properties.addExtraTrainingTarget("RoyaltiesGold", this, new TrainingTarget() {
-                    @Override public void fillVArray(GameState state, VArray v, int isTerminal) {
-                        if (isTerminal > 0) {
-                            v.setVExtra(vExtraIdx, state.getCounterForRead()[counterIdx + 1] / 100.0);
-                        } else if (isTerminal == 0) {
-                            int goldReward = goldAmount * state.getCounterForRead()[counterIdx];
-                            double vGold = Math.max(state.getCounterForRead()[counterIdx + 1] / 100.0, Math.min((state.getCounterForRead()[counterIdx + 1] + goldReward) / 100.0, state.getVExtra(vExtraIdx)));
-                            v.setVExtra(vExtraIdx, vGold);
-                        }
-                    }
-                    @Override public void updateQValues(GameState state, VArray v) {
-                        int goldReward = goldAmount * state.getCounterForRead()[counterIdx];
-                        double vGold = Math.max(state.getCounterForRead()[counterIdx + 1] / 100.0, Math.min((state.getCounterForRead()[counterIdx + 1] + goldReward) / 100.0, v.getVExtra(vExtraIdx)));
-                        v.add(GameState.V_HEALTH_IDX, 100 * vGold * healthRewardRatio / 20.0 / state.getPlayerForRead().getMaxHealth());
-                    }
-                });
+                state.properties.combatExtraReward.setExtraReward(CombatExtraReward.CombatExtraRewardType.GOLD_REWARD, healthRewardRatio);
             }
-            state.properties.addEndOfBattleHandler("RoyaltiesGold", new GameEventHandler() {
-                @Override public void handle(GameState state) {
-                    if (state.isTerminal() > 0 && state.getCounterForRead()[counterIdx] > 0) {
-                        state.getCounterForWrite()[counterIdx + 1] += goldAmount * state.getCounterForRead()[counterIdx];
-                    }
-                }
-            });
-        }
-
-        @Override public void setCounterIdx(GameProperties gameProperties, int idx) {
-            counterIdx = idx;
-            gameProperties.royaltiesGoldCounterIdx = idx + 1;
-        }
-
-        @Override public CounterStat getCounterStat() {
-            return new CounterStat(counterIdx + 1, "Royalties Gold").setShowFrequency(true);
         }
     }
 
