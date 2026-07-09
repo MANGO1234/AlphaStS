@@ -37,6 +37,14 @@ public final class GameState implements State {
     public static final int V_HEALTH_IDX = 2;
     public static final int V_EXTRA_IDX_START = 3;
 
+    private static final int BEGIN_TURN_STAGE_TOOLBOX_DONE = 1;
+    private static final int BEGIN_TURN_STAGE_FOREGONE_CONCLUSION_DONE = 2;
+    private static final int BEGIN_TURN_STAGE_GAMBLING_CHIPS_DONE = 3;
+    private static final int BEGIN_TURN_STAGE_TOOLS_OF_THE_TRADE_DONE = 4;
+    private static final int BEGIN_TURN_STAGE_FORESIGHT_DONE = 5;
+    private static final int BEGIN_TURN_STAGE_TYRANNY_DONE = 6;
+    private static final int BEGIN_TURN_STAGE_ENTROPY_DONE = 7;
+
     public static final int DISCARD = 1;
     public static final int DECK = 2;
     public static final int EXHAUST = 3;
@@ -1968,11 +1976,11 @@ public final class GameState implements State {
             triggerOrbsPassiveStartOfTurn();
             removeBuff(PlayerBuff.USED_VAULT);
         }
-        if (stage < 1 && properties.toolbox != null && turnNum == 0 && properties.toolbox.isRelicEnabledInScenario(this)) {
+        if (stage < BEGIN_TURN_STAGE_TOOLBOX_DONE && properties.toolbox != null && turnNum == 0 && properties.toolbox.isRelicEnabledInScenario(this)) {
             Relic.Toolbox.changeToSelectionCtx(this);
             return;
         }
-        if (stage < 2 && properties.foregoneConclusionCounterIdx >= 0 && getCounterForRead()[properties.foregoneConclusionCounterIdx] > 0) {
+        if (stage < BEGIN_TURN_STAGE_FOREGONE_CONCLUSION_DONE && properties.foregoneConclusionCounterIdx >= 0 && getCounterForRead()[properties.foregoneConclusionCounterIdx] > 0) {
             if (getNumCardsInDeck() > 0) {
                 var action = properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][properties.foregoneConclusionCardIdx];
                 setActionCtx(GameActionCtx.SELECT_CARD_DECK, action, null);
@@ -1980,13 +1988,17 @@ public final class GameState implements State {
             }
             getCounterForWrite()[properties.foregoneConclusionCounterIdx] = 0;
         }
-        if (stage < 3) {
-            beginTurnDraw();
+        if (stage < BEGIN_TURN_STAGE_GAMBLING_CHIPS_DONE) {
+            if (beginTurnDraw()) {
+                return;
+            }
+        } else if (stage == BEGIN_TURN_STAGE_GAMBLING_CHIPS_DONE) {
+            completeBeginTurnDraw();
         }
         continueBeginTurnAfterDraw(stage);
     }
 
-    void beginTurnDraw() {
+    boolean beginTurnDraw() {
         turnNum++;
         realTurnNum++;
         var drawCount = 5;
@@ -2011,6 +2023,16 @@ public final class GameState implements State {
         }
         isStartOfTurnPhase = true;
         draw(drawCount);
+        if (properties.gamblingChipsCardIdx >= 0 && turnNum == 1) {
+            var action = properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][properties.gamblingChipsCardIdx];
+            setActionCtx(GameActionCtx.SELECT_CARD_HAND, action, null);
+            return true;
+        }
+        completeBeginTurnDraw();
+        return false;
+    }
+
+    void completeBeginTurnDraw() {
         for (GameEventHandler handler : properties.startOfTurnHandlers) {
             handler.handle(this);
         }
@@ -2030,7 +2052,7 @@ public final class GameState implements State {
     }
 
     void continueBeginTurnAfterDraw(int stage) {
-        if (stage < 4 && properties.toolsOfTheTradeCounterIdx >= 0 && getCounterForRead()[properties.toolsOfTheTradeCounterIdx] >= (1 << 16)) {
+        if (stage < BEGIN_TURN_STAGE_TOOLS_OF_THE_TRADE_DONE && properties.toolsOfTheTradeCounterIdx >= 0 && getCounterForRead()[properties.toolsOfTheTradeCounterIdx] >= (1 << 16)) {
             if (getNumCardsInHand() > 0) {
                 var action = properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][properties.toolsOfTheTradeCardIdx];
                 setActionCtx(GameActionCtx.SELECT_CARD_HAND, action, null);
@@ -2038,7 +2060,7 @@ public final class GameState implements State {
             }
             getCounterForWrite()[properties.toolsOfTheTradeCounterIdx] = getCounterForRead()[properties.toolsOfTheTradeCounterIdx] & 0xffff;
         }
-        if (stage < 5 && properties.foresightCounterIdx >= 0 && getCounterForRead()[properties.foresightCounterIdx] > 0) {
+        if (stage < BEGIN_TURN_STAGE_FORESIGHT_DONE && properties.foresightCounterIdx >= 0 && getCounterForRead()[properties.foresightCounterIdx] > 0) {
             var action = properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][properties.foresightCardIdx];
             GameActionCtx ctx = startScry(getCounterForRead()[properties.foresightCounterIdx]);
             if (ctx != GameActionCtx.PLAY_CARD) {
@@ -2046,7 +2068,7 @@ public final class GameState implements State {
                 return;
             }
         }
-        if (stage < 6 && properties.tyrannyCounterIdx >= 0 && getCounterForRead()[properties.tyrannyCounterIdx] >= (1 << 16)) {
+        if (stage < BEGIN_TURN_STAGE_TYRANNY_DONE && properties.tyrannyCounterIdx >= 0 && getCounterForRead()[properties.tyrannyCounterIdx] >= (1 << 16)) {
             if (getNumCardsInHand() > 0) {
                 var action = properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][properties.tyrannyCardIdx];
                 setActionCtx(GameActionCtx.SELECT_CARD_HAND, action, null);
@@ -2054,7 +2076,7 @@ public final class GameState implements State {
             }
             getCounterForWrite()[properties.tyrannyCounterIdx] = getCounterForRead()[properties.tyrannyCounterIdx] & 0xffff;
         }
-        if (stage < 7 && properties.entropyCounterIdx >= 0 && getCounterForRead()[properties.entropyCounterIdx] >= (1 << 16)) {
+        if (stage < BEGIN_TURN_STAGE_ENTROPY_DONE && properties.entropyCounterIdx >= 0 && getCounterForRead()[properties.entropyCounterIdx] >= (1 << 16)) {
             if (getNumCardsInHand() > 0) {
                 var action = properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][properties.entropyCardIdx];
                 setActionCtx(GameActionCtx.SELECT_CARD_HAND, action, null);
@@ -2062,13 +2084,8 @@ public final class GameState implements State {
             }
             getCounterForWrite()[properties.entropyCounterIdx] = getCounterForRead()[properties.entropyCounterIdx] & 0xffff;
         }
-        if (properties.gamblingChipsCardIdx >= 0 && turnNum == 1) {
-            var action = properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][properties.gamblingChipsCardIdx];
-            setActionCtx(GameActionCtx.SELECT_CARD_HAND, action, null);
-        } else {
-            setActionCtx(GameActionCtx.PLAY_CARD, null, null);
-            runActionsInQueueIfNonEmpty();
-        }
+        setActionCtx(GameActionCtx.PLAY_CARD, null, null);
+        runActionsInQueueIfNonEmpty();
     }
 
     private int getBeginTurnStage(GameAction previousAction) {
@@ -2081,19 +2098,22 @@ public final class GameState implements State {
         }
         int cardIdx = action.idx();
         if (cardIdx == properties.foregoneConclusionCardIdx) {
-            return 2;
+            return BEGIN_TURN_STAGE_FOREGONE_CONCLUSION_DONE;
         }
         if (cardIdx == properties.toolsOfTheTradeCardIdx) {
-            return 4;
+            return BEGIN_TURN_STAGE_TOOLS_OF_THE_TRADE_DONE;
         }
         if (cardIdx == properties.foresightCardIdx) {
-            return 5;
+            return BEGIN_TURN_STAGE_FORESIGHT_DONE;
         }
         if (cardIdx == properties.tyrannyCardIdx) {
-            return 6;
+            return BEGIN_TURN_STAGE_TYRANNY_DONE;
         }
         if (cardIdx == properties.entropyCardIdx) {
-            return 7;
+            return BEGIN_TURN_STAGE_ENTROPY_DONE;
+        }
+        if (cardIdx == properties.gamblingChipsCardIdx) {
+            return BEGIN_TURN_STAGE_GAMBLING_CHIPS_DONE;
         }
         return 0;
     }
@@ -2105,7 +2125,7 @@ public final class GameState implements State {
         int cardIdx = action.idx();
         return cardIdx == properties.foregoneConclusionCardIdx || cardIdx == properties.toolsOfTheTradeCardIdx ||
                 cardIdx == properties.foresightCardIdx || cardIdx == properties.tyrannyCardIdx ||
-                cardIdx == properties.entropyCardIdx;
+                cardIdx == properties.entropyCardIdx || cardIdx == properties.gamblingChipsCardIdx;
     }
 
     public void selectBiasedCognitionLimit() {
@@ -2542,6 +2562,7 @@ public final class GameState implements State {
             if (currentAction.type() == GameActionType.USE_POTION) {
                 setActionCtx(properties.potions.get(currentAction.idx()).use(this, properties.cardDict.length), action, null);
             } else if (currentAction.type() == GameActionType.PLAY_CARD) {
+                var previousAction = currentAction;
                 var selectingCard = properties.cardDict[currentAction.idx()];
                 if (currentAction.idx() == properties.wellLaidPlansCardIdx || currentAction.idx() == properties.gamblingChipsCardIdx) {
                     endTurn();
@@ -2549,6 +2570,9 @@ public final class GameState implements State {
                     setActionCtx(selectingCard.endSelectHandAction(this), action, null);
                 }
                 runActionsInQueueIfNonEmpty();
+                if (actionCtx == GameActionCtx.PLAY_CARD && isBeginTurnAction(previousAction)) {
+                    beginTurn(previousAction);
+                }
             }
         } else if (action.type() == GameActionType.END_SELECT_CARD_1_OUT_OF_3) {
             if (currentAction != null && properties.nilroysCodexHelperCardIdx >= 0 && currentAction.idx() == properties.nilroysCodexHelperCardIdx) {
