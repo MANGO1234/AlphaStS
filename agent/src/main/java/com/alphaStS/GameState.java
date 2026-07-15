@@ -49,6 +49,8 @@ public final class GameState implements State {
     public static final int DECK = 2;
     public static final int EXHAUST = 3;
 
+    public static final int REMOVED_CARD_TOMBSTONE = -1567;
+
     public boolean isStochastic;
     public StringBuilder stateDesc;
     public GameProperties properties;
@@ -214,6 +216,7 @@ public final class GameState implements State {
 
     private void transformCardArray(short[] arr, int arrLen, int[] transformIdxes) {
         for (int i = 0; i < arrLen; i++) {
+            if (arr[i] == REMOVED_CARD_TOMBSTONE) continue;
             if (transformIdxes[arr[i]] >= 0) {
                 arr[i] = (short) transformIdxes[arr[i]];
             }
@@ -1000,7 +1003,7 @@ public final class GameState implements State {
         if (Configuration.HEART_GAUNTLET_CARD_REWARD) {
             CardManager.getPossibleSelect1OutOf3CardsFromRewardScreen(properties.character).forEach((card) -> idxes.add(properties.findCardIndex(card)));
         }
-        return idxes.stream().mapToInt(Integer::intValue).sorted().toArray();
+        return idxes.stream().distinct().mapToInt(Integer::intValue).sorted().toArray();
     }
 
     private List<Card> collectAllPossibleCards(List<Card> cardList, List<Enemy> enemies, List<Relic> relics, List<Potion> potions) {
@@ -1011,6 +1014,13 @@ public final class GameState implements State {
         }
         if (properties.randomization != null) {
             addPossibleGeneratedCardsFromListOfCard(properties.randomization.getPossibleGeneratedCards(), set, discardSet);
+        }
+        boolean anyCanForge = set.stream().anyMatch(c -> c.entityProperty.canForge);
+        if (!anyCanForge) anyCanForge = relics.stream().anyMatch(r -> r.entityProperty.canForge);
+        if (!anyCanForge) anyCanForge = potions.stream().anyMatch(p -> p.entityProperty.canForge);
+        if (!anyCanForge) anyCanForge = enemies.stream().anyMatch(e -> e.properties.entityProperty.canForge);
+        if (anyCanForge) {
+            set.add(new CardColorless2.SovereignBlade());
         }
         do {
             var newSet = new HashSet<>(set);
@@ -1034,13 +1044,6 @@ public final class GameState implements State {
             }
             set = newSet;
         } while (true);
-        boolean anyCanForge = set.stream().anyMatch(c -> c.entityProperty.canForge);
-        if (!anyCanForge) anyCanForge = relics.stream().anyMatch(r -> r.entityProperty.canForge);
-        if (!anyCanForge) anyCanForge = potions.stream().anyMatch(p -> p.entityProperty.canForge);
-        if (!anyCanForge) anyCanForge = enemies.stream().anyMatch(e -> e.properties.entityProperty.canForge);
-        if (anyCanForge) {
-            set.add(new CardColorless2.SovereignBlade());
-        }
 
         var newSet = new HashSet<>(set);
         for (Card c : set) {
@@ -1145,6 +1148,7 @@ public final class GameState implements State {
         enemies = other.enemies;
         enemiesAlive = other.enemiesAlive;
         currentAction = other.currentAction;
+        currentlyPlayedCardIdx = other.currentlyPlayedCardIdx;
         drawOrder = other.drawOrder;
         searchRandomGen = other.searchRandomGen;
         if (other.gameActionDeque != null && other.gameActionDeque.size() > 0) {
@@ -1429,6 +1433,7 @@ public final class GameState implements State {
         int cardIdx = action.idx();
         int lastSelectedIdx = -1;
         boolean cardPlayedSuccessfully = true;
+        boolean selectEnemyFailed = false;
         boolean targetHalfAlive = false;
         int energyCost = overrideEnergyCost >= 0 ? overrideEnergyCost : getCardEnergyCost(cardIdx);
         int realEnergyCost = energyCost;
@@ -1521,6 +1526,10 @@ public final class GameState implements State {
                     lastSelectedIdx = idx;
                     onSelectEnemy(idx);
                     setActionCtx(properties.cardDict[cardIdx].play(this, idx, energyCost), action, cloneSource);
+                } else if (targetableEnemies == 0) {
+                    selectEnemyFailed = true;
+                    cardPlayedSuccessfully = false;
+                    break;
                 } else {
                     cardPlayedSuccessfully = false;
                     break;
@@ -1616,7 +1625,9 @@ public final class GameState implements State {
             }
         } while (actionCtx != GameActionCtx.PLAY_CARD && actionCtx != GameActionCtx.START_OF_BATTLE);
 
-        if (actionCtx == GameActionCtx.PLAY_CARD && isCardPlayed) {
+        if (actionCtx == GameActionCtx.SELECT_ENEMY && selectEnemyFailed) {
+            actionCtx = GameActionCtx.PLAY_CARD;
+        } else if (actionCtx == GameActionCtx.PLAY_CARD && isCardPlayed) {
 //            runActionsInQueueIfNonEmpty(); // this is bugged?
             removeWristBladeBuff();
             if (cardPlayedSuccessfully && properties.previousCardPlayTracking) {
@@ -1718,8 +1729,12 @@ public final class GameState implements State {
                 }
                 runActionsInQueueIfNonEmpty();
             }
-            for (Enemy enemy : enemies.iterateOverAlive()) {
-                enemy.react(this, properties.cardDict[cardIdx]);
+            for (int i = 0; i < enemies.size(); i++) {
+                if (enemies.get(i).properties.reactChangeEnemy) {
+                    getEnemiesForWrite().getForWrite(i).react(this, properties.cardDict[cardIdx]);
+                } else {
+                    enemies.get(i).react(this, properties.cardDict[cardIdx]);
+                }
             }
             if (properties.normalityCounterIdx < 0 || counter[properties.normalityCounterIdx] < 3) { // todo: hack
                 if (runActionQueueOnEnd) {
@@ -2289,10 +2304,10 @@ public final class GameState implements State {
         for (int i = handArrLen - 1; i >= 0; i--) {
             if (properties.cardDict[handArr[i]].ethereal() || spectralKnightHexActive) {
                 exhaustedCardHandle(handArr[i], false);
-                getHandArrForWrite()[i] = -1;
+                getHandArrForWrite()[i] = REMOVED_CARD_TOMBSTONE;
             } else if (properties.cardDict[handArr[i]].alwaysDiscard) {
                 addCardToDiscard(handArr[i]);
-                getHandArrForWrite()[i] = -1;
+                getHandArrForWrite()[i] = REMOVED_CARD_TOMBSTONE;
             } else if (properties.cardDict[handArr[i]].retain(this)) {
                 // Retain cards stay in hand, call onRetain handlers
                 for (var handler : properties.onRetainHandlers) {
@@ -2312,7 +2327,7 @@ public final class GameState implements State {
                 }
             } else if (isDiscardingCardEndOfTurn()) {
                 addCardToDiscard(handArr[i]);
-                getHandArrForWrite()[i] = -1;
+                getHandArrForWrite()[i] = REMOVED_CARD_TOMBSTONE;
             }
         }
         updateHandArr();
@@ -4169,19 +4184,6 @@ public final class GameState implements State {
         return false;
     }
 
-    public void setCardCountInDeck(int cardIndex, int count) {
-        var currentCount = GameStateUtils.getCardCount(deckArr, deckArrLen, cardIndex);
-        if (currentCount > count) {
-            for (int i = currentCount - 1; i >= count; i--) {
-                removeCardFromDeck(cardIndex, false);
-            }
-        } else if (currentCount < count) {
-            for (int i = currentCount; i < count; i++) {
-                addCardToDeck(cardIndex);
-            }
-        }
-    }
-
     public void addCardOnTopOfDeck(int idx) {
         if (properties.cardDict[idx].isTmpModifiedUntilEndOfTurnCard()) {
             idx = properties.tmpModifiedCardReverseTransformIdxes[idx];
@@ -4285,13 +4287,9 @@ public final class GameState implements State {
     public int playerDoDamageToEnemy(Enemy enemy, int dmgInt, Card damageSource) {
         var player = getPlayerForRead();
         double dmg = dmgInt;
-        if (currentlyPlayedCardIdx >= 0 && properties.cardDict[currentlyPlayedCardIdx] instanceof Card.CardWrapper cw) {
-            if (cw.mod.instinct) dmg *= 2;
-            if (cw.mod.corrupted) dmg *= 1.5;
-            if (cw.mod.sharp > 0) dmg += cw.mod.sharp;
-            if (cw.mod.momentumGained > 0) dmg += cw.mod.momentumGained;
-            if (cw.mod.inky) dmg += 2;
-            if (cw.mod.vigorous > 0) dmg += cw.mod.vigorous;
+        // TODO: what is the ordering...
+        if (hasBuff(PlayerBuff.WRIST_BLADE)) {
+            dmg += 4;
         }
         if (currentlyPlayedCardIdx >= 0 && properties.mysticLighter != null
                 && properties.mysticLighter.isRelicEnabledInScenario(this)
@@ -4299,27 +4297,32 @@ public final class GameState implements State {
                 && properties.cardDict[currentlyPlayedCardIdx].isEnchanted()) {
             dmg += 9;
         }
+        if (properties.strikeDummy != null && properties.strikeDummy.isRelicEnabledInScenario(this) && CardManager.isStrike(damageSource)) {
+            dmg += 3;
+        }
+        if (currentlyPlayedCardIdx >= 0 && properties.cardDict[currentlyPlayedCardIdx] instanceof Card.CardWrapper cw) {
+            if (cw.mod.sharp > 0) dmg += cw.mod.sharp;
+            if (cw.mod.momentumGained > 0) dmg += cw.mod.momentumGained;
+            if (cw.mod.inky) dmg += 2;
+            if (cw.mod.vigorous > 0) dmg += cw.mod.vigorous;
+            if (cw.mod.instinct) dmg *= 2;
+            if (cw.mod.corrupted) dmg *= 1.5;
+        }
+        dmg += player.getStrength();
         if (hasBuff(PlayerBuff.AKABEKO)) {
             dmg += 8;
         }
-        if (hasBuff(PlayerBuff.WRIST_BLADE)) {
-            dmg += 4;
-        }
         if (properties.miniatureCannon != null && properties.miniatureCannon.isRelicEnabledInScenario(this) && CardManager.isUpgraded(damageSource)) {
-            dmg += 3;
-        }
-        if (properties.strikeDummy != null && properties.strikeDummy.isRelicEnabledInScenario(this) && CardManager.isStrike(damageSource)) {
             dmg += 3;
         }
         if (properties.strikeDummyQQQ != null && properties.strikeDummyQQQ.isRelicEnabledInScenario(this) && CardManager.isStrike(damageSource)) {
             dmg += 1;
         }
-        if (properties.vitruvianMinion != null && properties.vitruvianMinion.isRelicEnabledInScenario(this) && damageSource.cardName.contains("Minion")) {
-            dmg *= 2;
-        }
-        dmg += player.getStrength();
         if (properties.accuracyCounterIdx >= 0 && (damageSource instanceof CardColorless.Shiv || damageSource instanceof CardColorless.ShivP)) {
             dmg += getCounterForRead()[properties.accuracyCounterIdx];
+        }
+        if (properties.vigorCounterIdx >= 0 && counter[properties.vigorCounterIdx] > 0) {
+            dmg += counter[properties.vigorCounterIdx];
         }
         if (properties.penNibCounterIdx >= 0 && counter[properties.penNibCounterIdx] == 9) {
             dmg *= 2;
@@ -4330,9 +4333,6 @@ public final class GameState implements State {
         if (properties.shadowStepCounterIdx >= 0 && (counter[properties.shadowStepCounterIdx] & 0xFF) > 0) {
             dmg *= 2;
         }
-        if (properties.vigorCounterIdx >= 0 && counter[properties.vigorCounterIdx] > 0) {
-            dmg += counter[properties.vigorCounterIdx];
-        }
         if (properties.gigantificationCounterIdx >= 0 && counter[properties.gigantificationCounterIdx] > 0) {
             dmg *= 3;
             getCounterForWrite()[properties.gigantificationCounterIdx]--;
@@ -4340,6 +4340,9 @@ public final class GameState implements State {
         if (properties.lethalityCounterIdx >= 0 && counter[properties.lethalityCounterIdx] > 0 &&
                 counter[properties.attacksPlayedThisTurnCounterIdx] == 0) {
             dmg = dmg * (1 + counter[properties.lethalityCounterIdx] / 100.0);
+        }
+        if (properties.vitruvianMinion != null && properties.vitruvianMinion.isRelicEnabledInScenario(this) && damageSource.cardName.contains("Minion")) {
+            dmg *= 2;
         }
         if (enemy.getVulnerable() > 0) {
             double vulnMult = properties.paperPhrog != null && properties.paperPhrog.isRelicEnabledInScenario(this) ? 1.75 : 1.5;
@@ -4742,15 +4745,26 @@ public final class GameState implements State {
     }
 
     private int applyCardBlockModification(int n) {
-        if (properties.cardDict[currentlyPlayedCardIdx] instanceof Card.CardWrapper cw && cw.mod.nimble > 0) {
+        n += getPlayerForRead().getDexterity();
+        if (currentlyPlayedCardIdx >= 0 && properties.cardDict[currentlyPlayedCardIdx] instanceof Card.CardWrapper cw && cw.mod.nimble > 0) {
             n += cw.mod.nimble;
+        }
+        if (properties.noMoreBlockFromCardsCounterIdx >= 0 && getCounterForRead()[properties.noMoreBlockFromCardsCounterIdx] > 0) {
+            return 0;
+        }
+        n = getPlayerForRead().getFrail() > 0? (n - (n + 3) / 4) : n;
+        if (n < 0) {
+            n = 0;
+        }
+        if (properties.shadowmeldCounterIdx >= 0) {
+            n *= (1 + getCounterForRead()[properties.shadowmeldCounterIdx]);
         }
         if (properties.vambraceCounterIdx >= 0 && properties.vambrace.isRelicEnabledInScenario(this) && getCounterForRead()[properties.vambraceCounterIdx] == 0) {
             getCounterForWrite()[properties.vambraceCounterIdx] = 1;
             n *= 2;
         }
         if (properties.paelsLegionCounterIdx >= 0 && properties.paelsLegion.isRelicEnabledInScenario(this) && getCounterForRead()[properties.paelsLegionCounterIdx] == 0) {
-            getCounterForWrite()[properties.paelsLegionCounterIdx] = 2;
+            getCounterForWrite()[properties.paelsLegionCounterIdx + 1] = 1;
             n *= 2;
         }
         if (properties.unmovableCounterIdx >= 0) {
@@ -4760,17 +4774,20 @@ public final class GameState implements State {
                 n *= 2;
             }
         }
-        return n;
-    }
-
-    public int playerGainBlock(int n) {
-        n = applyCardBlockModification(n);
         if (properties.vitruvianMinion != null && properties.vitruvianMinion.isRelicEnabledInScenario(this)
                 && currentAction != null && currentAction.type() == GameActionType.PLAY_CARD
                 && properties.cardDict[currentAction.idx()].cardName.contains("Minion")) {
             n *= 2;
         }
-        int blockGained = getPlayerForWrite().gainBlock(n, this);
+        return n;
+    }
+
+    public int playerGainBlock(int n) {
+        n = applyCardBlockModification(n);
+        if (n == 0) {
+            return 0;
+        }
+        int blockGained = getPlayerForWrite().gainBlock(n);
         if (blockGained > 0) {
             for (var handler : properties.onBlockHandlers) {
                 handler.handle(this);
@@ -4781,12 +4798,30 @@ public final class GameState implements State {
 
     public int playerGainBlockNextTurn(int n) {
         n = applyCardBlockModification(n);
-        return getPlayerForWrite().gainBlockNextTurn(n, this);
+        if (n == 0) {
+            return 0;
+        }
+        int blockGained = getPlayerForWrite().gainBlockNextTurn(n, this);
+        if (blockGained > 0) {
+            for (var handler : properties.onBlockHandlers) {
+                handler.handle(this);
+            }
+        }
+        return blockGained;
     }
 
     public int playerGainBlockNextNextTurn(int n) {
         n = applyCardBlockModification(n);
-        return getPlayerForWrite().gainBlockNextNextTurn(n, this);
+        if (n == 0) {
+            return 0;
+        }
+        int blockGained = getPlayerForWrite().gainBlockNextNextTurn(n, this);
+        if (blockGained > 0) {
+            for (var handler : properties.onBlockHandlers) {
+                handler.handle(this);
+            }
+        }
+        return blockGained;
     }
 
     public void playerGainBlockNotFromCardPlay(int n) {

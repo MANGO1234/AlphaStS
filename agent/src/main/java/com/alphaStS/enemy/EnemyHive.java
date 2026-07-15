@@ -12,6 +12,7 @@ import com.alphaStS.eventHandler.GameEventHandler;
 import com.alphaStS.random.RandomGen;
 import com.alphaStS.random.RandomGenCtx;
 
+import java.io.PrintStream;
 import java.util.List;
 
 import static com.alphaStS.enemy.EnemyUtils.nextFixedMove;
@@ -728,6 +729,7 @@ public class EnemyHive {
             super(health, 4, false);
             properties.isElite = true;
             properties.canGainBlock = true;
+            properties.reactChangeEnemy = true;
         }
 
         public InfestedPrism(InfestedPrism other) {
@@ -813,6 +815,11 @@ public class EnemyHive {
             input[idx] = tainted / 20.0f;
             input[idx + 1] = taintedPerSKill / 12.0f;
             return 2;
+        }
+
+        @Override public void interactiveModePrint(GameState state, PrintStream out) {
+            out.println("  Tainted: " + tainted);
+            out.println("  Tainted Gain Per Skill: " + taintedPerSKill);
         }
     }
 
@@ -942,6 +949,7 @@ public class EnemyHive {
             super(health, 3, false);
             properties.canGainBlock = true;
             properties.canGainStrength = true;
+            properties.reactChangeEnemy = true;
             properties.entityProperty.changePlayerFrailed = true;
         }
 

@@ -176,14 +176,17 @@ public class MatchSession {
             }
         } else {
             state.doEval(mcts.model);
+            var start = System.currentTimeMillis();
             while (state.isTerminal() == 0) {
                 int upto = nodeCount - (state.total_n + (state.policy == null ? 0 : 1));
+                state.properties.inMCTSSearch = true;
                 for (int i = 0; i < upto; i++) {
                     mcts.search(state, false, upto - i);
                     if (mcts.numberOfPossibleActions == 1 && state.total_n > 0) {
                         break;
                     }
                 }
+                state.properties.inMCTSSearch = false;
                 if (state.turnNum > 0 && Configuration.STATS_PRINT_TREE_DEPTH) {
                     var dagStats = GameStateUtils.getSearchDagStats(state);
                     searchDepthStat.addValue(state.turnNum, dagStats.avgDepth(), dagStats.maxDepth());
@@ -216,6 +219,9 @@ public class MatchSession {
                     refGameIdx = ret.refGameIdx;
                 }
                 steps.get(steps.size() - 1).state().clearNextStates();
+                if (System.currentTimeMillis() - start > Configuration.MATCH_TIMEOUT_SEC * 1000) {
+                    throw new IllegalStateException();
+                }
             }
         }
         steps.add(new GameStep(state, -1));
@@ -420,6 +426,9 @@ public class MatchSession {
                 lastPrintTime = System.currentTimeMillis();
                 System.out.println("Progress: " + game_i + "/" + numOfGames);
                 remoteServerGames.forEach((key, value) -> System.out.printf("Server %s: %d games\n", key, value));
+                if (game_i.get() == numOfGames) {
+                    System.out.println("Player Health: " + origState.getPlayerForRead().getHealth());
+                }
                 if (scenarioStats.size() > 1) {
                     for (var info : combinedInfoMap.entrySet()) {
                         var i = info.getKey();
@@ -732,6 +741,8 @@ public class MatchSession {
                 }
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
+            } catch (NoLogException e) {
+                throw e;
             } catch (Exception e) {
                 System.out.println("Seed failed on: " + seeds.get(idx - 1));
                 throw e;
@@ -836,6 +847,7 @@ public class MatchSession {
             RandomGen randomGenClone = state.getSearchRandomGen().getCopy();
             prevTurnNum = state.realTurnNum;
             int[] nWhenSearchHalfDone = null;
+            state.properties.inMCTSSearch = true;
             for (int i = 0; i < todo; i++) {
                 mcts.search(state, !quickPass, todo - i);
                 if (mcts.numberOfPossibleActions == 1 && state.total_n >= 1) {
@@ -851,6 +863,7 @@ public class MatchSession {
 //                    }
 //                }
             }
+            state.properties.inMCTSSearch = false;
 
             int action;
             int greedyAction;
@@ -903,6 +916,9 @@ public class MatchSession {
                 state.properties.makingRealMove = true;
                 state = getNextState(state, mcts, action, !quickPass);
                 state.properties.makingRealMove = false;
+            }
+            if (System.currentTimeMillis() - trainingGameStart > Configuration.MATCH_TIMEOUT_SEC * 1000) {
+                throw new IllegalStateException();
             }
         }
         steps.add(new GameStep(state, -1));
@@ -1065,6 +1081,8 @@ public class MatchSession {
                         deq.putLast(new TrainingGameResult(session.playTrainingGame(state, nodeCount, mcts.get(_i), seeds.get(idx - 1)), null, null, null));
                     } catch (InterruptedException e) {
                         throw new RuntimeException(e);
+                    } catch (NoLogException e) {
+                        throw e;
                     } catch (Exception e) {
                         System.out.println("Seed failed on: " + seeds.get(idx - 1));
                         throw e;

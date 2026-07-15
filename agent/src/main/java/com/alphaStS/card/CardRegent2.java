@@ -670,7 +670,7 @@ public class CardRegent2 {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            if (state.actionCtx == GameActionCtx.PLAY_CARD) {
+            if (state.actionCtx == GameActionCtx.PLAY_CARD || state.actionCtx == GameActionCtx.SELECT_ENEMY) {
                 state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), dmg, this);
                 state.draw(drawCount);
                 return GameActionCtx.SELECT_CARD_HAND;
@@ -722,13 +722,13 @@ public class CardRegent2 {
     //   Upgraded Effect: Forge 13. Next turn, gain energy.
     public static class RefineBlade extends _RefineBladeT {
         public RefineBlade() {
-            super("Refine Blade", 6);
+            super("Refine Blade", 9);
         }
     }
 
     public static class RefineBladeP extends _RefineBladeT {
         public RefineBladeP() {
-            super("Refine Blade+", 10);
+            super("Refine Blade+", 13);
         }
     }
 
@@ -957,16 +957,18 @@ public class CardRegent2 {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            // TODO: hmm frozen eye
             var deck = state.getDeckArrForRead();
             for (int i = 0; i < state.getNumCardsInDeck(); i++) {
                 if (deck[i] == idx) {
-                    state.transformCard(state.getDeckArrForWrite(), i, state.createCard(generatedCardIdx));
-                    break;
+                    state.removeCardFromDeckByPosition(i);
                 }
             }
             state.getCounterForWrite()[counterIdx]++;
             if (state.getCounterForWrite()[counterIdx] >= 2) {
-                state.getCounterForWrite()[counterIdx] = 0;
+                for (int i = 0; i < state.getCounterForWrite()[counterIdx]; i++) {
+                    state.addCardToDeckRandom(state.createCard(generatedCardIdx));
+                }
                 return GameActionCtx.PLAY_CARD;
             }
             return GameActionCtx.SELECT_CARD_DECK;
@@ -1037,7 +1039,7 @@ public class CardRegent2 {
                 @Override public void handle(GameState state, int amount) {
                     int blockPerStarAmt = state.getCounterForRead()[counterIdx];
                     if (blockPerStarAmt > 0 && amount < 0) {
-                        state.playerGainBlock(blockPerStarAmt * (-amount));
+                        state.playerGainBlockNotFromCardPlay(blockPerStarAmt * (-amount));
                     }
                 }
             });
@@ -1608,8 +1610,9 @@ public class CardRegent2 {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            int dmg = dmgPerSkill * state.getCounterForRead()[state.properties.skillsPlayedThisTurnCounterIdx];
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), dmg, this);
+            for (int i = 0; i < state.getCounterForRead()[state.properties.skillsPlayedThisTurnCounterIdx]; i++) {
+                state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), dmgPerSkill, this);
+            }
             return GameActionCtx.PLAY_CARD;
         }
 
@@ -1651,7 +1654,7 @@ public class CardRegent2 {
         }
 
         @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
-            var colorlessCards = CardManager.getColorlessCards(false);
+            var colorlessCards = CardManager.getColorless2Cards(CardManager.ColorlessCard2Pool.CARD_GENERATION);
             return upgraded ? colorlessCards.stream().map(Card::getUpgrade).filter(java.util.Objects::nonNull).toList() : colorlessCards;
         }
     }
@@ -2034,7 +2037,7 @@ public class CardRegent2 {
         }
 
         @Override public List<Card> getPossibleSelect1OutOf3Cards(GameProperties gameProperties) {
-            var colorlessCards = CardManager.getColorlessCardsTmp0Cost(false);
+            var colorlessCards = CardManager.getColorless2Cards(CardManager.ColorlessCard2Pool.CARD_GENERATION);
             return upgraded ? colorlessCards.stream().map(Card::getUpgrade).filter(java.util.Objects::nonNull).toList() : colorlessCards;
         }
     }
@@ -2179,6 +2182,7 @@ public class CardRegent2 {
             this.starCost = 3;
             entityProperty.hasStarCost = true;
             entityProperty.changePlayerStrength = true;
+            entityProperty.affectEnemyStrength = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -2333,7 +2337,6 @@ public class CardRegent2 {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.forge(forgeAmount);
             for (int i = state.deckArrLen - 1; i >= 0; i--) {
                 var base = state.properties.cardDict[state.getDeckArrForRead()[i]].getBaseCard();
                 if (base instanceof CardColorless2.SovereignBlade || base instanceof CardColorless2.SovereignBladeP) {
@@ -2358,6 +2361,7 @@ public class CardRegent2 {
                     state.addCardToHand(foundIdx);
                 }
             }
+            state.forge(forgeAmount);
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -2603,17 +2607,9 @@ public class CardRegent2 {
                     for (int i = 0; i < state.exhaustArrLen; i++) {
                         int cardIdx = state.exhaustArr[i];
                         if (state.properties.cardDict[cardIdx].getBaseCard() instanceof _BombardmentT) {
-                            final int ci = cardIdx;
-                            state.addGameActionToEndOfDeque(new GameEnvironmentAction() {
-                                @Override public void doAction(GameState s) {
-                                    var a = s.properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][ci];
-                                    s.playCard(a, -1, true, _BombardmentT.class, false, false, -1, GameState.EXHAUST);
-                                    while (s.actionCtx == GameActionCtx.SELECT_ENEMY) {
-                                        int enemyIdx = GameStateUtils.getRandomEnemyIdx(s, RandomGenCtx.RandomEnemyGeneral);
-                                        s.playCard(a, enemyIdx, true, _BombardmentT.class, false, false, -1, GameState.EXHAUST);
-                                    }
-                                }
-                            });
+                            state.removeCardFromExhaustByPosition(i);
+                            state.addGameActionToEndOfDeque(new PlayCardAction(cardIdx, state));
+                            i--;
                         }
                     }
                 }
@@ -2654,7 +2650,7 @@ public class CardRegent2 {
         }
 
         @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
-            return CardManager.getColorlessCards(false);
+            return CardManager.getColorless2Cards(CardManager.ColorlessCard2Pool.CARD_GENERATION);
         }
     }
 
@@ -3079,7 +3075,7 @@ public class CardRegent2 {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            if (state.actionCtx == GameActionCtx.PLAY_CARD) {
+            if (state.actionCtx == GameActionCtx.PLAY_CARD || state.actionCtx == GameActionCtx.SELECT_ENEMY) {
                 state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), dmg, this);
                 for (int i = 0; i < state.handArrLen; i++) {
                     if (CardManager.isColorless2Card(state.properties.cardDict[state.handArr[i]])) {

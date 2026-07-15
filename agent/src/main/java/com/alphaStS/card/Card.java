@@ -140,7 +140,12 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         return CardUpgrade.getUpgrade(this, properties.character);
     }
 
-    public Card getUpgrade() { return CardUpgrade.map_sts1.get(this); }
+    public Card getUpgrade() {
+        if (CardUpgrade.map_sts1.get(this) != null) {
+            return CardUpgrade.map_sts1.get(this);
+        }
+        return CardUpgrade.map_sts2.get(this);
+    }
 
     public Card getDowngrade(GameProperties properties) {
         return CardUpgrade.getDowngrade(this, properties.character);
@@ -389,7 +394,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
     public Card getTemporarilyDowngraded(GameProperties properties) {
         var downgrade = getDowngrade(properties);
         if (downgrade == null) {
-            return null;
+            return this;
         }
         var mod = new CardModification();
         mod.temporarilyDowngraded = true;
@@ -621,7 +626,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         }
 
         private boolean isFreeToPlay() {
-            return mod.tmpChangeCost == 0 || mod.tmpUntilPlayedCost == 0;
+            return mod.permChangeCost == 0 || mod.tmpChangeCost == 0 || mod.tmpUntilPlayedCost == 0;
         }
 
         @Override public boolean ethereal() { return super.ethereal() || mod.permEthereal; }
@@ -680,7 +685,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
             boolean hasTempMods = mod.tmpChangeCost != -1 || mod.tmpUntilPlayedCost != -1
                     || mod.tmpRetain || mod.swift > 0 || mod.sown || mod.glam || mod.vigorous > 0
-                    || mod.tmpSlyUntilEndOfTurn;
+                    || mod.tmpSlyUntilEndOfTurn || mod.temporarilyDowngraded;
             if (hasTempMods || mod.momentum > 0) {
                 var possibleInnerCards = card.getPossibleGeneratedCards(properties, cards);
                 var result = new ArrayList<>(possibleInnerCards);
@@ -1256,6 +1261,36 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
             int bonus = state.properties.fastenCounterIdx >= 0 ? state.getCounterForRead()[state.properties.fastenCounterIdx] : 0;
             state.playerGainBlock(8 + bonus);
             return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class TezcatarasEmberStrike extends Card {
+        public TezcatarasEmberStrike() {
+            super("Tezcatara's Ember Strike", Card.ATTACK, 0, Card.COMMON);
+            entityProperty.selectEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), 6, this);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class TezcatarasEmberStrikeP extends Card {
+        public TezcatarasEmberStrikeP() {
+            super("Tezcatara's Ember Strike+", Card.ATTACK, 0, Card.COMMON);
+            entityProperty.selectEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), 9, this);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class PlaceholderCard extends Card {
+        public PlaceholderCard(String cardName, int cardType, int energyCost, int rarity) {
+            super(cardName, cardType, energyCost, rarity);
         }
     }
 }

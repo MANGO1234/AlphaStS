@@ -100,6 +100,7 @@ public class GameProperties implements Cloneable {
     public int[] astrolabeCardsTransformed;
     public int[] pandorasBoxCardsTransformed;
     public int maxFranticEscapeEnergyCost = 5;
+    public boolean inMCTSSearch;
 
     // set in GameStateBuilder: this turns off certain card generation that would significantly bloat network size
     // sometimes the deck is so strong it doesn't matter, or the relative strength of card picks doesn't change
@@ -458,6 +459,10 @@ public class GameProperties implements Cloneable {
     public int[] findCardIndex(Class<?> cardClass) {
         int[] cached = cardIndexCache.get(cardClass);
         return cached != null ? cached : new int[0];
+    }
+
+    public boolean isStS2Character() {
+        return character.isSts2;
     }
 
     // ***************************************************************************************************************

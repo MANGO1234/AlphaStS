@@ -127,24 +127,7 @@ public class Player extends PlayerReadOnly {
         return healed;
     }
 
-    private int modifyCardBlock(int n, GameState state) {
-        if (state.properties.noMoreBlockFromCardsCounterIdx >= 0 &&
-                state.getCounterForRead()[state.properties.noMoreBlockFromCardsCounterIdx] > 0) {
-            return 0;
-        }
-        n += dexterity;
-        n = frail > 0? (n - (n + 3) / 4) : n;
-        if (n < 0) {
-            n = 0;
-        }
-        if (state.properties.shadowmeldCounterIdx >= 0) {
-            n *= (1 + state.getCounterForRead()[state.properties.shadowmeldCounterIdx]);
-        }
-        return n;
-    }
-
-    public int gainBlock(int n, GameState state) {
-        n = modifyCardBlock(n, state);
+    public int gainBlock(int n) {
         block += n;
         if (block > 999) {
             block = 999;
@@ -153,13 +136,11 @@ public class Player extends PlayerReadOnly {
     }
 
     public int gainBlockNextTurn(int n, GameState state) {
-        n = modifyCardBlock(n, state);
         state.getCounterForWrite()[state.properties.blockNextTurnCounterIdx] += n;
         return n;
     }
 
     public int gainBlockNextNextTurn(int n, GameState state) {
-        n = modifyCardBlock(n, state);
         state.getCounterForWrite()[state.properties.blockNextNextTurnCounterIdx] += n;
         return n;
     }

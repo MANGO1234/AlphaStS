@@ -7,6 +7,7 @@ import com.alphaStS.enemy.EnemyExordium;
 import com.alphaStS.enemy.PredefinedEncounter;
 import com.alphaStS.entity.Potion;
 import com.alphaStS.entity.Relic;
+import com.alphaStS.gameAction.GameActionCtx;
 import com.alphaStS.player.Player;
 import org.junit.Test;
 
@@ -286,6 +287,23 @@ public class NNInputLenTest {
         builder.setPlayer(new Player(32, 75));
 
         assertEquals(119, new GameState(builder).properties.inputLen);
+    }
+
+    @Test
+    public void testSelect1OutOf3NNInputAllowsFewerThanThreeCards() {
+        var builder = new GameStateBuilder();
+
+        builder.addCard(new CardColorless2.SeekerStrike(), 1);
+        builder.addCard(new CardOther.Regret(), 1);
+        builder.addEnemyEncounter(PredefinedEncounter.GREMLIN_NOB);
+        builder.setPlayer(new Player(80, 80));
+
+        var state = new GameState(builder);
+        int cardIdx = state.properties.findCardIndex(new CardOther.Regret());
+        state.setSelect1OutOf3Idxes(cardIdx, -1, -1);
+        state.setActionCtx(GameActionCtx.SELECT_CARD_1_OUT_OF_3, null, null);
+
+        assertEquals(state.properties.inputLen, state.getNNInput().length);
     }
 
     // endregion

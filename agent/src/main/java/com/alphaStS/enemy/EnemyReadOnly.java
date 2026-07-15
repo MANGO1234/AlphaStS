@@ -34,6 +34,7 @@ public abstract class EnemyReadOnly implements GameProperties.TrainingTargetRegi
         public boolean hasArtifact = false;
         public boolean useLast2MovesForMoveSelection;
         public boolean isAct3;
+        public boolean reactChangeEnemy;
         public int generatedCardIdx = -1; // when getPossibleGeneratedCards return 1 card, this is the card index for it
         public int[] generatedCardIdxes; // when getPossibleGeneratedCards returns non-empty list, this is the card indexes for each card in the order of the list
         public int[] generatedCardReverseIdxes; // given a cardIdx, return the index of it in generatedCardIdxes (-1 otherwise)
@@ -137,6 +138,7 @@ public abstract class EnemyReadOnly implements GameProperties.TrainingTargetRegi
 
     public void gamePropertiesSetup(GameState state) {}
     public List<Card> getPossibleGeneratedCards(GameProperties prop, List<Card> cards) { return List.of(); }
+    public void react(GameState state, Card card) {}
     public int getNNInputLen(GameProperties prop) { return 0; }
     public String getNNInputDesc(GameProperties prop) { return null; }
     public int writeNNInput(GameProperties prop, float[] input, int idx) { return 0; }

@@ -7,6 +7,7 @@ import com.alphaStS.gameAction.GameActionCtx;
 import com.alphaStS.enums.Stance;
 import com.alphaStS.eventHandler.GameEventCardHandler;
 import com.alphaStS.eventHandler.GameEventHandler;
+import com.alphaStS.random.RandomGenCtx;
 
 import java.util.List;
 
@@ -336,6 +337,10 @@ public class CardOther {
                 state.getCounterForWrite()[counterIdx] = 0;
                 return GameActionCtx.START_OF_BATTLE;
             }
+            if (state.properties.inMCTSSearch && state.getSearchRandomGen().nextInt(100, RandomGenCtx.Misc) < 5) {
+                state.getCounterForWrite()[counterIdx] = 0;
+                return GameActionCtx.START_OF_BATTLE;
+            }
             return GameActionCtx.SELECT_CARD_DECK;
         }
 
@@ -377,6 +382,10 @@ public class CardOther {
             state.getCounterForWrite()[counterIdx]++;
             state.removeCardFromDeck(idx, false);
             if (state.getCounterForRead()[counterIdx] >= count) {
+                state.getCounterForWrite()[counterIdx] = 0;
+                return GameActionCtx.START_OF_BATTLE;
+            }
+            if (state.properties.inMCTSSearch && state.getSearchRandomGen().nextInt(100, RandomGenCtx.Misc) < 5) {
                 state.getCounterForWrite()[counterIdx] = 0;
                 return GameActionCtx.START_OF_BATTLE;
             }
@@ -432,6 +441,10 @@ public class CardOther {
             }
             state.getCounterForWrite()[counterIdx]++;
             if (state.getCounterForRead()[counterIdx] >= this.cards.size()) {
+                state.getCounterForWrite()[counterIdx] = 0;
+                return GameActionCtx.START_OF_BATTLE;
+            }
+            if (state.properties.inMCTSSearch && state.getSearchRandomGen().nextInt(100, RandomGenCtx.Misc) < 5) {
                 state.getCounterForWrite()[counterIdx] = 0;
                 return GameActionCtx.START_OF_BATTLE;
             }

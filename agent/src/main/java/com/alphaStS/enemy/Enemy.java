@@ -212,9 +212,6 @@ public abstract class Enemy extends EnemyReadOnly {
         }
     }
 
-    public void react(GameState state, Card card) {
-    }
-
     public boolean applyDebuff(GameState state, DebuffType type, int n) {
         if (health <= 0) {
             return false;
@@ -302,6 +299,9 @@ public abstract class Enemy extends EnemyReadOnly {
         return this;
     }
 
+    public void setDead() {}
+    public void setAlive() {}
+
     public Enemy asElite() {
         properties.isElite = true;
         return this;
@@ -344,6 +344,7 @@ public abstract class Enemy extends EnemyReadOnly {
             properties.canGainPlating = possibleEnemies.stream().anyMatch((e) -> e.properties.canGainPlating);
             properties.canGainPlatedArmor = possibleEnemies.stream().anyMatch((e) -> e.properties.canGainPlatedArmor);
             properties.canGainBlock = possibleEnemies.stream().anyMatch((e) -> e.properties.canGainBlock);
+            properties.reactChangeEnemy = possibleEnemies.stream().anyMatch((e) -> e.properties.reactChangeEnemy);
             for (var e : possibleEnemies) {
                 properties.entityProperty.mergeFrom(e.properties.entityProperty);
             }
@@ -459,6 +460,14 @@ public abstract class Enemy extends EnemyReadOnly {
 
         @Override public void removeAllDebuffs() {
             currentEnemy.removeAllDebuffs();
+        }
+
+        @Override public void setDead() {
+            currentEnemy.setDead();
+        }
+
+        @Override public void setAlive() {
+            currentEnemy.setDead();
         }
 
         @Override public void setMove(int move) {

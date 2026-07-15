@@ -164,7 +164,6 @@ public class CardManager {
         cards.add(new CardColorless2.Mayhem());
         cards.add(new CardColorless2.Nostalgia());
         cards.add(new CardColorless2.RollingBoulder());
-        cards.add(new CardColorless2.Alchemize(0, 0, 0));
         cards.add(new CardColorless2.Anointed());
         cards.add(new CardColorless2.BeatDown());
         cards.add(new CardColorless2.MasterOfStrategy());
@@ -206,6 +205,7 @@ public class CardManager {
         cards.add(new CardColorless2.UltimateDefend());
 
         if (pool == ColorlessCard2Pool.ALL) {
+            cards.add(new CardColorless2.Alchemize(0, 0, 0));
             cards.add(new CardColorless2.Maul());
             cards.add(new CardColorless2.NeowsFury());
             cards.add(new CardColorless2.Whistle());

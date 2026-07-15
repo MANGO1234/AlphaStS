@@ -59,7 +59,7 @@ public class EnemyGlory {
             } else if (move == INCREASING_INTENSITY) {
                 state.addCardToDiscard(properties.generatedCardIdx);
                 state.addCardToDiscard(properties.generatedCardIdx);
-                gainStrength(3);
+                gainStrength(4);
                 state.getCounterForWrite()[state.properties.aeonglassWitherCounterIdx]++;
             }
         }
@@ -82,6 +82,10 @@ public class EnemyGlory {
 
         @Override public void randomize(GameState state, boolean training, int difficulty) {
             randomizeHealth(this, state, training, 535, 535);
+        }
+
+        @Override public int getMaxRandomizeDifficulty() {
+            return 26;
         }
 
         @Override public String getName() {
@@ -963,7 +967,7 @@ public class EnemyGlory {
             var result = new java.util.ArrayList<Card>();
             for (Card card : cards) {
                 var downgraded = card.getTemporarilyDowngraded(properties);
-                if (downgraded != null && !card.equals(downgraded)) {
+                if (!card.equals(downgraded)) {
                     result.add(downgraded);
                 }
             }
@@ -1367,6 +1371,10 @@ public class EnemyGlory {
             randomizeHealth(this, state, training, 419, 419);
         }
 
+        @Override public int getMaxRandomizeDifficulty() {
+            return 20;
+        }
+
         @Override public String getName() {
             return "Queen";
         }
@@ -1436,6 +1444,10 @@ public class EnemyGlory {
 
         @Override public void randomize(GameState state, boolean training, int difficulty) {
             randomizeHealth(this, state, training, 211, 211);
+        }
+
+        @Override public int getMaxRandomizeDifficulty() {
+            return 10;
         }
 
         @Override public String getName() {
@@ -1666,7 +1678,6 @@ public class EnemyGlory {
             properties.isBoss = true;
             properties.canGainStrength = true;
             properties.entityProperty.changePlayerVulnerable = true;
-            strength = 3;
         }
 
         public TestSubject(TestSubject other) {
@@ -1682,6 +1693,14 @@ public class EnemyGlory {
 
         @Override public boolean canSelfRevive(GameState state) {
             return phase < 3;
+        }
+
+        @Override public void setDead() {
+            phase = 3;
+        }
+
+        @Override public void setAlive() {
+            phase = 1;
         }
 
         @Override public int damage(double n, GameState state) {
@@ -1720,16 +1739,6 @@ public class EnemyGlory {
             this.phase = phase;
             this.health = health;
             setMaxHealthInBattle(phaseHealth(phase));
-            if (phase == 1) {
-                strength = 3;
-            } else {
-                strength = 0;
-            }
-            if (phase <= 2) {
-                intangible = false;
-            } else {
-                intangible = true;
-            }
         }
 
         private int phaseHealth(int phase) {
@@ -1741,9 +1750,13 @@ public class EnemyGlory {
             return 313;
         }
 
+        public int getPhase() {
+            return phase;
+        }
+
         @Override public void doMove(GameState state, EnemyReadOnly self) {
             if (move == BITE) {
-                state.enemyDoDamageToPlayer(this, 22, 1);
+                state.enemyDoDamageToPlayer(this, 19, 1);
             } else if (move == SKULL_BASH) {
                 state.enemyDoDamageToPlayer(this, 16, 1);
                 state.getPlayerForWrite().applyDebuff(state, DebuffType.VULNERABLE, 1);
@@ -1852,21 +1865,21 @@ public class EnemyGlory {
         }
 
         @Override public int getMaxRandomizeDifficulty() {
-            return 636;
+            return 32;
         }
 
         @Override public void randomize(GameState state, boolean training, int difficulty) {
             if (training) {
-                difficulty = difficulty <= 0 ? state.getSearchRandomGen().nextInt(636, RandomGenCtx.Other) + 1 : difficulty;
+                difficulty = difficulty <= 0 ? state.getSearchRandomGen().nextInt(32, RandomGenCtx.Other) + 1 : difficulty;
             } else {
-                difficulty = 636;
+                difficulty = 32;
             }
-            if (difficulty <= 313) {
-                setupPhase(3, difficulty);
-            } else if (difficulty <= 525) {
-                setupPhase(2, difficulty - 313);
+            if (difficulty <= 16) {
+                setupPhase(3, (int) (313 * (difficulty / 16.0)));
+            } else if (difficulty <= 26) {
+                setupPhase(2, (int) (212 * ((difficulty - 16) / 10.0)));
             } else {
-                setupPhase(1, difficulty - 525);
+                setupPhase(1, (int) (111 * ((difficulty - 26) / 6.0)));
             }
         }
 

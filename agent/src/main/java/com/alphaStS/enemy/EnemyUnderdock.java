@@ -9,6 +9,7 @@ import com.alphaStS.eventHandler.GameEventEnemyHandler;
 import com.alphaStS.random.RandomGen;
 import com.alphaStS.random.RandomGenCtx;
 
+import java.io.PrintStream;
 import java.util.List;
 import com.alphaStS.utils.Tuple;
 
@@ -33,6 +34,7 @@ public class EnemyUnderdock {
             properties.canGainBlock = true;
             properties.canGainStrength = true;
             properties.isElite = true;
+            properties.reactChangeEnemy = true;
             this.startingMove = startingMove;
         }
 
@@ -1140,6 +1142,12 @@ public class EnemyUnderdock {
             damageTakenThisTurn += hpLost;
         }
 
+        // TODO bug: why reset beginning of turn
+        @Override public void startTurn(GameState state) {
+            super.startTurn(state);
+            damageTakenThisTurn = 0;
+        }
+
         @Override public void endTurn(int turnNum) {
             super.endTurn(turnNum);
             damageTakenThisTurn = 0;
@@ -1200,6 +1208,10 @@ public class EnemyUnderdock {
         @Override public int writeNNInput(GameProperties prop, float[] input, int idx) {
             input[idx] = damageTakenThisTurn / 20.0f;
             return 1;
+        }
+
+        @Override public void interactiveModePrint(GameState state, PrintStream out) {
+            out.println("  Damage Remaining: " + (20 - damageTakenThisTurn));
         }
     }
 
@@ -1407,6 +1419,10 @@ public class EnemyUnderdock {
         @Override public int writeNNInput(GameProperties prop, float[] input, int idx) {
             input[idx] = intangible / 2.0f;
             return 1;
+        }
+
+        @Override public void interactiveModePrint(GameState state, PrintStream out) {
+            out.println("  Intangible: " + intangible);
         }
     }
 

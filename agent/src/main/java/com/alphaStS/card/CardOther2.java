@@ -179,9 +179,9 @@ public class CardOther2 {
 
         @Override public void onDiscardEndOfTurn(GameState state, int numCardsInHand) {
             int wither = state.properties.aeonglassWitherCounterIdx >= 0
-                    ? Math.max(1, state.getCounterForRead()[state.properties.aeonglassWitherCounterIdx])
+                    ? state.getCounterForRead()[state.properties.aeonglassWitherCounterIdx] + 1
                     : 1;
-            state.doNonAttackDamageToPlayer(3 * wither, false, this);
+            state.doNonAttackDamageToPlayer(3 * wither, true, this);
         }
     }
 

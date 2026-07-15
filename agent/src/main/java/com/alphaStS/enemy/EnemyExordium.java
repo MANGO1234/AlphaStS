@@ -1485,6 +1485,7 @@ public class EnemyExordium {
             super(health, 2, true);
             properties.canGainStrength = true;
             properties.canGainBlock = true;
+            properties.reactChangeEnemy = true;
         }
 
         public RedLouse(RedLouse other) {
@@ -1615,6 +1616,7 @@ public class EnemyExordium {
 
         public GreenLouse(int health) {
             super(health, 2, true);
+            properties.reactChangeEnemy = true;
             properties.entityProperty.changePlayerWeakened = true;
         }
 

@@ -19,14 +19,10 @@ public class EnemyUtils {
 
     public static void randomizeHealth(Enemy enemy, GameState state, boolean training, int minHealth, int maxHealth) {
         int range = maxHealth - minHealth + 1;
-        if (range <= 1) {
-            enemy.setHealth(maxHealth);
-            return;
-        }
         int difficulty = Math.max(1, maxHealth / 20);
         int b = state.getSearchRandomGen().nextInt(difficulty, RandomGenCtx.Other) + 1;
         if (training) {
-            enemy.setHealth((int) Math.round(((double) (enemy.getHealth() * b)) / 6));
+            enemy.setHealth((int) Math.round(((double) (maxHealth * b)) / difficulty));
         } else if (range > 1) {
             enemy.setHealth(minHealth + state.getSearchRandomGen().nextInt(range, RandomGenCtx.RandomEnemyHealth, new Tuple<>(minHealth, state)));
         } else {

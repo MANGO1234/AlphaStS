@@ -1,6 +1,7 @@
 package com.alphaStS.model;
 
 import com.alphaStS.GameState;
+import com.alphaStS.utils.NoLogException;
 import com.alphaStS.utils.Tuple;
 
 import java.util.ArrayList;
@@ -20,6 +21,7 @@ public class ModelExecutor {
     public final static Integer EXEC_WAITING = 0;
     public final static Integer EXEC_SUCCESS = 1;
     public final static Integer EXEC_SUCCESS_CACHE_HIT = 2;
+    public final static Integer EXEC_NOT_RUNNING = 3;
 
     private final List<Thread> executorThreads = new ArrayList<>();
     private final List<ModelPlain> executorModels = new ArrayList<>();
@@ -166,9 +168,6 @@ public class ModelExecutor {
             }
         }
         executorThreads.clear();
-        for (int i = 0; i < producerModels.size(); i++) {
-            resultsStatus.set(i, EXEC_WAITING);
-        }
         queue.clear();
     }
 
@@ -197,8 +196,11 @@ public class ModelExecutor {
             try {
                 t.run();
             } catch (RuntimeException e) {
+                if (e instanceof NoLogException) {
+                    return;
+                }
                 if (!(e.getCause() instanceof InterruptedException)) {
-                    _pool.running = false;
+                    _pool.setToNotRunning();
                     throw e;
                 }
             }
@@ -250,5 +252,8 @@ public class ModelExecutor {
 
     public void setToNotRunning() {
         running = false;
+       for (int i = 0; i < producerModels.size(); i++) {
+           resultsStatus.set(i, EXEC_NOT_RUNNING);
+       }
     }
 }

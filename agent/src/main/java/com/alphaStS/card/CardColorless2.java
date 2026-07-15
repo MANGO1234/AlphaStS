@@ -34,7 +34,7 @@ public class CardColorless2 {
     private static List<Card> getOtherCharacterAttackCardsTmp0Cost(CharacterEnum character, boolean upgraded) {
         var cards = new ArrayList<Card>();
         for (CharacterEnum value : CharacterEnum.values()) {
-            if (value == character) {
+            if (value == character || value.isSts2 != character.isSts2) {
                 continue;
             }
             for (Card card : CardManager.getCharacterCardsByType(value, Card.ATTACK, false)) {
@@ -623,7 +623,7 @@ public class CardColorless2 {
         }
     }
 
-    // TODO: Seeker Strike (Uncommon) - 1 energy, Attack
+    // Seeker Strike (Uncommon) - 1 energy, Attack
     //   Effect: Deal 9 damage. Choose 1 of 3 cards in your Draw Pile to add into your Hand.
     //   Upgraded Effect: Deal 12 damage. Choose 1 of 3 cards in your Draw Pile to add into your Hand.
     private static abstract class _SeekerStrikeT extends Card {
@@ -687,7 +687,7 @@ public class CardColorless2 {
     public static class ShockwaveP extends CardIronclad.ShockwaveP {
     }
 
-    // TODO: Splash (Uncommon) - 1 energy, Skill
+    // Splash (Uncommon) - 1 energy, Skill
     //   Effect: Choose 1 of 3 random Attacks from another character to add into your Hand. It's free to play this turn.
     //   Upgraded Effect: Choose 1 of 3 random Upgraded Attacks from another character to add into your Hand. It's free to play this turn.
     private static abstract class _SplashT extends Card {
@@ -699,15 +699,24 @@ public class CardColorless2 {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            if ((state.properties.generateCardOptions & GameProperties.GENERATE_CARD_SPLASH) == 0) {
+                return GameActionCtx.PLAY_CARD;
+            }
             state.setSelect1OutOf3Idxes(generatedCardIdxes);
             return GameActionCtx.SELECT_CARD_1_OUT_OF_3;
         }
 
         @Override public List<Card> getPossibleGeneratedCards(GameProperties gameProperties, List<Card> cards) {
+            if ((gameProperties.generateCardOptions & GameProperties.GENERATE_CARD_SPLASH) == 0) {
+                return List.of();
+            }
             return getPossibleSelect1OutOf3Cards(gameProperties);
         }
 
         @Override public List<Card> getPossibleSelect1OutOf3Cards(GameProperties gameProperties) {
+            if ((gameProperties.generateCardOptions & GameProperties.GENERATE_CARD_SPLASH) == 0) {
+                return List.of();
+            }
             return getOtherCharacterAttackCardsTmp0Cost(gameProperties.character, upgraded);
         }
     }
@@ -789,7 +798,7 @@ public class CardColorless2 {
     public static class ThinkingAheadP extends CardColorless.ThinkingAheadP {
     }
 
-    // TODO: Thrumming Hatchet (Uncommon) - 1 energy, Attack
+    // Thrumming Hatchet (Uncommon) - 1 energy, Attack
     //   Effect: Deal 11 damage. At the start of your next turn, return this to your Hand.
     //   Upgraded Effect: Deal 14 damage. At the start of your next turn, return this to your Hand.
     private static abstract class _ThrummingHatchetT extends Card {
@@ -1094,7 +1103,7 @@ public class CardColorless2 {
         }
     }
 
-    // TODO: Bolas (Rare) - 0 energy, Attack
+    // Bolas (Rare) - 0 energy, Attack
     //   Effect: Deal 3 damage. At the start of your next turn, return this to your Hand.
     //   Upgraded Effect: Deal 4 damage. At the start of your next turn, return this to your Hand.
     private static abstract class _BolasT extends Card {
@@ -1181,7 +1190,7 @@ public class CardColorless2 {
         }
     }
 
-    // TODO: Calamity (Rare) - 3 energy, Power
+    // Calamity (Rare) - 3 energy, Power
     //   Effect: Whenever you play an Attack, add a random Attack into your Hand.
     //   Upgraded Effect (2 energy): Whenever you play an Attack, add a random Attack into your Hand.
     private static abstract class _CalamityT extends Card {
@@ -1190,11 +1199,16 @@ public class CardColorless2 {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.getCounterForWrite()[counterIdx]++;
+            if ((state.properties.generateCardOptions & GameProperties.GENERATE_CARD_CALAMITY) != 0) {
+                state.getCounterForWrite()[counterIdx]++;
+            }
             return GameActionCtx.PLAY_CARD;
         }
 
         @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            if ((properties.generateCardOptions & GameProperties.GENERATE_CARD_CALAMITY) == 0) {
+                return List.of();
+            }
             return CardManager.getCharacterCardsByType(properties.character, Card.ATTACK, false);
         }
 
@@ -1211,6 +1225,9 @@ public class CardColorless2 {
             });
             state.properties.addOnCardPlayedHandler("Calamity", new GameEventCardHandler() {
                 @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                    if ((state.properties.generateCardOptions & GameProperties.GENERATE_CARD_CALAMITY) == 0) {
+                        return;
+                    }
                     if (state.getCounterForRead()[counterIdx] > 0 && state.properties.cardDict[cardIdx].cardType == Card.ATTACK) {
                         for (int i = 0; i < state.getCounterForRead()[counterIdx]; i++) {
                             int randomIdx = state.getSearchRandomGen().nextInt(generatedCardIdxes.length, RandomGenCtx.RandomCardGen, new Tuple<>(state, generatedCardIdxes));
@@ -1468,7 +1485,7 @@ public class CardColorless2 {
         }
     }
 
-    // TODO: Jackpot (Rare) - 3 energy, Attack
+    // Jackpot (Rare) - 3 energy, Attack
     //   Effect: Deal 25 damage. Add 3 random 0 energy cards into your Hand.
     //   Upgraded Effect: Deal 30 damage. Add 3 random Upgraded 0 energy cards into your Hand.
     private static abstract class _JackpotT extends Card {
@@ -1588,7 +1605,7 @@ public class CardColorless2 {
 
     // No need to implement Rally: Multiplayer
 
-    // TODO: Rend (Rare) - 2 energy, Attack
+    // Rend (Rare) - 2 energy, Attack
     //   Effect: Deal 15 damage. Deals 5 additional damage for each unique debuff on the enemy.
     //   Upgraded Effect: Deal 18 damage. Deals 8 additional damage for each unique debuff on the enemy.
     private static abstract class _RendT extends Card {
@@ -2459,7 +2476,7 @@ public class CardColorless2 {
         }
     }
 
-    // TODO: Maul (Ancient) - 1 energy, Attack
+    // Maul (Ancient) - 1 energy, Attack
     //   Effect: Deal 5 damage twice. Increase the damage of ALL Maul cards by 1 this combat.
     //   Upgraded Effect: Deal 6 damage twice. Increase the damage of ALL Maul cards by 2 this combat.
     protected static abstract class _MaulT extends Card {
@@ -2700,7 +2717,7 @@ public class CardColorless2 {
         }
     }
 
-    // TODO: Whistle (Ancient) - 3 energy, Attack
+    // Whistle (Ancient) - 3 energy, Attack
     //   Effect: Deal 33 damage. Stun the enemy. Exhaust.
     //   Upgraded Effect: Deal 44 damage. Stun the enemy. Exhaust.
     private static abstract class _WhistleT extends Card {

@@ -100,7 +100,7 @@ public class Configuration {
     // basic testing show it significantly helps in preventing losing to 50 turns and dramatically shorten number of turns
     // (usually in defect battles with lots of focus where the network stop progressing due to every move being the same eval)
     // Some testing shows it will cause the network to lose fights it wouldn't have lost by picking more "aggressive" moves to do damage
-    public static boolean USE_TURNS_LEFT_HEAD = false;
+    public static boolean USE_TURNS_LEFT_HEAD = true;
     // Experimental feature to resolve the problem mentioned above (Worked on couple instances I tested it on so far)
     // Since the main problem is when defensive output far exceeds enemy damage, add an addition head for probability
     // of taking any more damage from current position and only use turns left head when it exceeds a threshold
@@ -119,6 +119,9 @@ public class Configuration {
     public static int WRITE_MATCHES_MAX_COUNT = 0;
     // when set, writes a JSON map of damage -> occurrence count to this filename inside the iteration folder
     public static String STATS_WRITE_DAMAGE_DISTRIBUTION_FILE_SUFFIX = "_nosl";
+
+    // if accidental infinite loop bug within a battle occurs, the process will crash
+    public static final int MATCH_TIMEOUT_SEC = 600;
 
     public static boolean USE_NEW_ACTION_SELECTION = false;
 

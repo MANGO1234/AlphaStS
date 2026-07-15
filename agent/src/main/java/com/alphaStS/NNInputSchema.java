@@ -38,6 +38,38 @@ public class NNInputSchema {
     List<NNModuleAction> inputPrinters = new ArrayList<>();
     List<List<EnemyInputModule>> perEnemyModules = new ArrayList<>();
 
+    private static void fillSelect1OutOf3CardInput(GameState state, float[] x, int idx, int len, int cardIdx) {
+        if (cardIdx == 255) {
+            return;
+        }
+        if (cardIdx < 0 || cardIdx >= len) {
+            throw new IllegalStateException(select1OutOf3CardInputError(state, len, cardIdx));
+        }
+        x[idx + cardIdx] = 1;
+    }
+
+    private static String select1OutOf3CardInputError(GameState state, int len, int cardIdx) {
+        String currentAction = state.currentAction == null ? "null" : state.currentAction.toString();
+        String currentActionDesc = "null";
+        String currentCard = "null";
+        if (state.currentAction != null) {
+            currentActionDesc = state.getActionString(state.currentAction);
+            if (state.currentAction.type() == GameActionType.PLAY_CARD) {
+                currentCard = state.properties.cardDict[state.currentAction.idx()].cardName;
+            }
+        }
+        int idx1 = state.select1OutOf3CardsIdxes & 255;
+        int idx2 = (state.select1OutOf3CardsIdxes >> 8) & 255;
+        int idx3 = (state.select1OutOf3CardsIdxes >> 16) & 255;
+        return "Invalid select 1 out of 3 card NN input index " + cardIdx + " for length " + len +
+                ", encodedIdxes=[" + idx1 + ", " + idx2 + ", " + idx3 + "]" +
+                ", actionCtx=" + state.actionCtx +
+                ", currentAction=" + currentAction +
+                ", currentActionDesc=" + currentActionDesc +
+                ", currentCard=" + currentCard +
+                ", state=" + state;
+    }
+
     void setup(GameState state) {
         var props = state.properties;
         var enemies = state.getEnemiesForRead();
@@ -1011,9 +1043,9 @@ public class NNInputSchema {
             inputModules.add((s, x, idx) -> {
                 int l = s.properties.select1OutOf3CardsIdxes.length;
                 if (s.actionCtx == GameActionCtx.SELECT_CARD_1_OUT_OF_3) {
-                    x[idx + (s.select1OutOf3CardsIdxes & 255)] = 1;
-                    x[idx + ((s.select1OutOf3CardsIdxes >> 8) & 255)] = 1;
-                    x[idx + ((s.select1OutOf3CardsIdxes >> 16) & 255)] = 1;
+                    fillSelect1OutOf3CardInput(s, x, idx, l, s.select1OutOf3CardsIdxes & 255);
+                    fillSelect1OutOf3CardInput(s, x, idx, l, (s.select1OutOf3CardsIdxes >> 8) & 255);
+                    fillSelect1OutOf3CardInput(s, x, idx, l, (s.select1OutOf3CardsIdxes >> 16) & 255);
                 }
                 return l;
             });

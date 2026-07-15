@@ -653,8 +653,8 @@ public class InteractiveMode {
         boolean prevRngOn = false;
         if (state.properties.enableSL == null) {
             rng = (RandomGenInteractive) state.properties.random;
-            rng.rngOn = true;
             prevRngOn = rng.rngOn;
+            rng.rngOn = true;
         }
         try {
             operation.run();
@@ -995,6 +995,15 @@ public class InteractiveMode {
         }
         if (state.getPlayerForRead().getArtifact() > 0) {
             out.println("  Artifact: " + state.getPlayerForRead().getArtifact());
+        }
+        if (state.getPlayerForRead().getLoseStrengthEot() > 0) {
+            out.println("  Lost Strength End of Turn: " + state.getPlayerForRead().getLoseStrengthEot());
+        }
+        if (state.getPlayerForRead().getLoseDexterityEot() > 0) {
+            out.println("  Lost Dexterity End of Turn: " + state.getPlayerForRead().getLoseDexterityEot());
+        }
+        if (state.getPlayerForRead().getLoseFocusEot() > 0) {
+            out.println("  Lost Focus End of Turn: " + state.getPlayerForRead().getLoseFocusEot());
         }
         if (state.buffs != 0) {
             out.println("  Buffs:");

@@ -47,18 +47,6 @@ public class CardIronclad2 {
     public static class Strike extends Card.Strike {
     }
 
-    public static class TezcatarasEmberStrike extends Card {
-        public TezcatarasEmberStrike() {
-            super("Tezcatara's Ember Strike", Card.ATTACK, 0, Card.COMMON);
-            entityProperty.selectEnemy = true;
-        }
-
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), 6, this);
-            return GameActionCtx.PLAY_CARD;
-        }
-    }
-
     public static class StrikeP extends Card.StrikeP {
     }
 

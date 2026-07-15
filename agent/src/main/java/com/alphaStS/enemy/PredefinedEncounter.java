@@ -163,6 +163,7 @@ public enum PredefinedEncounter {
         COLLECTOR.calcFightProgress = PredefinedEncounter::calcCollectorFightProgress;
         GREMLIN_LEADER.calcFightProgress = PredefinedEncounter::calcGremlinLeaderFightProgress;
         CORRUPT_HEART.calcFightProgress = PredefinedEncounter::calcCorruptHeartFightProgress;
+        TEST_SUBJECT.calcFightProgress = PredefinedEncounter::calcTestSubjectFightProgress;
     }
 
     PredefinedEncounter(String internalKey, int act, Supplier<List<Enemy>> enemiesSupplier) {
@@ -309,6 +310,24 @@ public enum PredefinedEncounter {
             if (!addedMod) {
                 totalCurHp += enemy.getHealth();
                 totalMaxHp += enemy.properties.maxHealth;
+            }
+        }
+        return 1 - ((double) totalCurHp) / totalMaxHp;
+    }
+
+    private static double calcTestSubjectFightProgress(GameState state, boolean onlyHeart) {
+        int totalMaxHp = 0;
+        int totalCurHp = 0;
+        for (int i = 0; i < state.getEnemiesForRead().size(); i++) {
+            EnemyReadOnly enemy = state.getEnemiesForRead().get(i);
+            if (enemy instanceof EnemyGlory.TestSubject testSubject) {
+                totalCurHp += enemy.getHealth();
+                if (testSubject.getPhase() == 1) {
+                    totalCurHp += 212 + 313;
+                } else if (testSubject.getPhase() == 2) {
+                    totalCurHp += 313;
+                }
+                totalMaxHp += 111 + 212 + 313;
             }
         }
         return 1 - ((double) totalCurHp) / totalMaxHp;

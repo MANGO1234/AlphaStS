@@ -1988,7 +1988,7 @@ public class Relic2 {
     public static class PaelsLegion extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.paelsLegion = this;
-            state.properties.registerCounter("PaelsLegion", this, new GameProperties.NetworkInputHandler() {
+            state.properties.registerCounter("PaelsLegion", this, 2, new GameProperties.NetworkInputHandler() {
                 @Override public int addToInput(GameState state, float[] input, int idx) {
                     input[idx] = state.getCounterForRead()[counterIdx] / 2.0f;
                     return idx + 1;
@@ -2000,6 +2000,14 @@ public class Relic2 {
 
                 @Override public void onRegister(int counterIdx) {
                     state.properties.paelsLegionCounterIdx = counterIdx;
+                }
+            });
+            state.properties.addOnCardPlayedHandler("PaelsLegion", new GameEventCardHandler() {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                    if (state.getCounterForRead()[state.properties.paelsLegionCounterIdx + 1] == 1) {
+                        state.getCounterForWrite()[state.properties.paelsLegionCounterIdx + 1] = 0;
+                        state.getCounterForWrite()[state.properties.paelsLegionCounterIdx] = 2;
+                    }
                 }
             });
             state.properties.addStartOfTurnHandler("PaelsLegion", new GameEventHandler() {

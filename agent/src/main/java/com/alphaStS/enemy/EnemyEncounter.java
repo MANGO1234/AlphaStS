@@ -36,6 +36,7 @@ public class EnemyEncounter {
         var enemies = state.getEnemiesForWrite();
         for (int i = 0; i < enemies.size(); i++) {
             enemies.getForWrite(i).setHealth(0);
+            enemies.getForWrite(i).setDead();
         }
         for (var t : idxes) {
             var enemy = enemies.getForWrite(t.index());
@@ -47,6 +48,7 @@ public class EnemyEncounter {
                 } else {
                     enemy.setHealth(enemy.properties.maxHealth);
                 }
+                enemy.setAlive();
             }
         }
         state.currentEncounter = this;

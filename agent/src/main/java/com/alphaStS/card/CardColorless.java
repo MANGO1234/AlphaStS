@@ -436,7 +436,11 @@ public class CardColorless {
         }
 
         public List<Card> getPossibleGeneratedCards(GameProperties gameProperties, List<Card> cards) {
-            return CardManager.getColorlessCards(false);
+            if (gameProperties.isStS2Character()) {
+                return CardManager.getColorless2Cards(CardManager.ColorlessCard2Pool.CARD_GENERATION);
+            } else {
+                return CardManager.getColorlessCards(false);
+            }
         }
     }
 
@@ -909,7 +913,9 @@ public class CardColorless {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.getCounterForWrite()[counterIdx]++;
+            if ((state.properties.generateCardOptions & GameProperties.GENERATE_CARD_MAGNETISM) != 0) {
+                state.getCounterForWrite()[counterIdx]++;
+            }
             return GameActionCtx.PLAY_CARD;
         }
 
@@ -924,7 +930,7 @@ public class CardColorless {
                 }
             });
 
-            state.properties.addStartOfTurnHandler("Magnetism", new GameEventHandler() {
+            state.properties.addPreStartOfTurnHandler("Magnetism", new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     for (int i = 0; i < state.getCounterForRead()[counterIdx]; i++) {
                         state.setIsStochastic();
@@ -937,7 +943,14 @@ public class CardColorless {
         }
 
         public List<Card> getPossibleGeneratedCards(GameProperties gameProperties, List<Card> cards) {
-            return CardManager.getColorlessCards(false);
+            if ((gameProperties.generateCardOptions & GameProperties.GENERATE_CARD_MAGNETISM) == 0) {
+                return List.of();
+            }
+            if (gameProperties.isStS2Character()) {
+                return CardManager.getColorless2Cards(CardManager.ColorlessCard2Pool.CARD_GENERATION);
+            } else {
+                return CardManager.getColorlessCards(false);
+            }
         }
     }
 
@@ -1645,8 +1658,8 @@ public class CardColorless {
         }
 
         @Override public boolean retain(GameState state) {
-            return super.retain(state) || (state.properties.phantomBladesCounterIdx >= 0
-                    && state.getCounterForRead()[state.properties.phantomBladesCounterIdx] > 0);
+            return state != null && (super.retain(state) || (state.properties.phantomBladesCounterIdx >= 0
+                    && state.getCounterForRead()[state.properties.phantomBladesCounterIdx] > 0));
         }
     }
 

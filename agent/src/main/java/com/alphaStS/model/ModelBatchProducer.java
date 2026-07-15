@@ -1,6 +1,7 @@
 package com.alphaStS.model;
 
 import com.alphaStS.GameState;
+import com.alphaStS.utils.NoLogException;
 import com.alphaStS.utils.Tuple;
 
 import java.util.concurrent.TimeUnit;
@@ -29,6 +30,9 @@ public class ModelBatchProducer implements Model {
                 pool.locks.get(clientIdx).unlock();
                 throw new RuntimeException(e);
             }
+        }
+        if (pool.resultsStatus.get(clientIdx) == ModelExecutor.EXEC_NOT_RUNNING) {
+            throw new NoLogException("Crash in another thread.");
         }
         pool.locks.get(clientIdx).unlock();
         if (pool.resultsStatus.get(clientIdx) == ModelExecutor.EXEC_SUCCESS_CACHE_HIT) {
