@@ -343,9 +343,15 @@ public class Relic2 {
     // Joss Paper (Uncommon)
     //   Effect: Every 5 times you Exhaust a card, draw 1 card.
     public static class JossPaper extends Relic {
+        int n;
         int healthReward;
 
         public JossPaper(int healthReward) {
+            this(0, healthReward);
+        }
+
+        public JossPaper(int n, int healthReward) {
+            this.n = n;
             this.healthReward = healthReward;
         }
 
@@ -360,6 +366,13 @@ public class Relic2 {
                     return 1;
                 }
             }, true);
+            state.properties.addStartOfBattleHandler("JossPaper", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (isRelicEnabledInScenario(state)) {
+                        state.getCounterForWrite()[counterIdx] = n;
+                    }
+                }
+            });
             state.properties.addOnExhaustHandler("JossPaper", new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     if (!isRelicEnabledInScenario(state)) {
@@ -1390,13 +1403,19 @@ public class Relic2 {
     // Pollinous Core (Event)
     //   Effect: Every 4 turns, draw 2 additional cards.
     public static class PollinousCore extends Relic {
+        private final int n;
         private final int healthReward;
 
         public PollinousCore() {
-            this(0);
+            this(0, 0);
         }
 
         public PollinousCore(int healthReward) {
+            this(0, healthReward);
+        }
+
+        public PollinousCore(int n, int healthReward) {
+            this.n = n;
             this.healthReward = healthReward;
         }
 
@@ -1411,6 +1430,13 @@ public class Relic2 {
                     return 1;
                 }
             }, true);
+            state.properties.addStartOfBattleHandler("PollinousCore", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (isRelicEnabledInScenario(state)) {
+                        state.getCounterForWrite()[counterIdx] = n;
+                    }
+                }
+            });
             state.properties.addStartOfTurnHandler("PollinousCore", new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     if (!isRelicEnabledInScenario(state)) {
