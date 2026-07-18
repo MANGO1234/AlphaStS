@@ -611,9 +611,9 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         @Override public GameActionCtx use(GameState state, int idx) {
             state.draw(5);
             for (int i = 0; i < state.handArrLen; i++) {
-                var snecko = state.properties.sneckoIdxes[state.getHandArrForRead()[i]];
-                if (snecko[0] > 1) {
-                    state.getHandArrForWrite()[i] = (short) snecko[state.getSearchRandomGen().nextInt(snecko[0], RandomGenCtx.Snecko, new Tuple<>(state, state.getHandArrForRead()[i])) + 1];
+                var sneckoGroup = state.properties.sneckoGroups[state.getHandArrForRead()[i]];
+                if (sneckoGroup != null) {
+                    state.getHandArrForWrite()[i] = (short) sneckoGroup.indexes[state.getSearchRandomGen().nextInt(sneckoGroup.indexes.length, RandomGenCtx.Snecko, new Tuple<>(state, state.getHandArrForRead()[i]))];
                 }
             }
             return GameActionCtx.PLAY_CARD;

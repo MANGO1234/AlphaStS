@@ -154,7 +154,7 @@ public class GameProperties implements Cloneable {
     public int[] tmpModifiedCardReverseTransformIdxes;
     public int[] tmpSlyTransformIdxes;
     public int[] upgradeIdxes;
-    public int[][] sneckoIdxes;
+    public SneckoGroup[] sneckoGroups;
     // SORTED BLOCK END
     // individual cards indexes
     // SORTED BLOCK START
@@ -1628,7 +1628,7 @@ public class GameProperties implements Cloneable {
 
     public static List<Card> generateSneckoCards(List<Card> cards) {
         var newCards = new ArrayList<Card>();
-        cards.stream().filter((x) -> !x.isXCost && x.energyCost >= 0 && !(x instanceof Card.CardWrapper)).forEach((x) -> {
+        cards.stream().filter((x) -> !x.isXCost && x.energyCost >= 0).forEach((x) -> {
             for (int i = 0; i < 4; i++) {
                 if (x.energyCost == i) {
                     continue;
@@ -1639,60 +1639,51 @@ public class GameProperties implements Cloneable {
         return newCards;
     }
 
-    // todo
+    public static class SneckoGroup {
+        public final String groupCardName;
+        public final int[] indexes;
+
+        public SneckoGroup(String groupCardName, int[] indexes) {
+            this.groupCardName = groupCardName;
+            this.indexes = indexes;
+        }
+    }
+
     public void setupSneckoIndexes() {
-        sneckoIdxes = new int[cardDict.length][];
-        var m = new HashMap<String, int[]>();
+        sneckoGroups = new SneckoGroup[cardDict.length];
+        var groupIndexes = new HashMap<String, List<Integer>>();
         for (int i = 0; i < cardDict.length; i++) {
             var card = cardDict[i];
-            if (!(card instanceof Card.CardWrapper)) {
-                if (cardCanGenerateSneckoEnergyCost(card) || card.energyCost > 3) {
-                    var a = new int[] { 0, -1, -1, -1, -1 };
-                    m.put(getCanonicalCardName(card), a);
-                    sneckoIdxes[i] = a;
-                } else {
-                    var a = new int[] { 1, i, -1, -1, -1 };
-                    m.put(card.cardName, a);
-                    sneckoIdxes[i] = a;
-                }
+            if (card.isXCost || card.energyCost < 0) {
+                continue;
+            }
+
+            if (card.energyCost <= 3) {
+                groupIndexes.computeIfAbsent(getSneckoGroupCardName(card), k -> new ArrayList<>()).add(i);
             }
         }
-        for (int i = 0; i < cardDict.length; i++) {
-            var card = cardDict[i];
-            if (card instanceof Card.CardWrapper c && (c.isPermChangeCost() && !c.isTmpChangeCost()) && card.energyCost < 4) {
-                var a = m.get(c.getBaseCard().cardName);
-                a[++a[0]] = i;
-                sneckoIdxes[i] = a;
-            } else if (cardCanGenerateSneckoEnergyCost(card) && card.energyCost < 4) {
-                var a = m.get(getCanonicalCardName(card));
-                a[++a[0]] = i;
-                sneckoIdxes[i] = a;
-            }
+
+        var groups = new HashMap<String, SneckoGroup>();
+        for (var entry : groupIndexes.entrySet()) {
+            int[] indexes = entry.getValue().stream()
+                    .sorted(Comparator.comparingInt((Integer idx) -> cardDict[idx].energyCost)
+                            .thenComparing(idx -> cardDict[idx].cardName))
+                    .mapToInt(Integer::intValue)
+                    .toArray();
+            groups.put(entry.getKey(), new SneckoGroup(entry.getKey(), indexes));
         }
+
         for (int i = 0; i < cardDict.length; i++) {
             var card = cardDict[i];
-            if (card instanceof Card.CardWrapper c && c.isTmpChangeCost()) {
-                if (c.getBaseCard() instanceof Card.CardWrapper cc && cc.isPermChangeCost()) {
-                    sneckoIdxes[i] = m.get(cc.getBaseCard().cardName);
-                } else if (cardCanGenerateSneckoEnergyCost(card)) {
-                    sneckoIdxes[i] = m.get(getCanonicalCardName(card));
-                } else {
-                    sneckoIdxes[i] = m.get(c.getBaseCard().cardName);
-                }
-            } else if (cardCanGenerateSneckoEnergyCost(card) || card.energyCost > 3) {
-                sneckoIdxes[i] = m.get(getCanonicalCardName(card));
+            if (card.isXCost || card.energyCost < 0) {
+                continue;
             }
+
+            sneckoGroups[i] = groups.get(getSneckoGroupCardName(card));
         }
     }
 
-    private static boolean cardCanGenerateSneckoEnergyCost(Card card) {
-        return card.cardName.startsWith("Blood for Blood") || card.cardName.startsWith("Force Field") || card.cardName.startsWith("Streamline");
-    }
-
-    private static String getCanonicalCardName(Card card) {
-        if (card.cardName.contains(" (")) {
-            return card.cardName.substring(0, card.cardName.indexOf(" ("));
-        }
-        return card.cardName;
+    private static String getSneckoGroupCardName(Card card) {
+        return card.getPermCostIfPossible(0).cardName;
     }
 }

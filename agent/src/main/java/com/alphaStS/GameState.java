@@ -1265,14 +1265,16 @@ public final class GameState implements State {
                 drawnIdx = cardIdx;
             }
             if (properties.sneckoDebuffCounterIdx >= 0 && getCounterForRead()[properties.sneckoDebuffCounterIdx] > 0) {
-                removeCardFromHand(cardIdx);
-                var snecko = properties.sneckoIdxes[cardIdx];
-                if (snecko[0] == 1) {
-                    cardIdx = snecko[1];
-                    addCardToHand(snecko[1]);
-                } else {
-                    cardIdx = snecko[getSearchRandomGen().nextInt(snecko[0], RandomGenCtx.Snecko, new Tuple<>(this, cardIdx)) + 1];
-                    addCardToHand(cardIdx);
+                var sneckoGroup = properties.sneckoGroups[cardIdx];
+                if (sneckoGroup != null) {
+                    removeCardFromHand(cardIdx);
+                    if (sneckoGroup.indexes.length == 1) {
+                        cardIdx = sneckoGroup.indexes[0];
+                        addCardToHand(cardIdx);
+                    } else {
+                        cardIdx = sneckoGroup.indexes[getSearchRandomGen().nextInt(sneckoGroup.indexes.length, RandomGenCtx.Snecko, new Tuple<>(this, cardIdx))];
+                        addCardToHand(cardIdx);
+                    }
                 }
             }
             if (shouldBindStartOfTurnDraw() && properties.boundCardIdxes[cardIdx] >= 0) {
