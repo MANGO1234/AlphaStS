@@ -1,6 +1,7 @@
 package com.alphaStS.entity;
 
 import com.alphaStS.*;
+import com.alphaStS.action.PlayCardAction;
 import com.alphaStS.card.CardColorless2;
 import com.alphaStS.enemy.Enemy;
 import com.alphaStS.enemy.EnemyReadOnly;
@@ -1351,8 +1352,51 @@ public class Relic2 {
         }
     }
 
-    // TODO: History Course (Event)
+    // History Course (Event)
     //   Effect: At the start of your turn, play a copy of your last played Attack or Skill.
+    public static class HistoryCourse extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            var attackSkillCardIdxes = new ArrayList<Integer>();
+            for (int i = 0; i < state.properties.cardDict.length; i++) {
+                var cardType = state.properties.cardDict[i].cardType;
+                if (cardType == Card.ATTACK || cardType == Card.SKILL) {
+                    attackSkillCardIdxes.add(i);
+                }
+            }
+            state.properties.registerCounter("HistoryCourse", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    int lastPlayedCardIdx = state.getCounterForRead()[counterIdx] - 1;
+                    for (int i = 0; i < attackSkillCardIdxes.size(); i++) {
+                        input[idx + i] = attackSkillCardIdxes.get(i) == lastPlayedCardIdx ? 1.0f : 0.0f;
+                    }
+                    return idx + attackSkillCardIdxes.size();
+                }
+
+                @Override public int getInputLenDelta() {
+                    return attackSkillCardIdxes.size();
+                }
+            });
+            state.properties.addOnCardPlayedHandler("HistoryCourse", new GameEventCardHandler() {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                    if (!isRelicEnabledInScenario(state)) {
+                        return;
+                    }
+                    var cardType = state.properties.cardDict[cardIdx].cardType;
+                    if (cardType == Card.ATTACK || cardType == Card.SKILL) {
+                        state.getCounterForWrite()[counterIdx] = cardIdx + 1;
+                    }
+                }
+            });
+            state.properties.addStartOfTurnHandler("HistoryCourse", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    int lastPlayedCardIdx = state.getCounterForRead()[counterIdx] - 1;
+                    if (isRelicEnabledInScenario(state) && lastPlayedCardIdx >= 0) {
+                        state.addGameActionToStartOfDeque(new PlayCardAction(lastPlayedCardIdx, state));
+                    }
+                }
+            });
+        }
+    }
 
     // No need to implement Lee's Waffle???: Upon pickup, heal 10% of your HP.
 
@@ -2168,8 +2212,51 @@ public class Relic2 {
         }
     }
 
-    // TODO: Sand Castle (Ancient)
+    // Sand Castle (Ancient)
     //   Effect: Upon pickup, Upgrade 6 random cards.
+    public static class SandCastle extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.addStartOfBattleHandler("SandCastle", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (!isRelicEnabledInScenario(state)) {
+                        return;
+                    }
+                    var upgradedCards = new ArrayList<Card>();
+                    for (int i = 0; i < 6; i++) {
+                        var cards = new ArrayList<Integer>();
+                        for (int j = 0; j < state.deckArrLen; j++) {
+                            int cardIdx = state.getDeckArrForRead()[j];
+                            if (state.properties.cardDict[cardIdx].getUpgrade(state.properties) != null) {
+                                cards.add(cardIdx);
+                            }
+                        }
+                        if (cards.isEmpty()) {
+                            break;
+                        }
+                        int r = state.getSearchRandomGen().nextInt(cards.size(), RandomGenCtx.Misc);
+                        int cardIdx = cards.get(r);
+                        Card upgradedCard = state.properties.cardDict[cardIdx].getUpgrade(state.properties);
+                        state.removeCardFromDeck(cardIdx, false);
+                        state.addCardToDeckNonRandom(state.properties.findCardIndex(upgradedCard));
+                        upgradedCards.add(upgradedCard);
+                    }
+                    if (!upgradedCards.isEmpty()) {
+                        state.getStateDesc().append("Sand Castle: ");
+                        for (int i = 0; i < upgradedCards.size(); i++) {
+                            if (i > 0) {
+                                state.getStateDesc().append(", ");
+                            }
+                            state.getStateDesc().append(upgradedCards.get(i).cardName);
+                        }
+                    }
+                }
+            });
+        }
+
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            return cards.stream().map(Card::getUpgrade).filter(Objects::nonNull).distinct().toList();
+        }
+    }
 
     // No need to implement Scroll Boxes: Upon pickup, lose all Gold and choose 1 of 2 packs of cards to add to your Deck.
 

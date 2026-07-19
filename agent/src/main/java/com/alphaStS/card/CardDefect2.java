@@ -524,6 +524,10 @@ public class CardDefect2 {
                     if (state.properties.cardDict[cardIdx].cardType == Card.ATTACK) {
                         if (count == r) {
                             state.removeCardFromDeck(cardIdx, false);
+                            if (!state.getStateDesc().isEmpty()) {
+                                state.getStateDesc().append(", ");
+                            }
+                            state.getStateDesc().append(state.properties.cardDict[cardIdx].cardName);
                             state.addGameActionToStartOfDeque(new PlayCardAction(cardIdx, state));
                             break;
                         }
