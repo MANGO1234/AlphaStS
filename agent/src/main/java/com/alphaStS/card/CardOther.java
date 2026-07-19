@@ -469,6 +469,75 @@ public class CardOther {
         }
     }
 
+    public static class AddCardBeforeBattleStarts2 extends Card {
+        public final int count;
+        public final List<Card> cards;
+
+        public AddCardBeforeBattleStarts2(List<Card> cards, int count) {
+            super("Add Card " + count, Card.STATUS, -1, Card.COMMON);
+            if (cards.isEmpty() || count <= 0) {
+                throw new IllegalArgumentException();
+            }
+            entityProperty.selectFromExhaust = true;
+            this.count = count;
+            this.cards = cards;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            if (state.actionCtx == GameActionCtx.START_OF_BATTLE) {
+                addCardsToExhaust(state);
+                return GameActionCtx.SELECT_CARD_EXHAUST;
+            }
+            if (state.properties.cardDict[idx] instanceof AddCardBeforeBattleStarts2) {
+                reset(state);
+                return GameActionCtx.START_OF_BATTLE;
+            }
+            state.removeCardFromExhaust(idx);
+            state.addCardToDeckNonRandom(idx);
+            state.getCounterForWrite()[counterIdx]++;
+            if (state.getCounterForRead()[counterIdx] >= count) {
+                reset(state);
+                return GameActionCtx.START_OF_BATTLE;
+            }
+            if (state.properties.inMCTSSearch && state.getSearchRandomGen().nextInt(100, RandomGenCtx.Misc) < 5) {
+                reset(state);
+                return GameActionCtx.START_OF_BATTLE;
+            }
+            return GameActionCtx.SELECT_CARD_EXHAUST;
+        }
+
+        private void addCardsToExhaust(GameState state) {
+            for (Card card : cards) {
+                state.addCardToExhaust(state.properties.findCardIndex(card));
+            }
+            state.addCardToExhaust(state.properties.findCardIndex(this));
+        }
+
+        private void reset(GameState state) {
+            for (Card card : cards) {
+                state.removeCardFromExhaust(state.properties.findCardIndex(card));
+            }
+            state.removeCardFromExhaust(state.properties.findCardIndex(this));
+            state.getCounterForWrite()[counterIdx] = 0;
+        }
+
+        @Override public boolean canSelectCard(Card card) {
+            return card instanceof AddCardBeforeBattleStarts2 || cards.stream().anyMatch((c) -> card.cardName.equals(c.cardName));
+        }
+
+        public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("Add Card Before Battle 2", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 5.0f;
+                    return idx + 1;
+                }
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+        }
+    }
+
     // **********************************************************************************************************
     // ********************************************* Wish Effects **********************************************
     // **********************************************************************************************************

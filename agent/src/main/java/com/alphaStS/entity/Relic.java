@@ -3133,6 +3133,26 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
+    public static class AddCardBeforeBattleStarts2 extends Relic {
+        private final List<Card> cards;
+
+        public AddCardBeforeBattleStarts2(int count, List<Card> cards) {
+            startOfBattleAction = new CardOther.AddCardBeforeBattleStarts2(cards, count);
+            this.cards = cards;
+        }
+
+        public AddCardBeforeBattleStarts2(List<Card> cards) {
+            this(1, cards);
+        }
+
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties gameProperties, List<Card> cards) {
+            cards = new ArrayList<>();
+            cards.add(startOfBattleAction);
+            cards.addAll(this.cards);
+            return cards;
+        }
+    }
+
     public static class PotionMax extends Relic {
         private int n;
 
