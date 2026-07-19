@@ -109,6 +109,7 @@ public enum PredefinedEncounter {
     KAISER_CRAB("Kaiser Crab", 2, () -> List.of(new EnemyHive.Crusher(), new EnemyHive.Rocket())),
     KNOWLEDGE_DEMON("Knowledge Demon", 2, () -> List.of(new EnemyHive.KnowledgeDemon())),
     LOUSE_PROGENITOR("Louse Progenitor", 2, () -> List.of(new EnemyHive.LouseProgenitor())),
+    MYSTERIOUS_KNIGHT("Mysterious Knight", 2, () -> List.of(new EnemyHive.MysteriousKnight())),
     MYTES("Mytes", 2, () -> List.of(new EnemyHive.Myte(EnemyHive.Myte.TOXIC_CORNUCOPIA), new EnemyHive.Myte(EnemyHive.Myte.SUCK))),
     OVICOPTER("Ovicopter", 2, () -> List.of(new EnemyHive.Ovicopter(),
             new EnemyHive.ToughEggOrHatchling().startDead(),

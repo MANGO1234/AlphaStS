@@ -1108,6 +1108,73 @@ public class EnemyHive {
         }
     }
 
+    public static class MysteriousKnight extends Enemy {
+        public static final int BREAKER = 0;
+        public static final int FLAIL = 1;
+        public static final int RAM = 2;
+
+        public MysteriousKnight() {
+            this(108);
+        }
+
+        public MysteriousKnight(int health) {
+            super(health, 3, false);
+            properties.canGainStrength = true;
+            properties.canGainPlating = true;
+            strength = 6;
+            plating = 6;
+        }
+
+        public MysteriousKnight(MysteriousKnight other) {
+            super(other);
+        }
+
+        @Override public Enemy copy() {
+            return new MysteriousKnight(this);
+        }
+
+        @Override public void doMove(GameState state, EnemyReadOnly self) {
+            if (move == BREAKER) {
+                gainStrength(3);
+            } else if (move == FLAIL) {
+                state.enemyDoDamageToPlayer(this, 10, 2);
+            } else if (move == RAM) {
+                state.enemyDoDamageToPlayer(this, 17, 1);
+            }
+        }
+
+        @Override public void nextMove(GameState state, RandomGen random) {
+            lastMove = move;
+            if (move < 0) {
+                move = RAM;
+            } else {
+                state.setIsStochastic();
+                move = randomMove(random, move == BREAKER ? 0 : 1, move == FLAIL ? 0 : 2, move == RAM ? 0 : 2);
+            }
+        }
+
+        @Override public String getMoveString(GameState state, int move) {
+            if (move == BREAKER) {
+                return "Gain 3 Strength";
+            } else if (move == FLAIL) {
+                return "Attack " + state.enemyCalcDamageToPlayer(this, 10) + "x2";
+            } else if (move == RAM) {
+                return "Attack " + state.enemyCalcDamageToPlayer(this, 17);
+            }
+            return "Unknown";
+        }
+
+        @Override public void randomize(GameState state, boolean training, int difficulty) {
+            randomizeHealth(this, state, training, 108, 108);
+            strength = 6;
+            plating = 6;
+        }
+
+        @Override public String getName() {
+            return "Mysterious Knight";
+        }
+    }
+
     public static class Ovicopter extends Enemy {
         public static final int LAY_EGGS = 0;
         public static final int SMASH = 1;
