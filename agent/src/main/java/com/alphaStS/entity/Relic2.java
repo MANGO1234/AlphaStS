@@ -1375,10 +1375,18 @@ public class Relic2 {
                 @Override public int getInputLenDelta() {
                     return attackSkillCardIdxes.size();
                 }
+
+                @Override public String getDisplayString(GameState state) {
+                    int lastPlayedCardIdx = state.getCounterForRead()[counterIdx] - 1;
+                    if (lastPlayedCardIdx < 0 || lastPlayedCardIdx >= state.properties.cardDict.length) {
+                        return "None";
+                    }
+                    return state.properties.cardDict[lastPlayedCardIdx].cardName;
+                }
             });
             state.properties.addOnCardPlayedHandler("HistoryCourse", new GameEventCardHandler() {
                 @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
-                    if (!isRelicEnabledInScenario(state)) {
+                    if (!isRelicEnabledInScenario(state) || cloneSource == CardDefect2.Uproar.class) {
                         return;
                     }
                     var cardType = state.properties.cardDict[cardIdx].cardType;
@@ -1391,7 +1399,7 @@ public class Relic2 {
                 @Override public void handle(GameState state) {
                     int lastPlayedCardIdx = state.getCounterForRead()[counterIdx] - 1;
                     if (isRelicEnabledInScenario(state) && lastPlayedCardIdx >= 0) {
-                        state.addGameActionToStartOfDeque(new PlayCardAction(lastPlayedCardIdx, state));
+                        state.addGameActionToStartOfDeque(new PlayCardAction(lastPlayedCardIdx, state, HistoryCourse.class));
                     }
                 }
             });

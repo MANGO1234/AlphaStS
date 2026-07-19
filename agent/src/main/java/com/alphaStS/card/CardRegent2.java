@@ -2608,7 +2608,7 @@ public class CardRegent2 {
                         int cardIdx = state.exhaustArr[i];
                         if (state.properties.cardDict[cardIdx].getBaseCard() instanceof _BombardmentT) {
                             state.removeCardFromExhaustByPosition(i);
-                            state.addGameActionToEndOfDeque(new PlayCardAction(cardIdx, state));
+                            state.addGameActionToEndOfDeque(new PlayCardAction(cardIdx, state, null));
                             i--;
                         }
                     }
@@ -2774,7 +2774,7 @@ public class CardRegent2 {
                 state.removeCardFromHand(idx);
                 state.addGameActionToStartOfDeque(new AddCardToDiscardAction(idx, state));
                 for (int i = 0; i < 3; i++) {
-                    state.addGameActionToStartOfDeque(new PlayCardAction(idx, state));
+                    state.addGameActionToStartOfDeque(new PlayCardAction(idx, state, null));
                 }
                 return GameActionCtx.PLAY_CARD;
             }

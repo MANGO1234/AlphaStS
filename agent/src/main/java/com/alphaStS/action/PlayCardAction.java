@@ -8,18 +8,20 @@ import com.alphaStS.random.RandomGenCtx;
 public class PlayCardAction implements GameEnvironmentAction {
     int cardIdx;
     GameState state;
+    Class cloneSource;
 
-    public PlayCardAction(int cardIdx, GameState state) {
+    public PlayCardAction(int cardIdx, GameState state, Class cloneSource) {
         this.cardIdx = cardIdx;
         this.state = state;
+        this.cloneSource = cloneSource;
     }
 
     @Override public void doAction(GameState state) {
         var action = state.properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][cardIdx];
-        state.playCard(action, -1, true, null, false, true, -1, -1);
+        state.playCard(action, -1, true, cloneSource, false, true, -1, -1);
         while (state.actionCtx == GameActionCtx.SELECT_ENEMY) {
             int enemyIdx = GameStateUtils.getRandomEnemyIdx(state, RandomGenCtx.RandomEnemyGeneral);
-            state.playCard(action, enemyIdx, true, null, false, true, -1, -1);
+            state.playCard(action, enemyIdx, true, cloneSource, false, true, -1, -1);
         }
     }
 
