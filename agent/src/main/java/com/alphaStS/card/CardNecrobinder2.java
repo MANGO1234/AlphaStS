@@ -75,8 +75,6 @@ public class CardNecrobinder2 {
     }
 
     private static abstract class _UnleashT extends Card {
-        private final int damage;
-
         public _UnleashT(String cardName, int damage) {
             super(cardName, Card.ATTACK, 1, Card.COMMON);
             this.damage = damage;
@@ -85,9 +83,13 @@ public class CardNecrobinder2 {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            int otsyHP = state.properties.otsyHPCounterIdx >= 0 ? state.getCounterForRead()[state.properties.otsyHPCounterIdx] : 0;
-            state.otsyDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage + otsyHP);
+            state.otsyDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), getBaseAttackDamage(state));
             return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public int getBaseAttackDamage(GameState state) {
+            int otsyHP = state.properties.otsyHPCounterIdx >= 0 ? state.getCounterForRead()[state.properties.otsyHPCounterIdx] : 0;
+            return damage + otsyHP;
         }
     }
 
@@ -142,8 +144,6 @@ public class CardNecrobinder2 {
     }
 
     private static abstract class _BlightStrikeT extends Card {
-        private final int damage;
-
         public _BlightStrikeT(String cardName, int damage) {
             super(cardName, Card.ATTACK, 1, Card.COMMON);
             this.damage = damage;
@@ -177,8 +177,6 @@ public class CardNecrobinder2 {
     }
 
     private static abstract class _DefileT extends Card {
-        private final int damage;
-
         public _DefileT(String cardName, int damage) {
             super(cardName, Card.ATTACK, 1, Card.COMMON);
             this.damage = damage;
@@ -243,7 +241,6 @@ public class CardNecrobinder2 {
     }
 
     private static abstract class _DrainPowerT extends Card {
-        private final int damage;
         private final int numUpgrades;
         private boolean canUpgrade = true;
 
@@ -316,7 +313,6 @@ public class CardNecrobinder2 {
     }
 
     private static abstract class _FearT extends Card {
-        private final int damage;
         private final int vuln;
 
         public _FearT(String cardName, int damage, int vuln) {
@@ -352,8 +348,6 @@ public class CardNecrobinder2 {
     }
 
     private static abstract class _FlattenT extends Card {
-        private final int damage;
-
         public _FlattenT(String cardName, int damage) {
             super(cardName, Card.ATTACK, 2, Card.COMMON);
             this.damage = damage;
@@ -392,8 +386,6 @@ public class CardNecrobinder2 {
     }
 
     private static abstract class _GraveblastT extends Card {
-        private final int damage;
-
         public _GraveblastT(String cardName, int damage, boolean exhaustWhenPlayed) {
             super(cardName, Card.ATTACK, 1, Card.COMMON);
             this.damage = damage;
@@ -543,8 +535,6 @@ public class CardNecrobinder2 {
     }
 
     private static abstract class _PokeT extends Card {
-        private final int damage;
-
         public _PokeT(String cardName, int damage) {
             super(cardName, Card.ATTACK, 0, Card.COMMON);
             this.damage = damage;
@@ -607,8 +597,6 @@ public class CardNecrobinder2 {
     }
 
     private static abstract class _ReapT extends Card {
-        private final int damage;
-
         public _ReapT(String cardName, int damage) {
             super(cardName, Card.ATTACK, 3, Card.COMMON);
             this.damage = damage;
@@ -638,8 +626,6 @@ public class CardNecrobinder2 {
     }
 
     private static abstract class _ReaveT extends Card {
-        private final int damage;
-
         public _ReaveT(String cardName, int damage) {
             super(cardName, Card.ATTACK, 1, Card.COMMON);
             this.damage = damage;
@@ -711,7 +697,6 @@ public class CardNecrobinder2 {
     }
 
     private static abstract class _SculptingStrikeT extends Card {
-        private final int damage;
         private int[] permEtherealTransformIdxes;
 
         public _SculptingStrikeT(String cardName, int damage) {
@@ -774,7 +759,6 @@ public class CardNecrobinder2 {
     }
 
     private static abstract class _SnapT extends Card {
-        private final int damage;
         private int[] permRetainTransformIdxes;
 
         public _SnapT(String cardName, int damage) {
@@ -838,8 +822,6 @@ public class CardNecrobinder2 {
     }
 
     private static abstract class _SowT extends Card {
-        private final int damage;
-
         public _SowT(String cardName, int damage) {
             super(cardName, Card.ATTACK, 1, Card.COMMON);
             this.damage = damage;
@@ -902,11 +884,9 @@ public class CardNecrobinder2 {
     // **************************************************************************************************
 
     private static abstract class _BoneShardsT extends Card {
-        private final int n;
-
         public _BoneShardsT(String cardName, int n) {
             super(cardName, Card.ATTACK, 1, Card.UNCOMMON);
-            this.n = n;
+            damage = n;
             entityProperty.otsyAttack = true;
         }
 
@@ -914,9 +894,9 @@ public class CardNecrobinder2 {
             int otsyHP = state.properties.otsyHPCounterIdx >= 0 ? state.getCounterForRead()[state.properties.otsyHPCounterIdx] : 0;
             if (otsyHP > 0) {
                 for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
-                    state.otsyDoDamageToEnemy(enemy, n);
+                    state.otsyDoDamageToEnemy(enemy, damage);
                 }
-                state.playerGainBlock(n);
+                state.playerGainBlock(damage);
                 state.dealDamageToOtsy(otsyHP);
             }
             return GameActionCtx.PLAY_CARD;
@@ -992,8 +972,6 @@ public class CardNecrobinder2 {
     }
 
     private static abstract class _BuryT extends Card {
-        private final int damage;
-
         public _BuryT(String cardName, int damage) {
             super(cardName, Card.ATTACK, 4, Card.UNCOMMON);
             this.damage = damage;
@@ -1249,7 +1227,6 @@ public class CardNecrobinder2 {
     }
 
     private static abstract class _DeathMarchT extends Card {
-        private final int damage;
         private final int bonus;
         private final GameProperties.LocalCounterRegistrant drawnRegistrant = new GameProperties.LocalCounterRegistrant();
 
@@ -1261,9 +1238,13 @@ public class CardNecrobinder2 {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            int drawn = state.getCounterForRead()[drawnRegistrant.getCounterIdx(state.properties)];
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage + bonus * drawn, this);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), getBaseAttackDamage(state), this);
             return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public int getBaseAttackDamage(GameState state) {
+            int drawn = state.getCounterForRead()[drawnRegistrant.getCounterIdx(state.properties)];
+            return damage + bonus * drawn;
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
@@ -1399,7 +1380,6 @@ public class CardNecrobinder2 {
     }
 
     private static abstract class _DebilitateT extends Card {
-        private final int damage;
         private final int turns;
 
         public _DebilitateT(String cardName, int damage, int turns) {
@@ -1604,8 +1584,6 @@ public class CardNecrobinder2 {
     }
 
     private static abstract class _FetchT extends Card {
-        private final int damage;
-
         public _FetchT(String cardName, int damage) {
             super(cardName, Card.ATTACK, 0, Card.UNCOMMON);
             this.damage = damage;
@@ -1619,7 +1597,7 @@ public class CardNecrobinder2 {
             return GameActionCtx.PLAY_CARD;
         }
 
-        @Override public int onPlayTransformCardIdx(GameProperties prop, int cardIdx) {
+        @Override public int onPlayTransformCardIdx(GameState state, int cardIdx) {
             return generatedCardIdx;
         }
     }
@@ -1644,8 +1622,6 @@ public class CardNecrobinder2 {
     }
 
     private static abstract class _FetchUsedT extends Card {
-        private final int damage;
-
         public _FetchUsedT(String cardName, int damage) {
             super(cardName, Card.ATTACK, 0, Card.UNCOMMON);
             this.damage = damage;
@@ -1778,7 +1754,6 @@ public class CardNecrobinder2 {
     }
 
     private static abstract class _HighFiveT extends Card {
-        private final int damage;
         private final int vuln;
 
         public _HighFiveT(String cardName, int damage, int vuln) {
@@ -2042,9 +2017,12 @@ public class CardNecrobinder2 {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            int count = state.getCounterForRead()[etherealCountRegistrant.getCounterIdx(state.properties)];
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), dmgPerCard * count, this);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), getBaseAttackDamage(state), this);
             return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public int getBaseAttackDamage(GameState state) {
+            return dmgPerCard * state.getCounterForRead()[etherealCountRegistrant.getCounterIdx(state.properties)];
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
@@ -2119,8 +2097,6 @@ public class CardNecrobinder2 {
     }
 
     private static abstract class _RattleT extends Card {
-        private final int damage;
-
         public _RattleT(String cardName, int damage) {
             super(cardName, Card.ATTACK, 1, Card.UNCOMMON);
             this.damage = damage;
@@ -2159,8 +2135,6 @@ public class CardNecrobinder2 {
     }
 
     private static abstract class _RightHandHandT extends Card {
-        private final int damage;
-
         public _RightHandHandT(String cardName, int damage) {
             super(cardName, Card.ATTACK, 0, Card.UNCOMMON);
             this.damage = damage;
@@ -2207,8 +2181,6 @@ public class CardNecrobinder2 {
     }
 
     private static abstract class _SeveranceT extends Card {
-        private final int damage;
-
         public _SeveranceT(String cardName, int damage) {
             super(cardName, Card.ATTACK, 2, Card.UNCOMMON);
             this.damage = damage;
@@ -2300,7 +2272,6 @@ public class CardNecrobinder2 {
     }
 
     private static abstract class _SicEmT extends Card {
-        private final int damage;
         private final int summon;
 
         public _SicEmT(String cardName, int damage, int summon) {
@@ -2400,8 +2371,6 @@ public class CardNecrobinder2 {
     }
 
     private static abstract class _VeilpiercerT extends Card {
-        private final int damage;
-
         public _VeilpiercerT(String cardName, int damage) {
             super(cardName, Card.ATTACK, 1, Card.UNCOMMON);
             this.damage = damage;
@@ -2460,8 +2429,6 @@ public class CardNecrobinder2 {
     // **************************************************************************************************
 
     private static abstract class _BansheeCryT extends Card {
-        private final int damage;
-
         public _BansheeCryT(String cardName, int damage) {
             super(cardName, Card.ATTACK, 6, Card.RARE);
             this.damage = damage;
@@ -2745,8 +2712,6 @@ public class CardNecrobinder2 {
     }
 
     private static abstract class _EradicateT extends Card {
-        private final int damage;
-
         public _EradicateT(String cardName, int damage) {
             super(cardName, Card.ATTACK, -1, Card.RARE);
             this.damage = damage;
@@ -2786,8 +2751,6 @@ public class CardNecrobinder2 {
     // No need to implement Glimpse Beyond: Multiplayer
 
     private static abstract class _HangT extends Card {
-        private final int damage;
-
         public _HangT(String cardName, int damage) {
             super(cardName, Card.ATTACK, 1, Card.RARE);
             this.damage = damage;
@@ -2797,8 +2760,7 @@ public class CardNecrobinder2 {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             var enemy = state.getEnemiesForWrite().getForWrite(idx);
-            int scaledDamage = damage * (1 << enemy.getHang());
-            state.playerDoDamageToEnemy(enemy, scaledDamage, this);
+            state.playerDoDamageToEnemy(enemy, damage * (1 << enemy.getHang()), this);
             enemy.applyDebuff(state, DebuffType.HANG, 1);
             return GameActionCtx.PLAY_CARD;
         }
@@ -2820,8 +2782,6 @@ public class CardNecrobinder2 {
     }
 
     private static abstract class _MiseryT extends Card {
-        private final int damage;
-
         public _MiseryT(String cardName, int damage, boolean retain) {
             super(cardName, Card.ATTACK, 0, Card.RARE);
             this.damage = damage;
@@ -3230,17 +3190,21 @@ public class CardNecrobinder2 {
     }
 
     private static abstract class _SoulStormT extends Card {
-        private final int baseDamage;
         private final int dmgPerSoul;
 
         public _SoulStormT(String cardName, int baseDamage, int dmgPerSoul) {
             super(cardName, Card.ATTACK, 1, Card.RARE);
-            this.baseDamage = baseDamage;
+            damage = baseDamage;
             this.dmgPerSoul = dmgPerSoul;
             entityProperty.selectEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), getBaseAttackDamage(state), this);
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public int getBaseAttackDamage(GameState state) {
             int soulCount = 0;
             for (int i = 0; i < state.exhaustArrLen; i++) {
                 var base = state.properties.cardDict[state.exhaustArr[i]].getBaseCard();
@@ -3248,8 +3212,7 @@ public class CardNecrobinder2 {
                     soulCount++;
                 }
             }
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), baseDamage + dmgPerSoul * soulCount, this);
-            return GameActionCtx.PLAY_CARD;
+            return damage + dmgPerSoul * soulCount;
         }
     }
 
@@ -3319,7 +3282,6 @@ public class CardNecrobinder2 {
     }
 
     private static abstract class _SqueezeT extends Card {
-        private final int damage;
         private final int bonusPerOtsy;
         private boolean[] isOtsyAttack;
 
@@ -3332,6 +3294,11 @@ public class CardNecrobinder2 {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.otsyDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), getBaseAttackDamage(state));
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public int getBaseAttackDamage(GameState state) {
             int count = 0;
             for (int i = 0; i < state.handArrLen; i++) {
                 if (isOtsyAttack[state.handArr[i]]) count++;
@@ -3342,9 +3309,7 @@ public class CardNecrobinder2 {
             for (int i = 0; i < state.discardArrLen; i++) {
                 if (isOtsyAttack[state.discardArr[i]]) count++;
             }
-            count--;
-            state.otsyDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage + count * bonusPerOtsy);
-            return GameActionCtx.PLAY_CARD;
+            return damage + (count - 1) * bonusPerOtsy;
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
@@ -3374,6 +3339,7 @@ public class CardNecrobinder2 {
         public _TheScytheT(String cardName, int n, int dmgInc, int healthRewardRatio) {
             super(cardName, Card.ATTACK, 2, Card.RARE);
             this.n = n;
+            damage = n;
             this.dmgInc = dmgInc;
             this.healthRewardRatio = healthRewardRatio;
             entityProperty.selectEnemy = true;
@@ -3382,7 +3348,7 @@ public class CardNecrobinder2 {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             int bonus = state.getCounterForRead()[counterIdx];
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n + bonus, this);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), getBaseAttackDamage(state), this);
             state.getCounterForWrite()[counterIdx] += dmgInc;
             return GameActionCtx.PLAY_CARD;
         }
@@ -3413,6 +3379,10 @@ public class CardNecrobinder2 {
             }
         }
 
+        @Override public int getBaseAttackDamage(GameState state) {
+            return damage + state.getCounterForRead()[counterIdx];
+        }
+
         @Override public CounterStat getCounterStat() {
             return new CounterStat(counterIdx, "The Scythe").setShowFrequency(true);
         }
@@ -3434,6 +3404,7 @@ public class CardNecrobinder2 {
     private static abstract class _TimesUpT extends Card {
         public _TimesUpT(String cardName, boolean retain) {
             super(cardName, Card.ATTACK, 2, Card.RARE);
+            damage = 0;
             this.retain = retain;
             entityProperty.selectEnemy = true;
             exhaustWhenPlayed = true;
@@ -3586,8 +3557,6 @@ public class CardNecrobinder2 {
     }
 
     private static abstract class _ProtectorT extends Card {
-        private final int damage;
-
         public _ProtectorT(String cardName, int cost, int damage) {
             super(cardName, Card.ATTACK, cost, Card.RARE);
             this.damage = damage;
@@ -3596,9 +3565,13 @@ public class CardNecrobinder2 {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            int bonus = state.properties.otsyMaxHPCounterIdx >= 0 ? state.getCounterForRead()[state.properties.otsyMaxHPCounterIdx] : 0;
-            state.otsyDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage + bonus);
+            state.otsyDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), getBaseAttackDamage(state));
             return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public int getBaseAttackDamage(GameState state) {
+            int bonus = state.properties.otsyMaxHPCounterIdx >= 0 ? state.getCounterForRead()[state.properties.otsyMaxHPCounterIdx] : 0;
+            return damage + bonus;
         }
     }
 

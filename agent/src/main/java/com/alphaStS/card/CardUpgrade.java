@@ -404,7 +404,7 @@ public class CardUpgrade {
         map_sts2.put(new CardIronclad2.Mangle(), new CardIronclad2.MangleP());
         map_sts2.put(new CardIronclad2.PactsEnd(), new CardIronclad2.PactsEndP());
         map_sts2.put(new CardIronclad2.TearAsunder(), new CardIronclad2.TearAsunderP());
-        // map_sts2.put(new CardIronclad2.Thrash(), new CardIronclad2.ThrashP()); // TODO
+        map_sts2.put(new CardIronclad2.Thrash(), new CardIronclad2.ThrashP());
         map_sts2.put(new CardIronclad2.Aggression(), new CardIronclad2.AggressionP());
         map_sts2.put(new CardIronclad2.Barricade(), new CardIronclad2.BarricadeP());
         map_sts2.put(new CardIronclad2.CrimsonMantle(), new CardIronclad2.CrimsonMantleP());

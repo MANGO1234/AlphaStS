@@ -697,7 +697,7 @@ public class CardManager {
             cards.add(new CardIronclad2.Mangle());
             cards.add(new CardIronclad2.PactsEnd());
             cards.add(new CardIronclad2.TearAsunder());
-            // cards.add(new CardIronclad2.Thrash()); // TODO
+            cards.add(new CardIronclad2.Thrash());
         }
         else if (cardType == Card.SKILL) {
             // Common cards

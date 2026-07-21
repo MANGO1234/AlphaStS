@@ -1660,7 +1660,7 @@ public final class GameState implements State {
             for (var handler : properties.onCardPlayedHandlers) {
                 handler.handle(this, cardIdx, lastSelectedIdx, energyCost, cloneSource, cloneParentLocation);
             }
-            int transformCardIdx = properties.cardDict[cardIdx].onPlayTransformCardIdx(properties, cardIdx);
+            int transformCardIdx = properties.cardDict[cardIdx].onPlayTransformCardIdx(this, cardIdx);
             int prevCardIdx = cardIdx;
             if (transformCardIdx >= 0) {
                 cardIdx = transformCardIdx;

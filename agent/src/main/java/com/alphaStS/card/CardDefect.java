@@ -75,17 +75,15 @@ public class CardDefect {
     }
 
     private static abstract class _BallLightningT extends Card {
-        private final int n;
-
         public _BallLightningT(String cardName, int n) {
             super(cardName, Card.ATTACK, 1, Card.COMMON);
-            this.n = n;
+            damage = n;
             entityProperty.selectEnemy = true;
             entityProperty.orbGenerationPossible |= OrbType.LIGHTNING.mask;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n, this);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             state.channelOrb(OrbType.LIGHTNING);
             return GameActionCtx.PLAY_CARD;
         }
@@ -107,11 +105,9 @@ public class CardDefect {
     }
 
     static abstract class _BarrageT extends Card {
-        private final int n;
-
         public _BarrageT(String cardName, int n) {
             super(cardName, Card.ATTACK, 1, Card.COMMON);
-            this.n = n;
+            damage = n;
             entityProperty.selectEnemy = true;
         }
 
@@ -120,7 +116,7 @@ public class CardDefect {
             if (orbs != null) {
                 var enemy = state.getEnemiesForWrite().getForWrite(idx);
                 for (int i = 0; i < orbs.length && orbs[i] > 0; i += 2) {
-                    state.playerDoDamageToEnemy(enemy, n, this);
+                    state.playerDoDamageToEnemy(enemy, damage, this);
                 }
             }
             return GameActionCtx.PLAY_CARD;
@@ -143,18 +139,17 @@ public class CardDefect {
     }
 
     private static abstract class _BeamCellT extends Card {
-        private final int n1;
         private final int n2;
 
         public _BeamCellT(String cardName, int n1, int n2) {
             super(cardName, Card.ATTACK, 0, Card.COMMON);
-            this.n1 = n1;
+            damage = n1;
             this.n2 = n2;
             entityProperty.selectEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n1, this);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             state.getEnemiesForWrite().getForWrite(idx).applyDebuff(state, DebuffType.VULNERABLE, n2);
             return GameActionCtx.PLAY_CARD;
         }
@@ -232,6 +227,7 @@ public class CardDefect {
         public _ClawT(String cardName, int dmg, int dmgIncrement) {
             super(cardName + " (" + dmg + ")", Card.ATTACK, 0, Card.COMMON);
             this.dmg = dmg;
+            damage = dmg;
             this.dmgIncrement = dmgIncrement;
             entityProperty.selectEnemy = true;
         }
@@ -247,7 +243,7 @@ public class CardDefect {
         protected abstract void setAfterPlayTransformIndexes(GameProperties properties, int[] transformIndexes);
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), dmg, this);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), getBaseAttackDamage(state), this);
             state.handArrTransform(getTransformIndexes(state.properties));
             state.discardArrTransform(getTransformIndexes(state.properties));
             state.deckArrTransform(getTransformIndexes(state.properties));
@@ -292,8 +288,12 @@ public class CardDefect {
             }
         }
 
-        @Override public int onPlayTransformCardIdx(GameProperties prop, int cardIdx) {
-            return getAfterPlayTransformIndexes(prop)[cardIdx];
+        @Override public int onPlayTransformCardIdx(GameState state, int cardIdx) {
+            return getAfterPlayTransformIndexes(state.properties)[cardIdx];
+        }
+
+        @Override public int getBaseAttackDamage(GameState state) {
+            return dmg;
         }
     }
 
@@ -373,17 +373,15 @@ public class CardDefect {
     }
 
     private static class _ColdSnapT extends Card {
-        private final int n;
-
         public _ColdSnapT(String cardName, int n) {
             super(cardName, Card.ATTACK, 1, Card.COMMON);
-            this.n = n;
+            damage = n;
             entityProperty.selectEnemy = true;
             entityProperty.orbGenerationPossible |= OrbType.FROST.mask;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n, this);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             state.channelOrb(OrbType.FROST);
             return GameActionCtx.PLAY_CARD;
         }
@@ -405,16 +403,14 @@ public class CardDefect {
     }
 
     static abstract class _CompileDriverT extends Card {
-        private final int n;
-
         public _CompileDriverT(String cardName, int n) {
             super(cardName, Card.ATTACK, 1, Card.COMMON);
-            this.n = n;
+            damage = n;
             entityProperty.selectEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n, this);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             var orbs = state.getOrbs();
             if (orbs != null) {
                 int c = 0;
@@ -474,12 +470,11 @@ public class CardDefect {
     }
 
     private static abstract class _GoForTheEyeT extends Card {
-        private final int n1;
         private final int n2;
 
         public _GoForTheEyeT(String cardName, int n1, int n2) {
             super(cardName, Card.ATTACK, 0, Card.COMMON);
-            this.n1 = n1;
+            damage = n1;
             this.n2 = n2;
             entityProperty.selectEnemy = true;
         }
@@ -488,7 +483,7 @@ public class CardDefect {
             if (state.getEnemiesForWrite().get(idx).getMoveString(state).contains("Attack")) {
                 state.getEnemiesForWrite().getForWrite(idx).applyDebuff(state, DebuffType.WEAK, n2);
             }
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n1, this);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -578,17 +573,15 @@ public class CardDefect {
     }
 
     private static abstract class _ReboundT extends Card { // todo: echo form/dup rebound?
-        private final int n;
-
         public _ReboundT(String cardName, int n) {
             super(cardName, Card.ATTACK, 1, Card.COMMON);
-            this.n = n;
+            damage = n;
             entityProperty.selectEnemy = true;
             entityProperty.putCardOnTopDeck = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n, this);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             state.getCounterForWrite()[counterIdx]++;
             state.getCounterForWrite()[counterIdx] |= 1 << 8;
             return GameActionCtx.PLAY_CARD;
@@ -741,8 +734,8 @@ public class CardDefect {
             }
         }
 
-        @Override public int onPlayTransformCardIdx(GameProperties prop, int cardIdx) {
-            return prop.steamBarrierTransformIndexes != null ? prop.steamBarrierTransformIndexes[cardIdx] : -1;
+        @Override public int onPlayTransformCardIdx(GameState state, int cardIdx) {
+            return state.properties.steamBarrierTransformIndexes != null ? state.properties.steamBarrierTransformIndexes[cardIdx] : -1;
         }
 
         public Card getUpgrade() {
@@ -800,8 +793,8 @@ public class CardDefect {
             }
         }
 
-        @Override public int onPlayTransformCardIdx(GameProperties prop, int cardIdx) {
-            return prop.steamBarrierPTransformIndexes != null ? prop.steamBarrierPTransformIndexes[cardIdx] : -1;
+        @Override public int onPlayTransformCardIdx(GameState state, int cardIdx) {
+            return state.properties.steamBarrierPTransformIndexes != null ? state.properties.steamBarrierPTransformIndexes[cardIdx] : -1;
         }
     }
 
@@ -811,6 +804,7 @@ public class CardDefect {
     public static class Streamline extends Card {
         public Streamline(int energyCost) {
             super(energyCost == 2 ? "Streamline" : "Streamline (" + energyCost + ")", Card.ATTACK, energyCost, Card.COMMON);
+            damage = 15;
             entityProperty.selectEnemy = true;
         }
 
@@ -819,7 +813,7 @@ public class CardDefect {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), 15, this);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             return GameActionCtx.PLAY_CARD;
         }
 
@@ -834,8 +828,8 @@ public class CardDefect {
             }
         }
 
-        @Override public int onPlayTransformCardIdx(GameProperties prop, int cardIdx) {
-            return energyCost > 0 ? prop.streamlineIndexes[energyCost - 1] : -1;
+        @Override public int onPlayTransformCardIdx(GameState state, int cardIdx) {
+            return energyCost > 0 ? state.properties.streamlineIndexes[energyCost - 1] : -1;
         }
 
         @Override public Card getPermCostIfPossible(int permCost) {
@@ -849,6 +843,7 @@ public class CardDefect {
     public static class StreamlineP extends Card {
         public StreamlineP(int energyCost) {
             super(energyCost == 2 ? "Streamline+" : "Streamline+ (" + energyCost + ")", Card.ATTACK, energyCost, Card.COMMON);
+            damage = 20;
             entityProperty.selectEnemy = true;
         }
 
@@ -857,7 +852,7 @@ public class CardDefect {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), 20, this);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             return GameActionCtx.PLAY_CARD;
         }
 
@@ -872,8 +867,8 @@ public class CardDefect {
             }
         }
 
-        @Override public int onPlayTransformCardIdx(GameProperties prop, int cardIdx) {
-            return energyCost > 0 ? prop.streamlinePIndexes[energyCost - 1] : -1;
+        @Override public int onPlayTransformCardIdx(GameState state, int cardIdx) {
+            return energyCost > 0 ? state.properties.streamlinePIndexes[energyCost - 1] : -1;
         }
 
         @Override public Card getPermCostIfPossible(int permCost) {
@@ -885,16 +880,14 @@ public class CardDefect {
     }
 
     private static class _SweepingBeamT extends Card {
-        private final int n;
-
         public _SweepingBeamT(String cardName, int n) {
             super(cardName, Card.ATTACK, 1, Card.COMMON);
-            this.n = n;
+            damage = n;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             for (var enemy : state.getEnemiesForWrite().iterateOverAlive()) {
-                state.playerDoDamageToEnemy(enemy, n, this);
+                state.playerDoDamageToEnemy(enemy, damage, this);
             }
             state.draw(1);
             return GameActionCtx.PLAY_CARD;
@@ -1018,11 +1011,14 @@ public class CardDefect {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            int c = state.getCounterForRead()[counterIdx];
             for (var enemy : state.getEnemiesForWrite().iterateOverAlive()) {
-                state.playerDoDamageToEnemy(enemy, n * c, this);
+                state.playerDoDamageToEnemy(enemy, getBaseAttackDamage(state), this);
             }
             return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public int getBaseAttackDamage(GameState state) {
+            return n * state.getCounterForRead()[counterIdx];
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
@@ -1090,18 +1086,16 @@ public class CardDefect {
     }
 
     private static class _BullsEyeT extends Card {
-        private final int n;
-
         public _BullsEyeT(String cardName, int n) {
             super(cardName, Card.ATTACK, 1, Card.UNCOMMON);
-            this.n = n;
+            damage = n;
             entityProperty.selectEnemy = true;
             entityProperty.lockOnEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n, this);
-            state.getEnemiesForWrite().getForWrite(idx).applyDebuff(state, DebuffType.LOCK_ON, n / 3);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
+            state.getEnemiesForWrite().getForWrite(idx).applyDebuff(state, DebuffType.LOCK_ON, damage / 3);
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -1348,17 +1342,15 @@ public class CardDefect {
     }
 
     private static abstract class _DoomAndGloomT extends Card {
-        private final int n;
-
         public _DoomAndGloomT(String cardName, int n) {
             super(cardName, Card.ATTACK, 2, Card.UNCOMMON);
-            this.n = n;
+            damage = n;
             entityProperty.orbGenerationPossible |= OrbType.DARK.mask;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             for (var enemy : state.getEnemiesForWrite().iterateOverAlive()) {
-                state.playerDoDamageToEnemy(enemy, n, this);
+                state.playerDoDamageToEnemy(enemy, damage, this);
             }
             state.channelOrb(OrbType.DARK);
             return GameActionCtx.PLAY_CARD;
@@ -1462,17 +1454,15 @@ public class CardDefect {
     }
 
     private static abstract class _FTLT extends Card {
-        private final int n;
-
         public _FTLT(String cardName, int n) {
             super(cardName, Card.ATTACK, 0, Card.UNCOMMON);
-            this.n = n;
+            damage = n;
             entityProperty.selectEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n, this);
-            if (state.getCounterForRead()[counterIdx] <= n / 2) {
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
+            if (state.getCounterForRead()[counterIdx] <= damage / 2) {
                 state.draw(1);
             }
             return GameActionCtx.PLAY_CARD;
@@ -2064,18 +2054,16 @@ public class CardDefect {
     }
 
     private static abstract class _MelterT extends Card {
-        private final int n;
-
         public _MelterT(String cardName, int n) {
             super(cardName, Card.ATTACK, 1, Card.UNCOMMON);
-            this.n = n;
+            damage = n;
             entityProperty.selectEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             Enemy enemy = state.getEnemiesForWrite().getForWrite(idx);
             enemy.setBlock(0);
-            state.playerDoDamageToEnemy(enemy, n, this);
+            state.playerDoDamageToEnemy(enemy, damage, this);
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -2230,25 +2218,23 @@ public class CardDefect {
     }
 
     private static abstract class _RipAndTearT extends Card {
-        private final int n;
-
         public _RipAndTearT(String cardName, int n) {
             super(cardName, Card.ATTACK, 1, Card.UNCOMMON);
-            this.n = n;
+            damage = n;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             boolean stochastic = state.isStochastic;
             var i = GameStateUtils.getRandomEnemyIdx(state, RandomGenCtx.RandomEnemyRipAndTear);
             if (i >= 0) {
-                state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(i), n, this);
+                state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(i), damage, this);
                 if (state.properties.makingRealMove && !stochastic && state.isStochastic) {
                     state.getStateDesc().append(cardName).append(" hit ").append(state.getEnemiesForRead().get(i).getName()).append(" (").append(i).append(")");
                 }
             }
             i = GameStateUtils.getRandomEnemyIdx(state, RandomGenCtx.RandomEnemyRipAndTear);
             if (i >= 0) {
-                state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(i), n, this);
+                state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(i), damage, this);
                 if (state.properties.makingRealMove && !stochastic && state.isStochastic) {
                     state.getStateDesc().append(", ").append(cardName).append(" hit ").append(state.getEnemiesForRead().get(i).getName()).append(" (").append(i).append(")");
                 }
@@ -2273,18 +2259,16 @@ public class CardDefect {
     }
 
     private static abstract class _ScrapeT extends Card {
-        private final int n;
-
         public _ScrapeT(String cardName, int n) {
             super(cardName, Card.ATTACK, 1, Card.UNCOMMON);
-            this.n = n;
+            damage = n;
             entityProperty.selectEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n, this);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             var handCount = state.getNumCardsInHand();
-            state.draw(Math.min((n + 1) / 2, GameState.HAND_LIMIT - handCount));
+            state.draw(Math.min((damage + 1) / 2, GameState.HAND_LIMIT - handCount));
             var newHandCount = state.getNumCardsInHand();
             for (int i = newHandCount - 1; i >= handCount; i--) {
                 var card = state.properties.cardDict[state.getHandArrForRead()[i]];
@@ -2503,16 +2487,14 @@ public class CardDefect {
     }
 
     private static abstract class _SunderT extends Card {
-        private final int n;
-
         public _SunderT(String cardName, int n) {
             super(cardName, Card.ATTACK, 3, Card.UNCOMMON);
-            this.n = n;
+            damage = n;
             entityProperty.selectEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n, this);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             if (state.getEnemiesForRead().get(idx).getHealth() <= 0) {
                 state.gainEnergy(3);
             }
@@ -2615,20 +2597,19 @@ public class CardDefect {
     }
 
     private static abstract class _AllForOneT extends Card {
-        private final int n;
         protected final int discardOrderMaxKeepTrackIn10s;
         protected final int discardOrder0CardMaxCopies;
 
         public _AllForOneT(String cardName, int n, int discardOrderMaxKeepTrackIn10s, int discardOrder0CardMaxCopies) {
             super(cardName, Card.ATTACK, 2, Card.RARE);
-            this.n = n;
+            damage = n;
             entityProperty.selectEnemy = true;
             this.discardOrderMaxKeepTrackIn10s = discardOrderMaxKeepTrackIn10s;
             this.discardOrder0CardMaxCopies = discardOrder0CardMaxCopies;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n, this);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             for (int i = 0; i < state.discardArrLen && state.handArrLen < GameState.HAND_LIMIT; i++) {
                 var cardIdx = (int) state.getDiscardArrForRead()[i];
                 if (state.properties.cardDict[cardIdx].energyCost == 0) {
@@ -2845,18 +2826,16 @@ public class CardDefect {
     }
 
     private static abstract class _CoreSurgeT extends Card {
-        private final int n;
-
         public _CoreSurgeT(String cardName, int n) {
             super(cardName, Card.ATTACK, 1, Card.RARE);
-            this.n = n;
+            damage = n;
             entityProperty.selectEnemy = true;
             entityProperty.changePlayerArtifact = true;
             exhaustWhenPlayed = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n, this);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             state.getPlayerForWrite().gainArtifact(1);
             return GameActionCtx.PLAY_CARD;
         }
@@ -3140,17 +3119,15 @@ public class CardDefect {
     }
 
     private static abstract class _HyperbeamT extends Card {
-        private final int n;
-
         public _HyperbeamT(String cardName, int n) {
             super(cardName, Card.ATTACK, 2, Card.RARE);
-            this.n = n;
+            damage = n;
             this.entityProperty.changePlayerFocus = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             for (var enemy : state.getEnemiesForWrite().iterateOverAlive()) {
-                state.playerDoDamageToEnemy(enemy, n, this);
+                state.playerDoDamageToEnemy(enemy, damage, this);
             }
             state.getPlayerForWrite().applyDebuff(state, DebuffType.LOSE_FOCUS, 3);
             return GameActionCtx.PLAY_CARD;
@@ -3219,17 +3196,15 @@ public class CardDefect {
     }
 
     private static abstract class _MeteorStrikeT extends Card {
-        private final int n;
-
         public _MeteorStrikeT(String cardName, int n) {
             super(cardName, Card.ATTACK, 5, Card.RARE);
-            this.n = n;
+            damage = n;
             entityProperty.selectEnemy = true;
             entityProperty.orbGenerationPossible |= OrbType.PLASMA.mask;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n, this);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             state.channelOrb(OrbType.PLASMA);
             state.channelOrb(OrbType.PLASMA);
             state.channelOrb(OrbType.PLASMA);
@@ -3404,11 +3379,9 @@ public class CardDefect {
     }
 
     private static class _ThunderStrikeT extends Card {
-        private final int n;
-
         public _ThunderStrikeT(String cardName, int n) {
             super(cardName, Card.ATTACK, 3, Card.RARE);
-            this.n = n;
+            damage = n;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -3419,7 +3392,7 @@ public class CardDefect {
                     break;
                 }
                 var enemy = state.getEnemiesForWrite().getForWrite(j);
-                state.playerDoDamageToEnemy(enemy, n, this);
+                state.playerDoDamageToEnemy(enemy, damage, this);
             }
             return GameActionCtx.PLAY_CARD;
         }

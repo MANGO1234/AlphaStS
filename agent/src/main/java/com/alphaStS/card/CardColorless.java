@@ -180,18 +180,16 @@ public class CardColorless {
     }
 
     static abstract class _DramaticEntranceT extends Card {
-        private final int n;
-
         public _DramaticEntranceT(String cardName, int n) {
             super(cardName, Card.ATTACK, 0, Card.UNCOMMON);
-            this.n = n;
+            damage = n;
             exhaustWhenPlayed = true;
             innate = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             for (var enemy : state.getEnemiesForWrite().iterateOverAlive()) {
-                state.playerDoDamageToEnemy(enemy, n, this);
+                state.playerDoDamageToEnemy(enemy, damage, this);
             }
             return GameActionCtx.PLAY_CARD;
         }
@@ -295,16 +293,14 @@ public class CardColorless {
     }
 
     static abstract class _FlashOfSteelT extends Card {
-        private final int n;
-
         public _FlashOfSteelT(String cardName, int n) {
             super(cardName, Card.ATTACK, 0, Card.UNCOMMON);
-            this.n = n;
+            damage = n;
             entityProperty.selectEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n, this);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             state.draw(1);
             return GameActionCtx.PLAY_CARD;
         }
@@ -530,8 +526,12 @@ public class CardColorless {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), state.getNumCardsInDeck(), this);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), getBaseAttackDamage(state), this);
             return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public int getBaseAttackDamage(GameState state) {
+            return state.getNumCardsInDeck();
         }
     }
 
@@ -687,16 +687,14 @@ public class CardColorless {
     }
 
     private static abstract class _SwiftStrikeT extends Card {
-        private final int n;
-
         public _SwiftStrikeT(String cardName, int n) {
             super(cardName, Card.ATTACK, 0, Card.UNCOMMON);
-            this.n = n;
+            damage = n;
             entityProperty.selectEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n, this);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -839,12 +837,11 @@ public class CardColorless {
     }
 
     private static abstract class _HandOfGreedT extends Card {
-        private int n;
         protected double healthRewardRatio = 0;
 
         public _HandOfGreedT(String cardName, int n, double healthRewardRatio) {
             super(cardName, Card.ATTACK, 2, Card.RARE);
-            this.n = n;
+            damage = n;
             entityProperty.selectEnemy = true;
             this.healthRewardRatio = healthRewardRatio;
             if (healthRewardRatio > 0) {
@@ -853,7 +850,7 @@ public class CardColorless {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n, this);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             if (!state.getEnemiesForRead().get(idx).properties.isMinion && state.getEnemiesForRead().get(idx).getHealth() <= 0) {
                 if (state.getEnemiesForRead().get(idx) instanceof EnemyBeyond.Darkling ||
                         state.getEnemiesForRead().get(idx) instanceof EnemyBeyond.AwakenedOne) {
@@ -875,7 +872,7 @@ public class CardColorless {
 
         private void gainCombatGoldReward(GameState state) {
             if (state.properties.goldRewardCounterIdx >= 0) {
-                state.getCounterForWrite()[state.properties.goldRewardCounterIdx] += n;
+                state.getCounterForWrite()[state.properties.goldRewardCounterIdx] += damage;
             }
         }
     }
@@ -1158,7 +1155,7 @@ public class CardColorless {
     }
 
     static abstract class _SadisticNatureT extends Card implements GameProperties.CounterRegistrant {
-        private final int damage;
+        private final int n;
 
         public _SadisticNatureT(String cardName, int damage) {
             this(cardName, 0, Card.RARE, damage);
@@ -1166,7 +1163,7 @@ public class CardColorless {
 
         public _SadisticNatureT(String cardName, int energyCost, int rarity, int damage) {
             super(cardName, Card.POWER, energyCost, rarity);
-            this.damage = damage;
+            this.n = damage;
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
@@ -1186,7 +1183,7 @@ public class CardColorless {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.getCounterForWrite()[counterIdx] += damage;
+            state.getCounterForWrite()[counterIdx] += n;
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -1467,19 +1464,18 @@ public class CardColorless {
     }
 
     private static abstract class _BiteT extends Card {
-        private final int n;
         private final int heal;
 
         public _BiteT(String cardName, int n, int heal) {
             super(cardName, Card.ATTACK, 1, Card.COMMON);
-            this.n = n;
+            damage = n;
             this.heal = heal;
             entityProperty.selectEnemy = true;
             this.healPlayer = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n, this);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             state.healPlayer(heal);
             return GameActionCtx.PLAY_CARD;
         }
@@ -1501,13 +1497,12 @@ public class CardColorless {
     }
 
     private static abstract class _RitualDaggerT extends Card {
-        protected final int n;
         private final int dmgInc;
         protected final int healthRewardRatio;
 
         public _RitualDaggerT(String cardName, int n, int dmgInc, int healthRewardRatio) {
             super(cardName, Card.ATTACK, 1, Card.COMMON);
-            this.n = n;
+            damage = n;
             this.dmgInc = dmgInc;
             entityProperty.selectEnemy = true;
             this.exhaustWhenPlayed = true;
@@ -1515,7 +1510,7 @@ public class CardColorless {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n, this);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             if (!state.getEnemiesForRead().get(idx).properties.isMinion && state.getEnemiesForRead().get(idx).getHealth() <= 0) {
                 if (state.getEnemiesForRead().get(idx) instanceof EnemyBeyond.Darkling ||
                         state.getEnemiesForRead().get(idx) instanceof EnemyBeyond.AwakenedOne) {
@@ -1613,7 +1608,7 @@ public class CardColorless {
         }
 
         @Override public Card getUpgrade() {
-            return new RitualDaggerP(this.n, healthRewardRatio);
+            return new RitualDaggerP(damage, healthRewardRatio);
         }
     }
 
@@ -1625,22 +1620,20 @@ public class CardColorless {
         }
 
         @Override public Card getDowngrade() {
-            return new RitualDagger(this.n, healthRewardRatio);
+            return new RitualDagger(damage, healthRewardRatio);
         }
     }
 
     private static abstract class _ShivT extends Card {
-        private final int n;
-
         public _ShivT(String cardName, int n) {
             super(cardName, Card.ATTACK, 0, Card.COMMON);
-            this.n = n;
+            damage = n;
             entityProperty.selectEnemy = true;
             this.exhaustWhenPlayed = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            int damage = n;
+            int damage = this.damage;
             if (state.properties.phantomBladesCounterIdx >= 0
                     && state.getCounterForRead()[state.properties.phantomBladesCounterIdx] > 0
                     && state.getCounterForRead()[state.properties.phantomBladesCounterIdx + 1] == 0) {
@@ -1711,8 +1704,6 @@ public class CardColorless {
     }
 
     private static abstract class _SmiteT extends Card {
-        private final int damage;
-
         public _SmiteT(String cardName, int damage) {
             super(cardName, Card.ATTACK, 1, Card.COMMON);
             this.damage = damage;
@@ -1805,8 +1796,6 @@ public class CardColorless {
     }
 
     private static abstract class _ThroughViolenceT extends Card {
-        private final int damage;
-
         public _ThroughViolenceT(String cardName, int damage) {
             super(cardName, Card.ATTACK, 0, Card.COMMON);
             this.damage = damage;
@@ -1898,15 +1887,15 @@ public class CardColorless {
     }
 
     private static abstract class _OmegaT extends Card {
-        private final int damage;
+        private final int n;
 
         public _OmegaT(String cardName, int damage) {
             super(cardName, Card.POWER, 3, Card.COMMON);
-            this.damage = damage;
+            this.n = damage;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.getCounterForWrite()[counterIdx] += damage;
+            state.getCounterForWrite()[counterIdx] += n;
             return GameActionCtx.PLAY_CARD;
         }
 
@@ -1948,7 +1937,6 @@ public class CardColorless {
     }
 
     private static abstract class _ExpungerT extends Card {
-        private final int damage;
         protected final int xValue;
 
         public _ExpungerT(String cardName, int damage, int xValue) {

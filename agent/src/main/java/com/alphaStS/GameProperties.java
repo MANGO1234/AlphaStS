@@ -133,6 +133,7 @@ public class GameProperties implements Cloneable {
     public static int maxClawDamage = 20;
     public static int maxMaulDamage = 20;
     public static int maxMomentumGained = 50;
+    public static int maxThrashDamage = 100;
     // SORTED BLOCK END
 
     // system card indexes

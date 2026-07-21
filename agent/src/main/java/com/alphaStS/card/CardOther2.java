@@ -83,11 +83,11 @@ public class CardOther2 {
             return generatedCards;
         }
 
-        @Override public int onPlayTransformCardIdx(GameProperties prop, int cardIdx) {
-            var card = prop.cardDict[cardIdx];
-            return card.realEnergyCost() >= prop.maxFranticEscapeEnergyCost
+        @Override public int onPlayTransformCardIdx(GameState state, int cardIdx) {
+            var card = state.properties.cardDict[cardIdx];
+            return card.realEnergyCost() >= state.properties.maxFranticEscapeEnergyCost
                     ? -1
-                    : prop.findCardIndex(card.getPermCostIfPossible(card.realEnergyCost() + 1));
+                    : state.properties.findCardIndex(card.getPermCostIfPossible(card.realEnergyCost() + 1));
         }
 
         @Override public Card getPermCostIfPossible(int permCost) {

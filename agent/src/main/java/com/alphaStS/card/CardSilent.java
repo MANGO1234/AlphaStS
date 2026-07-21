@@ -28,12 +28,13 @@ public class CardSilent {
     public static class Neutralize extends Card {
         public Neutralize() {
             super("Neutralize", Card.ATTACK, 0, Card.COMMON);
+            damage = 3;
             this.entityProperty.weakEnemy = true;
             entityProperty.selectEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), 3, this);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             state.getEnemiesForWrite().getForWrite(idx).applyDebuff(state, DebuffType.WEAK, 1);
             return GameActionCtx.PLAY_CARD;
         }
@@ -42,12 +43,13 @@ public class CardSilent {
     public static class NeutralizeP extends Card {
         public NeutralizeP() {
             super("Neutralize+", Card.ATTACK, 0, Card.COMMON);
+            damage = 4;
             this.entityProperty.weakEnemy = true;
             entityProperty.selectEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), 4, this);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             state.getEnemiesForWrite().getForWrite(idx).applyDebuff(state, DebuffType.WEAK, 2);
             return GameActionCtx.PLAY_CARD;
         }
@@ -158,18 +160,16 @@ public class CardSilent {
     }
 
     private static abstract class _BaneT extends Card {
-        private final int n;
-
         public _BaneT(String cardName, int n) {
             super(cardName, Card.ATTACK, 1, Card.COMMON);
             entityProperty.selectEnemy = true;
-            this.n = n;
+            damage = n;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n, this);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             if (state.getEnemiesForRead().get(idx).getPoison() > 0) {
-                state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n, this);
+                state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             }
             return GameActionCtx.PLAY_CARD;
         }
@@ -262,17 +262,15 @@ public class CardSilent {
     }
 
     private static abstract class _DaggerSprayT extends Card {
-        private final int n;
-
         public _DaggerSprayT(String cardName, int n) {
             super(cardName, Card.ATTACK, 1, Card.COMMON);
-            this.n = n;
+            damage = n;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             for (int i = 0; i < 2; i++) {
                 for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
-                    state.playerDoDamageToEnemy(enemy, n, this);
+                    state.playerDoDamageToEnemy(enemy, damage, this);
                 }
             }
             return GameActionCtx.PLAY_CARD;
@@ -295,11 +293,9 @@ public class CardSilent {
     }
 
     private static abstract class _DaggerThrowT extends Card {
-        private final int n;
-
         public _DaggerThrowT(String cardName, int n) {
             super(cardName, Card.ATTACK, 1, Card.COMMON);
-            this.n = n;
+            damage = n;
             entityProperty.selectEnemy = true;
             entityProperty.selectFromHand = true;
             this.selectFromHandLater = true;
@@ -308,7 +304,7 @@ public class CardSilent {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             if (state.actionCtx == GameActionCtx.SELECT_ENEMY) {
-                state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n, this);
+                state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
                 state.draw(1);
                 return GameActionCtx.SELECT_CARD_HAND;
             } else {
@@ -428,16 +424,14 @@ public class CardSilent {
     }
 
     private static abstract class _FlyingKneeT extends Card {
-        private final int n;
-
         public _FlyingKneeT(String cardName, int n) {
             super(cardName, Card.ATTACK, 1, Card.COMMON);
             entityProperty.selectEnemy = true;
-            this.n = n;
+            damage = n;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n, this);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             state.getCounterForWrite()[counterIdx] += 1;
             return GameActionCtx.PLAY_CARD;
         }
@@ -551,13 +545,14 @@ public class CardSilent {
         public _PoisonedStabT(String cardName, int n) {
             super(cardName, Card.ATTACK, 1, Card.COMMON);
             this.n = n;
+            damage = n;
             entityProperty.selectEnemy = true;
             this.entityProperty.poisonEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             var enemy = state.getEnemiesForWrite().getForWrite(idx);
-            state.playerDoDamageToEnemy(enemy, n, this);
+            state.playerDoDamageToEnemy(enemy, damage, this);
             enemy.applyDebuff(state, DebuffType.POISON, n / 2);
             return GameActionCtx.PLAY_CARD;
         }
@@ -642,16 +637,14 @@ public class CardSilent {
     }
 
     private static abstract class _QuickSlashT extends Card {
-        private final int n;
-
         public _QuickSlashT(String cardName, int n) {
             super(cardName, Card.ATTACK, 1, Card.COMMON);
-            this.n = n;
+            damage = n;
             entityProperty.selectEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n, this);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             state.draw(1);
             return GameActionCtx.PLAY_CARD;
         }
@@ -673,16 +666,14 @@ public class CardSilent {
     }
 
     private static abstract class _SliceT extends Card {
-        private final int n;
-
         public _SliceT(String cardName, int n) {
             super(cardName, Card.ATTACK, 0, Card.COMMON);
-            this.n = n;
+            damage = n;
             entityProperty.selectEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n, this);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -703,16 +694,14 @@ public class CardSilent {
     }
 
     private static abstract class _SneakyStrikeT extends Card {
-        private final int n;
-
         public _SneakyStrikeT(String cardName, int n) {
             super(cardName, Card.ATTACK, 2, Card.COMMON);
-            this.n = n;
+            damage = n;
             entityProperty.selectEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n, this);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             if (state.getCounterForRead()[counterIdx] > 0) {
                 state.gainEnergy(2);
             }
@@ -758,19 +747,18 @@ public class CardSilent {
     }
 
     static abstract class _SuckerPunchT extends Card {
-        private final int n;
         private final int weak;
 
         public _SuckerPunchT(String cardName, int n, int weak) {
             super(cardName, Card.ATTACK, 1, Card.COMMON);
-            this.n = n;
+            damage = n;
             this.weak = weak;
             this.entityProperty.weakEnemy = true;
             entityProperty.selectEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n, this);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             state.getEnemiesForWrite().getForWrite(idx).applyDebuff(state, DebuffType.WEAK, weak);
             return GameActionCtx.PLAY_CARD;
         }
@@ -838,17 +826,15 @@ public class CardSilent {
     }
 
     private static abstract class _AllOutAttackT extends Card {
-        private final int n;
-
         public _AllOutAttackT(String cardName, int n) {
             super(cardName, Card.ATTACK, 1, Card.UNCOMMON);
-            this.n = n;
+            damage = n;
             this.canDiscardAnyCard = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
-                state.playerDoDamageToEnemy(enemy, n, this);
+                state.playerDoDamageToEnemy(enemy, damage, this);
             }
             var hand = GameStateUtils.getCardArrCounts(state.getHandArrForRead(), state.getNumCardsInHand(), state.properties.cardDict.length);
             int diffCards = 0, c = 0;
@@ -888,18 +874,16 @@ public class CardSilent {
     }
 
     private static abstract class _BackstabT extends Card {
-        private final int n;
-
         public _BackstabT(String cardName, int n) {
             super(cardName, Card.ATTACK, 0, Card.UNCOMMON);
-            this.n = n;
+            damage = n;
             this.innate = true;
             this.exhaustWhenPlayed = true;
             entityProperty.selectEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n, this);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -1103,12 +1087,13 @@ public class CardSilent {
         public _ChokeT(String cardName, int n) {
             super(cardName, Card.ATTACK, 2, Card.UNCOMMON);
             this.n = n;
+            damage = 12;
             this.entityProperty.chokeEnemy = true;
             entityProperty.selectEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), 12, this);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             state.getEnemiesForWrite().getForWrite(idx).applyDebuff(state, DebuffType.CHOKE, n);
             return GameActionCtx.PLAY_CARD;
         }
@@ -1232,11 +1217,12 @@ public class CardSilent {
         public _DashT(String cardName, int n) {
             super(cardName, Card.ATTACK, 2, Card.UNCOMMON);
             this.n = n;
+            damage = n;
             entityProperty.selectEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n, this);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             state.playerGainBlock(n);
             return GameActionCtx.PLAY_CARD;
         }
@@ -1291,18 +1277,17 @@ public class CardSilent {
     }
 
     private static abstract class _EndlessAgonyT extends Card {
-        private final int n;
         private boolean[] isEndlessAgony;
 
         public _EndlessAgonyT(String cardName, int n) {
             super(cardName, Card.ATTACK, 0, Card.UNCOMMON);
-            this.n = n;
+            damage = n;
             entityProperty.selectEnemy = true;
             this.exhaustWhenPlayed = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n, this);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             return GameActionCtx.PLAY_CARD;
         }
 
@@ -1382,18 +1367,16 @@ public class CardSilent {
     }
 
     private static abstract class _EviscerateT extends Card {
-        private final int n;
-
         public _EviscerateT(String cardName, int n) {
             super(cardName, Card.ATTACK, 3, Card.UNCOMMON);
-            this.n = n;
+            damage = n;
             entityProperty.selectEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n, this);
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n, this);
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n, this);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             return GameActionCtx.PLAY_CARD;
         }
 
@@ -1473,17 +1456,15 @@ public class CardSilent {
     }
 
     private static abstract class _FinisherT extends Card {
-        private final int n;
-
         public _FinisherT(String cardName, int n) {
             super(cardName, Card.ATTACK, 1, Card.UNCOMMON);
-            this.n = n;
+            damage = n;
             entityProperty.selectEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             for (int i = 0; i < state.getCounterForRead()[counterIdx]; i++) {
-                state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n, this);
+                state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             }
             return GameActionCtx.PLAY_CARD;
         }
@@ -1532,18 +1513,16 @@ public class CardSilent {
     }
 
     static abstract class _FlechettesT extends Card {
-        private final int n;
-
         public _FlechettesT(String cardName, int n) {
             super(cardName, Card.ATTACK, 1, Card.UNCOMMON);
-            this.n = n;
+            damage = n;
             entityProperty.selectEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             for (int i = 0; i < state.handArrLen; i++) {
                 if (state.properties.cardDict[state.getHandArrForRead()[i]].cardType == Card.SKILL) {
-                    state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n, this);
+                    state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
                 }
             }
             return GameActionCtx.PLAY_CARD;
@@ -1595,17 +1574,15 @@ public class CardSilent {
     }
 
     private static abstract class _HeelHookT extends Card {
-        private final int n;
-
         public _HeelHookT(String cardName, int n) {
             super(cardName, Card.ATTACK, 1, Card.UNCOMMON);
-            this.n = n;
+            damage = n;
             entityProperty.selectEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             var enemy = state.getEnemiesForWrite().getForWrite(idx);
-            state.playerDoDamageToEnemy(enemy, n, this);
+            state.playerDoDamageToEnemy(enemy, damage, this);
             if (enemy.getWeak() > 0) {
                 state.gainEnergy(1);
                 state.draw(1);
@@ -1729,11 +1706,12 @@ public class CardSilent {
         public MasterfulStab(int energyCost, int maxEnergyCost) {
             super("Masterful Stab (" + energyCost + ")", Card.ATTACK, energyCost, Card.UNCOMMON);
             this.maxEnergyCost = maxEnergyCost;
+            damage = 12;
             entityProperty.selectEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), 12, this);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             return GameActionCtx.PLAY_CARD;
         }
 
@@ -1787,11 +1765,12 @@ public class CardSilent {
         public MasterfulStabP(int energyCost, int maxEnergyCost) {
             super("Masterful Stab+ (" + energyCost + ")", Card.ATTACK, energyCost, Card.UNCOMMON);
             this.maxEnergyCost = maxEnergyCost;
+            damage = 16;
             entityProperty.selectEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), 16, this);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             return GameActionCtx.PLAY_CARD;
         }
 
@@ -1890,16 +1869,14 @@ public class CardSilent {
     }
 
     private static abstract class _PredatorT extends Card {
-        private final int n;
-
         public _PredatorT(String cardName, int n) {
             super(cardName, Card.ATTACK, 2, Card.UNCOMMON);
-            this.n = n;
+            damage = n;
             entityProperty.selectEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n, this);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             state.getCounterForWrite()[counterIdx] += 1;
             return GameActionCtx.PLAY_CARD;
         }
@@ -1974,17 +1951,15 @@ public class CardSilent {
     }
 
     private static abstract class _RiddleWithHolesT extends Card {
-        private final int n;
-
         public _RiddleWithHolesT(String cardName, int n) {
             super(cardName, Card.ATTACK, 2, Card.UNCOMMON);
-            this.n = n;
+            damage = n;
             entityProperty.selectEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             for (int i = 0; i < 5; i++) {
-                state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n, this);
+                state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             }
             return GameActionCtx.PLAY_CARD;
         }
@@ -2065,11 +2040,9 @@ public class CardSilent {
     }
 
     private static abstract class _SkewerT extends Card {
-        private final int n;
-
         public _SkewerT(String cardName, int n) {
             super(cardName, Card.ATTACK, -1, Card.UNCOMMON);
-            this.n = n;
+            damage = n;
             entityProperty.selectEnemy = true;
             this.isXCost = true;
             this.delayUseEnergy = true;
@@ -2077,7 +2050,7 @@ public class CardSilent {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             for (int i = 0; i < energyUsed; i++) {
-                state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n, this);
+                state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             }
             return GameActionCtx.PLAY_CARD;
         }
@@ -2658,17 +2631,15 @@ public class CardSilent {
     }
 
     private static abstract class _DieDieDieT extends Card {
-        private final int n;
-
         public _DieDieDieT(String cardName, int n) {
             super(cardName, Card.ATTACK, 1, Card.RARE);
-            this.n = n;
+            damage = n;
             this.exhaustWhenPlayed = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
-                state.playerDoDamageToEnemy(enemy, n, this);
+                state.playerDoDamageToEnemy(enemy, damage, this);
             }
             return GameActionCtx.PLAY_CARD;
         }
@@ -2797,15 +2768,13 @@ public class CardSilent {
     //   Upgraded Effect: Deal 12 damage twice. Decrease the damage of this card by 2 this combat.
     public static class GlassKnife extends Card {
         public int limit;
-        private int dmg;
-
         public GlassKnife() {
             this(8);
         }
 
         public GlassKnife(int dmg, int limit) {
             super(dmg == 8 ? "Glass Knife" : "Glass Knife (" + dmg + ")", Card.ATTACK, 1, Card.RARE);
-            this.dmg = dmg;
+            damage = dmg;
             this.limit = limit;
             entityProperty.selectEnemy = true;
         }
@@ -2815,8 +2784,8 @@ public class CardSilent {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), dmg, this);
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), dmg, this);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             return GameActionCtx.PLAY_CARD;
         }
 
@@ -2824,7 +2793,7 @@ public class CardSilent {
             var c = new ArrayList<Card>();
             for (Card card : cards) {
                 if (card.getBaseCard() instanceof GlassKnife) {
-                    for (int i = dmg - 2; i >= limit; i -= 2) {
+                    for (int i = damage - 2; i >= limit; i -= 2) {
                         c.add(card.wrapAfterPlay(new GlassKnife(i, limit)));
                     }
                 }
@@ -2836,28 +2805,26 @@ public class CardSilent {
             state.properties.glassKnifeTransformIndexes = new int[state.properties.cardDict.length];
             for (int i = 0; i < state.properties.glassKnifeTransformIndexes.length; i++) {
                 var card = state.properties.cardDict[i].getBaseCard();
-                if (card instanceof GlassKnife glassKnife && glassKnife.dmg > glassKnife.limit) {
-                    state.properties.glassKnifeTransformIndexes[i] = state.properties.findCardIndex(state.properties.cardDict[i].wrapAfterPlay(new GlassKnife(glassKnife.dmg - 2, glassKnife.limit)));
+                if (card instanceof GlassKnife glassKnife && glassKnife.damage > glassKnife.limit) {
+                    state.properties.glassKnifeTransformIndexes[i] = state.properties.findCardIndex(state.properties.cardDict[i].wrapAfterPlay(new GlassKnife(glassKnife.damage - 2, glassKnife.limit)));
                 }
             }
         }
 
-        @Override public int onPlayTransformCardIdx(GameProperties prop, int cardIdx) {
-            return prop.glassKnifeTransformIndexes[cardIdx];
+        @Override public int onPlayTransformCardIdx(GameState state, int cardIdx) {
+            return state.properties.glassKnifeTransformIndexes[cardIdx];
         }
     }
 
     public static class GlassKnifeP extends Card {
         public int limit;
-        private int dmg;
-
         public GlassKnifeP() {
             this(12);
         }
 
         public GlassKnifeP(int dmg, int limit) {
             super(dmg == 12 ? "Glass Knife+" : "Glass Knife+ (" + dmg + ")", Card.ATTACK, 1, Card.RARE);
-            this.dmg = dmg;
+            damage = dmg;
             this.limit = limit;
             entityProperty.selectEnemy = true;
         }
@@ -2867,8 +2834,8 @@ public class CardSilent {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), dmg, this);
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), dmg, this);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             return GameActionCtx.PLAY_CARD;
         }
 
@@ -2876,7 +2843,7 @@ public class CardSilent {
             var c = new ArrayList<Card>();
             for (Card card : cards) {
                 if (card.getBaseCard() instanceof GlassKnife) {
-                    for (int i = dmg - 2; i >= limit; i -= 2) {
+                    for (int i = damage - 2; i >= limit; i -= 2) {
                         c.add(card.wrapAfterPlay(new GlassKnifeP(i, limit)));
                     }
                 }
@@ -2888,23 +2855,21 @@ public class CardSilent {
             state.properties.glassKnifePTransformIndexes = new int[state.properties.cardDict.length];
             for (int i = 0; i < state.properties.glassKnifePTransformIndexes.length; i++) {
                 var card = state.properties.cardDict[i].getBaseCard();
-                if (card instanceof GlassKnifeP glassKnife && glassKnife.dmg > glassKnife.limit) {
-                    state.properties.glassKnifePTransformIndexes[i] = state.properties.findCardIndex(state.properties.cardDict[i].wrapAfterPlay(new GlassKnifeP(glassKnife.dmg - 2, glassKnife.limit)));
+                if (card instanceof GlassKnifeP glassKnife && glassKnife.damage > glassKnife.limit) {
+                    state.properties.glassKnifePTransformIndexes[i] = state.properties.findCardIndex(state.properties.cardDict[i].wrapAfterPlay(new GlassKnifeP(glassKnife.damage - 2, glassKnife.limit)));
                 }
             }
         }
 
-        @Override public int onPlayTransformCardIdx(GameProperties prop, int cardIdx) {
-            return prop.glassKnifePTransformIndexes[cardIdx];
+        @Override public int onPlayTransformCardIdx(GameState state, int cardIdx) {
+            return state.properties.glassKnifePTransformIndexes[cardIdx];
         }
     }
 
     public static abstract class _GrandFinaleT extends Card {
-        private final int n;
-
         public _GrandFinaleT(String cardName, int n) {
             super(cardName, Card.ATTACK, 0, Card.RARE);
-            this.n = n;
+            damage = n;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -2912,7 +2877,7 @@ public class CardSilent {
                 return GameActionCtx.PLAY_CARD;
             }
             for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
-                state.playerDoDamageToEnemy(enemy, n, this);
+                state.playerDoDamageToEnemy(enemy, damage, this);
             }
             return GameActionCtx.PLAY_CARD;
         }
@@ -3145,17 +3110,15 @@ public class CardSilent {
     }
 
     private static abstract class _UnloadT extends Card {
-        private final int n;
-
         public _UnloadT(String cardName, int n) {
             super(cardName, Card.ATTACK, 1, Card.RARE);
             entityProperty.selectEnemy = true;
             this.discardNonAttack = true;
-            this.n = n;
+            damage = n;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n, this);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             for (int i = 0; i < state.handArrLen; i++) {
                 if (state.properties.cardDict[state.getHandArrForRead()[i]].cardType != Card.ATTACK) {
                     state.discardCardFromHandByPosition(i, false);

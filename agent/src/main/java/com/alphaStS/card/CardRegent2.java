@@ -3,7 +3,6 @@ package com.alphaStS.card;
 import com.alphaStS.*;
 import com.alphaStS.GameStateUtils;
 import com.alphaStS.action.AddCardToDiscardAction;
-import com.alphaStS.action.GameEnvironmentAction;
 import com.alphaStS.action.PlayCardAction;
 import com.alphaStS.enemy.Enemy;
 import com.alphaStS.enums.DebuffType;
@@ -14,7 +13,6 @@ import com.alphaStS.eventHandler.OnEnergySpendHandler;
 import com.alphaStS.eventHandler.OnStarChangeHandler;
 import com.alphaStS.gameAction.GameActionCtx;
 import com.alphaStS.random.RandomGenCtx;
-import com.alphaStS.utils.CounterStat;
 import com.alphaStS.utils.Tuple;
 
 import java.util.ArrayList;
@@ -36,11 +34,9 @@ public class CardRegent2 {
     }
 
     private static abstract class _FallingStarT extends Card {
-        private final int dmg;
-
         public _FallingStarT(String cardName, int dmg) {
             super(cardName, Card.ATTACK, 0, Card.COMMON);
-            this.dmg = dmg;
+            damage = dmg;
             this.starCost = 2;
             entityProperty.selectEnemy = true;
             entityProperty.weakEnemy = true;
@@ -50,7 +46,7 @@ public class CardRegent2 {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             var enemy = state.getEnemiesForWrite().getForWrite(idx);
-            state.playerDoDamageToEnemy(enemy, dmg, this);
+            state.playerDoDamageToEnemy(enemy, damage, this);
             enemy.applyDebuff(state, DebuffType.WEAK, 1);
             enemy.applyDebuff(state, DebuffType.VULNERABLE, 1);
             return GameActionCtx.PLAY_CARD;
@@ -115,11 +111,9 @@ public class CardRegent2 {
     // **************************************************************************************************
 
     private static abstract class _AstralPulseT extends Card {
-        private final int dmg;
-
         public _AstralPulseT(String cardName, int dmg) {
             super(cardName, Card.ATTACK, 0, Card.COMMON);
-            this.dmg = dmg;
+            damage = dmg;
             this.starCost = 3;
             entityProperty.hasStarCost = true;
         }
@@ -127,7 +121,7 @@ public class CardRegent2 {
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             for (int i = 0; i < 2; i++) {
                 for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
-                    state.playerDoDamageToEnemy(enemy, dmg, this);
+                    state.playerDoDamageToEnemy(enemy, damage, this);
                 }
             }
             return GameActionCtx.PLAY_CARD;
@@ -196,12 +190,11 @@ public class CardRegent2 {
     }
 
     private static abstract class _CelestialMightT extends Card {
-        private final int dmg;
         private final int hits;
 
         public _CelestialMightT(String cardName, int dmg, int hits) {
             super(cardName, Card.ATTACK, 2, Card.COMMON);
-            this.dmg = dmg;
+            damage = dmg;
             this.hits = hits;
             entityProperty.selectEnemy = true;
         }
@@ -209,7 +202,7 @@ public class CardRegent2 {
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             var enemy = state.getEnemiesForWrite().getForWrite(idx);
             for (int i = 0; i < hits; i++) {
-                state.playerDoDamageToEnemy(enemy, dmg, this);
+                state.playerDoDamageToEnemy(enemy, damage, this);
             }
             return GameActionCtx.PLAY_CARD;
         }
@@ -262,16 +255,14 @@ public class CardRegent2 {
     }
 
     private static abstract class _CollisionCourseT extends Card {
-        private final int dmg;
-
         public _CollisionCourseT(String cardName, int dmg) {
             super(cardName, Card.ATTACK, 0, Card.COMMON);
-            this.dmg = dmg;
+            damage = dmg;
             entityProperty.selectEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), dmg, this);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             state.addCardToHand(state.createCard(generatedCardIdx));
             return GameActionCtx.PLAY_CARD;
         }
@@ -335,12 +326,11 @@ public class CardRegent2 {
     }
 
     private static abstract class _CrescentSpearT extends Card {
-        private final int baseDmg;
         private final int bonusDmg;
 
         public _CrescentSpearT(String cardName, int baseDmg, int bonusDmg) {
             super(cardName, Card.ATTACK, 1, Card.COMMON);
-            this.baseDmg = baseDmg;
+            damage = baseDmg;
             this.bonusDmg = bonusDmg;
             this.starCost = 1;
             entityProperty.selectEnemy = true;
@@ -348,6 +338,11 @@ public class CardRegent2 {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), getBaseAttackDamage(state), this);
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public int getBaseAttackDamage(GameState state) {
             int count = 0;
             var hand = state.getHandArrForRead();
             for (int i = 0; i < state.getNumCardsInHand(); i++) {
@@ -361,8 +356,7 @@ public class CardRegent2 {
             for (int i = 0; i < state.getNumCardsInDiscard(); i++) {
                 if (state.properties.cardDict[discard[i]].starCost > 0) count++;
             }
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), baseDmg + bonusDmg * count, this);
-            return GameActionCtx.PLAY_CARD;
+            return damage + bonusDmg * count;
         }
     }
 
@@ -382,12 +376,11 @@ public class CardRegent2 {
     }
 
     private static abstract class _CrushUnderT extends Card {
-        private final int dmg;
         private final int strengthLoss;
 
         public _CrushUnderT(String cardName, int dmg, int strengthLoss) {
             super(cardName, Card.ATTACK, 1, Card.COMMON);
-            this.dmg = dmg;
+            damage = dmg;
             this.strengthLoss = strengthLoss;
             entityProperty.affectEnemyStrength = true;
             entityProperty.affectEnemyStrengthEot = true;
@@ -395,7 +388,7 @@ public class CardRegent2 {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
-                state.playerDoDamageToEnemy(enemy, dmg, this);
+                state.playerDoDamageToEnemy(enemy, damage, this);
                 enemy.applyDebuff(state, DebuffType.LOSE_STRENGTH_EOT, strengthLoss);
             }
             return GameActionCtx.PLAY_CARD;
@@ -519,12 +512,11 @@ public class CardRegent2 {
     }
 
     private static abstract class _GuidingStarT extends Card {
-        private final int dmg;
         private final int drawCount;
 
         public _GuidingStarT(String cardName, int dmg, int drawCount) {
             super(cardName, Card.ATTACK, 1, Card.COMMON);
-            this.dmg = dmg;
+            damage = dmg;
             this.drawCount = drawCount;
             this.starCost = 2;
             entityProperty.selectEnemy = true;
@@ -532,7 +524,7 @@ public class CardRegent2 {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), dmg, this);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             state.draw(drawCount);
             return GameActionCtx.PLAY_CARD;
         }
@@ -656,12 +648,11 @@ public class CardRegent2 {
     }
 
     private static abstract class _PhotonCutT extends Card {
-        private final int dmg;
         private final int drawCount;
 
         public _PhotonCutT(String cardName, int dmg, int drawCount) {
             super(cardName, Card.ATTACK, 1, Card.COMMON);
-            this.dmg = dmg;
+            damage = dmg;
             this.drawCount = drawCount;
             entityProperty.selectEnemy = true;
             entityProperty.selectFromHand = true;
@@ -671,7 +662,7 @@ public class CardRegent2 {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             if (state.actionCtx == GameActionCtx.PLAY_CARD || state.actionCtx == GameActionCtx.SELECT_ENEMY) {
-                state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), dmg, this);
+                state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
                 state.draw(drawCount);
                 return GameActionCtx.SELECT_CARD_HAND;
             } else {
@@ -733,18 +724,17 @@ public class CardRegent2 {
     }
 
     private static abstract class _SolarStrikeT extends Card {
-        private final int dmg;
         private final int stars;
 
         public _SolarStrikeT(String cardName, int dmg, int stars) {
             super(cardName, Card.ATTACK, 1, Card.COMMON);
-            this.dmg = dmg;
+            damage = dmg;
             this.stars = stars;
             entityProperty.selectEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), dmg, this);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             state.gainStar(stars);
             return GameActionCtx.PLAY_CARD;
         }
@@ -797,19 +787,18 @@ public class CardRegent2 {
     }
 
     private static abstract class _WroughtInWarT extends Card {
-        private final int dmg;
         private final int forgeAmount;
 
         public _WroughtInWarT(String cardName, int dmg, int forgeAmount) {
             super(cardName, Card.ATTACK, 1, Card.COMMON);
-            this.dmg = dmg;
+            damage = dmg;
             this.forgeAmount = forgeAmount;
             entityProperty.selectEnemy = true;
             entityProperty.canForge = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), dmg, this);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             state.forge(forgeAmount);
             return GameActionCtx.PLAY_CARD;
         }
@@ -1154,18 +1143,16 @@ public class CardRegent2 {
     }
 
     private static abstract class _DevastateT extends Card {
-        private final int dmg;
-
         public _DevastateT(String cardName, int dmg) {
             super(cardName, Card.ATTACK, 1, Card.UNCOMMON);
-            this.dmg = dmg;
+            damage = dmg;
             this.starCost = 4;
             entityProperty.hasStarCost = true;
             entityProperty.selectEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), dmg, this);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -1236,11 +1223,9 @@ public class CardRegent2 {
     }
 
     private static abstract class _GammaBlastT extends Card {
-        private final int dmg;
-
         public _GammaBlastT(String cardName, int dmg) {
             super(cardName, Card.ATTACK, 0, Card.UNCOMMON);
-            this.dmg = dmg;
+            damage = dmg;
             this.starCost = 3;
             entityProperty.hasStarCost = true;
             entityProperty.selectEnemy = true;
@@ -1250,7 +1235,7 @@ public class CardRegent2 {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             var enemy = state.getEnemiesForWrite().getForWrite(idx);
-            state.playerDoDamageToEnemy(enemy, dmg, this);
+            state.playerDoDamageToEnemy(enemy, damage, this);
             enemy.applyDebuff(state, DebuffType.WEAK, 2);
             enemy.applyDebuff(state, DebuffType.VULNERABLE, 2);
             return GameActionCtx.PLAY_CARD;
@@ -1311,18 +1296,17 @@ public class CardRegent2 {
     }
 
     private static abstract class _HegemonyT extends Card {
-        private final int dmg;
         private final int energyAmount;
 
         public _HegemonyT(String cardName, int dmg, int energyAmount) {
             super(cardName, Card.ATTACK, 2, Card.UNCOMMON);
-            this.dmg = dmg;
+            damage = dmg;
             this.energyAmount = energyAmount;
             entityProperty.selectEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), dmg, this);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             state.getCounterForWrite()[counterIdx] += energyAmount;
             return GameActionCtx.PLAY_CARD;
         }
@@ -1348,18 +1332,17 @@ public class CardRegent2 {
     }
 
     private static abstract class _KinglyKickT extends Card {
-        private final int dmg;
         final int defaultCost;
 
         public _KinglyKickT(String cardName, int cost, int dmg) {
             super(cardName, Card.ATTACK, cost, Card.UNCOMMON);
-            this.dmg = dmg;
+            damage = dmg;
             this.defaultCost = cost;
             entityProperty.selectEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), dmg, this);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -1459,26 +1442,24 @@ public class CardRegent2 {
     //   Effect: Deal 8 damage. Whenever you draw this card, increase its damage by 4 this combat.
     //   Upgraded Effect: Deal 10 damage. Whenever you draw this card, increase its damage by 6 this combat.
     public static class KinglyPunch extends Card {
-        final int dmg;
-
         public KinglyPunch() {
             this(8);
         }
 
         public KinglyPunch(int dmg) {
             super("Kingly Punch (" + dmg + ")", Card.ATTACK, 1, Card.UNCOMMON);
-            this.dmg = dmg;
+            damage = dmg;
             entityProperty.selectEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), dmg, this);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             return GameActionCtx.PLAY_CARD;
         }
 
         @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
             var c = new ArrayList<Card>();
-            for (int i = dmg + 4; i <= properties.kinglyPunchLimit; i += 4) {
+            for (int i = damage + 4; i <= properties.kinglyPunchLimit; i += 4) {
                 c.add(new KinglyPunch(i));
             }
             return c;
@@ -1490,8 +1471,8 @@ public class CardRegent2 {
                 Arrays.fill(state.properties.kinglyPunchTransformIndexes, -1);
                 for (int i = 0; i < state.properties.cardDict.length; i++) {
                     var base = state.properties.cardDict[i].getBaseCard();
-                    if (base instanceof KinglyPunch kp && kp.dmg < state.properties.kinglyPunchLimit) {
-                        state.properties.kinglyPunchTransformIndexes[i] = state.properties.findCardIndex(new KinglyPunch(kp.dmg + 4));
+                    if (base instanceof KinglyPunch kp && kp.damage < state.properties.kinglyPunchLimit) {
+                        state.properties.kinglyPunchTransformIndexes[i] = state.properties.findCardIndex(new KinglyPunch(kp.damage + 4));
                     }
                 }
             }
@@ -1512,26 +1493,24 @@ public class CardRegent2 {
     }
 
     public static class KinglyPunchP extends Card {
-        final int dmg;
-
         public KinglyPunchP() {
             this(10);
         }
 
         public KinglyPunchP(int dmg) {
             super("Kingly Punch+ (" + dmg + ")", Card.ATTACK, 1, Card.UNCOMMON);
-            this.dmg = dmg;
+            damage = dmg;
             entityProperty.selectEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), dmg, this);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             return GameActionCtx.PLAY_CARD;
         }
 
         @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
             var c = new ArrayList<Card>();
-            for (int i = dmg + 6; i <= properties.kinglyPPunchLimit; i += 6) {
+            for (int i = damage + 6; i <= properties.kinglyPPunchLimit; i += 6) {
                 c.add(new KinglyPunchP(i));
             }
             return c;
@@ -1543,8 +1522,8 @@ public class CardRegent2 {
                 Arrays.fill(state.properties.kinglyPPunchTransformIndexes, -1);
                 for (int i = 0; i < state.properties.cardDict.length; i++) {
                     var base = state.properties.cardDict[i].getBaseCard();
-                    if (base instanceof KinglyPunchP kp && kp.dmg < state.properties.kinglyPPunchLimit) {
-                        state.properties.kinglyPPunchTransformIndexes[i] = state.properties.findCardIndex(new KinglyPunchP(kp.dmg + 6));
+                    if (base instanceof KinglyPunchP kp && kp.damage < state.properties.kinglyPPunchLimit) {
+                        state.properties.kinglyPPunchTransformIndexes[i] = state.properties.findCardIndex(new KinglyPunchP(kp.damage + 6));
                     }
                 }
             }
@@ -1565,17 +1544,15 @@ public class CardRegent2 {
     }
 
     private static abstract class _KnockoutBlowT extends Card {
-        private final int dmg;
-
         public _KnockoutBlowT(String cardName, int dmg) {
             super(cardName, Card.ATTACK, 3, Card.UNCOMMON);
-            this.dmg = dmg;
+            damage = dmg;
             entityProperty.selectEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             var enemy = state.getEnemiesForWrite().getForWrite(idx);
-            state.playerDoDamageToEnemy(enemy, dmg, this);
+            state.playerDoDamageToEnemy(enemy, damage, this);
             if (state.getEnemiesForRead().get(idx).getHealth() <= 0) {
                 state.gainStar(5);
             }
@@ -1601,17 +1578,15 @@ public class CardRegent2 {
     // No need to implement Largesse: Multiplayer
 
     private static abstract class _LunarBlastT extends Card {
-        private final int dmgPerSkill;
-
         public _LunarBlastT(String cardName, int dmgPerSkill) {
             super(cardName, Card.ATTACK, 0, Card.UNCOMMON);
-            this.dmgPerSkill = dmgPerSkill;
+            damage = dmgPerSkill;
             entityProperty.selectEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             for (int i = 0; i < state.getCounterForRead()[state.properties.skillsPlayedThisTurnCounterIdx]; i++) {
-                state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), dmgPerSkill, this);
+                state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             }
             return GameActionCtx.PLAY_CARD;
         }
@@ -2058,22 +2033,23 @@ public class CardRegent2 {
     }
 
     private static abstract class _RadiateT extends Card {
-        private final int dmgPerStar;
-
         public _RadiateT(String cardName, int dmgPerStar) {
             super(cardName, Card.ATTACK, 0, Card.UNCOMMON);
-            this.dmgPerStar = dmgPerStar;
+            damage = dmgPerStar;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             int starGained = state.getCounterForRead()[counterIdx];
             if (starGained > 0) {
-                int dmg = starGained * dmgPerStar;
                 for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
-                    state.playerDoDamageToEnemy(enemy, dmg, this);
+                    state.playerDoDamageToEnemy(enemy, getBaseAttackDamage(state), this);
                 }
             }
             return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public int getBaseAttackDamage(GameState state) {
+            return damage * state.getCounterForRead()[counterIdx];
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
@@ -2240,17 +2216,15 @@ public class CardRegent2 {
     }
 
     private static abstract class _ShiningStrikeT extends Card {
-        private final int dmg;
-
         public _ShiningStrikeT(String cardName, int dmg) {
             super(cardName, Card.ATTACK, 1, Card.UNCOMMON);
-            this.dmg = dmg;
+            damage = dmg;
             this.returnToTopOfDeckWhenPlay = true;
             entityProperty.selectEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), dmg, this);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             state.gainStar(2);
             return GameActionCtx.PLAY_CARD;
         }
@@ -2287,11 +2261,9 @@ public class CardRegent2 {
     }
 
     private static abstract class _StardustT extends Card {
-        private final int dmg;
-
         public _StardustT(String cardName, int dmg) {
             super(cardName, Card.ATTACK, 0, Card.UNCOMMON);
-            this.dmg = dmg;
+            damage = dmg;
             entityProperty.hasStarCost = true;
         }
 
@@ -2305,7 +2277,7 @@ public class CardRegent2 {
                 for (int i = 0; i < x; i++) {
                     int enemyIdx = GameStateUtils.getRandomEnemyIdx(state, RandomGenCtx.RandomEnemyGeneral);
                     if (enemyIdx < 0) break;
-                    state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(enemyIdx), dmg, this);
+                    state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(enemyIdx), damage, this);
                 }
             }
             return GameActionCtx.PLAY_CARD;
@@ -2382,20 +2354,23 @@ public class CardRegent2 {
     }
 
     private static abstract class _SupermassiveT extends Card {
-        private final int baseDmg;
         private final int dmgPerCard;
 
         public _SupermassiveT(String cardName, int baseDmg, int dmgPerCard) {
             super(cardName, Card.ATTACK, 1, Card.UNCOMMON);
-            this.baseDmg = baseDmg;
+            damage = baseDmg;
             this.dmgPerCard = dmgPerCard;
             entityProperty.selectEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             int cardsCreated = state.getCounterForRead()[counterIdx];
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), baseDmg + cardsCreated * dmgPerCard, this);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), getBaseAttackDamage(state), this);
             return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public int getBaseAttackDamage(GameState state) {
+            return damage + state.getCounterForRead()[counterIdx] * dmgPerCard;
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
@@ -2518,12 +2493,11 @@ public class CardRegent2 {
     }
 
     private static abstract class _BeatIntoShapeT extends Card {
-        private final int dmg;
         private final int forgeBase;
 
         public _BeatIntoShapeT(String cardName, int dmg, int forgeBase) {
             super(cardName, Card.ATTACK, 1, Card.RARE);
-            this.dmg = dmg;
+            damage = dmg;
             this.forgeBase = forgeBase;
             entityProperty.selectEnemy = true;
             entityProperty.canForge = true;
@@ -2533,7 +2507,7 @@ public class CardRegent2 {
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             var enemy = state.getEnemiesForWrite().getForWrite(idx);
             int prevHits = enemy.getHitByAttack();
-            state.playerDoDamageToEnemy(enemy, dmg, this);
+            state.playerDoDamageToEnemy(enemy, damage, this);
             state.forge(forgeBase + forgeBase * prevHits);
             return GameActionCtx.PLAY_CARD;
         }
@@ -2587,8 +2561,6 @@ public class CardRegent2 {
     }
 
     private static abstract class _BombardmentT extends Card {
-        private final int damage;
-
         public _BombardmentT(String cardName, int damage) {
             super(cardName, Card.ATTACK, 3, Card.RARE);
             this.damage = damage;
@@ -2670,8 +2642,6 @@ public class CardRegent2 {
     }
 
     private static abstract class _CometT extends Card {
-        private final int damage;
-
         public _CometT(String cardName, int damage) {
             super(cardName, Card.ATTACK, 0, Card.RARE);
             this.damage = damage;
@@ -2707,8 +2677,6 @@ public class CardRegent2 {
     }
 
     private static abstract class _CrashLandingT extends Card {
-        private final int damage;
-
         public _CrashLandingT(String cardName, int damage) {
             super(cardName, Card.ATTACK, 1, Card.RARE);
             this.damage = damage;
@@ -2797,8 +2765,6 @@ public class CardRegent2 {
     }
 
     private static abstract class _DyingStarT extends Card {
-        private final int damage;
-
         public _DyingStarT(String cardName, int damage) {
             super(cardName, Card.ATTACK, 1, Card.RARE);
             this.damage = damage;
@@ -3021,8 +2987,6 @@ public class CardRegent2 {
     // No need to implement Hammer Time: Multiplayer
 
     private static abstract class _HeavenlyDrillT extends Card {
-        private final int damage;
-
         public _HeavenlyDrillT(String cardName, int damage) {
             super(cardName, Card.ATTACK, -1, Card.RARE);
             this.damage = damage;
@@ -3064,11 +3028,9 @@ public class CardRegent2 {
     }
 
     private static abstract class _HeirloomHammerT extends Card {
-        private final int dmg;
-
         public _HeirloomHammerT(String cardName, int dmg) {
             super(cardName, Card.ATTACK, 2, Card.RARE);
-            this.dmg = dmg;
+            damage = dmg;
             entityProperty.selectEnemy = true;
             entityProperty.selectFromHand = true;
             selectFromHandLater = true;
@@ -3076,7 +3038,7 @@ public class CardRegent2 {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             if (state.actionCtx == GameActionCtx.PLAY_CARD || state.actionCtx == GameActionCtx.SELECT_ENEMY) {
-                state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), dmg, this);
+                state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
                 for (int i = 0; i < state.handArrLen; i++) {
                     if (CardManager.isColorless2Card(state.properties.cardDict[state.handArr[i]])) {
                         return GameActionCtx.SELECT_CARD_HAND;
@@ -3164,16 +3126,14 @@ public class CardRegent2 {
     }
 
     private static abstract class _MakeItSoT extends Card {
-        private final int dmg;
-
         public _MakeItSoT(String cardName, int dmg) {
             super(cardName, Card.ATTACK, 0, Card.RARE);
-            this.dmg = dmg;
+            damage = dmg;
             entityProperty.selectEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), dmg, this);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             return GameActionCtx.PLAY_CARD;
         }
 
@@ -3405,6 +3365,7 @@ public class CardRegent2 {
     private static abstract class _SevenStarsT extends Card {
         public _SevenStarsT(String cardName, int energyCost) {
             super(cardName, Card.ATTACK, energyCost, Card.RARE);
+            damage = 7;
             this.starCost = 7;
             entityProperty.hasStarCost = true;
         }
@@ -3412,7 +3373,7 @@ public class CardRegent2 {
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             for (int i = 0; i < 7; i++) {
                 for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
-                    state.playerDoDamageToEnemy(enemy, 7, this);
+                    state.playerDoDamageToEnemy(enemy, damage, this);
                 }
             }
             return GameActionCtx.PLAY_CARD;
@@ -3645,11 +3606,9 @@ public class CardRegent2 {
     // **************************************************************************************************
 
     private static abstract class _MeteorShowerT extends Card {
-        private final int dmg;
-
         public _MeteorShowerT(String cardName, int dmg) {
             super(cardName, Card.ATTACK, 0, Card.RARE);
-            this.dmg = dmg;
+            damage = dmg;
             this.starCost = 2;
             entityProperty.hasStarCost = true;
             entityProperty.vulnEnemy = true;
@@ -3658,7 +3617,7 @@ public class CardRegent2 {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
-                state.playerDoDamageToEnemy(enemy, dmg, this);
+                state.playerDoDamageToEnemy(enemy, damage, this);
                 enemy.applyDebuff(state, DebuffType.VULNERABLE, 2);
                 enemy.applyDebuff(state, DebuffType.WEAK, 2);
             }

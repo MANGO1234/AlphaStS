@@ -240,7 +240,6 @@ public class CardDefect2 {
     }
 
     private static abstract class _FocusedStrikeT extends Card {
-        private final int damage;
         private final int focus;
 
         public _FocusedStrikeT(String cardName, int damage, int focus) {
@@ -285,8 +284,6 @@ public class CardDefect2 {
     }
 
     private static abstract class _GunkUpT extends Card {
-        private final int damage;
-
         public _GunkUpT(String cardName, int damage) {
             super(cardName, Card.ATTACK, 1, Card.COMMON);
             this.damage = damage;
@@ -426,8 +423,6 @@ public class CardDefect2 {
     }
 
     private static abstract class _MomentumStrikeT extends Card {
-        private final int damage;
-
         public _MomentumStrikeT(String cardName, int damage) {
             super(cardName, Card.ATTACK, 1, Card.COMMON);
             this.damage = damage;
@@ -459,8 +454,8 @@ public class CardDefect2 {
             }
         }
 
-        @Override public int onPlayTransformCardIdx(GameProperties prop, int cardIdx) {
-            return prop.momentumStrikeTransformIndexes[cardIdx];
+        @Override public int onPlayTransformCardIdx(GameState state, int cardIdx) {
+            return state.properties.momentumStrikeTransformIndexes[cardIdx];
         }
     }
 
@@ -498,8 +493,6 @@ public class CardDefect2 {
     }
 
     private static abstract class _UproarT extends Card {
-        private final int damage;
-
         public _UproarT(String cardName, int damage) {
             super(cardName, Card.ATTACK, 2, Card.COMMON);
             this.damage = damage;
@@ -873,15 +866,15 @@ public class CardDefect2 {
     }
 
     private static abstract class _HailstormT extends Card {
-        private final int damage;
+        private final int n;
 
         public _HailstormT(String cardName, int damage) {
             super(cardName, Card.POWER, 1, Card.UNCOMMON);
-            this.damage = damage;
+            this.n = damage;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.getCounterForWrite()[counterIdx] += damage;
+            state.getCounterForWrite()[counterIdx] += n;
             return GameActionCtx.PLAY_CARD;
         }
 
@@ -1005,7 +998,6 @@ public class CardDefect2 {
     }
 
     private static abstract class _NullT extends Card {
-        private final int damage;
         private final int weak;
 
         public _NullT(String cardName, int damage, int weak) {
@@ -1050,8 +1042,6 @@ public class CardDefect2 {
     }
 
     private static abstract class _RefractT extends Card {
-        private final int damage;
-
         public _RefractT(String cardName, int damage) {
             super(cardName, Card.ATTACK, 3, Card.UNCOMMON);
             this.damage = damage;
@@ -1085,7 +1075,6 @@ public class CardDefect2 {
     }
 
     private static abstract class _RocketPunchT extends Card {
-        private final int damage;
         private final int draw;
 
         public _RocketPunchT(String cardName, int damage, int draw) {
@@ -1399,8 +1388,6 @@ public class CardDefect2 {
     }
 
     private static abstract class _SynthesisT extends Card {
-        private final int damage;
-
         public _SynthesisT(String cardName, int damage) {
             super(cardName, Card.ATTACK, 2, Card.UNCOMMON);
             this.damage = damage;
@@ -1466,7 +1453,6 @@ public class CardDefect2 {
     }
 
     private static abstract class _TeslaCoilT extends Card {
-        private final int damage;
         private final int triggers;
 
         public _TeslaCoilT(String cardName, int damage, int triggers) {
@@ -1501,15 +1487,15 @@ public class CardDefect2 {
     }
 
     private static abstract class _ThunderT extends Card {
-        private final int damage;
+        private final int n;
 
         public _ThunderT(String cardName, int damage) {
             super(cardName, Card.POWER, 1, Card.UNCOMMON);
-            this.damage = damage;
+            this.n = damage;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.getCounterForWrite()[counterIdx] += damage;
+            state.getCounterForWrite()[counterIdx] += n;
             return GameActionCtx.PLAY_CARD;
         }
 
@@ -1561,8 +1547,6 @@ public class CardDefect2 {
     // **************************************************************************************************
 
     private static abstract class _AdaptiveStrikeT extends Card {
-        private final int damage;
-
         public _AdaptiveStrikeT(String cardName, int damage) {
             super(cardName, Card.ATTACK, 2, Card.RARE);
             this.damage = damage;
@@ -1767,8 +1751,6 @@ public class CardDefect2 {
     }
 
     private static abstract class _FlakCannonT extends Card {
-        private final int damage;
-
         public _FlakCannonT(String cardName, int damage) {
             super(cardName, Card.ATTACK, 2, Card.RARE);
             this.damage = damage;
@@ -1876,9 +1858,12 @@ public class CardDefect2 {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            int energySpent = state.getCounterForRead()[counterIdx];
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damagePerEnergy * energySpent, this);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), getBaseAttackDamage(state), this);
             return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public int getBaseAttackDamage(GameState state) {
+            return damagePerEnergy * state.getCounterForRead()[counterIdx];
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
@@ -1921,8 +1906,6 @@ public class CardDefect2 {
     }
 
     private static abstract class _HyperbeamT extends Card {
-        private final int damage;
-
         public _HyperbeamT(String cardName, int damage) {
             super(cardName, Card.ATTACK, 2, Card.RARE);
             this.damage = damage;
@@ -1954,17 +1937,15 @@ public class CardDefect2 {
     }
 
     private static abstract class _IceLanceT extends Card {
-        private final int n;
-
         public _IceLanceT(String cardName, int n) {
             super(cardName, Card.ATTACK, 3, Card.RARE);
-            this.n = n;
+            damage = n;
             entityProperty.selectEnemy = true;
             entityProperty.orbGenerationPossible |= OrbType.FROST.mask;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n, this);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             state.channelOrb(OrbType.FROST);
             state.channelOrb(OrbType.FROST);
             state.channelOrb(OrbType.FROST);
@@ -2045,8 +2026,8 @@ public class CardDefect2 {
             }
         }
 
-        @Override public int onPlayTransformCardIdx(GameProperties prop, int cardIdx) {
-            return prop.moddedTransformIndexes != null ? prop.moddedTransformIndexes[cardIdx] : -1;
+        @Override public int onPlayTransformCardIdx(GameState state, int cardIdx) {
+            return state.properties.moddedTransformIndexes != null ? state.properties.moddedTransformIndexes[cardIdx] : -1;
         }
     }
 
@@ -2101,8 +2082,6 @@ public class CardDefect2 {
     }
 
     private static abstract class _ShatterT extends Card {
-        private final int damage;
-
         public _ShatterT(String cardName, int damage) {
             super(cardName, Card.ATTACK, 1, Card.RARE);
             this.damage = damage;

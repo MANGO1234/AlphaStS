@@ -33,11 +33,12 @@ public class CardWatcher {
     private static abstract class _EruptionT extends Card {
         public _EruptionT(String cardName, int energyCost) {
             super(cardName, Card.ATTACK, energyCost, Card.COMMON);
+            damage = 9;
             entityProperty.selectEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoNonAttackDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), 9, true);
+            state.playerDoNonAttackDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, true);
             state.changeStance(Stance.WRATH);
             return GameActionCtx.PLAY_CARD;
         }
@@ -89,8 +90,6 @@ public class CardWatcher {
     }
 
     private static abstract class _BowlingBashT extends Card {
-        private final int damage;
-
         public _BowlingBashT(String cardName, int damage) {
             super(cardName, Card.ATTACK, 1, Card.COMMON);
             this.damage = damage;
@@ -127,8 +126,6 @@ public class CardWatcher {
     }
 
     private static abstract class _ConsecrateT extends Card {
-        private final int damage;
-
         public _ConsecrateT(String cardName, int damage) {
             super(cardName, Card.ATTACK, 0, Card.COMMON);
             this.damage = damage;
@@ -188,7 +185,6 @@ public class CardWatcher {
     }
 
     private static abstract class _CrushJointsT extends Card {
-        private final int damage;
         private final int vulnerable;
 
         public _CrushJointsT(String cardName, int damage, int vulnerable) {
@@ -225,7 +221,6 @@ public class CardWatcher {
     }
 
     public static abstract class _CutThroughFateT extends Card {
-        private final int damage;
         private final int scryAmount;
 
         public _CutThroughFateT(String cardName, int damage, int scryAmount) {
@@ -293,8 +288,6 @@ public class CardWatcher {
     }
 
     private static abstract class _EmptyFistT extends Card {
-        private final int damage;
-
         public _EmptyFistT(String cardName, int damage) {
             super(cardName, Card.ATTACK, 1, Card.COMMON);
             this.damage = damage;
@@ -358,8 +351,6 @@ public class CardWatcher {
     }
 
     public static abstract class _FlurryOfBlowsT extends Card {
-        private final int damage;
-
         public _FlurryOfBlowsT(String cardName, int damage) {
             super(cardName, Card.ATTACK, 0, Card.COMMON);
             this.damage = damage;
@@ -404,8 +395,6 @@ public class CardWatcher {
     }
 
     public static abstract class _FlyingSleevesT extends Card {
-        private final int damage;
-
         public _FlyingSleevesT(String cardName, int damage) {
             super(cardName, Card.ATTACK, 1, Card.COMMON);
             this.damage = damage;
@@ -436,8 +425,6 @@ public class CardWatcher {
     }
 
     private static abstract class _FollowUpT extends Card {
-        private final int damage;
-
         public _FollowUpT(String cardName, int damage) {
             super(cardName, Card.ATTACK, 1, Card.COMMON);
             this.damage = damage;
@@ -507,7 +494,6 @@ public class CardWatcher {
     public static abstract class _JustLuckyT extends Card {
         private final int scryAmount;
         private final int block;
-        private final int damage;
 
         public _JustLuckyT(String cardName, int scryAmount, int block, int damage) {
             super(cardName, Card.ATTACK, 0, Card.COMMON);
@@ -649,7 +635,6 @@ public class CardWatcher {
     }
 
     public static abstract class _SashWhipT extends Card {
-        private final int damage;
         private final int weak;
 
         public _SashWhipT(String cardName, int damage, int weak) {
@@ -803,8 +788,6 @@ public class CardWatcher {
     }
 
     private static abstract class _CarveRealityT extends Card {
-        private final int damage;
-
         public _CarveRealityT(String cardName, int damage) {
             super(cardName, Card.ATTACK, 1, Card.UNCOMMON);
             this.damage = damage;
@@ -892,8 +875,6 @@ public class CardWatcher {
     }
 
     private static abstract class _ConcludeT extends Card {
-        private final int damage;
-
         public _ConcludeT(String cardName, int damage) {
             super(cardName, Card.ATTACK, 1, Card.UNCOMMON);
             this.damage = damage;
@@ -1048,8 +1029,6 @@ public class CardWatcher {
     }
 
     public static abstract class _FearNoEvilT extends Card {
-        private final int damage;
-
         public _FearNoEvilT(String cardName, int damage) {
             super(cardName, Card.ATTACK, 1, Card.UNCOMMON);
             this.damage = damage;
@@ -1620,8 +1599,6 @@ public class CardWatcher {
     }
 
     public static abstract class _ReachHeavenT extends Card {
-        private final int damage;
-
         public _ReachHeavenT(String cardName, int damage) {
             super(cardName, Card.ATTACK, 2, Card.UNCOMMON);
             this.damage = damage;
@@ -1746,12 +1723,13 @@ public class CardWatcher {
 
         private SandsOfTime(int energyCost) {
             super(energyCost == 4 ? "Sands of Time" : "Sands of Time (" + energyCost + ")", Card.ATTACK, energyCost, Card.UNCOMMON);
+            damage = 20;
             entityProperty.selectEnemy = true;
             this.retain = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), 20, this);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             return GameActionCtx.PLAY_CARD;
         }
 
@@ -1799,12 +1777,13 @@ public class CardWatcher {
 
         private SandsOfTimeP(int energyCost) {
             super(energyCost == 4 ? "Sands of Time+" : "Sands of Time+ (" + energyCost + ")", Card.ATTACK, energyCost, Card.UNCOMMON);
+            damage = 26;
             entityProperty.selectEnemy = true;
             this.retain = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), 26, this);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             return GameActionCtx.PLAY_CARD;
         }
 
@@ -1846,8 +1825,6 @@ public class CardWatcher {
     }
 
     public static abstract class _SignatureMoveT extends Card {
-        private final int damage;
-
         public _SignatureMoveT(String cardName, int damage) {
             super(cardName, Card.ATTACK, 2, Card.UNCOMMON);
             this.damage = damage;
@@ -2046,7 +2023,6 @@ public class CardWatcher {
     }
 
     public static abstract class _TalkToTheHandT extends Card {
-        private final int damage;
         private final int blockReturn;
 
         public _TalkToTheHandT(String cardName, int damage, int blockReturn) {
@@ -2085,6 +2061,7 @@ public class CardWatcher {
 
         public _TantrumT(String cardName, int hits) {
             super(cardName, Card.ATTACK, 1, Card.UNCOMMON);
+            damage = 3;
             this.hits = hits;
             entityProperty.selectEnemy = true;
             this.returnToDeckWhenPlay = true;
@@ -2092,7 +2069,7 @@ public class CardWatcher {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             for (int i = 0; i < hits; i++) {
-                state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), 3, this);
+                state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             }
             state.changeStance(Stance.WRATH);
             return GameActionCtx.PLAY_CARD;
@@ -2115,8 +2092,6 @@ public class CardWatcher {
     }
 
     public static abstract class _WallopT extends Card {
-        private final int damage;
-
         public _WallopT(String cardName, int damage) {
             super(cardName, Card.ATTACK, 2, Card.UNCOMMON);
             this.damage = damage;
@@ -2205,8 +2180,6 @@ public class CardWatcher {
     }
 
     public static abstract class _WeaveT extends Card {
-        private final int damage;
-
         public _WeaveT(String cardName, int damage) {
             super(cardName, Card.ATTACK, 0, Card.UNCOMMON);
             this.damage = damage;
@@ -2250,8 +2223,6 @@ public class CardWatcher {
     }
 
     public static abstract class _WheelKickT extends Card {
-        private final int damage;
-
         public _WheelKickT(String cardName, int damage) {
             super(cardName, Card.ATTACK, 2, Card.UNCOMMON);
             this.damage = damage;
@@ -2285,7 +2256,6 @@ public class CardWatcher {
     //   Upgraded Effect: Retain. Deal 10 damage. When Retained, increase its damage by 5 this combat.
     public static class WindmillStrike extends Card {
         public int limit;
-        private int damage;
 
         public WindmillStrike() {
             this(7);
@@ -2351,7 +2321,6 @@ public class CardWatcher {
 
     public static class WindmillStrikeP extends Card {
         public int limit;
-        private int damage;
 
         public WindmillStrikeP() {
             this(10);
@@ -2553,8 +2522,6 @@ public class CardWatcher {
     }
 
     public static abstract class _BrillianceT extends Card {
-        private final int damage;
-
         public _BrillianceT(String cardName, int damage) {
             super(cardName, Card.ATTACK, 1, Card.RARE);
             this.damage = damage;
@@ -2562,12 +2529,16 @@ public class CardWatcher {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.playerDoNonAttackDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), getBaseAttackDamage(state), true);
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public int getBaseAttackDamage(GameState state) {
             int totalDamage = damage;
             if (counterIdx >= 0) {
                 totalDamage += state.getCounterForRead()[counterIdx];
             }
-            state.playerDoNonAttackDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), totalDamage, true);
-            return GameActionCtx.PLAY_CARD;
+            return totalDamage;
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
@@ -2885,7 +2856,6 @@ public class CardWatcher {
     }
 
     public static abstract class _LessonLearnedT extends Card {
-        private final int damage;
         protected double healthRewardRatio = 0;
 
         public _LessonLearnedT(String cardName, int damage, double healthRewardRatio) {
@@ -3055,7 +3025,6 @@ public class CardWatcher {
     }
 
     public static abstract class _RagnarokT extends Card {
-        private final int damage;
         private final int hits;
 
         public _RagnarokT(String cardName, int damage, int hits) {

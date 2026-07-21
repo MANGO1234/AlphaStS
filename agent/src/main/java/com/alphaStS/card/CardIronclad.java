@@ -23,7 +23,6 @@ import java.util.Objects;
 
 public class CardIronclad {
     private static abstract class _BashT extends Card {
-        private final int damage;
         private final int vulnerable;
 
         public _BashT(String cardName, int damage, int vulnerable) {
@@ -63,6 +62,7 @@ public class CardIronclad {
     public static class Anger extends Card {
         public Anger() {
             super("Anger", Card.ATTACK, 0, Card.COMMON);
+            damage = 6;
             entityProperty.selectEnemy = true;
         }
 
@@ -80,6 +80,7 @@ public class CardIronclad {
     public static class AngerP extends Card {
         public AngerP() {
             super("Anger+", Card.ATTACK, 0, Card.COMMON);
+            damage = 8;
             entityProperty.selectEnemy = true;
         }
 
@@ -165,8 +166,12 @@ public class CardIronclad {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), state.getPlayerForRead().getBlock(), this);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), getBaseAttackDamage(state), this);
             return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public int getBaseAttackDamage(GameState state) {
+            return state.getPlayerForRead().getBlock();
         }
     }
 
@@ -186,8 +191,6 @@ public class CardIronclad {
     }
 
     private static abstract class _ClashT extends Card {
-        private final int damage;
-
         public _ClashT(String cardName, int damage) {
             super(cardName, Card.ATTACK, 0, Card.COMMON);
             this.damage = damage;
@@ -225,8 +228,6 @@ public class CardIronclad {
     }
 
     private static abstract class _CleaveT extends Card {
-        private final int damage;
-
         public _CleaveT(String cardName, int damage) {
             super(cardName, Card.ATTACK, 1, Card.COMMON);
             this.damage = damage;
@@ -256,7 +257,6 @@ public class CardIronclad {
     }
 
     private static abstract class _ClotheslineT extends Card {
-        private final int damage;
         private final int weak;
 
         public _ClotheslineT(String cardName, int damage, int weak) {
@@ -376,8 +376,6 @@ public class CardIronclad {
     }
 
     private static abstract class _HeadbuttT extends Card {
-        private final int damage;
-
         public _HeadbuttT(String cardName, int damage) {
             super(cardName, Card.ATTACK, 1, Card.COMMON);
             this.damage = damage;
@@ -415,19 +413,22 @@ public class CardIronclad {
     }
 
     private static abstract class _HeavyBladeT extends Card {
-        private final int baseDamage;
         private final int strengthMultiplier;
 
         public _HeavyBladeT(String cardName, int strengthMultiplier) {
             super(cardName, Card.ATTACK, 2, Card.COMMON);
-            this.baseDamage = 14;
+            damage = 14;
             this.strengthMultiplier = strengthMultiplier;
             entityProperty.selectEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), baseDamage + state.getPlayerForRead().getStrength() * strengthMultiplier, this);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), getBaseAttackDamage(state), this);
             return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public int getBaseAttackDamage(GameState state) {
+            return damage + state.getPlayerForRead().getStrength() * strengthMultiplier;
         }
     }
 
@@ -452,6 +453,7 @@ public class CardIronclad {
         public _IronWaveT(String cardName, int damageAndBlock) {
             super(cardName, Card.ATTACK, 1, Card.COMMON);
             this.damageAndBlock = damageAndBlock;
+            this.damage = damageAndBlock;
             entityProperty.selectEnemy = true;
         }
 
@@ -487,13 +489,16 @@ public class CardIronclad {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            int count = 1; // 1 because the played card is not in hand anymore
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), getBaseAttackDamage(state), this);
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public int getBaseAttackDamage(GameState state) {
+            int count = 1;
             count += GameStateUtils.getCardsCount(state.getHandArrForRead(), state.getNumCardsInHand(), state.properties.isStrikeCard);
             count += GameStateUtils.getCardsCount(state.getDiscardArrForRead(), state.getNumCardsInDiscard(), state.properties.isStrikeCard);
             count += GameStateUtils.getCardsCount(state.getDeckArrForRead(), state.getNumCardsInDeck(), state.properties.isStrikeCard);
-            int dmg = 6 + 2 * count;
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), dmg, this);
-            return GameActionCtx.PLAY_CARD;
+            return 6 + 2 * count;
         }
     }
 
@@ -504,29 +509,31 @@ public class CardIronclad {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            int count = 1; // 1 because the played card is not in hand anymore
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), getBaseAttackDamage(state), this);
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public int getBaseAttackDamage(GameState state) {
+            int count = 1;
             count += GameStateUtils.getCardsCount(state.getHandArrForRead(), state.getNumCardsInHand(), state.properties.isStrikeCard);
             count += GameStateUtils.getCardsCount(state.getDiscardArrForRead(), state.getNumCardsInDiscard(), state.properties.isStrikeCard);
             count += GameStateUtils.getCardsCount(state.getDeckArrForRead(), state.getNumCardsInDeck(), state.properties.isStrikeCard);
-            int dmg = 6 + 3 * count;
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), dmg, this);
-            return GameActionCtx.PLAY_CARD;
+            return 6 + 3 * count;
         }
     }
 
     private static abstract class _PommelStrikeT extends Card {
-        private final int baseDamage;
         private final int draw;
 
         public _PommelStrikeT(String cardName, int baseDamage, int draw) {
             super(cardName, Card.ATTACK, 1, Card.COMMON);
-            this.baseDamage = baseDamage;
+            this.damage = baseDamage;
             this.draw = draw;
             entityProperty.selectEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), baseDamage, this);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             state.draw(draw);
             return GameActionCtx.PLAY_CARD;
         }
@@ -583,6 +590,7 @@ public class CardIronclad {
         public _SwordBoomerangT(String cardName, int n) {
             super(cardName, Card.ATTACK, 1, Card.COMMON);
             this.n = n;
+            damage = 3;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -630,8 +638,6 @@ public class CardIronclad {
     }
 
     private static abstract class _ThunderclapT extends Card {
-        private final int damage;
-
         public _ThunderclapT(String cardName, int damage) {
             super(cardName, Card.ATTACK, 1, Card.COMMON);
             this.damage = damage;
@@ -709,8 +715,6 @@ public class CardIronclad {
     }
 
     private static abstract class _TwinStrikeT extends Card {
-        private final int damage;
-
         public _TwinStrikeT(String cardName, int damage) {
             super(cardName, Card.ATTACK, 1, Card.COMMON);
             this.damage = damage;
@@ -780,8 +784,6 @@ public class CardIronclad {
     }
 
     private static abstract class _WildStrikeT extends Card {
-        private final int damage;
-
         public _WildStrikeT(String cardName, int damage) {
             super(cardName, Card.ATTACK, 1, Card.COMMON);
             this.damage = damage;
@@ -855,6 +857,7 @@ public class CardIronclad {
 
         public BloodForBlood(int energyCost) {
             super(energyCost == 4 ? "Blood for Blood" : "Blood for Blood (" + energyCost + ")", Card.ATTACK, energyCost, Card.UNCOMMON);
+            damage = 18;
             entityProperty.selectEnemy = true;
         }
 
@@ -922,6 +925,7 @@ public class CardIronclad {
 
         public BloodForBloodP(int energyCost) {
             super(energyCost == 3 ? "Blood for Blood+" : "Blood for Blood+ (" + energyCost + ")", Card.ATTACK, energyCost, Card.UNCOMMON);
+            damage = 22;
             entityProperty.selectEnemy = true;
         }
 
@@ -1029,8 +1033,6 @@ public class CardIronclad {
     }
 
     private static abstract class _CarnageT extends Card {
-        private final int damage;
-
         public _CarnageT(String cardName, int damage) {
             super(cardName, Card.ATTACK, 2, Card.UNCOMMON);
             this.damage = damage;
@@ -1198,8 +1200,6 @@ public class CardIronclad {
     }
 
     private static abstract class _DropkickT extends Card {
-        private final int damage;
-
         public _DropkickT(String cardName, int damage) {
             super(cardName, Card.ATTACK, 1, Card.UNCOMMON);
             this.damage = damage;
@@ -1536,8 +1536,6 @@ public class CardIronclad {
     }
 
     static abstract class _HemokinesisT extends Card {
-        private final int damage;
-
         public _HemokinesisT(String cardName, int damage) {
             super(cardName, Card.ATTACK, 1, Card.UNCOMMON);
             this.damage = damage;
@@ -1743,6 +1741,7 @@ public class CardIronclad {
         public _PummelT(String cardName, int hits) {
             super(cardName, Card.ATTACK, 1, Card.UNCOMMON);
             this.hits = hits;
+            damage = 2;
             entityProperty.selectEnemy = true;
             exhaustWhenPlayed = true;
         }
@@ -1838,6 +1837,7 @@ public class CardIronclad {
         public Rampage(int dmg, int limit) {
             super(dmg == 8 ? "Rampage" : "Rampage (" + dmg + ")", Card.ATTACK, 1, Card.UNCOMMON);
             this.dmg = dmg;
+            this.damage = dmg;
             this.limit = limit;
             entityProperty.selectEnemy = true;
         }
@@ -1848,7 +1848,7 @@ public class CardIronclad {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), dmg, this);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             return GameActionCtx.PLAY_CARD;
         }
 
@@ -1875,8 +1875,8 @@ public class CardIronclad {
             }
         }
 
-        @Override public int onPlayTransformCardIdx(GameProperties prop, int cardIdx) {
-            return prop.rampageTransformIndexes[cardIdx];
+        @Override public int onPlayTransformCardIdx(GameState state, int cardIdx) {
+            return state.properties.rampageTransformIndexes[cardIdx];
         }
 
         public Card getUpgrade() {
@@ -1895,6 +1895,7 @@ public class CardIronclad {
         public RampageP(int dmg, int limit) {
             super(dmg == 8 ? "Rampage+" : "Rampage+ (" + dmg + ")", Card.ATTACK, 1, Card.UNCOMMON);
             this.dmg = dmg;
+            this.damage = dmg;
             this.limit = limit;
             entityProperty.selectEnemy = true;
         }
@@ -1904,7 +1905,7 @@ public class CardIronclad {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), dmg, this);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             return GameActionCtx.PLAY_CARD;
         }
 
@@ -1930,14 +1931,12 @@ public class CardIronclad {
             }
         }
 
-        @Override public int onPlayTransformCardIdx(GameProperties prop, int cardIdx) {
-            return prop.rampagePTransformIndexes[cardIdx];
+        @Override public int onPlayTransformCardIdx(GameState state, int cardIdx) {
+            return state.properties.rampagePTransformIndexes[cardIdx];
         }
     }
 
     private static abstract class _RecklessChargeT extends Card {
-        private final int damage;
-
         public _RecklessChargeT(String cardName, int damage) {
             super(cardName, Card.ATTACK, 0, Card.UNCOMMON);
             this.damage = damage;
@@ -2032,6 +2031,7 @@ public class CardIronclad {
         public SearingBlow(int numberOfUpgrades) {
             super(numberOfUpgrades == 0 ? "Searing Blow" : numberOfUpgrades == 1 ? "Searing Blow+" : "Searing Blow+" + numberOfUpgrades, Card.ATTACK, 2, Card.UNCOMMON);
             n = numberOfUpgrades;
+            damage = n * (n + 7) / 2 + 12;
             entityProperty.selectEnemy = true;
         }
 
@@ -2045,7 +2045,7 @@ public class CardIronclad {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n * (n + 7) / 2 + 12, this);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             return GameActionCtx.PLAY_CARD;
         }
 
@@ -2175,8 +2175,6 @@ public class CardIronclad {
     }
 
     private static abstract class _SeverSoulT extends Card {
-        private final int damage;
-
         public _SeverSoulT(String cardName, int damage) {
             super(cardName, Card.ATTACK, 2, Card.UNCOMMON);
             this.damage = damage;
@@ -2285,6 +2283,7 @@ public class CardIronclad {
         public _UppercutT(String cardName, int debuffAmount) {
             super(cardName, Card.ATTACK, 2, Card.UNCOMMON);
             this.debuffAmount = debuffAmount;
+            damage = 13;
             entityProperty.selectEnemy = true;
             entityProperty.vulnEnemy = true;
             entityProperty.weakEnemy = true;
@@ -2315,8 +2314,6 @@ public class CardIronclad {
     }
 
     private static abstract class _WhirlwindT extends Card {
-        private final int damage;
-
         public _WhirlwindT(String cardName, int damage) {
             super(cardName, Card.ATTACK, -1, Card.UNCOMMON);
             this.damage = damage;
@@ -2412,8 +2409,6 @@ public class CardIronclad {
     }
 
     protected static abstract class _BludgeonT extends Card {
-        private final int damage;
-
         public _BludgeonT(String cardName, int damage, int rarity) {
             super(cardName, Card.ATTACK, 3, rarity);
             this.damage = damage;
@@ -2666,22 +2661,21 @@ public class CardIronclad {
     }
 
     public static abstract class _FeedT extends Card {
-        private final int n;
         private final int hpInc;
         protected final double healthRewardRatio;
 
         public _FeedT(String cardName, int n, int hpInc, double healthRewardRatio) {
             super(cardName, Card.ATTACK, 1, Card.RARE);
-            this.n = n;
             this.hpInc = hpInc;
             this.healthRewardRatio = healthRewardRatio;
+            damage = n;
             healPlayer = true;
             exhaustWhenPlayed = true;
             entityProperty.selectEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n, this);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             if (!state.getEnemiesForRead().get(idx).properties.isMinion && !state.isEncounter(PredefinedEncounter.CORRUPT_HEART) && state.getEnemiesForRead().get(idx).getHealth() <= 0) {
                 if (state.getEnemiesForRead().get(idx) instanceof EnemyBeyond.Darkling ||
                         state.getEnemiesForRead().get(idx) instanceof EnemyBeyond.AwakenedOne) {
@@ -2880,6 +2874,7 @@ public class CardIronclad {
         public _FiendFireT(String cardName, int damagePerCard) {
             super(cardName, Card.ATTACK, 2, Card.RARE);
             this.damagePerCard = damagePerCard;
+            this.damage = damagePerCard;
             entityProperty.selectEnemy = true;
             exhaustWhenPlayed = true;
             canExhaustAnyCard = true;
@@ -2916,8 +2911,6 @@ public class CardIronclad {
     }
 
     private static abstract class _ImmolateT extends Card {
-        private final int damage;
-
         public _ImmolateT(String cardName, int damage) {
             super(cardName, Card.ATTACK, 2, Card.RARE);
             this.damage = damage;
@@ -3102,8 +3095,6 @@ public class CardIronclad {
     }
 
     private static abstract class _ReaperT extends Card {
-        private final int damage;
-
         public _ReaperT(String cardName, int damage) {
             super(cardName, Card.ATTACK, 2, Card.RARE);
             this.damage = damage;

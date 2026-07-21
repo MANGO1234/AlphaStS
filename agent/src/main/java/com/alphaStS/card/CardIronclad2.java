@@ -127,8 +127,6 @@ public class CardIronclad2 {
     }
 
     private static abstract class _BreakthroughT extends Card {
-        private final int damage;
-
         public _BreakthroughT(String cardName, int damage) {
             super(cardName, Card.ATTACK, 1, Card.COMMON);
             this.damage = damage;
@@ -159,8 +157,6 @@ public class CardIronclad2 {
     }
 
     private static abstract class _CinderT extends Card {
-        private final int damage;
-
         public _CinderT(String cardName, int damage) {
             super(cardName, Card.ATTACK, 2, Card.COMMON);
             this.damage = damage;
@@ -225,8 +221,6 @@ public class CardIronclad2 {
     }
 
     private static abstract class _MoltenFistT extends Card {
-        private final int damage;
-
         public _MoltenFistT(String cardName, int damage) {
             super(cardName, Card.ATTACK, 1, Card.COMMON);
             this.damage = damage;
@@ -276,7 +270,6 @@ public class CardIronclad2 {
     }
 
     private static abstract class _SetupStrikeT extends Card {
-        private final int damage;
         private final int strength;
 
         public _SetupStrikeT(String cardName, int damage, int strength) {
@@ -394,7 +387,6 @@ public class CardIronclad2 {
     // **************************************************************************************************
 
     private static abstract class _AshenStrikeT extends Card {
-        private final int damage;
         private final int dmgPerExhaust;
 
         public _AshenStrikeT(String cardName, int damage, int dmgPerExhaust) {
@@ -406,8 +398,12 @@ public class CardIronclad2 {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             var enemy = state.getEnemiesForWrite().getForWrite(idx);
-            state.playerDoDamageToEnemy(enemy, damage + dmgPerExhaust * state.exhaustArrLen, this);
+            state.playerDoDamageToEnemy(enemy, getBaseAttackDamage(state), this);
             return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public int getBaseAttackDamage(GameState state) {
+            return damage + dmgPerExhaust * state.exhaustArrLen;
         }
     }
 
@@ -451,7 +447,6 @@ public class CardIronclad2 {
     }
 
     private static abstract class _BullyT extends Card {
-        private final int damage;
         private final int bonus;
 
         public _BullyT(String cardName, int damage, int bonus) {
@@ -495,8 +490,6 @@ public class CardIronclad2 {
     // No need to implement Demonic Shield: Multiplayer
 
     private static abstract class _DismantleT extends Card {
-        private final int damage;
-
         public _DismantleT(String cardName, int damage) {
             super(cardName, Card.ATTACK, 1, Card.UNCOMMON);
             this.damage = damage;
@@ -700,7 +693,6 @@ public class CardIronclad2 {
     }
 
     private static abstract class _FightMeT extends Card {
-        private final int damage;
         private final int playerStr;
 
         public _FightMeT(String cardName, int damage, int playerStr) {
@@ -783,7 +775,6 @@ public class CardIronclad2 {
     }
 
     private static abstract class _GrappleT extends Card {
-        private final int damage;
         private final int dmgPerBlock;
 
         public _GrappleT(String cardName, int damage, int dmgPerBlock) {
@@ -868,8 +859,6 @@ public class CardIronclad2 {
     }
 
     private static abstract class _HowlFromBeyondT extends Card {
-        private final int damage;
-
         public _HowlFromBeyondT(String cardName, int damage) {
             super(cardName, Card.ATTACK, 3, Card.UNCOMMON);
             this.damage = damage;
@@ -1062,8 +1051,6 @@ public class CardIronclad2 {
     }
 
     private static abstract class _PillageT extends Card {
-        private final int damage;
-
         public _PillageT(String cardName, int damage) {
             super(cardName, Card.ATTACK, 1, Card.UNCOMMON);
             this.damage = damage;
@@ -1114,13 +1101,14 @@ public class CardIronclad2 {
         public _RampageT(String cardName, int dmg, int limit) {
             super(cardName, Card.ATTACK, 1, Card.UNCOMMON);
             this.dmg = dmg;
+            this.damage = dmg;
             this.limit = limit;
             entityProperty.selectEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             var enemy = state.getEnemiesForWrite().getForWrite(idx);
-            state.playerDoDamageToEnemy(enemy, dmg, this);
+            state.playerDoDamageToEnemy(enemy, damage, this);
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -1160,8 +1148,8 @@ public class CardIronclad2 {
             }
         }
 
-        @Override public int onPlayTransformCardIdx(GameProperties prop, int cardIdx) {
-            return prop.rampage2TransformIndexes[cardIdx];
+        @Override public int onPlayTransformCardIdx(GameState state, int cardIdx) {
+            return state.properties.rampage2TransformIndexes[cardIdx];
         }
 
         @Override public Card getUpgrade() {
@@ -1205,8 +1193,8 @@ public class CardIronclad2 {
             }
         }
 
-        @Override public int onPlayTransformCardIdx(GameProperties prop, int cardIdx) {
-            return prop.rampageP2TransformIndexes[cardIdx];
+        @Override public int onPlayTransformCardIdx(GameState state, int cardIdx) {
+            return state.properties.rampageP2TransformIndexes[cardIdx];
         }
     }
 
@@ -1270,7 +1258,6 @@ public class CardIronclad2 {
     }
 
     private static abstract class _SpiteT extends Card {
-        private final int damage;
         private final int hits;
 
         public _SpiteT(String cardName, int damage, int hits) {
@@ -1409,8 +1396,6 @@ public class CardIronclad2 {
     }
 
     private static abstract class _StompT extends Card {
-        private final int damage;
-
         public _StompT(String cardName, int damage) {
             super(cardName, Card.ATTACK, 3, Card.UNCOMMON);
             this.damage = damage;
@@ -1516,8 +1501,6 @@ public class CardIronclad2 {
     }
 
     private static abstract class _UnrelentingT extends Card {
-        private final int damage;
-
         public _UnrelentingT(String cardName, int damage) {
             super(cardName, Card.ATTACK, 2, Card.UNCOMMON);
             this.damage = damage;
@@ -1852,12 +1835,13 @@ public class CardIronclad2 {
         public _ConflagrationT(String cardName, int hits) {
             super(cardName, Card.ATTACK, 1, Card.RARE);
             this.hits = hits;
+            damage = 2;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             for (int i = 0; i < hits; i++) {
                 for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
-                    state.playerDoDamageToEnemy(enemy, 2, this);
+                    state.playerDoDamageToEnemy(enemy, damage, this);
                 }
             }
             return GameActionCtx.PLAY_CARD;
@@ -2107,7 +2091,6 @@ public class CardIronclad2 {
     }
 
     private static abstract class _MangleT extends Card {
-        private final int damage;
         private final int strengthLoss;
 
         public _MangleT(String cardName, int damage, int strengthLoss) {
@@ -2216,8 +2199,6 @@ public class CardIronclad2 {
     }
 
     private static abstract class _PactsEndT extends Card {
-        private final int damage;
-
         public _PactsEndT(String cardName, int damage) {
             super(cardName, Card.ATTACK, 0, Card.RARE);
             this.damage = damage;
@@ -2374,8 +2355,6 @@ public class CardIronclad2 {
     // No need to implement Tank: Multiplayer
 
     private static abstract class _TearAsunderT extends Card {
-        private final int damage;
-
         public _TearAsunderT(String cardName, int damage) {
             super(cardName, Card.ATTACK, 2, Card.RARE);
             this.damage = damage;
@@ -2425,9 +2404,130 @@ public class CardIronclad2 {
         }
     }
 
-    // TODO: Thrash (Rare) - 1 energy, Attack
+    // Thrash (Rare) - 1 energy, Attack
     //   Effect: Deal 4 damage twice. Exhaust a random Attack in your Hand and add its damage to this card.
     //   Upgraded Effect: Deal 6 damage twice. Exhaust a random Attack in your Hand and add its damage to this card.
+    private static abstract class _ThrashT extends Card {
+        public _ThrashT(String cardName, int damage) {
+            super(cardName, Card.ATTACK, 1, Card.RARE);
+            this.damage = damage;
+            entityProperty.selectEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            var enemy = state.getEnemiesForWrite().getForWrite(idx);
+            state.playerDoDamageToEnemy(enemy, damage, this);
+            state.playerDoDamageToEnemy(enemy, damage, this);
+            state.getCounterForWrite()[counterIdx] = 0;
+
+            int attackCount = 0;
+            for (int i = 0; i < state.handArrLen; i++) {
+                if (state.properties.cardDict[state.getHandArrForRead()[i]].cardType == Card.ATTACK) {
+                    attackCount++;
+                }
+            }
+            if (attackCount == 0) {
+                return GameActionCtx.PLAY_CARD;
+            }
+
+            int selectedAttack = 0;
+            if (attackCount > 1) {
+                state.setIsStochastic();
+                selectedAttack = state.getSearchRandomGen().nextInt(attackCount, RandomGenCtx.RandomCardHand, state);
+            }
+            for (int i = 0; i < state.handArrLen; i++) {
+                int cardIdx = state.getHandArrForRead()[i];
+                if (state.properties.cardDict[cardIdx].cardType != Card.ATTACK) {
+                    continue;
+                }
+                if (selectedAttack == 0) {
+                    int gainedDamage = state.properties.cardDict[cardIdx].getAttackDamage(state);
+                    if (gainedDamage > 0) {
+                        state.getCounterForWrite()[counterIdx] = gainedDamage;
+                    }
+                    state.exhaustCardFromHandByPosition(i, true);
+                    break;
+                }
+                selectedAttack--;
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            var c = new ArrayList<Card>();
+            for (Card card : cards) {
+                if (card.getBaseCard() instanceof _ThrashT t && t.sameUpgrade(this)) {
+                    for (int j = t.damage + 1; j <= GameProperties.maxThrashDamage; j++) {
+                        c.add(card.wrapAfterPlay(newCard(j)));
+                    }
+                }
+            }
+            return c;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("Thrash", this, null);
+        }
+
+        @Override public int onPlayTransformCardIdx(GameState state, int cardIdx) {
+            int gainedDamage = state.getCounterForRead()[counterIdx];
+            if (gainedDamage <= 0) {
+                return -1;
+            }
+            state.getCounterForWrite()[counterIdx] = 0;
+            int currentDamage = state.properties.cardDict[cardIdx].getAttackDamage(state);
+            int newDamage = Math.min(GameProperties.maxThrashDamage, currentDamage + gainedDamage);
+            return state.properties.findCardIndex(state.properties.cardDict[cardIdx].wrap(newCard(newDamage)));
+        }
+
+        abstract Card newCard(int damage);
+
+        abstract boolean sameUpgrade(_ThrashT other);
+    }
+
+    public static class Thrash extends _ThrashT {
+        public Thrash() {
+            this(4);
+        }
+
+        public Thrash(int damage) {
+            super(damage == 4 ? "Thrash" : "Thrash (" + damage + ")", damage);
+        }
+
+        @Override Card newCard(int damage) {
+            return new Thrash(damage);
+        }
+
+        @Override boolean sameUpgrade(_ThrashT other) {
+            return other instanceof Thrash;
+        }
+
+        @Override public Card getUpgrade() {
+            return new ThrashP(damage);
+        }
+    }
+
+    public static class ThrashP extends _ThrashT {
+        public ThrashP() {
+            this(6);
+        }
+
+        public ThrashP(int damage) {
+            super(damage == 6 ? "Thrash+" : "Thrash+ (" + damage + ")", damage);
+        }
+
+        @Override Card newCard(int damage) {
+            return new ThrashP(damage);
+        }
+
+        @Override boolean sameUpgrade(_ThrashT other) {
+            return other instanceof ThrashP;
+        }
+
+        @Override public Card getDowngrade() {
+            return new Thrash(damage);
+        }
+    }
 
     private static abstract class _UnmovableT extends Card {
         public _UnmovableT(String cardName, int energyCost) {
@@ -2558,7 +2658,6 @@ public class CardIronclad2 {
     // **************************************************************************************************
 
     private static abstract class _BreakT extends Card {
-        private final int damage;
         private final int vulnerable;
 
         public _BreakT(String cardName, int damage, int vulnerable) {

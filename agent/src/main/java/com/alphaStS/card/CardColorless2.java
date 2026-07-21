@@ -282,8 +282,6 @@ public class CardColorless2 {
     }
 
     private static abstract class _FisticuffsT extends Card {
-        private final int damage;
-
         public _FisticuffsT(String cardName, int damage) {
             super(cardName, Card.ATTACK, 1, Card.UNCOMMON);
             this.damage = damage;
@@ -372,8 +370,6 @@ public class CardColorless2 {
     }
 
     private static abstract class _OmnisliceT extends Card {
-        private final int damage;
-
         public _OmnisliceT(String cardName, int damage) {
             super(cardName, Card.ATTACK, 0, Card.UNCOMMON);
             this.damage = damage;
@@ -627,8 +623,6 @@ public class CardColorless2 {
     //   Effect: Deal 9 damage. Choose 1 of 3 cards in your Draw Pile to add into your Hand.
     //   Upgraded Effect: Deal 12 damage. Choose 1 of 3 cards in your Draw Pile to add into your Hand.
     private static abstract class _SeekerStrikeT extends Card {
-        private final int damage;
-
         public _SeekerStrikeT(String cardName, int damage) {
             super(cardName, Card.ATTACK, 1, Card.UNCOMMON);
             this.damage = damage;
@@ -802,8 +796,6 @@ public class CardColorless2 {
     //   Effect: Deal 11 damage. At the start of your next turn, return this to your Hand.
     //   Upgraded Effect: Deal 14 damage. At the start of your next turn, return this to your Hand.
     private static abstract class _ThrummingHatchetT extends Card {
-        private final int damage;
-
         public _ThrummingHatchetT(String cardName, int damage) {
             super(cardName, Card.ATTACK, 1, Card.UNCOMMON);
             this.damage = damage;
@@ -823,8 +815,8 @@ public class CardColorless2 {
             return List.of(createUsed());
         }
 
-        @Override public int onPlayTransformCardIdx(GameProperties prop, int cardIdx) {
-            return prop.findCardIndex(prop.cardDict[cardIdx].wrapAfterPlay(createUsed()));
+        @Override public int onPlayTransformCardIdx(GameState state, int cardIdx) {
+            return state.properties.findCardIndex(state.properties.cardDict[cardIdx].wrapAfterPlay(createUsed()));
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
@@ -876,12 +868,14 @@ public class CardColorless2 {
     public static class ThrummingHatchetUsed extends Card {
         public ThrummingHatchetUsed() {
             super("Thrumming Hatchet (Used)", Card.ATTACK, 1, Card.UNCOMMON);
+            damage = 11;
         }
     }
 
     public static class ThrummingHatchetUsedP extends Card {
         public ThrummingHatchetUsedP() {
             super("Thrumming Hatchet+ (Used)", Card.ATTACK, 1, Card.UNCOMMON);
+            damage = 14;
         }
     }
 
@@ -915,8 +909,6 @@ public class CardColorless2 {
     }
 
     private static abstract class _UltimateStrikeT extends Card {
-        private final int damage;
-
         public _UltimateStrikeT(String cardName, int damage) {
             super(cardName, Card.ATTACK, 1, Card.UNCOMMON);
             this.damage = damage;
@@ -945,8 +937,6 @@ public class CardColorless2 {
     }
 
     private static abstract class _VolleyT extends Card {
-        private final int damage;
-
         public _VolleyT(String cardName, int damage) {
             super(cardName, Card.ATTACK, -1, Card.UNCOMMON);
             this.damage = damage;
@@ -1107,8 +1097,6 @@ public class CardColorless2 {
     //   Effect: Deal 3 damage. At the start of your next turn, return this to your Hand.
     //   Upgraded Effect: Deal 4 damage. At the start of your next turn, return this to your Hand.
     private static abstract class _BolasT extends Card {
-        private final int damage;
-
         public _BolasT(String cardName, int damage) {
             super(cardName, Card.ATTACK, 0, Card.RARE);
             this.damage = damage;
@@ -1128,8 +1116,8 @@ public class CardColorless2 {
             return List.of(createUsed());
         }
 
-        @Override public int onPlayTransformCardIdx(GameProperties prop, int cardIdx) {
-            return prop.findCardIndex(prop.cardDict[cardIdx].wrapAfterPlay(createUsed()));
+        @Override public int onPlayTransformCardIdx(GameState state, int cardIdx) {
+            return state.properties.findCardIndex(state.properties.cardDict[cardIdx].wrapAfterPlay(createUsed()));
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
@@ -1181,12 +1169,14 @@ public class CardColorless2 {
     public static class BolasUsed extends Card {
         public BolasUsed() {
             super("Bolas (Used)", Card.ATTACK, 0, Card.RARE);
+            damage = 3;
         }
     }
 
     public static class BolasUsedP extends Card {
         public BolasUsedP() {
             super("Bolas+ (Used)", Card.ATTACK, 0, Card.RARE);
+            damage = 4;
         }
     }
 
@@ -1361,9 +1351,12 @@ public class CardColorless2 {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            // +1 to include Gold Axe itself (onCardPlayedHandlers fires after play())
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), state.getCounterForRead()[counterIdx] + 1, this);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), getBaseAttackDamage(state), this);
             return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public int getBaseAttackDamage(GameState state) {
+            return state.getCounterForRead()[counterIdx];
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
@@ -1489,7 +1482,6 @@ public class CardColorless2 {
     //   Effect: Deal 25 damage. Add 3 random 0 energy cards into your Hand.
     //   Upgraded Effect: Deal 30 damage. Add 3 random Upgraded 0 energy cards into your Hand.
     private static abstract class _JackpotT extends Card {
-        private final int damage;
         private final boolean upgraded;
 
         public _JackpotT(String cardName, int damage, boolean upgraded) {
@@ -1609,7 +1601,6 @@ public class CardColorless2 {
     //   Effect: Deal 15 damage. Deals 5 additional damage for each unique debuff on the enemy.
     //   Upgraded Effect: Deal 18 damage. Deals 8 additional damage for each unique debuff on the enemy.
     private static abstract class _RendT extends Card {
-        private final int damage;
         private final int damagePerDebuff;
 
         public _RendT(String cardName, int damage, int damagePerDebuff) {
@@ -1692,8 +1683,6 @@ public class CardColorless2 {
     }
 
     private static abstract class _SalvoT extends Card {
-        private final int damage;
-
         public _SalvoT(String cardName, int damage) {
             super(cardName, Card.ATTACK, 1, Card.RARE);
             this.damage = damage;
@@ -1815,8 +1804,6 @@ public class CardColorless2 {
     // **************************************************************************************************
 
     private static abstract class _ByrdSwoopT extends Card {
-        private final int damage;
-
         public _ByrdSwoopT(String cardName, int damage) {
             super(cardName, Card.ATTACK, 0, Card.UNCOMMON);
             this.damage = damage;
@@ -1854,8 +1841,6 @@ public class CardColorless2 {
     }
 
     private static abstract class _ExterminateT extends Card {
-        private final int damage;
-
         public _ExterminateT(String cardName, int damage) {
             super(cardName, Card.ATTACK, 1, Card.UNCOMMON);
             this.damage = damage;
@@ -1928,7 +1913,6 @@ public class CardColorless2 {
     }
 
     private static abstract class _PeckT extends Card {
-        private final int damage;
         private final int hits;
 
         public _PeckT(String cardName, int damage, int hits) {
@@ -1963,7 +1947,6 @@ public class CardColorless2 {
     }
 
     private static abstract class _SquashT extends Card {
-        private final int damage;
         private final int vulnerable;
 
         public _SquashT(String cardName, int damage, int vulnerable) {
@@ -2079,13 +2062,14 @@ public class CardColorless2 {
     private static abstract class _MadScienceChokingT extends Card {
         public _MadScienceChokingT(String cardName, boolean innate) {
             super(cardName, Card.ATTACK, 1, Card.RARE);
+            damage = 12;
             this.innate = innate;
             this.entityProperty.chokeEnemy = true;
             entityProperty.selectEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), 12, this);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             state.getEnemiesForWrite().getForWrite(idx).applyDebuff(state, DebuffType.CHOKE, 6);
             return GameActionCtx.PLAY_CARD;
         }
@@ -2293,6 +2277,7 @@ public class CardColorless2 {
     private static abstract class _MadScienceSappingT extends Card {
         public _MadScienceSappingT(String cardName, boolean innate) {
             super(cardName, Card.ATTACK, 1, Card.RARE);
+            damage = 12;
             this.innate = innate;
             this.entityProperty.vulnEnemy = true;
             this.entityProperty.weakEnemy = true;
@@ -2301,7 +2286,7 @@ public class CardColorless2 {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             Enemy enemy = state.getEnemiesForWrite().getForWrite(idx);
-            state.playerDoDamageToEnemy(enemy, 12, this);
+            state.playerDoDamageToEnemy(enemy, damage, this);
             enemy.applyDebuff(state, DebuffType.WEAK, 2);
             enemy.applyDebuff(state, DebuffType.VULNERABLE, 2);
             return GameActionCtx.PLAY_CARD;
@@ -2326,6 +2311,7 @@ public class CardColorless2 {
     private static abstract class _MadScienceViolenceT extends Card {
         public _MadScienceViolenceT(String cardName, boolean innate) {
             super(cardName, Card.ATTACK, 1, Card.RARE);
+            damage = 12;
             this.innate = innate;
             entityProperty.selectEnemy = true;
         }
@@ -2333,7 +2319,7 @@ public class CardColorless2 {
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             Enemy enemy = state.getEnemiesForWrite().getForWrite(idx);
             for (int i = 0; i < 3; i++) {
-                state.playerDoDamageToEnemy(enemy, 12, this);
+                state.playerDoDamageToEnemy(enemy, damage, this);
             }
             return GameActionCtx.PLAY_CARD;
         }
@@ -2480,7 +2466,6 @@ public class CardColorless2 {
     //   Effect: Deal 5 damage twice. Increase the damage of ALL Maul cards by 1 this combat.
     //   Upgraded Effect: Deal 6 damage twice. Increase the damage of ALL Maul cards by 2 this combat.
     protected static abstract class _MaulT extends Card {
-        protected final int damage;
         private final int damageIncrement;
 
         public _MaulT(String cardName, int damage, int damageIncrement) {
@@ -2548,8 +2533,8 @@ public class CardColorless2 {
             }
         }
 
-        @Override public int onPlayTransformCardIdx(GameProperties prop, int cardIdx) {
-            return getAfterPlayTransformIndexes(prop)[cardIdx];
+        @Override public int onPlayTransformCardIdx(GameState state, int cardIdx) {
+            return getAfterPlayTransformIndexes(state.properties)[cardIdx];
         }
     }
 
@@ -2626,7 +2611,6 @@ public class CardColorless2 {
     }
 
     private static abstract class _NeowsFuryT extends Card {
-        private final int damage;
         private final int amount;
 
         public _NeowsFuryT(String cardName, int damage, int amount) {
@@ -2721,8 +2705,6 @@ public class CardColorless2 {
     //   Effect: Deal 33 damage. Stun the enemy. Exhaust.
     //   Upgraded Effect: Deal 44 damage. Stun the enemy. Exhaust.
     private static abstract class _WhistleT extends Card {
-        private final int damage;
-
         public _WhistleT(String cardName, int damage) {
             super(cardName, Card.ATTACK, 3, Card.RARE);
             this.damage = damage;
@@ -2815,8 +2797,6 @@ public class CardColorless2 {
     }
 
     private static abstract class _GiantRockT extends Card {
-        private final int damage;
-
         public _GiantRockT(String cardName, int damage) {
             super(cardName, Card.ATTACK, 1, Card.COMMON);
             this.damage = damage;
@@ -2876,8 +2856,6 @@ public class CardColorless2 {
     }
 
     private static abstract class _MinionDiveBombT extends Card {
-        private final int damage;
-
         public _MinionDiveBombT(String cardName, int damage) {
             super(cardName, Card.ATTACK, 0, Card.COMMON);
             this.damage = damage;
@@ -2937,8 +2915,6 @@ public class CardColorless2 {
     }
 
     private static abstract class _MinionStrikeT extends Card {
-        private final int damage;
-
         public _MinionStrikeT(String cardName, int damage) {
             super(cardName, Card.ATTACK, 0, Card.COMMON);
             this.damage = damage;
@@ -3010,17 +2986,13 @@ public class CardColorless2 {
     private static abstract class _SovereignBladeT extends Card {
         public _SovereignBladeT(String cardName, int energyCost) {
             super(cardName, Card.ATTACK, energyCost, Card.COMMON);
+            damage = 10;
             this.retain = true;
             entityProperty.selectEnemy = true;
         }
 
         @Override public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            int dmg = 10 + (state.properties.forgeCounterIdx >= 0
-                ? state.getCounterForRead()[state.properties.forgeCounterIdx]
-                : 0);
-            if (state.properties.conquerorCounterIdx >= 0 && state.getCounterForRead()[state.properties.conquerorCounterIdx] > 0) {
-                dmg <<= state.getCounterForRead()[state.properties.conquerorCounterIdx];
-            }
+            int dmg = getBaseAttackDamage(state);
             if (state.hasBuff(PlayerBuff.SEEKING_EDGE)) {
                 for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
                     state.playerDoDamageToEnemy(enemy, dmg, this);
@@ -3029,6 +3001,16 @@ public class CardColorless2 {
                 state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), dmg, this);
             }
             return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public int getBaseAttackDamage(GameState state) {
+            int damage = this.damage + (state.properties.forgeCounterIdx >= 0
+                ? state.getCounterForRead()[state.properties.forgeCounterIdx]
+                : 0);
+            if (state.properties.conquerorCounterIdx >= 0 && state.getCounterForRead()[state.properties.conquerorCounterIdx] > 0) {
+                damage <<= state.getCounterForRead()[state.properties.conquerorCounterIdx];
+            }
+            return damage;
         }
     }
 
@@ -3057,8 +3039,6 @@ public class CardColorless2 {
     }
 
     private static abstract class _SweepingGazeT extends Card {
-        private final int damage;
-
         public _SweepingGazeT(String cardName, int damage) {
             super(cardName, Card.ATTACK, 0, Card.COMMON);
             this.damage = damage;

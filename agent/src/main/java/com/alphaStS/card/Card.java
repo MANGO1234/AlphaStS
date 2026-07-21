@@ -27,6 +27,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
     public final int cardType;
     public final String cardName;
     public final int energyCost;
+    public int damage = -1;
     public int starCost = 0;
     public final int rarity;
     public boolean ethereal = false;
@@ -121,7 +122,9 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
     public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) { return List.of(); }
     public List<Card> getPossibleSelect1OutOf3Cards(GameProperties gameProperties) { return List.of(); }
     public List<Card> getPossibleTransformTmpCostCards(List<Card> cards) { return List.of(); }
-    public int onPlayTransformCardIdx(GameProperties prop, int cardIdx) { return -1; }
+    public int getBaseAttackDamage(GameState state) { return cardType == Card.ATTACK ? damage : -1; }
+    public int getAttackDamage(GameState state) { return getBaseAttackDamage(state); }
+    public int onPlayTransformCardIdx(GameState state, int cardIdx) { return -1; }
     public boolean canSelectCard(Card card) { return true; }
 
     public void setupGeneratedCardIndexes(GameProperties properties) {
@@ -725,16 +728,16 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         }
 
         @Override
-        public int onPlayTransformCardIdx(GameProperties prop, int cardIdx) {
+        public int onPlayTransformCardIdx(GameState state, int cardIdx) {
             if (afterFirstPlayTransformIdx == Integer.MIN_VALUE) {
-                afterFirstPlayTransformIdx = card.onPlayTransformCardIdx(prop, cardIdx);
+                afterFirstPlayTransformIdx = card.onPlayTransformCardIdx(state, cardIdx);
                 boolean needsStrip = mod.tmpChangeCost != -1 || mod.tmpUntilPlayedCost != -1
                         || mod.tmpRetain || mod.swift > 0 || mod.sown || mod.glam || mod.vigorous > 0
                         || mod.tmpSlyUntilEndOfTurn;
                 if (needsStrip || mod.momentum > 0) {
                     // use the inner-card transform target if available, otherwise the inner card itself
                     Card baseCard = afterFirstPlayTransformIdx >= 0
-                            ? prop.cardDict[afterFirstPlayTransformIdx] : card;
+                            ? state.properties.cardDict[afterFirstPlayTransformIdx] : card;
                     var newMod = mod.clone();
                     newMod.tmpChangeCost = -1;
                     newMod.tmpUntilPlayedCost = -1;
@@ -745,12 +748,22 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
                     newMod.glam = false;
                     newMod.vigorous = 0;
                     if (newMod.momentum > 0) {
-                        newMod.momentumGained = Math.min(prop.maxMomentumGained, newMod.momentumGained + newMod.momentum);
+                        newMod.momentumGained = Math.min(state.properties.maxMomentumGained, newMod.momentumGained + newMod.momentum);
                     }
-                    afterFirstPlayTransformIdx = prop.findCardIndex(wrap(baseCard, newMod));
+                    afterFirstPlayTransformIdx = state.properties.findCardIndex(wrap(baseCard, newMod));
                 }
             }
             return afterFirstPlayTransformIdx;
+        }
+
+        @Override
+        public int getBaseAttackDamage(GameState state) {
+            return card.getBaseAttackDamage(state);
+        }
+
+        @Override
+        public int getAttackDamage(GameState state) {
+            return card.getAttackDamage(state);
         }
 
         @Override
@@ -1219,11 +1232,12 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
     public static class Strike extends Card {
         public Strike() {
             super("Strike", Card.ATTACK, 1, Card.COMMON);
+            damage = 6;
             entityProperty.selectEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), 6, this);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -1231,11 +1245,12 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
     public static class StrikeP extends Card {
         public StrikeP() {
             super("Strike+", Card.ATTACK, 1, Card.COMMON);
+            damage = 9;
             entityProperty.selectEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), 9, this);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -1267,11 +1282,12 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
     public static class TezcatarasEmberStrike extends Card {
         public TezcatarasEmberStrike() {
             super("Tezcatara's Ember Strike", Card.ATTACK, 0, Card.COMMON);
+            damage = 6;
             entityProperty.selectEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), 6, this);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -1279,11 +1295,12 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
     public static class TezcatarasEmberStrikeP extends Card {
         public TezcatarasEmberStrikeP() {
             super("Tezcatara's Ember Strike+", Card.ATTACK, 0, Card.COMMON);
+            damage = 9;
             entityProperty.selectEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), 9, this);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             return GameActionCtx.PLAY_CARD;
         }
     }
