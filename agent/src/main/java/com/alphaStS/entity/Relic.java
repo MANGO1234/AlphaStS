@@ -3153,6 +3153,54 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
+    public static class ReplaceCardBeforeBattleStarts extends Relic {
+        private final List<Tuple<Card, Card>> cards;
+
+        public ReplaceCardBeforeBattleStarts(int count, List<Tuple<Card, Card>> cards) {
+            startOfBattleAction = new CardOther.ReplaceCardBeforeBattleStarts(cards, count);
+            this.cards = cards;
+        }
+
+        public ReplaceCardBeforeBattleStarts(List<Tuple<Card, Card>> cards) {
+            startOfBattleAction = new CardOther.ReplaceCardBeforeBattleStarts(cards);
+            this.cards = cards;
+        }
+
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties gameProperties, List<Card> cards) {
+            cards = new ArrayList<>();
+            cards.add(startOfBattleAction);
+            for (var card : this.cards) {
+                cards.add(card.v1());
+                cards.add(card.v2());
+            }
+            return cards;
+        }
+    }
+
+    public static class ReplaceCardBeforeBattleStarts2 extends Relic {
+        private final List<Tuple<Card, Card>> cards;
+
+        public ReplaceCardBeforeBattleStarts2(int count, List<Tuple<Card, Card>> cards) {
+            startOfBattleAction = new CardOther.ReplaceCardBeforeBattleStarts2(cards, count);
+            this.cards = cards;
+        }
+
+        public ReplaceCardBeforeBattleStarts2(List<Tuple<Card, Card>> cards) {
+            startOfBattleAction = new CardOther.ReplaceCardBeforeBattleStarts2(cards);
+            this.cards = cards;
+        }
+
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties gameProperties, List<Card> cards) {
+            cards = new ArrayList<>();
+            cards.add(startOfBattleAction);
+            for (var card : this.cards) {
+                cards.add(card.v1());
+                cards.add(card.v2());
+            }
+            return cards;
+        }
+    }
+
     public static class PotionMax extends Relic {
         private int n;
 

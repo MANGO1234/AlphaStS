@@ -8,6 +8,8 @@ import com.alphaStS.enums.Stance;
 import com.alphaStS.eventHandler.GameEventCardHandler;
 import com.alphaStS.eventHandler.GameEventHandler;
 import com.alphaStS.random.RandomGenCtx;
+import com.alphaStS.utils.Tuple;
+import org.apache.commons.compress.harmony.unpack200.bytecode.forms.IincForm;
 
 import java.util.List;
 
@@ -535,6 +537,157 @@ public class CardOther {
                     return 1;
                 }
             });
+        }
+    }
+
+    public static class ReplaceCardBeforeBattleStarts extends Card {
+        public final int count;
+        public final List<Tuple<Card, Card>> cards;
+
+        public ReplaceCardBeforeBattleStarts(List<Tuple<Card, Card>> cards, int count) {
+            super("Replace Card " + (count > 0 ? count : cards.size()), Card.STATUS, -1, Card.COMMON);
+            if (cards.isEmpty()) {
+                throw new IllegalArgumentException();
+            }
+            entityProperty.selectFromExhaust = true;
+            this.count = count;
+            this.cards = cards;
+        }
+
+        public ReplaceCardBeforeBattleStarts(List<Tuple<Card, Card>> cards) {
+            this(cards, -1);
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            if (state.actionCtx != GameActionCtx.START_OF_BATTLE) {
+                var cards = this.cards.get(state.getCounterForRead()[counterIdx]);
+                state.removeCardFromExhaust(state.properties.findCardIndex(cards.v1()));
+                state.removeCardFromExhaust(state.properties.findCardIndex(cards.v2()));
+                if (state.properties.cardDict[idx].cardName.equals(cards.v2().cardName)) {
+                    state.removeCardFromDeck(state.properties.findCardIndex(cards.v1()), false);
+                    state.addCardToDeckNonRandom(idx);
+                    if (count > 0) {
+                        state.getCounterForWrite()[counterIdx + 1]++;
+                        if (state.getCounterForRead()[counterIdx + 1] >= count) {
+                            state.getCounterForWrite()[counterIdx] = 0;
+                            state.getCounterForWrite()[counterIdx + 1] = 0;
+                            return GameActionCtx.START_OF_BATTLE;
+                        }
+                    }
+                }
+                state.getCounterForWrite()[counterIdx]++;
+            }
+            if (state.getCounterForRead()[counterIdx] == this.cards.size()) {
+                state.getCounterForWrite()[counterIdx] = 0;
+                if (count > 0) {
+                    state.getCounterForWrite()[counterIdx + 1] = 0;
+                }
+                return GameActionCtx.START_OF_BATTLE;
+            }
+            var cards = this.cards.get(state.getCounterForRead()[counterIdx]);
+            if (GameStateUtils.getCardCount(state.getDeckArrForRead(), state.getNumCardsInDeck(), state.properties.findCardIndex(cards.v1())) == 0) {
+                throw new IllegalStateException();
+            }
+            state.addCardToExhaust(state.properties.findCardIndex(cards.v1()));
+            state.addCardToExhaust(state.properties.findCardIndex(cards.v2()));
+            return GameActionCtx.SELECT_CARD_EXHAUST;
+        }
+
+        public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("Replace Card Before Battle", this, count > 0 ? 2 : 1, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 5.0f;
+                    if (count > 0) {
+                        input[idx + 1] = state.getCounterForRead()[counterIdx + 1] / 5.0f;
+                        return idx + 2;
+                    }
+                    return idx + 1;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return count > 0 ? 2 : 1;
+                }
+            });
+        }
+    }
+
+    public static class ReplaceCardBeforeBattleStarts2 extends Card {
+        public final int count;
+        public final List<Tuple<Card, Card>> cards;
+
+        public ReplaceCardBeforeBattleStarts2(List<Tuple<Card, Card>> cards, int count) {
+            super("Replace Card " + (count > 0 ? count : cards.size()), Card.STATUS, -1, Card.COMMON);
+            if (cards.isEmpty() || cards.stream().map((card) -> card.v1().cardName).distinct().count() != cards.size()) {
+                throw new IllegalArgumentException();
+            }
+            entityProperty.selectFromExhaust = true;
+            this.count = count;
+            this.cards = cards;
+        }
+
+        public ReplaceCardBeforeBattleStarts2(List<Tuple<Card, Card>> cards) {
+            this(cards, -1);
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            if (state.actionCtx == GameActionCtx.START_OF_BATTLE) {
+                for (var cards : this.cards) {
+                    if (GameStateUtils.getCardCount(state.getDeckArrForRead(), state.getNumCardsInDeck(), state.properties.findCardIndex(cards.v1())) > 0) {
+                        state.addCardToExhaust(state.properties.findCardIndex(cards.v1()));
+                    }
+                }
+                state.addCardToExhaust(state.properties.findCardIndex(this));
+                return GameActionCtx.SELECT_CARD_EXHAUST;
+            }
+            if (state.properties.cardDict[idx] instanceof ReplaceCardBeforeBattleStarts2) {
+                reset(state);
+                return GameActionCtx.START_OF_BATTLE;
+            }
+            for (var cards : this.cards) {
+                if (state.properties.cardDict[idx].equals(cards.v1())) {
+                    state.removeCardFromExhaust(idx);
+                    state.removeCardFromDeck(idx, false);
+                    state.addCardToDeckNonRandom(state.properties.findCardIndex(cards.v2()));
+                    if (count > 0) {
+                        state.getCounterForWrite()[counterIdx]++;
+                        if (state.getCounterForRead()[counterIdx] >= count) {
+                            reset(state);
+                            return GameActionCtx.START_OF_BATTLE;
+                        }
+                    }
+                    return GameActionCtx.SELECT_CARD_EXHAUST;
+                }
+            }
+            if (state.properties.inMCTSSearch && state.getSearchRandomGen().nextInt(100, RandomGenCtx.Misc) < 5) {
+                reset(state);
+                return GameActionCtx.START_OF_BATTLE;
+            }
+            return GameActionCtx.SELECT_CARD_EXHAUST;
+        }
+
+        private void reset(GameState state) {
+            for (var cards : this.cards) {
+                state.removeCardFromExhaust(state.properties.findCardIndex(cards.v1()));
+            }
+            state.removeCardFromExhaust(state.properties.findCardIndex(this));
+            if (count > 0) {
+                state.getCounterForWrite()[counterIdx] = 0;
+            }
+        }
+
+        public void gamePropertiesSetup(GameState state) {
+            if (count > 0) {
+                state.properties.registerCounter("Replace Card Before Battle 2", this, new GameProperties.NetworkInputHandler() {
+                    @Override public int addToInput(GameState state, float[] input, int idx) {
+                        input[idx] = state.getCounterForRead()[counterIdx] / 5.0f;
+                        return idx + 1;
+                    }
+
+                    @Override public int getInputLenDelta() {
+                        return 1;
+                    }
+                });
+            }
         }
     }
 
