@@ -426,6 +426,7 @@ public class CardColorless {
             if ((state.properties.generateCardOptions & GameProperties.GENERATE_CARD_COLORLESS) == 0) {
                 return GameActionCtx.PLAY_CARD;
             }
+            state.setIsStochastic();
             for (int i = 0; i < numCards; i++) {
                 int randomIdx = state.getSearchRandomGen().nextInt(generatedCardIdxes.length, RandomGenCtx.RandomCardGen, new Tuple<>(state, generatedCardIdxes));
                 int cardIdx = generatedCardIdxes[randomIdx];
@@ -1389,6 +1390,9 @@ public class CardColorless {
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             if ((state.properties.generateCardOptions & GameProperties.GENERATE_CARD_COLORLESS) == 0) {
                 return GameActionCtx.PLAY_CARD;
+            }
+            if (energyUsed > 0) {
+                state.setIsStochastic();
             }
             for (int i = 0; i < energyUsed; i++) {
                 int randomIdx = state.getSearchRandomGen().nextInt(generatedCardIdxes.length, RandomGenCtx.RandomCardGen, new Tuple<>(state, generatedCardIdxes));

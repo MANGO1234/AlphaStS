@@ -1219,6 +1219,7 @@ public class CardColorless2 {
                         return;
                     }
                     if (state.getCounterForRead()[counterIdx] > 0 && state.properties.cardDict[cardIdx].cardType == Card.ATTACK) {
+                        state.setIsStochastic();
                         for (int i = 0; i < state.getCounterForRead()[counterIdx]; i++) {
                             int randomIdx = state.getSearchRandomGen().nextInt(generatedCardIdxes.length, RandomGenCtx.RandomCardGen, new Tuple<>(state, generatedCardIdxes));
                             state.addCardToHand(state.createCard(generatedCardIdxes[randomIdx]));
@@ -1260,6 +1261,7 @@ public class CardColorless2 {
             var hand = state.getHandArrForRead();
             for (int i = 0; i < state.getNumCardsInHand(); i++) {
                 if (hand[i] == idx) {
+                    state.setIsStochastic();
                     int randomIdx = state.getSearchRandomGen().nextInt(generatedCardIdxes.length, RandomGenCtx.RandomCardGen, new Tuple<>(state, generatedCardIdxes));
                     state.transformCard(state.getHandArrForWrite(), i, state.createCard(generatedCardIdxes[randomIdx]));
                     break;
@@ -1428,7 +1430,11 @@ public class CardColorless2 {
             if (count == 0) {
                 return GameActionCtx.PLAY_CARD;
             }
-            int selected = state.getSearchRandomGen().nextInt(count, RandomGenCtx.RandomCardGen, new Tuple<>(state, replayTransformIdxes));
+            int selected = 0;
+            if (count > 1) {
+                state.setIsStochastic();
+                selected = state.getSearchRandomGen().nextInt(count, RandomGenCtx.RandomCardGen, new Tuple<>(state, replayTransformIdxes));
+            }
             for (int i = 0; i < state.deckArrLen; i++) {
                 int transformIdx = replayTransformIdxes[deckArr[i]];
                 if (transformIdx >= 0 && selected-- == 0) {
@@ -1496,6 +1502,7 @@ public class CardColorless2 {
             if ((state.properties.generateCardOptions & GameProperties.GENERATE_CARD_JACKPOT) == 0) {
                 return GameActionCtx.PLAY_CARD;
             }
+            state.setIsStochastic();
             for (int i = 0; i < 3; i++) {
                 int randomIdx = state.getSearchRandomGen().nextInt(generatedCardIdxes.length, RandomGenCtx.RandomCardGen, new Tuple<>(state, generatedCardIdxes));
                 state.addCardToHand(state.createCard(generatedCardIdxes[randomIdx]));
@@ -2030,6 +2037,7 @@ public class CardColorless2 {
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.playerGainBlock(8);
             if ((state.properties.generateCardOptions & GameProperties.GENERATE_CARD_MAD_SCIENCE_CHAOS) != 0) {
+                state.setIsStochastic();
                 int randomIdx = state.getSearchRandomGen().nextInt(generatedCardIdxes.length, RandomGenCtx.RandomCardGen, new Tuple<>(state, generatedCardIdxes));
                 state.addCardToHand(state.createCard(generatedCardIdxes[randomIdx]));
             }

@@ -1575,9 +1575,9 @@ public class CardIronclad {
                 state.addCardToHand(state.createCard(state.properties.findCardIndex(new Card.Strike().getTemporaryCostIfPossible(0))));
                 return GameActionCtx.PLAY_CARD;
             }
+            state.setIsStochastic();
             var r = state.getSearchRandomGen().nextInt(generatedCardIdxes.length, RandomGenCtx.RandomCardGen, new Tuple<>(state, generatedCardIdxes));
             state.addCardToHand(state.createCard(generatedCardIdxes[r]));
-            state.setIsStochastic();
             return GameActionCtx.PLAY_CARD;
         }
 
@@ -3004,8 +3004,8 @@ public class CardIronclad {
                     }
                     int i = 0;
                     if (state.enemiesAlive > 1) {
-                        i = state.getSearchRandomGen().nextInt(state.enemiesAlive, RandomGenCtx.RandomEnemyJuggernaut, state);
                         state.setIsStochastic();
+                        i = state.getSearchRandomGen().nextInt(state.enemiesAlive, RandomGenCtx.RandomEnemyJuggernaut, state);
                     }
                     int enemy_j = 0;
                     for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {

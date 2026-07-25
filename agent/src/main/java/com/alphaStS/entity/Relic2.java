@@ -2241,7 +2241,11 @@ public class Relic2 {
                         if (cards.isEmpty()) {
                             break;
                         }
-                        int r = state.getSearchRandomGen().nextInt(cards.size(), RandomGenCtx.Misc);
+                        int r = 0;
+                        if (cards.size() > 1) {
+                            state.setIsStochastic();
+                            r = state.getSearchRandomGen().nextInt(cards.size(), RandomGenCtx.Misc);
+                        }
                         int cardIdx = cards.get(r);
                         Card upgradedCard = state.properties.cardDict[cardIdx].getUpgrade(state.properties);
                         state.removeCardFromDeck(cardIdx, false);

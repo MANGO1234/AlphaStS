@@ -681,11 +681,11 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                     }
                     var cards = IntStreamEx.of(state.getDeckArrForRead()).mapToObj((cardIdx) -> new Tuple<>(cardIdx, state.properties.cardDict[cardIdx].getUpgrade(state.properties))).filter((t) -> t.v2() != null).filter((t) -> t.v2().cardType == Card.SKILL).toList();
                     if (cards.size() == 1) {
-                        var r1 = state.getSearchRandomGen().nextInt(cards.size(), RandomGenCtx.Misc);
-                        state.removeCardFromDeck(cards.get(r1).v1(), false);
-                        state.addCardToDeckNonRandom(state.properties.findCardIndex(cards.get(r1).v2()));
-                        state.getStateDesc().append("War Paint: ").append(cards.get(r1).v2().cardName);
+                        state.removeCardFromDeck(cards.get(0).v1(), false);
+                        state.addCardToDeckNonRandom(state.properties.findCardIndex(cards.get(0).v2()));
+                        state.getStateDesc().append("War Paint: ").append(cards.get(0).v2().cardName);
                     } else if (cards.size() > 1) {
+                        state.setIsStochastic();
                         var r1 = state.getSearchRandomGen().nextInt(cards.size(), RandomGenCtx.Misc);
                         var r2 = state.getSearchRandomGen().nextInt(cards.size() - 1, RandomGenCtx.Misc);
                         if (r2 >= r1) {
@@ -717,11 +717,11 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                     }
                     var cards = IntStreamEx.of(state.getDeckArrForRead()).mapToObj((cardIdx) -> new Tuple<>(cardIdx, state.properties.cardDict[cardIdx].getUpgrade(state.properties))).filter((t) -> t.v2() != null).filter((t) -> t.v2().cardType == Card.ATTACK).toList();
                     if (cards.size() == 1) {
-                        var r1 = state.getSearchRandomGen().nextInt(cards.size(), RandomGenCtx.Misc);
-                        state.removeCardFromDeck(cards.get(r1).v1(), false);
-                        state.addCardToDeckNonRandom(state.properties.findCardIndex(cards.get(r1).v2()));
-                        state.getStateDesc().append("Whet Stone: ").append(cards.get(r1).v2().cardName);
+                        state.removeCardFromDeck(cards.get(0).v1(), false);
+                        state.addCardToDeckNonRandom(state.properties.findCardIndex(cards.get(0).v2()));
+                        state.getStateDesc().append("Whet Stone: ").append(cards.get(0).v2().cardName);
                     } else if (cards.size() > 1) {
+                        state.setIsStochastic();
                         var r1 = state.getSearchRandomGen().nextInt(cards.size(), RandomGenCtx.Misc);
                         var r2 = state.getSearchRandomGen().nextInt(cards.size() - 1, RandomGenCtx.Misc);
                         if (r2 >= r1) {
@@ -1341,9 +1341,9 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                             if (!isRelicEnabledInScenario(state)) {
                                 return;
                             }
+                            state.setIsStochastic();
                             var idx = state.getSearchRandomGen().nextInt(generatedCardIdxes.length, RandomGenCtx.RandomCardGen, new Tuple<>(state, generatedCardIdxes));
                             idx = state.addCardToHand(state.createCard(generatedCardIdxes[idx]));
-                            state.setIsStochastic();
                             if (state.getStateDesc().length() > 0) state.stateDesc.append(", ");
                             state.getStateDesc().append("Dead Branch -> ").append(state.properties.cardDict[idx].cardName);
                         }
@@ -3052,11 +3052,11 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                     state.getPlayerForWrite().setHealth(state.getPlayerForRead().getHealth() - dmg);
                     var cards = IntStreamEx.of(state.getDeckArrForRead()).mapToObj((cardIdx) -> new Tuple<>(cardIdx, state.properties.cardDict[cardIdx].getUpgrade(state.properties))).filter((t) -> t.v2() != null).toList();
                     if (cards.size() == 1) {
-                        var r1 = state.getSearchRandomGen().nextInt(cards.size(), RandomGenCtx.Misc);
-                        state.removeCardFromDeck(cards.get(r1).v1(), false);
-                        state.addCardToDeckNonRandom(state.properties.findCardIndex(cards.get(r1).v2()));
-                        state.getStateDesc().append("Shining Light Event: ").append(cards.get(r1).v2().cardName);
+                        state.removeCardFromDeck(cards.get(0).v1(), false);
+                        state.addCardToDeckNonRandom(state.properties.findCardIndex(cards.get(0).v2()));
+                        state.getStateDesc().append("Shining Light Event: ").append(cards.get(0).v2().cardName);
                     } else if (cards.size() > 1) {
+                        state.setIsStochastic();
                         var r1 = state.getSearchRandomGen().nextInt(cards.size(), RandomGenCtx.Misc);
                         var r2 = state.getSearchRandomGen().nextInt(cards.size() - 1, RandomGenCtx.Misc);
                         if (r2 >= r1) {

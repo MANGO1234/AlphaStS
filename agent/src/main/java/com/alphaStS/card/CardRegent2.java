@@ -1648,6 +1648,7 @@ public class CardRegent2 {
                     (!upgraded && !canGenerateColorlessCards(state.properties))) {
                 return GameActionCtx.PLAY_CARD;
             }
+            state.setIsStochastic();
             int randomIdx = state.getSearchRandomGen().nextInt(generatedCardIdxes.length, RandomGenCtx.RandomCardGen, new Tuple<>(state, generatedCardIdxes));
             state.addCardToHand(state.createCard(generatedCardIdxes[randomIdx]));
             return GameActionCtx.PLAY_CARD;
@@ -2644,6 +2645,7 @@ public class CardRegent2 {
             if (!canGenerateColorlessCards(state.properties)) {
                 return GameActionCtx.PLAY_CARD;
             }
+            state.setIsStochastic();
             for (int i = 0; i < numCards; i++) {
                 int randomIdx = state.getSearchRandomGen().nextInt(generatedCardIdxes.length, RandomGenCtx.RandomCardGen, new Tuple<>(state, generatedCardIdxes));
                 state.addCardToHand(state.createCard(generatedCardIdxes[randomIdx]));

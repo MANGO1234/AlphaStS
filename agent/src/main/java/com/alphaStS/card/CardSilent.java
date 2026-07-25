@@ -844,8 +844,8 @@ public class CardSilent {
             }
             int r = 1;
             if (diffCards > 1) {
-                r = state.getSearchRandomGen().nextInt(c, RandomGenCtx.RandomCardHand, state) + 1;
                 state.setIsStochastic();
+                r = state.getSearchRandomGen().nextInt(c, RandomGenCtx.RandomCardHand, state) + 1;
             }
             for (int i = 0; i < hand.length; i++) {
                 r -= hand[i];
@@ -1250,9 +1250,9 @@ public class CardSilent {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.setIsStochastic();
             var r = state.getSearchRandomGen().nextInt(generatedCardIdxes.length, RandomGenCtx.RandomCardGen, new Tuple<>(state, generatedCardIdxes));
             state.addCardToHand(state.createCard(generatedCardIdxes[r]));
-            state.setIsStochastic();
             return GameActionCtx.PLAY_CARD;
         }
 

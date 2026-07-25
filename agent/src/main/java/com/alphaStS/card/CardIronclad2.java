@@ -807,8 +807,8 @@ public class CardIronclad2 {
                     if (state.getCounterForRead()[counterIdx] > 0) {
                         int i = 0;
                         if (state.enemiesAlive > 1) {
-                            i = state.getSearchRandomGen().nextInt(state.enemiesAlive, RandomGenCtx.RandomEnemyGeneral, state);
                             state.setIsStochastic();
+                            i = state.getSearchRandomGen().nextInt(state.enemiesAlive, RandomGenCtx.RandomEnemyGeneral, state);
                         }
                         int enemy_j = 0;
                         for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
@@ -2314,6 +2314,9 @@ public class CardIronclad2 {
                 state.exhaustCardFromHandByPosition(i, false);
             }
             state.updateHandArr();
+            if (c > 0) {
+                state.setIsStochastic();
+            }
             for (int i = 0; i < c; i++) {
                 int randomIdx = state.getSearchRandomGen().nextInt(generatedCardIdxes.length, RandomGenCtx.RandomCardGen, new Tuple<>(state, generatedCardIdxes));
                 state.addCardToHand(state.createCard(generatedCardIdxes[randomIdx]));

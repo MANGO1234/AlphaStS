@@ -339,6 +339,9 @@ public class CardOther {
                 state.getCounterForWrite()[counterIdx] = 0;
                 return GameActionCtx.START_OF_BATTLE;
             }
+            if (state.properties.inMCTSSearch) {
+                state.setIsStochastic();
+            }
             if (state.properties.inMCTSSearch && state.getSearchRandomGen().nextInt(100, RandomGenCtx.Misc) < 5) {
                 state.getCounterForWrite()[counterIdx] = 0;
                 return GameActionCtx.START_OF_BATTLE;
@@ -386,6 +389,9 @@ public class CardOther {
             if (state.getCounterForRead()[counterIdx] >= count) {
                 state.getCounterForWrite()[counterIdx] = 0;
                 return GameActionCtx.START_OF_BATTLE;
+            }
+            if (state.properties.inMCTSSearch) {
+                state.setIsStochastic();
             }
             if (state.properties.inMCTSSearch && state.getSearchRandomGen().nextInt(100, RandomGenCtx.Misc) < 5) {
                 state.getCounterForWrite()[counterIdx] = 0;
@@ -500,6 +506,9 @@ public class CardOther {
             if (state.getCounterForRead()[counterIdx] >= count) {
                 reset(state);
                 return GameActionCtx.START_OF_BATTLE;
+            }
+            if (state.properties.inMCTSSearch) {
+                state.setIsStochastic();
             }
             if (state.properties.inMCTSSearch && state.getSearchRandomGen().nextInt(100, RandomGenCtx.Misc) < 5) {
                 reset(state);
@@ -657,6 +666,9 @@ public class CardOther {
                     }
                     return GameActionCtx.SELECT_CARD_EXHAUST;
                 }
+            }
+            if (state.properties.inMCTSSearch) {
+                state.setIsStochastic();
             }
             if (state.properties.inMCTSSearch && state.getSearchRandomGen().nextInt(100, RandomGenCtx.Misc) < 5) {
                 reset(state);

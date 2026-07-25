@@ -510,8 +510,12 @@ public class CardDefect2 {
                 }
             }
             if (attackCount > 0) {
-                int r = state.getSearchRandomGen().nextInt(attackCount, RandomGenCtx.RandomCardGen, new Tuple<>(state, null));
-                int count = 0;
+                int r = 0;
+                if (attackCount > 1) {
+                    state.setIsStochastic();
+                    r = state.getSearchRandomGen().nextInt(attackCount, RandomGenCtx.RandomCardGen, new Tuple<>(state, null));
+                }
+                count = 0;
                 for (int i = 0; i < state.deckArrLen; i++) {
                     int cardIdx = state.deckArr[i];
                     if (state.properties.cardDict[cardIdx].cardType == Card.ATTACK) {
@@ -526,9 +530,6 @@ public class CardDefect2 {
                         }
                         count++;
                     }
-                }
-                if (attackCount > 1) {
-                    state.setIsStochastic();
                 }
             }
             return GameActionCtx.PLAY_CARD;
