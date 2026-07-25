@@ -18,8 +18,29 @@ import com.alphaStS.utils.Tuple;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 public class CardRegent2 {
+    private static boolean canGenerateColorlessCards(GameProperties properties) {
+        return (properties.generateCardOptions & GameProperties.GENERATE_CARD_COLORLESS) != 0;
+    }
+
+    private static boolean canGenerateUpgradedColorlessCards(GameProperties properties) {
+        return (properties.generateCardOptions & GameProperties.GENERATE_CARD_UPGRADED_COLORLESS) != 0;
+    }
+
+    private static List<Card> getPossibleColorlessCards(GameProperties properties, boolean upgraded) {
+        if ((!upgraded && !canGenerateColorlessCards(properties)) ||
+                (upgraded && !canGenerateUpgradedColorlessCards(properties))) {
+            return List.of();
+        }
+        var colorlessCards = CardManager.getColorless2Cards(CardManager.ColorlessCard2Pool.CARD_GENERATION);
+        if (!upgraded) {
+            return colorlessCards;
+        }
+        return colorlessCards.stream().map(Card::getUpgrade).filter(Objects::nonNull).toList();
+    }
+
     // **************************************************************************************************
     // ********************************************* Basic  *********************************************
     // **************************************************************************************************
@@ -1623,14 +1644,17 @@ public class CardRegent2 {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.playerGainBlock(block);
+            if ((upgraded && !canGenerateUpgradedColorlessCards(state.properties)) ||
+                    (!upgraded && !canGenerateColorlessCards(state.properties))) {
+                return GameActionCtx.PLAY_CARD;
+            }
             int randomIdx = state.getSearchRandomGen().nextInt(generatedCardIdxes.length, RandomGenCtx.RandomCardGen, new Tuple<>(state, generatedCardIdxes));
             state.addCardToHand(state.createCard(generatedCardIdxes[randomIdx]));
             return GameActionCtx.PLAY_CARD;
         }
 
         @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
-            var colorlessCards = CardManager.getColorless2Cards(CardManager.ColorlessCard2Pool.CARD_GENERATION);
-            return upgraded ? colorlessCards.stream().map(Card::getUpgrade).filter(java.util.Objects::nonNull).toList() : colorlessCards;
+            return getPossibleColorlessCards(properties, upgraded);
         }
     }
 
@@ -2003,6 +2027,10 @@ public class CardRegent2 {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            if ((upgraded && !canGenerateUpgradedColorlessCards(state.properties)) ||
+                    (!upgraded && !canGenerateColorlessCards(state.properties))) {
+                return GameActionCtx.PLAY_CARD;
+            }
             state.setSelect1OutOf3Idxes(generatedCardIdxes);
             return GameActionCtx.SELECT_CARD_1_OUT_OF_3;
         }
@@ -2012,8 +2040,7 @@ public class CardRegent2 {
         }
 
         @Override public List<Card> getPossibleSelect1OutOf3Cards(GameProperties gameProperties) {
-            var colorlessCards = CardManager.getColorless2Cards(CardManager.ColorlessCard2Pool.CARD_GENERATION);
-            return upgraded ? colorlessCards.stream().map(Card::getUpgrade).filter(java.util.Objects::nonNull).toList() : colorlessCards;
+            return getPossibleColorlessCards(gameProperties, upgraded);
         }
     }
 
@@ -2614,6 +2641,9 @@ public class CardRegent2 {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            if (!canGenerateColorlessCards(state.properties)) {
+                return GameActionCtx.PLAY_CARD;
+            }
             for (int i = 0; i < numCards; i++) {
                 int randomIdx = state.getSearchRandomGen().nextInt(generatedCardIdxes.length, RandomGenCtx.RandomCardGen, new Tuple<>(state, generatedCardIdxes));
                 state.addCardToHand(state.createCard(generatedCardIdxes[randomIdx]));
@@ -2622,7 +2652,7 @@ public class CardRegent2 {
         }
 
         @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
-            return CardManager.getColorless2Cards(CardManager.ColorlessCard2Pool.CARD_GENERATION);
+            return getPossibleColorlessCards(properties, false);
         }
     }
 

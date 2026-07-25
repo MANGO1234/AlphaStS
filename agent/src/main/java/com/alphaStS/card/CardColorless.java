@@ -423,6 +423,9 @@ public class CardColorless {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            if ((state.properties.generateCardOptions & GameProperties.GENERATE_CARD_COLORLESS) == 0) {
+                return GameActionCtx.PLAY_CARD;
+            }
             for (int i = 0; i < numCards; i++) {
                 int randomIdx = state.getSearchRandomGen().nextInt(generatedCardIdxes.length, RandomGenCtx.RandomCardGen, new Tuple<>(state, generatedCardIdxes));
                 int cardIdx = generatedCardIdxes[randomIdx];
@@ -432,6 +435,9 @@ public class CardColorless {
         }
 
         public List<Card> getPossibleGeneratedCards(GameProperties gameProperties, List<Card> cards) {
+            if ((gameProperties.generateCardOptions & GameProperties.GENERATE_CARD_COLORLESS) == 0) {
+                return List.of();
+            }
             if (gameProperties.isStS2Character()) {
                 return CardManager.getColorless2Cards(CardManager.ColorlessCard2Pool.CARD_GENERATION);
             } else {
@@ -910,7 +916,7 @@ public class CardColorless {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            if ((state.properties.generateCardOptions & GameProperties.GENERATE_CARD_MAGNETISM) != 0) {
+            if ((state.properties.generateCardOptions & GameProperties.GENERATE_CARD_COLORLESS) != 0) {
                 state.getCounterForWrite()[counterIdx]++;
             }
             return GameActionCtx.PLAY_CARD;
@@ -940,7 +946,7 @@ public class CardColorless {
         }
 
         public List<Card> getPossibleGeneratedCards(GameProperties gameProperties, List<Card> cards) {
-            if ((gameProperties.generateCardOptions & GameProperties.GENERATE_CARD_MAGNETISM) == 0) {
+            if ((gameProperties.generateCardOptions & GameProperties.GENERATE_CARD_COLORLESS) == 0) {
                 return List.of();
             }
             if (gameProperties.isStS2Character()) {
@@ -1381,6 +1387,9 @@ public class CardColorless {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            if ((state.properties.generateCardOptions & GameProperties.GENERATE_CARD_COLORLESS) == 0) {
+                return GameActionCtx.PLAY_CARD;
+            }
             for (int i = 0; i < energyUsed; i++) {
                 int randomIdx = state.getSearchRandomGen().nextInt(generatedCardIdxes.length, RandomGenCtx.RandomCardGen, new Tuple<>(state, generatedCardIdxes));
                 int cardIdx = generatedCardIdxes[randomIdx];
@@ -1394,6 +1403,9 @@ public class CardColorless {
         }
 
         public List<Card> getPossibleGeneratedCards(GameProperties gameProperties, List<Card> cards) {
+            if ((gameProperties.generateCardOptions & GameProperties.GENERATE_CARD_COLORLESS) == 0) {
+                return List.of();
+            }
             var colorlessCards = CardManager.getColorlessCardsTmp0Cost(false);
             return upgraded ? colorlessCards.stream().map(Card::getUpgrade).toList() : colorlessCards;
         }
