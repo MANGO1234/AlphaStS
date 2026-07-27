@@ -42,6 +42,7 @@ SKIP_FIRST = getFlag('-skip_first')
 USE_CYCLIC_LR = getFlag('-cyclic')
 USE_ADAMW = getFlag('-adamw')
 USE_RESIDUAL_MLP = getFlag('-residual_mlp')
+USE_AGENT_JAR = getFlag('-jar')
 
 if NUMBER_OF_THREADS_TRAINING > 0:
     tf.config.threading.set_intra_op_parallelism_threads(1)
@@ -72,12 +73,23 @@ if platform.system() == 'Windows':
     sep = ';'
 
 CLASS_PATH = f'./agent/target/classes{sep}{os.getenv("M2_HOME")}/repository/com/microsoft/onnxruntime/{onnx_jar}{sep}./agent/src/resources/mallet.jar{sep}./agent/src/resources/mallet-deps.jar{sep}{os.getenv("M2_HOME")}/repository/org/jdom/jdom/1.1/jdom-1.1.jar{sep}{os.getenv("M2_HOME")}/repository/com/fasterxml/jackson/core/jackson-databind/2.12.4/jackson-databind-2.12.4.jar{sep}{os.getenv("M2_HOME")}/repository/com/fasterxml/jackson/core/jackson-annotations/2.12.4/jackson-annotations-2.12.4.jar{sep}{os.getenv("M2_HOME")}/repository/com/fasterxml/jackson/core/jackson-core/2.12.4/jackson-core-2.12.4.jar{sep}{os.getenv("M2_HOME")}/repository/org/apache/commons/commons-compress/1.21/commons-compress-1.21.jar{sep}{os.getenv("M2_HOME")}/repository/org/apache/commons/commons-math3/3.6.1/commons-math3-3.6.1.jar{sep}{os.getenv("M2_HOME")}/repository/one/util/streamex/0.8.3/streamex-0.8.3.jar'
+AGENT_JAR = './agent/target/alphaStS-1.0-SNAPSHOT-jar-with-dependencies.jar'
+
+
+def make_agent_args(args):
+    agent_args = ['java']
+    agent_args += ['--add-opens', 'java.base/java.util=ALL-UNNAMED']
+    if USE_AGENT_JAR:
+        agent_args += ['-jar', AGENT_JAR]
+    else:
+        agent_args += ['-classpath', CLASS_PATH, 'com.alphaStS.Main']
+    return agent_args + args
 
 
 def snake_case(s):
     return ''.join(['_' + i.lower() if i.isupper()else i for i in s]).lstrip('_')
 
-p = subprocess.run(['java', '--add-opens', 'java.base/java.util=ALL-UNNAMED', '-classpath', CLASS_PATH, 'com.alphaStS.Main', '--get-lengths'], capture_output=True)
+p = subprocess.run(make_agent_args(['--get-lengths']), capture_output=True)
 lens_data = json.loads(p.stdout.decode('utf-8').strip())
 input_len = int(lens_data['inputLength'])
 num_of_actions = int(lens_data['policyLength'])
@@ -361,8 +373,8 @@ if DO_TRAINING:
         iteration_info = training_info['iteration_info'][str(_iteration)]
         iter_start = time.time()
 
-        agent_args = ['java', '--add-opens', 'java.base/java.util=ALL-UNNAMED', '-classpath', CLASS_PATH,
-                      'com.alphaStS.Main', '--training', '-t', str(NUMBER_OF_THREADS), '-b', str(BATCH_PER_THREAD), '-training-c', str(TRAINING_NUM_OF_GAMES), '-training-n', str(TRAINING_NODE_COUNT), '-dir', SAVES_DIR]
+        agent_args = make_agent_args(['--training', '-t', str(NUMBER_OF_THREADS), '-b', str(BATCH_PER_THREAD), '-training-c', str(TRAINING_NUM_OF_GAMES),
+                                      '-training-n', str(TRAINING_NODE_COUNT), '-dir', SAVES_DIR])
         if not SKIP_TRAINING_MATCHES and _iteration > 1:
             if training_info["iteration"] < 17:
                 matches_count = 1000
@@ -453,8 +465,8 @@ if DO_TRAINING:
             json.dump(training_info, f)
 
         if _iteration == ITERATION_COUNT:
-            agent_output = subprocess.run(['java', '--add-opens', 'java.base/java.util=ALL-UNNAMED', '-classpath', CLASS_PATH,
-                                           'com.alphaStS.Main', '--training', '-tm', '-t', str(NUMBER_OF_THREADS), '-b', str(BATCH_PER_THREAD), '-c', '5000', '-n', '1', '-dir', SAVES_DIR], capture_output=True)
+            agent_output = subprocess.run(make_agent_args(['--training', '-tm', '-t', str(NUMBER_OF_THREADS), '-b', str(BATCH_PER_THREAD), '-c', '5000',
+                                                           '-n', '1', '-dir', SAVES_DIR]), capture_output=True)
             if len(agent_output.stderr) > 0:
                 print(agent_output.stdout.decode('ascii'))
                 print(agent_output.stderr.decode('ascii'))
@@ -468,14 +480,14 @@ if DO_TRAINING:
 
 
 if PLAY_A_GAME:
-    agent_args = ['java', '--add-opens', 'java.base/java.util=ALL-UNNAMED', '-classpath', CLASS_PATH, 'com.alphaStS.Main', '--server']
+    agent_args = make_agent_args(['--server'])
     agent_output = subprocess.run(agent_args, capture_output=True)
     print(agent_output.stdout.decode('ascii'))
     print(agent_output.stderr.decode('ascii'))
     print(time.time() - start)
 
 if PLAY_MATCHES:
-    agent_args = ['java', '--add-opens', 'java.base/java.util=ALL-UNNAMED', '-classpath', CLASS_PATH, 'com.alphaStS.Main', '--client']
+    agent_args = make_agent_args(['--client'])
     agent_output = subprocess.run(agent_args, capture_output=True)
     print(agent_output.stdout.decode('ascii'))
     print(agent_output.stderr.decode('ascii'))
