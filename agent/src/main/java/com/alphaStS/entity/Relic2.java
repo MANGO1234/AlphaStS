@@ -2030,8 +2030,38 @@ public class Relic2 {
     // TODO: Pael's Claw (Ancient)
     //   Effect: Upon pickup, Enchant all Defends with Goopy.
 
-    // TODO: Pael's Eye (Ancient)
+    // Pael's Eye (Ancient)
     //   Effect: The first time each combat you end your turn without playing cards, Exhaust your Hand, and take an extra turn.
+    public static class PaelsEye extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCardsPlayedThisTurnCounter();
+            state.properties.registerCounter("PaelsEye", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx];
+                    return idx + 1;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            state.properties.addPreEndOfTurnHandler("PaelsEye", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (!isRelicEnabledInScenario(state)
+                            || state.getCounterForRead()[counterIdx] > 0
+                            || state.getCounterForRead()[state.properties.cardsPlayedThisTurnCounterIdx] > 0) {
+                        return;
+                    }
+                    state.getCounterForWrite()[counterIdx] = 1;
+                    for (int i = state.handArrLen - 1; i >= 0; i--) {
+                        state.exhaustCardFromHandByPosition(i, false);
+                    }
+                    state.updateHandArr();
+                    state.addBuff(PlayerBuff.USED_VAULT);
+                }
+            });
+        }
+    }
 
     // Pael's Flesh (Ancient)
     //   Effect: Gain an additional energy at the start of your 3rd turn, and every turn after that.
