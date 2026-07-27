@@ -9,7 +9,6 @@ import re
 import os
 import subprocess
 import struct
-import shutil
 import tensorflow as tf
 import numpy as np
 import lz4.frame
@@ -33,9 +32,6 @@ Z_TRAIN_WINDOW_END = int(getFlagValue('-z', -1))
 NODE_COUNT = int(getFlagValue('-n', 1000))
 SAVES_DIR = getFlagValue('-dir', './saves')
 SKIP_FIRST = getFlag('-skip_first')
-USE_KAGGLE = getFlagValue('-kaggle')
-KAGGLE_USER_NAME = getFlagValue('-kaggle_user', None)
-KAGGLE_DATASET_NAME = 'dataset'
 
 if NUMBER_OF_THREADS_TRAINING > 0:
     tf.config.threading.set_intra_op_parallelism_threads(1)
