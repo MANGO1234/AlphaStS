@@ -47,6 +47,10 @@ public class CardManager {
         return cards;
     }
 
+    public static List<Card> getCharacterCommonCards(CharacterEnum character) {
+        return getCharacterCards(character, true).stream().filter((card) -> card.rarity == Card.COMMON).toList();
+    }
+
     public static List<Card> getCharacterCardsTmp0Cost(CharacterEnum character, boolean generateHealingCard) {
         List<Card> baseCards = getCharacterCards(character, generateHealingCard);
         List<Card> cards = new ArrayList<>();

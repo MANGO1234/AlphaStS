@@ -89,6 +89,21 @@ public class Relic2 {
         }
     }
 
+    // Room Full Of Cheese Gorge (Common)
+    //   Effect: At the start of each combat, choose 2 of 8 random Common cards to add to your deck.
+    public static class RoomFullOfCheeseGorge extends Relic {
+        public RoomFullOfCheeseGorge() {
+            startOfBattleAction = new CardOther.RoomFullOfCheeseGorgeAction();
+        }
+
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            cards = new ArrayList<>();
+            cards.add(startOfBattleAction);
+            cards.addAll(CardManager.getCharacterCommonCards(properties.character));
+            return cards;
+        }
+    }
+
     // Happy Flower (Common)
     //   Effect: Every 3 turns, gain energy.
     public static class HappyFlower extends Relic.HappyFlower {

@@ -11,6 +11,7 @@ import com.alphaStS.random.RandomGenCtx;
 import com.alphaStS.utils.Tuple;
 import org.apache.commons.compress.harmony.unpack200.bytecode.forms.IincForm;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class CardOther {
@@ -540,6 +541,62 @@ public class CardOther {
             state.properties.registerCounter("Add Card Before Battle 2", this, new GameProperties.NetworkInputHandler() {
                 @Override public int addToInput(GameState state, float[] input, int idx) {
                     input[idx] = state.getCounterForRead()[counterIdx] / 5.0f;
+                    return idx + 1;
+                }
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+        }
+    }
+
+    public static class RoomFullOfCheeseGorgeAction extends Card {
+        private static final int NUM_CARDS_TO_OFFER = 8;
+        private static final int NUM_CARDS_TO_ADD = 2;
+
+        public RoomFullOfCheeseGorgeAction() {
+            super("Room Full Of Cheese Gorge", Card.STATUS, -1, Card.COMMON);
+            entityProperty.selectFromExhaust = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            if (state.actionCtx == GameActionCtx.START_OF_BATTLE) {
+                addCardsToExhaust(state);
+                return GameActionCtx.SELECT_CARD_EXHAUST;
+            }
+            state.removeCardFromExhaust(idx);
+            state.addCardToDeckNonRandom(idx);
+            state.getCounterForWrite()[counterIdx]++;
+            if (state.getCounterForRead()[counterIdx] >= NUM_CARDS_TO_ADD) {
+                reset(state);
+                return GameActionCtx.START_OF_BATTLE;
+            }
+            return GameActionCtx.SELECT_CARD_EXHAUST;
+        }
+
+        private void addCardsToExhaust(GameState state) {
+            List<Card> cards = new ArrayList<>(CardManager.getCharacterCommonCards(state.properties.character));
+            if (cards.size() < NUM_CARDS_TO_OFFER) {
+                throw new IllegalStateException("Room Full Of Cheese Gorge requires at least 8 common cards");
+            }
+            for (int i = 0; i < NUM_CARDS_TO_OFFER; i++) {
+                int r = state.getSearchRandomGen().nextInt(cards.size(), RandomGenCtx.RandomCardGen, state);
+                Card card = cards.remove(r);
+                state.addCardToExhaust(state.properties.findCardIndex(card));
+            }
+        }
+
+        private void reset(GameState state) {
+            while (state.getNumCardsInExhaust() > 0) {
+                state.removeCardFromExhaustByPosition(0);
+            }
+            state.getCounterForWrite()[counterIdx] = 0;
+        }
+
+        public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("Room Full Of Cheese Gorge", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 2.0f;
                     return idx + 1;
                 }
                 @Override public int getInputLenDelta() {
