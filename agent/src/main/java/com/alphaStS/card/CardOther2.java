@@ -1,6 +1,8 @@
 package com.alphaStS.card;
 
 import com.alphaStS.*;
+import com.alphaStS.enemy.EnemyHive;
+import com.alphaStS.eventHandler.GameEventHandler;
 import com.alphaStS.gameAction.GameActionCtx;
 
 import java.util.ArrayList;
@@ -49,11 +51,39 @@ public class CardOther2 {
     public static class Disintegration extends Card {
         public Disintegration() {
             super("Disintegration", Card.STATUS, -1, Card.COMMON);
-            alwaysDiscard = true;
+            select1OutOf3CardEffectCard = true;
         }
 
-        @Override public void onDiscardEndOfTurn(GameState state, int numCardsInHand) {
-            state.doNonAttackDamageToPlayer(6, true, this);
+        @Override public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            if (state.properties.disintegrationCounterIdx >= 0) {
+                state.getCounterForWrite()[state.properties.disintegrationCounterIdx] += EnemyHive.KnowledgeDemon.getCurseOfKnowledgeDamage(state);
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("Disintegration", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 24.0f;
+                    return idx + 1;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            state.properties.addEndOfTurnHandler("Disintegration", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (state.getCounterForRead()[counterIdx] > 0) {
+                        state.doNonAttackDamageToPlayer(state.getCounterForRead()[counterIdx], true, Disintegration.this);
+                    }
+                }
+            });
+        }
+
+        @Override public void setCounterIdx(GameProperties gameProperties, int idx) {
+            super.setCounterIdx(gameProperties, idx);
+            gameProperties.disintegrationCounterIdx = idx;
         }
     }
 
@@ -114,6 +144,37 @@ public class CardOther2 {
     // TODO: Mind Rot (Status) - Unplayable, Status
     //   Effect: Draw 1 fewer card each turn.
     //   No upgrade.
+    public static class MindRot extends Card {
+        public MindRot() {
+            super("Mind Rot", Card.STATUS, -1, Card.COMMON);
+            select1OutOf3CardEffectCard = true;
+        }
+
+        @Override public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            if (state.properties.mindRotCounterIdx >= 0) {
+                state.getCounterForWrite()[state.properties.mindRotCounterIdx]++;
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("MindRot", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 5.0f;
+                    return idx + 1;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+        }
+
+        @Override public void setCounterIdx(GameProperties gameProperties, int idx) {
+            super.setCounterIdx(gameProperties, idx);
+            gameProperties.mindRotCounterIdx = idx;
+        }
+    }
 
     // Slimed draws 1 card when played, unlike STS1 which only exhausts.
     // Slimed (Status) - 1 energy, Status
@@ -133,6 +194,38 @@ public class CardOther2 {
     // TODO: Sloth (Status) - Unplayable, Status
     //   Effect: You cannot play more than 3 cards each turn.
     //   No upgrade.
+    public static class Sloth extends Card {
+        public Sloth() {
+            super("Sloth", Card.STATUS, -1, Card.COMMON);
+            select1OutOf3CardEffectCard = true;
+        }
+
+        @Override public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            if (state.properties.slothCounterIdx >= 0) {
+                state.getCounterForWrite()[state.properties.slothCounterIdx]++;
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("Sloth", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 3.0f;
+                    return idx + 1;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            state.properties.registerCardsPlayedThisTurnCounter();
+        }
+
+        @Override public void setCounterIdx(GameProperties gameProperties, int idx) {
+            super.setCounterIdx(gameProperties, idx);
+            gameProperties.slothCounterIdx = idx;
+        }
+    }
 
     // Soot (Status) - Unplayable, Status
     //   Effect: Unplayable.
@@ -163,10 +256,36 @@ public class CardOther2 {
     // TODO: Waste Away (Status) - Unplayable, Status
     //   Effect: Gain 1 less energy per turn.
     //   No upgrade.
+    public static class WasteAway extends Card {
+        public WasteAway() {
+            super("Waste Away", Card.STATUS, -1, Card.COMMON);
+            select1OutOf3CardEffectCard = true;
+            entityProperty.changeEnergyRefill = true;
+        }
+
+        @Override public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.energyRefill--;
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
 
     // Wound (Status) - Unplayable, Status
     //   Effect: Unplayable.
     public static class Wound extends CardOther.Wound {}
+
+    public static class KnowledgeDemonChoice extends Card {
+        public KnowledgeDemonChoice() {
+            super("Knowledge Demon Choice", Card.STATUS, -1, Card.COMMON);
+        }
+
+        @Override public List<Card> getPossibleSelect1OutOf3Cards(GameProperties gameProperties) {
+            return List.of(new Disintegration(), new MindRot(), new Sloth(), new WasteAway());
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.knowledgeDemonChoiceCardIdx = state.properties.findCardIndex(this);
+        }
+    }
 
     // Wither (Status) - Unplayable, Status
     //   Effect: Unplayable. At the end of your turn, if this is in your Hand, take 3 damage.

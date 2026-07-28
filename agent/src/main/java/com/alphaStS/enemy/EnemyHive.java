@@ -853,9 +853,7 @@ public class EnemyHive {
 
         @Override public void doMove(GameState state, EnemyReadOnly self) {
             if (move == CURSE_OF_KNOWLEDGE) {
-                // TODO: Implement choosing one of two status cards for each Knowledge Demon set.
-                state.addCardToDiscard(properties.generatedCardIdx);
-                curseCount++;
+                curseCount = Math.min(curseCount + 1, 3);
             } else if (move == SLAP) {
                 state.enemyDoDamageToPlayer(this, 18, 1);
             } else if (move == KNOWLEDGE_OVERWHELMING) {
@@ -903,7 +901,36 @@ public class EnemyHive {
         }
 
         @Override public List<Card> getPossibleGeneratedCards(GameProperties prop, List<Card> cards) {
-            return List.of(new CardOther2.Disintegration());
+            return List.of(new CardOther2.KnowledgeDemonChoice(), new CardOther2.Disintegration(), new CardOther2.MindRot(),
+                    new CardOther2.Sloth(), new CardOther2.WasteAway());
+        }
+
+        public int getCurseOfKnowledgeDamage() {
+            return 5 + curseCount;
+        }
+
+        public int getCurseOfKnowledgeCount() {
+            return curseCount;
+        }
+
+        public int[] getCurseOfKnowledgeOptions(GameProperties properties) {
+            int disintegration = properties.findCardIndex(new CardOther2.Disintegration());
+            if (curseCount == 1) {
+                return new int[] {disintegration, properties.findCardIndex(new CardOther2.MindRot())};
+            } else if (curseCount == 2) {
+                return new int[] {disintegration, properties.findCardIndex(new CardOther2.Sloth())};
+            } else {
+                return new int[] {disintegration, properties.findCardIndex(new CardOther2.WasteAway())};
+            }
+        }
+
+        public static int getCurseOfKnowledgeDamage(GameState state) {
+            for (EnemyReadOnly enemy : state.getEnemiesForRead()) {
+                if (enemy instanceof KnowledgeDemon knowledgeDemon) {
+                    return knowledgeDemon.getCurseOfKnowledgeDamage();
+                }
+            }
+            return 6;
         }
 
         @Override public String toString(GameState state) {

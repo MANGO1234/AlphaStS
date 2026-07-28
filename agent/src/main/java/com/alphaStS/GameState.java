@@ -45,6 +45,11 @@ public final class GameState implements State {
     private static final int BEGIN_TURN_STAGE_TYRANNY_DONE = 6;
     private static final int BEGIN_TURN_STAGE_ENTROPY_DONE = 7;
 
+    private static final int END_TURN_STAGE_WELL_LAID_PLANS_DONE = 1;
+    private static final int END_TURN_STAGE_DISCARD_DONE = 2;
+    private static final int END_TURN_STAGE_NILRYS_CODEX_DONE = 3;
+    private static final int END_TURN_STAGE_ENEMY_MOVES_DONE = 4;
+
     public static final int DISCARD = 1;
     public static final int DECK = 2;
     public static final int EXHAUST = 3;
@@ -1348,6 +1353,7 @@ public final class GameState implements State {
     private boolean isCardPlayBlocked() {
         return (properties.timeEaterCounterIdx >= 0 && counter[properties.timeEaterCounterIdx] >= 12) ||
             (properties.normalityCounterIdx >= 0 && counter[properties.normalityCounterIdx] >= 3 && GameStateUtils.getCardCount(getHandArrForRead(), handArrLen, properties.normalityCardIdx) > 0) ||
+            (properties.slothCounterIdx >= 0 && counter[properties.slothCounterIdx] > 0 && properties.cardsPlayedThisTurnCounterIdx >= 0 && counter[properties.cardsPlayedThisTurnCounterIdx] >= 3) ||
             (properties.velvetChokerCounterIdx >= 0 && counter[properties.velvetChokerCounterIdx] >= 6);
     }
 
@@ -2026,6 +2032,9 @@ public final class GameState implements State {
             drawCount--;
             getCounterForWrite()[properties.drawReductionCounterIdx]--;
         }
+        if (properties.mindRotCounterIdx >= 0) {
+            drawCount -= getCounterForRead()[properties.mindRotCounterIdx];
+        }
         if (properties.toolsOfTheTradeCounterIdx >= 0) {
             drawCount += getCounterForRead()[properties.toolsOfTheTradeCounterIdx];
         }
@@ -2264,31 +2273,118 @@ public final class GameState implements State {
     }
 
     public void endTurn() {
+        endTurn(null);
+    }
+
+    public void endTurn(GameAction previousAction) {
+        int stage = getEndTurnStage(previousAction);
         boolean spectralKnightHexActive = isSpectralKnightHexActive();
-        if (properties.wellLaidPlansCardIdx >= 0 && actionCtx != GameActionCtx.SELECT_CARD_HAND && getCounterForRead()[properties.wellLaidPlansCounterIdx] > 0 &&
+        if (stage < END_TURN_STAGE_WELL_LAID_PLANS_DONE && properties.wellLaidPlansCardIdx >= 0 && actionCtx != GameActionCtx.SELECT_CARD_HAND && getCounterForRead()[properties.wellLaidPlansCounterIdx] > 0 &&
                 !spectralKnightHexActive && isDiscardingCardEndOfTurn() && getNumCardsInHand() > 0) {
             var action = properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][properties.wellLaidPlansCardIdx];
             setActionCtx(GameActionCtx.SELECT_CARD_HAND, action, null);
             return;
         }
-        if (properties.gamblingChipsCardIdx >= 0 && actionCtx == GameActionCtx.SELECT_CARD_HAND) {
+        if (stage < END_TURN_STAGE_WELL_LAID_PLANS_DONE && properties.gamblingChipsCardIdx >= 0 && actionCtx == GameActionCtx.SELECT_CARD_HAND) {
             setActionCtx(GameActionCtx.PLAY_CARD, null, null);
             properties.cardDict[properties.gamblingChipsCardIdx].play(this, -1, 0);
             return;
         }
-        setActionCtx(GameActionCtx.BEGIN_TURN, null, null);
-        for (GameEventHandler handler : properties.preEndTurnHandlers) {
-            handler.handle(this);
+        if (stage < END_TURN_STAGE_DISCARD_DONE) {
+            setActionCtx(GameActionCtx.BEGIN_TURN, null, null);
+            for (GameEventHandler handler : properties.preEndTurnHandlers) {
+                handler.handle(this);
+            }
+            runActionsInQueueIfNonEmpty();
+            getPlayerForWrite().preEndTurn(this);
+            triggerOrbsPassiveEndOfTurn();
+            discardEndOfTurnCards(spectralKnightHexActive);
+        }
+        if (stage < END_TURN_STAGE_NILRYS_CODEX_DONE && properties.nilrysCodex != null && ((Relic.NilrysCodex) properties.nilrysCodex).openSelection(this)) {
+            return;
+        }
+        if (properties.hoveringKiteCounterIdx >= 0 && getCounterForRead()[properties.hoveringKiteCounterIdx] > 0) {
+            getCounterForWrite()[properties.hoveringKiteCounterIdx] = 0;
         }
         runActionsInQueueIfNonEmpty();
-        getPlayerForWrite().preEndTurn(this);
-        triggerOrbsPassiveEndOfTurn();
 
+        if (properties.timeEaterCounterIdx >= 0 && getCounterForRead()[properties.timeEaterCounterIdx] == 12) {
+            for (var enemy : getEnemiesForWrite().iterateOverAlive()) {
+                if (enemy instanceof EnemyBeyond.TimeEater) {
+                    enemy.gainStrength(2);
+                }
+            }
+        }
+        if (stage < END_TURN_STAGE_ENEMY_MOVES_DONE && !hasBuff(PlayerBuff.USED_VAULT)) {
+            var enemies = getEnemiesForWrite();
+            int[] livingEnemies = new int[enemies.size()];
+            int livingEnemiesCount = 0;
+            for (int i = 0; i < enemies.size(); i++) {
+                var enemy = enemies.get(i);
+                if (enemy.isAlive() || enemy.canSelfRevive(this)) {
+                    livingEnemies[livingEnemiesCount++] = i;
+                }
+            }
+            for (int i = 0; i < livingEnemiesCount; i++) {
+                if (enemies.getForWrite(livingEnemies[i]).getHealth() > 0) {
+                    enemies.getForWrite(livingEnemies[i]).startTurn(this);
+                }
+            }
+            EnemyHive.KnowledgeDemon knowledgeDemon = null;
+            for (int i = 0; i < livingEnemiesCount; i++) {
+                var enemy2 = enemies.getForWrite(livingEnemies[i]);
+                if (properties.isRunicDomeEnabled(this)) {
+                    var oldIsStochastic = isStochastic;
+                    isStochastic = false;
+                    enemy2.nextMove(this, getSearchRandomGen());
+                    if (isStochastic && properties.random instanceof InteractiveMode.RandomGenInteractive rgi && !rgi.rngOn) {
+                        rgi.selectEnemyMove(this, enemy2, i);
+                    }
+                    if (properties.makingRealMove && isStochastic) {
+                        getStateDesc().append(getStateDesc().length() > 0 ? "; " : "").append(enemy2.getName()).append(" (").append(i).append(") choose move ").append(enemy2.getMoveString(this));
+                    }
+                    isStochastic = oldIsStochastic | isStochastic;
+                }
+                if (enemy2.isAlive() || enemy2.canSelfRevive(this)) {
+                    if (enemy2 instanceof EnemyHive.KnowledgeDemon demon && enemy2.getMove() == EnemyHive.KnowledgeDemon.CURSE_OF_KNOWLEDGE) {
+                        knowledgeDemon = demon;
+                    }
+                    enemy2.doMove(this, enemy2);
+                }
+                runActionsInQueueIfNonEmpty();
+            }
+            for (int i = 0; i < livingEnemiesCount; i++) {
+                var enemy2 = enemies.getForWrite(livingEnemies[i]);
+                if (enemy2.isAlive() && enemy2.getDoom() > 0 && enemy2.getHealth() <= enemy2.getDoom()) {
+                    killEnemy(livingEnemies[i], true, EnemyDeathCause.DOOM);
+                }
+            }
+            if (enemiesAlive > 0 && knowledgeDemon != null) {
+                var options = knowledgeDemon.getCurseOfKnowledgeOptions(properties);
+                setSelect1OutOf3Idxes(options[0], options[1], -1);
+                var action = properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][properties.knowledgeDemonChoiceCardIdx];
+                setActionCtx(GameActionCtx.SELECT_CARD_1_OUT_OF_3, action, EnemyHive.KnowledgeDemon.class);
+                return;
+            }
+        }
+        for (GameEventHandler handler : properties.endOfTurnHandlers) {
+            handler.handle(this);
+        }
+        if (properties.timeEaterCounterIdx >= 0 && getCounterForRead()[properties.timeEaterCounterIdx] == 12) {
+            getCounterForWrite()[properties.timeEaterCounterIdx] = 0;
+        }
+        removeBuff(PlayerBuff.END_TURN_IMMEDIATELY);
+        getPlayerForWrite().endTurn(this);
+        if (properties.iceCream == null || !properties.iceCream.isRelicEnabledInScenario(this)) {
+            energy = 0;
+        }
+    }
+
+    private void discardEndOfTurnCards(boolean spectralKnightHexActive) {
         if (chosenCardsArr != null) {
             chosenCardsArr = Arrays.copyOf(chosenCardsArr, chosenCardsArrLen);
         }
 
-        // trigger burn, regret etc.
         int len = handArrLen + chosenCardsArrLen;
         for (int i = 0; i < handArrLen; i++) {
             if (properties.cardDict[handArr[i]].alwaysDiscard) {
@@ -2302,7 +2398,6 @@ public final class GameState implements State {
         }
         runActionsInQueueIfNonEmpty();
 
-        // discard cards from hand
         for (int i = handArrLen - 1; i >= 0; i--) {
             if (properties.cardDict[handArr[i]].ethereal() || spectralKnightHexActive) {
                 exhaustedCardHandle(handArr[i], false);
@@ -2311,7 +2406,6 @@ public final class GameState implements State {
                 addCardToDiscard(handArr[i]);
                 getHandArrForWrite()[i] = REMOVED_CARD_TOMBSTONE;
             } else if (properties.cardDict[handArr[i]].retain(this)) {
-                // Retain cards stay in hand, call onRetain handlers
                 for (var handler : properties.onRetainHandlers) {
                     handler.handle(this, i, -1, -1, null, -1);
                 }
@@ -2334,7 +2428,6 @@ public final class GameState implements State {
         }
         updateHandArr();
 
-        // Remove card modifications that expire at end of turn after retain processing is complete.
         if (properties.tmpModifiedCardReverseTransformIdxes != null) {
             transformCardsModifiedUntilEndOfTurn(getHandArrForWrite(), handArrLen);
             transformCardsModifiedUntilEndOfTurn(chosenCardsArr, chosenCardsArrLen);
@@ -2346,7 +2439,6 @@ public final class GameState implements State {
         transformBoundCards(getExhaustArrForWrite(), exhaustArrLen);
         removeBuff(PlayerBuff.BOUND_CARD_PLAYED);
 
-        // handle well laid plan cards
         for (int i = 0; i < chosenCardsArrLen; i++) {
             if (properties.cardDict[chosenCardsArr[i]].ethereal() || spectralKnightHexActive) {
                 exhaustedCardHandle(chosenCardsArr[i], false);
@@ -2357,83 +2449,24 @@ public final class GameState implements State {
             }
         }
         chosenCardsArrLen = 0;
-        if (properties.nilrysCodex != null && ((Relic.NilrysCodex) properties.nilrysCodex).openSelection(this)) {
-            return;
-        }
-        completeEndTurnRemainder();
     }
 
-    private void completeEndTurnRemainder() {
-        if (properties.hoveringKiteCounterIdx >= 0 && getCounterForRead()[properties.hoveringKiteCounterIdx] > 0) {
-            getCounterForWrite()[properties.hoveringKiteCounterIdx] = 0;
+    private int getEndTurnStage(GameAction previousAction) {
+        GameAction action = previousAction != null ? previousAction : currentAction;
+        if (action == null || action.type() != GameActionType.PLAY_CARD) {
+            return 0;
         }
-        runActionsInQueueIfNonEmpty();
-
-        if (properties.timeEaterCounterIdx >= 0 && getCounterForRead()[properties.timeEaterCounterIdx] == 12) {
-            for (var enemy : getEnemiesForWrite().iterateOverAlive()) {
-                if (enemy instanceof EnemyBeyond.TimeEater) {
-                    enemy.gainStrength(2);
-                }
-            }
+        int cardIdx = action.idx();
+        if (cardIdx == properties.wellLaidPlansCardIdx || cardIdx == properties.gamblingChipsCardIdx) {
+            return END_TURN_STAGE_WELL_LAID_PLANS_DONE;
         }
-        var enemies = getEnemiesForWrite();
-        int[] livingEnemies = new int[enemies.size()];
-        int livingEnemiesCount = 0;
-        boolean atLeastOneAlive = false;
-        for (int i = 0; i < enemies.size(); i++) {
-            var enemy = enemies.get(i);
-            if (enemy.isAlive() || enemy.canSelfRevive(this)) {
-                livingEnemies[livingEnemiesCount++] = i;
-                if (enemy.isAlive()) {
-                    atLeastOneAlive = true;
-                }
-            }
+        if (cardIdx == properties.nilroysCodexHelperCardIdx) {
+            return END_TURN_STAGE_NILRYS_CODEX_DONE;
         }
-        if (atLeastOneAlive && !hasBuff(PlayerBuff.USED_VAULT)) {
-            for (int i = 0; i < livingEnemiesCount; i++) {
-                if (enemies.getForWrite(livingEnemies[i]).getHealth() > 0) {
-                    enemies.getForWrite(livingEnemies[i]).startTurn(this);
-                }
-            }
-            for (int i = 0; i < livingEnemiesCount; i++) {
-                var enemy2 = enemies.getForWrite(livingEnemies[i]);
-                if (properties.isRunicDomeEnabled(this)) {
-                    var oldIsStochastic = isStochastic;
-                    isStochastic = false;
-                    enemy2.nextMove(this, getSearchRandomGen());
-                    if (isStochastic && properties.random instanceof InteractiveMode.RandomGenInteractive rgi && !rgi.rngOn) {
-                        rgi.selectEnemyMove(this, enemy2, i);
-                    }
-                    if (properties.makingRealMove && isStochastic) {
-                        getStateDesc().append(getStateDesc().length() > 0 ? "; " : "").append(enemy2.getName()).append(" (").append(i).append(") choose move ").append(enemy2.getMoveString(this));
-                    }
-                    isStochastic = oldIsStochastic | isStochastic;
-                }
-                if (enemy2.isAlive() || enemy2.canSelfRevive(this)) {
-                    enemy2.doMove(this, enemy2);
-                }
-                if (i != livingEnemiesCount - 1) {
-                    runActionsInQueueIfNonEmpty();
-                }
-            }
-            for (int i = 0; i < livingEnemiesCount; i++) {
-                var enemy2 = enemies.getForWrite(livingEnemies[i]);
-                if (enemy2.isAlive() && enemy2.getDoom() > 0 && enemy2.getHealth() <= enemy2.getDoom()) {
-                    killEnemy(livingEnemies[i], true, EnemyDeathCause.DOOM);
-                }
-            }
+        if (cardIdx == properties.knowledgeDemonChoiceCardIdx) {
+            return END_TURN_STAGE_ENEMY_MOVES_DONE;
         }
-        for (GameEventHandler handler : properties.endOfTurnHandlers) {
-            handler.handle(this);
-        }
-        if (properties.timeEaterCounterIdx >= 0 && getCounterForRead()[properties.timeEaterCounterIdx] == 12) {
-            getCounterForWrite()[properties.timeEaterCounterIdx] = 0;
-        }
-        removeBuff(PlayerBuff.END_TURN_IMMEDIATELY);
-        getPlayerForWrite().endTurn(this);
-        if (properties.iceCream == null || !properties.iceCream.isRelicEnabledInScenario(this)) {
-            energy = 0;
-        }
+        return 0;
     }
 
     public GameState doAction(int actionIdx) {
@@ -2519,9 +2552,15 @@ public final class GameState implements State {
             }
         } else if (action.type() == GameActionType.SELECT_CARD_1_OUT_OF_3) {
             if (currentAction != null && properties.nilroysCodexHelperCardIdx >= 0 && currentAction.idx() == properties.nilroysCodexHelperCardIdx) {
+                var previousAction = currentAction;
                 addCardToDeckRandom(createCard(action.idx()));
                 setActionCtx(GameActionCtx.BEGIN_TURN, null, null);
-                completeEndTurnRemainder();
+                endTurn(previousAction);
+            } else if (currentAction != null && properties.knowledgeDemonChoiceCardIdx >= 0 && currentAction.idx() == properties.knowledgeDemonChoiceCardIdx) {
+                var previousAction = currentAction;
+                properties.cardDict[action.idx()].play(this, 0, 0);
+                setActionCtx(GameActionCtx.BEGIN_TURN, null, null);
+                endTurn(previousAction);
             } else if (turnNum == 0) {
                 if (Configuration.HEART_GAUNTLET_CARD_REWARD) { // todo
                     addCardToDeckNonRandom(action.idx());
@@ -2582,7 +2621,7 @@ public final class GameState implements State {
                 var previousAction = currentAction;
                 var selectingCard = properties.cardDict[currentAction.idx()];
                 if (currentAction.idx() == properties.wellLaidPlansCardIdx || currentAction.idx() == properties.gamblingChipsCardIdx) {
-                    endTurn();
+                    endTurn(previousAction);
                 } else {
                     setActionCtx(selectingCard.endSelectHandAction(this), action, null);
                 }
@@ -2593,8 +2632,9 @@ public final class GameState implements State {
             }
         } else if (action.type() == GameActionType.END_SELECT_CARD_1_OUT_OF_3) {
             if (currentAction != null && properties.nilroysCodexHelperCardIdx >= 0 && currentAction.idx() == properties.nilroysCodexHelperCardIdx) {
+                var previousAction = currentAction;
                 setActionCtx(GameActionCtx.BEGIN_TURN, null, null);
-                completeEndTurnRemainder();
+                endTurn(previousAction);
             } else if (turnNum == 0) {
                 if (Configuration.HEART_GAUNTLET_CARD_REWARD) { // todo
                     setActionCtx(GameActionCtx.BEGIN_BATTLE, null, null);
@@ -2680,6 +2720,9 @@ public final class GameState implements State {
                 return false;
             }
             if (a[action].type() != GameActionType.SELECT_CARD_1_OUT_OF_3) {
+                if (currentAction != null && currentAction.idx() == properties.knowledgeDemonChoiceCardIdx) {
+                    return false;
+                }
                 return a[action].type() == GameActionType.END_SELECT_CARD_1_OUT_OF_3;
             }
             int idx = properties.select1OutOf3CardsReverseIdxes[a[action].idx()];

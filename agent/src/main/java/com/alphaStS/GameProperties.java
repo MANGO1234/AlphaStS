@@ -170,6 +170,7 @@ public class GameProperties implements Cloneable {
     public int foresightCardIdx = -1;
     public int foregoneConclusionCardIdx = -1;
     public int gamblingChipsCardIdx = -1;
+    public int knowledgeDemonChoiceCardIdx = -1;
     public int nilroysCodexHelperCardIdx = -1;
     public int normalityCardIdx = -1;
     public int sovereignBladeCardIdx = -1;
@@ -246,6 +247,7 @@ public class GameProperties implements Cloneable {
     public int corrosiveWaveCounterIdx = -1;
     public int crueltyCounterIdx = -1;
     public int currentGoldCounterIdx = -1;
+    public int disintegrationCounterIdx = -1;
     public int doomPerTurnCounterIdx = -1;
     public int drawNextTurnCounterIdx = -1;
     public int drawReductionCounterIdx = -1;
@@ -285,6 +287,7 @@ public class GameProperties implements Cloneable {
     public int loseFocusPerTurnCounterIdx = -1;
     public int madScienceCuriousCounterIdx = -1;
     public int mantraCounterIdx = -1;
+    public int mindRotCounterIdx = -1;
     public int metallicizeCounterIdx = -1;
     public int metronomeCounterIdx = -1;
     public int nextEtherealCostZeroCounterIdx = -1;
@@ -316,6 +319,7 @@ public class GameProperties implements Cloneable {
     public int shadowStepCounterIdx = -1;
     public int shadowmeldCounterIdx = -1;
     public int skillsPlayedThisTurnCounterIdx = -1;
+    public int slothCounterIdx = -1;
     public int sneakyStrikeCounterIdx = -1;
     public int sneckoDebuffCounterIdx = -1;
     public int starNextTurnCounterIdx = -1;
