@@ -1514,7 +1514,7 @@ public class CardColorless2 {
             if ((properties.generateCardOptions & GameProperties.GENERATE_CARD_JACKPOT) == 0) {
                 return List.of();
             }
-            var zeroCostCards = CardManager.getCharacter0CostCardsByType(properties.character);
+            var zeroCostCards = CardManager.getCharacter0CostCardsByCharacter(properties.character);
             return upgraded ? zeroCostCards.stream().map(Card::getUpgrade).filter(Objects::nonNull).toList() : zeroCostCards;
         }
     }

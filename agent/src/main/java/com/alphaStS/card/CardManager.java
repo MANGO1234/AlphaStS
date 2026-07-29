@@ -1195,11 +1195,11 @@ public class CardManager {
         return getCharacterCards(character, generateHealingCard).stream().filter((card) -> card.rarity == Card.RARE).toList();
     }
 
-    public static List<Card> getCharacter0CostCardsByType(CharacterEnum character) {
+    public static List<Card> getCharacter0CostCardsByCharacter(CharacterEnum character) {
         return getCharacterCards(character, false).stream().filter((card) -> card.energyCost == 0).toList();
     }
 
-    public static List<Card> getCharacterEtherealCardsByType(CharacterEnum character) {
+    public static List<Card> getCharacterEtherealCardsByCharacter(CharacterEnum character) {
         return getCharacterCards(character, false).stream().filter(Card::ethereal).toList();
     }
 

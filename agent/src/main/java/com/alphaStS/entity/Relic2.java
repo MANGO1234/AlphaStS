@@ -2969,7 +2969,7 @@ public class Relic2 {
         }
 
         @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
-            return CardManager.getCharacterEtherealCardsByType(properties.character);
+            return CardManager.getCharacterEtherealCardsByCharacter(properties.character);
         }
     }
 
@@ -3123,6 +3123,52 @@ public class Relic2 {
     public static class UndyingSignil extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.undyingSigil = this;
+        }
+    }
+
+    // **************************************************************************************************
+    // ********************************************* Special *********************************************
+    // **************************************************************************************************
+
+    // Infested Automation: Study (Event)
+    //   Effect: Upon pickup, gain a random Power.
+    public static class InfestedAutomationStudy extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.addStartOfBattleHandler("InfestedAutomationStudy", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (!isRelicEnabledInScenario(state) || !state.isFirstEncounter()) {
+                        return;
+                    }
+                    state.setIsStochastic();
+                    int r = state.getSearchRandomGen().nextInt(generatedCardIdxes.length, RandomGenCtx.RandomCardGen);
+                    state.addCardToDeckNonRandom(generatedCardIdxes[r]);
+                }
+            });
+        }
+
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            return CardManager.getCharacterCardsByType(properties.character, Card.POWER, false);
+        }
+    }
+
+    // Infested Automation: Touch the Core (Event)
+    //   Effect: Upon pickup, gain a random 0 cost card.
+    public static class InfestedAutomationTouchTheCore extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.addStartOfBattleHandler("InfestedAutomationTouchTheCore", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (!isRelicEnabledInScenario(state) || !state.isFirstEncounter()) {
+                        return;
+                    }
+                    state.setIsStochastic();
+                    int r = state.getSearchRandomGen().nextInt(generatedCardIdxes.length, RandomGenCtx.RandomCardGen);
+                    state.addCardToDeckNonRandom(generatedCardIdxes[r]);
+                }
+            });
+        }
+
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            return CardManager.getCharacter0CostCardsByCharacter(properties.character);
         }
     }
 }
