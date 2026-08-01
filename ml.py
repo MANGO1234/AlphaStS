@@ -7,15 +7,16 @@ import math
 import json
 import re
 import os
+import shutil
 import subprocess
 import struct
+import zipfile
 import tensorflow as tf
 import numpy as np
 import lz4.frame
 from tensorflow import keras
 from tensorflow.keras import layers
 from misc import getFlag, getFlagValue
-from keras import backend as K
 
 print(f'GUP Devices: {tf.config.list_physical_devices("GPU")}')
 
@@ -27,8 +28,6 @@ DO_TRAINING = getFlag('-training')
 USE_GPU = getFlag('-gpu')
 USE_GPU_AGENT_ONLY = getFlag('-gpu_agent')
 SKIP_TRAINING_MATCHES = getFlag('-s')
-PLAY_A_GAME = getFlag('-p')
-PLAY_MATCHES = getFlag('-m')
 NUMBER_OF_THREADS = int(getFlagValue('-t', 1))
 BATCH_PER_THREAD = int(getFlagValue('-b', 1))
 NUMBER_OF_THREADS_TRAINING = int(getFlagValue('-tt', 0))
@@ -42,7 +41,8 @@ SKIP_FIRST = getFlag('-skip_first')
 USE_CYCLIC_LR = getFlag('-cyclic')
 USE_ADAMW = getFlag('-adamw')
 USE_RESIDUAL_MLP = getFlag('-residual_mlp')
-USE_AGENT_JAR = getFlag('-jar')
+AGENT_JAR = getFlagValue('-jar')
+USE_KAGGLE = getFlag('-kaggle')
 
 if NUMBER_OF_THREADS_TRAINING > 0:
     tf.config.threading.set_intra_op_parallelism_threads(1)
@@ -73,13 +73,14 @@ if platform.system() == 'Windows':
     sep = ';'
 
 CLASS_PATH = f'./agent/target/classes{sep}{os.getenv("M2_HOME")}/repository/com/microsoft/onnxruntime/{onnx_jar}{sep}./agent/src/resources/mallet.jar{sep}./agent/src/resources/mallet-deps.jar{sep}{os.getenv("M2_HOME")}/repository/org/jdom/jdom/1.1/jdom-1.1.jar{sep}{os.getenv("M2_HOME")}/repository/com/fasterxml/jackson/core/jackson-databind/2.12.4/jackson-databind-2.12.4.jar{sep}{os.getenv("M2_HOME")}/repository/com/fasterxml/jackson/core/jackson-annotations/2.12.4/jackson-annotations-2.12.4.jar{sep}{os.getenv("M2_HOME")}/repository/com/fasterxml/jackson/core/jackson-core/2.12.4/jackson-core-2.12.4.jar{sep}{os.getenv("M2_HOME")}/repository/org/apache/commons/commons-compress/1.21/commons-compress-1.21.jar{sep}{os.getenv("M2_HOME")}/repository/org/apache/commons/commons-math3/3.6.1/commons-math3-3.6.1.jar{sep}{os.getenv("M2_HOME")}/repository/one/util/streamex/0.8.3/streamex-0.8.3.jar'
-AGENT_JAR = './agent/target/alphaStS-1.0-SNAPSHOT-jar-with-dependencies.jar'
 
 
 def make_agent_args(args):
     agent_args = ['java']
     agent_args += ['--add-opens', 'java.base/java.util=ALL-UNNAMED']
-    if USE_AGENT_JAR:
+    if tmpdir:
+        agent_args += ['-Djava.io.tmpdir=D:/tmp']
+    if AGENT_JAR is not None:
         agent_args += ['-jar', AGENT_JAR]
     else:
         agent_args += ['-classpath', CLASS_PATH, 'com.alphaStS.Main']
@@ -154,6 +155,13 @@ def make_optimizer():
     return tf.keras.optimizers.SGD(learning_rate=0.1, momentum=0.9)
 
 
+def set_learning_rate(optimizer, learning_rate):
+    if hasattr(optimizer.learning_rate, 'assign'):
+        optimizer.learning_rate.assign(learning_rate)
+    else:
+        optimizer.learning_rate = learning_rate
+
+
 def make_loss_config():
     loss = {
         'exp_health_head': mse_ignoring_out_of_bound,
@@ -194,9 +202,40 @@ def residual_mlp_block(x, width, name):
     return x
 
 
-if os.path.exists(f'{SAVES_DIR}/iteration{training_info["iteration"] - 1}'):
+def get_model_path(iteration):
+    path = f'{SAVES_DIR}/iteration{iteration}'
+    if USE_KAGGLE:
+        return f'{path}/model.keras'
+    return path
+
+
+def cleanup_kaggle_saves():
+    if not USE_KAGGLE:
+        return
+    save_zip = os.path.join(SAVES_DIR, 'save.zip')
+    tmp_zip = os.path.join(os.path.dirname(os.path.abspath(SAVES_DIR)), '.save.zip.tmp')
+    print(f'Compressing {SAVES_DIR} to {save_zip}')
+    with zipfile.ZipFile(tmp_zip, 'w', zipfile.ZIP_DEFLATED) as z:
+        for root, _, files in os.walk(SAVES_DIR):
+            for file_name in files:
+                file_path = os.path.join(root, file_name)
+                if os.path.abspath(file_path) in {os.path.abspath(save_zip), os.path.abspath(tmp_zip)}:
+                    continue
+                z.write(file_path, os.path.relpath(file_path, SAVES_DIR))
+    os.replace(tmp_zip, save_zip)
+    # save_zip_abs = os.path.abspath(save_zip)
+    # for entry in os.scandir(SAVES_DIR):
+    #     if os.path.abspath(entry.path) == save_zip_abs:
+    #         continue
+    #     if entry.is_dir():
+    #         shutil.rmtree(entry.path)
+    #     else:
+    #         os.remove(entry.path)
+
+
+if os.path.exists(get_model_path(training_info["iteration"] - 1)):
     with keras.utils.custom_object_scope(custom_objects):
-        model = tf.keras.models.load_model(f'{SAVES_DIR}/iteration{training_info["iteration"] - 1}')
+        model = tf.keras.models.load_model(get_model_path(training_info["iteration"] - 1))
         compile_model(model)
 else:
     inputs = keras.Input(shape=(input_len,))
@@ -244,8 +283,8 @@ else:
         idx += 1
     model = keras.Model(inputs=[inputs], outputs=[exp_health_head, exp_win_head, policy_head] + exp_other_heads)
     compile_model(model)
-    os.mkdir(f'{SAVES_DIR}/iteration0')
-    model.save(f'{SAVES_DIR}/iteration0')
+    os.makedirs(f'{SAVES_DIR}/iteration0', exist_ok=True)
+    model.save(get_model_path(0))
     convertToOnnx(model, input_len, f'{SAVES_DIR}/iteration0')
 
 
@@ -417,7 +456,7 @@ if DO_TRAINING:
                 lr = 0.05 + (0.5 - 0.05) / 7 * t
             else:
                 lr = 0.05 + (0.5 - 0.05) / 7 * (14 - t)
-            K.set_value(model.optimizer.learning_rate, lr)
+            set_learning_rate(model.optimizer, lr)
 
         iteration_info['agent_time'] = round(time.time() - iter_start, 2)
         iteration_info['num_of_samples'] = len(training_pool)
@@ -453,7 +492,7 @@ if DO_TRAINING:
             iteration_info['loss'] = fit_result.history['loss'][-1]
         if not os.path.exists(f'{SAVES_DIR}/iteration{training_info["iteration"]}'):
             os.mkdir(f'{SAVES_DIR}/iteration{training_info["iteration"]}')
-        model.save(f'{SAVES_DIR}/iteration{training_info["iteration"]}')
+        model.save(get_model_path(training_info["iteration"]))
 
         convertToOnnx(model, input_len, f'{SAVES_DIR}/iteration{training_info["iteration"]}')
         training_info['iteration'] += 1
@@ -478,17 +517,4 @@ if DO_TRAINING:
             with open(f'{SAVES_DIR}/training.json', 'w') as f:
                 json.dump(training_info, f)
 
-
-if PLAY_A_GAME:
-    agent_args = make_agent_args(['--server'])
-    agent_output = subprocess.run(agent_args, capture_output=True)
-    print(agent_output.stdout.decode('ascii'))
-    print(agent_output.stderr.decode('ascii'))
-    print(time.time() - start)
-
-if PLAY_MATCHES:
-    agent_args = make_agent_args(['--client'])
-    agent_output = subprocess.run(agent_args, capture_output=True)
-    print(agent_output.stdout.decode('ascii'))
-    print(agent_output.stderr.decode('ascii'))
-    print(time.time() - start)
+cleanup_kaggle_saves()

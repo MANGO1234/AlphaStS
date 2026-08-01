@@ -487,7 +487,8 @@ public class InteractiveMode {
                 executeWithRngEnabled(state, history, () -> runNNPV2(s, cmd, reader));
                 break;
             } else if (r == 6) {
-                out.println(Arrays.toString(state.getNNInput()));
+                state.printNNInput(state.getNNInput());
+//                out.println(Arrays.toString(state.getNNInput()));
                 break;
             } else if (r == 7) {
                 out.print("Model directory: ");
@@ -1020,7 +1021,7 @@ public class InteractiveMode {
                     for (int j = 0; j < state.properties.counterInfos[i].length; j++) {
                         if (state.getCounterForRead()[state.properties.counterInfos[i].idx + j] != 0) {
                             String counterStr = state.properties.counterInfos[i].handler.getDisplayString(state);
-                            out.println("    - " + state.properties.counterInfos[i].name + j + "=" + (counterStr != null ? counterStr : state.getCounterForRead()[state.properties.counterInfos[i].idx + j]));
+                            out.println("    - " + state.properties.counterInfos[i].name + ":" + j + "=" + (counterStr != null ? counterStr : state.getCounterForRead()[state.properties.counterInfos[i].idx + j]));
                         }
                     }
                 }
@@ -1804,7 +1805,7 @@ public class InteractiveMode {
     }
 
     private int selectEnemyHealth(BufferedReader reader, int baseHealth, int bound, List<String> history) throws IOException {
-        out.printf("Select Enemy Health (%d - %d): %n\n", baseHealth, baseHealth + bound - 1);
+        out.printf("Select Enemy Health (%d - %d):%n", baseHealth, baseHealth + bound - 1);
         while (true) {
             out.print("> ");
             String line = reader.readLine();
@@ -2144,7 +2145,7 @@ public class InteractiveMode {
                 double speed = ((double) doneCount.get() - startCount) / (System.currentTimeMillis() - startTime) * 1000;
                 out.println("Time: " + (System.currentTimeMillis() - startTime) + " ms, Speed: " + Utils.formatFloat(speed) + " " + item + "/s (" + doneCount.get() + " " + item + " searched)" + (extraDetails != null ? " " + extraDetails.get() : ""));
                 printCount++;
-                if (treeStatsDetails != null && printCount % 5 == 0) {
+                if (treeStatsDetails != null && printCount % 20 == 0) {
                     out.println(treeStatsDetails.get());
                 }
                 lastPrintTime = System.currentTimeMillis();
@@ -2152,9 +2153,9 @@ public class InteractiveMode {
         }
         double speed = ((double) Math.max(0, doneCount.get() - startCount)) / (System.currentTimeMillis() - startTime) * 1000;
         out.println("Time: " + (System.currentTimeMillis() - startTime) + " ms, Speed: " + Utils.formatFloat(speed) + " " + item + "/s (" + doneCount.get() + " " + item + " searched)" + (extraDetails != null ? " " + extraDetails.get() : ""));
-        if (treeStatsDetails != null) {
-            out.println(treeStatsDetails.get());
-        }
+//        if (treeStatsDetails != null) {
+//            out.println(treeStatsDetails.get());
+//        }
     }
 
     int nnPVLastNodeCount = 1000;

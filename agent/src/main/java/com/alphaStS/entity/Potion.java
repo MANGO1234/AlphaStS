@@ -1209,5 +1209,11 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
     }
 
-    // No need to implement Fruit Juice
+    public static class FruitJuice extends Potion {
+        @Override public GameActionCtx use(GameState state, int idx) {
+            state.getPlayerForWrite().setInBattleMaxHealth(state.getPlayerForRead().getInBattleMaxHealth() + 5);
+            state.getPlayerForWrite().heal(5);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
 }

@@ -1448,6 +1448,7 @@ public class TestStates {
         builder.addRelic(new Relic.AncientTeaSet());
         builder.addRelic(new Relic.CursedKey());
         builder.addRelic(new Relic.Toolbox());
+        builder.setGenerateCardOptions(GameProperties.GENERATE_CARD_COLORLESS);
         return new GameState(builder);
     }
 
@@ -1499,6 +1500,7 @@ public class TestStates {
         builder.addRelic(new Relic.CursedKey());
         builder.addRelic(new Relic.Toolbox());
         builder.addRelic(new Relic.DataDisk());
+        builder.setGenerateCardOptions(GameProperties.GENERATE_CARD_COLORLESS);
         return new GameState(builder);
     }
 

@@ -22,6 +22,7 @@ import com.alphaStS.utils.CounterStat;
 import com.alphaStS.utils.Tuple;
 import com.alphaStS.utils.Utils;
 import one.util.streamex.IntStreamEx;
+import org.apache.commons.io.filefilter.CanExecuteFileFilter;
 
 import java.util.*;
 
@@ -702,7 +703,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
 
         @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
-            return cards.stream().map((card) -> card.getUpgrade(properties)).filter(Objects::nonNull).distinct().toList();
+            return cards.stream().map(Card::getUpgrade).filter(Objects::nonNull).filter((card) -> card.cardType == Card.SKILL).distinct().toList();
         }
     }
 
@@ -1155,7 +1156,11 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                         counter[counterIdx]++;
                         if (counter[counterIdx] == 3) {
                             counter[counterIdx] = 0;
-                            state.playerGainStrength(1);
+                            state.addGameActionToEndOfDeque(new GameEnvironmentAction() {
+                                @Override public void doAction(GameState state) {
+                                    state.playerGainStrength(1);
+                                }
+                            });
                         }
                     }
                 }
@@ -3135,14 +3140,16 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     public static class AddCardBeforeBattleStarts2 extends Relic {
         private final List<Card> cards;
+        private final boolean canEndEarly;
 
-        public AddCardBeforeBattleStarts2(int count, List<Card> cards) {
-            startOfBattleAction = new CardOther.AddCardBeforeBattleStarts2(cards, count);
+        public AddCardBeforeBattleStarts2(int count, boolean canEndEarly, List<Card> cards) {
+            startOfBattleAction = new CardOther.AddCardBeforeBattleStarts2(cards, count, canEndEarly);
             this.cards = cards;
+            this.canEndEarly = canEndEarly;
         }
 
         public AddCardBeforeBattleStarts2(List<Card> cards) {
-            this(1, cards);
+            this(1, true, cards);
         }
 
         @Override public List<Card> getPossibleGeneratedCards(GameProperties gameProperties, List<Card> cards) {

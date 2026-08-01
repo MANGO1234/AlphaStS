@@ -2,6 +2,7 @@ package com.alphaStS.card;
 
 import com.alphaStS.*;
 import com.alphaStS.enemy.PredefinedEncounter;
+import com.alphaStS.entity.Relic2;
 import com.alphaStS.enums.DebuffType;
 import com.alphaStS.gameAction.GameActionCtx;
 import com.alphaStS.enums.Stance;
@@ -9,7 +10,6 @@ import com.alphaStS.eventHandler.GameEventCardHandler;
 import com.alphaStS.eventHandler.GameEventHandler;
 import com.alphaStS.random.RandomGenCtx;
 import com.alphaStS.utils.Tuple;
-import org.apache.commons.compress.harmony.unpack200.bytecode.forms.IincForm;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -453,10 +453,6 @@ public class CardOther {
                 state.getCounterForWrite()[counterIdx] = 0;
                 return GameActionCtx.START_OF_BATTLE;
             }
-            if (state.properties.inMCTSSearch && state.getSearchRandomGen().nextInt(100, RandomGenCtx.Misc) < 5) {
-                state.getCounterForWrite()[counterIdx] = 0;
-                return GameActionCtx.START_OF_BATTLE;
-            }
             cards = this.cards.get(state.getCounterForWrite()[counterIdx]);
             for (Card card : cards) {
                 state.addCardToExhaust(state.properties.findCardIndex(card));
@@ -481,8 +477,9 @@ public class CardOther {
     public static class AddCardBeforeBattleStarts2 extends Card {
         public final int count;
         public final List<Card> cards;
+        public final boolean canEndEarly;
 
-        public AddCardBeforeBattleStarts2(List<Card> cards, int count) {
+        public AddCardBeforeBattleStarts2(List<Card> cards, int count, boolean canEndEarly) {
             super("Add Card " + count, Card.STATUS, -1, Card.COMMON);
             if (cards.isEmpty() || count <= 0) {
                 throw new IllegalArgumentException();
@@ -490,6 +487,7 @@ public class CardOther {
             entityProperty.selectFromExhaust = true;
             this.count = count;
             this.cards = cards;
+            this.canEndEarly = canEndEarly;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -522,19 +520,19 @@ public class CardOther {
             for (Card card : cards) {
                 state.addCardToExhaust(state.properties.findCardIndex(card));
             }
-            state.addCardToExhaust(state.properties.findCardIndex(this));
+            if (canEndEarly) {
+                state.addCardToExhaust(state.properties.findCardIndex(this));
+            }
         }
 
         private void reset(GameState state) {
             for (Card card : cards) {
                 state.removeCardFromExhaust(state.properties.findCardIndex(card));
             }
-            state.removeCardFromExhaust(state.properties.findCardIndex(this));
+            if (canEndEarly) {
+                state.removeCardFromExhaust(state.properties.findCardIndex(this));
+            }
             state.getCounterForWrite()[counterIdx] = 0;
-        }
-
-        @Override public boolean canSelectCard(Card card) {
-            return card instanceof AddCardBeforeBattleStarts2 || cards.stream().anyMatch((c) -> card.cardName.equals(c.cardName));
         }
 
         public void gamePropertiesSetup(GameState state) {
@@ -554,12 +552,18 @@ public class CardOther {
         private static final int NUM_CARDS_TO_OFFER = 8;
         private static final int NUM_CARDS_TO_ADD = 2;
 
-        public RoomFullOfCheeseGorgeAction() {
+        private Relic2.RoomFullOfCheeseGorge parentRelic;
+
+        public RoomFullOfCheeseGorgeAction(Relic2.RoomFullOfCheeseGorge parentRelic) {
             super("Room Full Of Cheese Gorge", Card.STATUS, -1, Card.COMMON);
             entityProperty.selectFromExhaust = true;
+            this.parentRelic = parentRelic;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            if (!parentRelic.isRelicEnabledInScenario(state)) {
+                return GameActionCtx.START_OF_BATTLE;
+            }
             if (state.actionCtx == GameActionCtx.START_OF_BATTLE) {
                 addCardsToExhaust(state);
                 return GameActionCtx.SELECT_CARD_EXHAUST;

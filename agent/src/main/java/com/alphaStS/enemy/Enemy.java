@@ -143,6 +143,9 @@ public abstract class Enemy extends EnemyReadOnly {
         if (powderedDemise > 0) {
             state.playerDoNonAttackDamageToEnemy(this, powderedDemise, false);
         }
+        if (plating > 0) {
+            plating--;
+        }
     }
 
     public void endTurn(int turnNum) {
@@ -173,7 +176,6 @@ public abstract class Enemy extends EnemyReadOnly {
         }
         if (plating > 0) {
             gainBlock(plating);
-            plating--;
         }
         if (platedArmor > 0) {
             gainBlock(platedArmor);

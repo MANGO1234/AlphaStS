@@ -509,11 +509,18 @@ public class CardDefect2 {
                     attackCount++;
                 }
             }
+            int[] attacks = new int[attackCount];
+            int count = 0;
+            for (int i = 0; i < state.deckArrLen; i++) {
+                if (state.properties.cardDict[state.deckArr[i]].cardType == Card.ATTACK) {
+                    attacks[count++] = state.deckArr[i];
+                }
+            }
             if (attackCount > 0) {
                 int r = 0;
                 if (attackCount > 1) {
                     state.setIsStochastic();
-                    r = state.getSearchRandomGen().nextInt(attackCount, RandomGenCtx.RandomCardGen, new Tuple<>(state, null));
+                    r = state.getSearchRandomGen().nextInt(attackCount, RandomGenCtx.RandomCardGen, new Tuple<>(state, attacks));
                 }
                 count = 0;
                 for (int i = 0; i < state.deckArrLen; i++) {
@@ -1417,7 +1424,6 @@ public class CardDefect2 {
                     if (state.properties.cardDict[cardIdx].cardType == Card.POWER
                             && state.getCounterForRead()[counterIdx] > 0) {
                         state.getCounterForWrite()[counterIdx]--;
-                        state.gainEnergy(energyUsed);
                     }
                 }
             });

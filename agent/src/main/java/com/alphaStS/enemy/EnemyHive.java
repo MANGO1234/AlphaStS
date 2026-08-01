@@ -867,15 +867,9 @@ public class EnemyHive {
 
         @Override public void nextMove(GameState state, RandomGen random) {
             lastMove = move;
-            if (move < 0) {
-                move = curseCount < 3 ? CURSE_OF_KNOWLEDGE : SLAP;
-            } else if (curseCount >= 3 && move == PONDER) {
-                move = SLAP;
-            } else {
+            move = (move + 1) % 4;
+            if (move == CURSE_OF_KNOWLEDGE && curseCount >= 3) {
                 move = (move + 1) % 4;
-                if (curseCount >= 3 && move == CURSE_OF_KNOWLEDGE) {
-                    move = SLAP;
-                }
             }
         }
 
@@ -943,16 +937,16 @@ public class EnemyHive {
         }
 
         @Override public int getNNInputLen(GameProperties prop) {
-            return 1;
+            return 4;
         }
 
         @Override public String getNNInputDesc(GameProperties prop) {
-            return "1 input to keep track of Knowledge Demon curse sets";
+            return "4 inputs to keep track of Knowledge Demon curse sets";
         }
 
         @Override public int writeNNInput(GameProperties prop, float[] input, int idx) {
-            input[idx] = curseCount / 3.0f;
-            return 1;
+            input[idx + curseCount] = 0.5f;
+            return 4;
         }
 
         @Override public void interactiveModePrint(GameState state, PrintStream out) {

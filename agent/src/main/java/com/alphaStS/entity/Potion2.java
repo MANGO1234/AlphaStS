@@ -298,9 +298,9 @@ public class Potion2 {
             if (idx < 0 || idx >= state.properties.cardDict.length) {
                 return GameActionCtx.PLAY_CARD;
             }
-            if (state.properties.tmp0CostCardTransformIdxes[idx] >= 0) {
+            if (state.properties.perm0CostCardTransformIdxes[idx] >= 0) {
                 state.removeCardFromHand(idx);
-                state.addCardToHand(state.properties.tmp0CostCardTransformIdxes[idx]);
+                state.addCardToHand(state.properties.perm0CostCardTransformIdxes[idx]);
             }
             if (state.properties.sacredBark != null && state.properties.sacredBark.isRelicEnabledInScenario(state)) {
                 state.getCounterForWrite()[counterIdx]++;
@@ -314,7 +314,7 @@ public class Potion2 {
         }
 
         @Override public List<Card> getPossibleGeneratedCards(GameProperties gameProperties, List<Card> cards) {
-            return cards.stream().filter((x) -> !x.isXCost && x.energyCost > 0).map((x) -> (Card) x.getTemporaryCostIfPossible(0)).toList();
+            return cards.stream().filter((x) -> !x.isXCost && x.energyCost > 0).map((x) -> (Card) x.getPermCostIfPossible(0)).toList();
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
@@ -416,7 +416,8 @@ public class Potion2 {
     public static class FairyInABottle extends Potion.FairyInABottle {
     }
 
-    // No need to implement Fruit Juice
+    public static class FruitJuice extends Potion.FruitJuice {
+    }
 
     // Gigantification Potion (Rare)
     //   Effect: The next Attack you play deals triple damage.

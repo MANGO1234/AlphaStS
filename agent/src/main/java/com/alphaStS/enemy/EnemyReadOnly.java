@@ -468,6 +468,18 @@ public abstract class EnemyReadOnly implements GameProperties.TrainingTargetRegi
         if (sicEm > 0) {
             str += ", sicEm=" + sicEm;
         }
+        if (hang > 0) {
+            str += ", hang=" + hang;
+        }
+        if (doomPerCard > 0) {
+            str += ", doomPerCard=" + doomPerCard;
+        }
+        if (powderedDemise > 0) {
+            str += ", powderedDemise=" + powderedDemise;
+        }
+        if (beetleJuice > 0) {
+            str += ", beetleJuice=" + beetleJuice;
+        }
         return str + '}';
     }
 

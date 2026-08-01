@@ -101,7 +101,7 @@ public enum PredefinedEncounter {
     BOWLBUG_SILK("Bowlbug (Silk)", 2, () -> List.of(new EnemyHive.BowlbugSilk())),
     BOWLBUG_NECTAR("Bowlbug (Nectar)", 2, () -> List.of(new EnemyHive.BowlbugNectar())),
     CHOMPERS("Chompers", 2, () -> List.of(new EnemyHive.Chomper(EnemyHive.Chomper.CLAMP), new EnemyHive.Chomper(EnemyHive.Chomper.SCREECH))),
-    DECIMILLIPEDE("Decimillipede", 2, () -> List.of(new EnemyHive.Decimillipede(EnemyHive.Decimillipede.BULK), new EnemyHive.Decimillipede(EnemyHive.Decimillipede.WRITHE), new EnemyHive.Decimillipede(EnemyHive.Decimillipede.OUTGAS))),
+    DECIMILLIPEDE("Decimillipede", 2, () -> List.of(new EnemyHive.Decimillipede(EnemyHive.Decimillipede.WRITHE), new EnemyHive.Decimillipede(EnemyHive.Decimillipede.BULK), new EnemyHive.Decimillipede(EnemyHive.Decimillipede.OUTGAS))),
     ENTOMANCER("Entomancer", 2, () -> List.of(new EnemyHive.Entomancer())),
     EXOSKELETONS("Exoskeletons", 2, () -> List.of(new EnemyHive.Exoskeleton(EnemyHive.Exoskeleton.SKITTER), new EnemyHive.Exoskeleton(EnemyHive.Exoskeleton.MANDIBLES), new EnemyHive.Exoskeleton(EnemyHive.Exoskeleton.ENRAGE), new EnemyHive.Exoskeleton(-1))),
     HUNTER_KILLER("Hunter Killer", 2, () -> List.of(new EnemyHive.HunterKiller())),

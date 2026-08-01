@@ -93,7 +93,7 @@ public class Relic2 {
     //   Effect: At the start of each combat, choose 2 of 8 random Common cards to add to your deck.
     public static class RoomFullOfCheeseGorge extends Relic {
         public RoomFullOfCheeseGorge() {
-            startOfBattleAction = new CardOther.RoomFullOfCheeseGorgeAction();
+            startOfBattleAction = new CardOther.RoomFullOfCheeseGorgeAction(this);
         }
 
         @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
@@ -131,10 +131,6 @@ public class Relic2 {
     public static class Pendulum extends Relic {
         int n;
         int healthReward;
-
-        public Pendulum() {
-            this(0, 0);
-        }
 
         public Pendulum(int n, int healthReward) {
             this.n = n;
@@ -362,10 +358,6 @@ public class Relic2 {
         int n;
         int healthReward;
 
-        public JossPaper(int healthReward) {
-            this(0, healthReward);
-        }
-
         public JossPaper(int n, int healthReward) {
             this.n = n;
             this.healthReward = healthReward;
@@ -465,10 +457,6 @@ public class Relic2 {
                     }
                 }
             });
-        }
-
-        @Override public CounterStat getCounterStat() {
-            return new CounterStat(counterIdx, "Kusarigama");
         }
     }
 
@@ -668,6 +656,10 @@ public class Relic2 {
                 }
             });
         }
+
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            return cards.stream().map((card) -> card.getUpgrade(properties)).filter(Objects::nonNull).distinct().toList();
+        }
     }
 
     // Tuning Fork (Uncommon)
@@ -754,13 +746,6 @@ public class Relic2 {
 
                 @Override public void onRegister(int counterIdx) {
                     state.properties.vambraceCounterIdx = counterIdx;
-                }
-            });
-            state.properties.addStartOfBattleHandler("Vambrace", new GameEventHandler() {
-                @Override public void handle(GameState state) {
-                    if (isRelicEnabledInScenario(state)) {
-                        state.getCounterForWrite()[counterIdx] = 0;
-                    }
                 }
             });
         }
@@ -1473,14 +1458,6 @@ public class Relic2 {
         private final int n;
         private final int healthReward;
 
-        public PollinousCore() {
-            this(0, 0);
-        }
-
-        public PollinousCore(int healthReward) {
-            this(0, healthReward);
-        }
-
         public PollinousCore(int n, int healthReward) {
             this.n = n;
             this.healthReward = healthReward;
@@ -1851,10 +1828,6 @@ public class Relic2 {
     public static class IronClub extends Relic {
         int n;
         int healthReward;
-
-        public IronClub() {
-            this(0, 0);
-        }
 
         public IronClub(int n, int healthReward) {
             this.n = n;

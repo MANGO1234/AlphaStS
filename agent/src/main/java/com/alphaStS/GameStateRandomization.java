@@ -649,6 +649,10 @@ public interface GameStateRandomization {
             }
         }
 
+        public StateModificationRandomization(StateModification modification) {
+            this(List.of(List.of(modification)));
+        }
+
         @Override public int randomize(GameState state) {
             int r = state.getSearchRandomGen().nextInt(scenarios.size(), RandomGenCtx.BeginningOfGameRandomization, this);
             randomize(state, r);

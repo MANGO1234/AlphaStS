@@ -146,6 +146,7 @@ public class GameProperties implements Cloneable {
     public int[] discardIdxes; // cards that can change in number of copies during a fight
     public int[] discardReverseIdxes;
     public int[] healCardsIdxes;
+    public int[] perm0CostCardTransformIdxes;
     public int[] permSlyTransformIdxes;
     public int[] select1OutOf3CardsIdxes;
     public int[] select1OutOf3CardsReverseIdxes;

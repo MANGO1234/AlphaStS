@@ -3,6 +3,7 @@ package com.alphaStS;
 import com.alphaStS.gameAction.GameActionCtx;
 import com.alphaStS.gui.BattleBuilderGuiServer;
 import com.alphaStS.model.ModelPlain;
+import com.alphaStS.random.RandomGen;
 import com.alphaStS.test.TestRunner;
 import com.alphaStS.utils.ServerRequest;
 import com.alphaStS.utils.Tuple3;
@@ -14,6 +15,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import java.io.*;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.time.LocalDateTime;
@@ -29,7 +32,7 @@ public class Main {
             return;
         }
 
-        var state = TestStates.TestState();
+        var state = getTestState();
 //        ((RandomGen.RandomGenPlain) state.properties.random).random.setSeed(5);
 
         if (args.length > 0 && args[0].equals("--get-lengths")) {
@@ -62,9 +65,28 @@ public class Main {
         }
     }
 
+    private static GameState getTestState() {
+        var testState = System.getenv("TEST_STATE");
+        if (testState == null || testState.isBlank()) {
+            return TestStates.TestState();
+        }
+        try {
+            Method method = TestStates.class.getMethod(testState);
+            if (!GameState.class.isAssignableFrom(method.getReturnType())) {
+                throw new IllegalArgumentException("TestStates." + testState + " does not return a GameState");
+            }
+            return (GameState) method.invoke(null);
+        } catch (NoSuchMethodException e) {
+            throw new IllegalArgumentException("Unable to find TestStates." + testState, e);
+        } catch (IllegalAccessException | InvocationTargetException e) {
+            throw new RuntimeException("Unable to create TestStates." + testState, e);
+        }
+    }
+
     private static int Z_TRAINING_UPTO_ITERATION = 20;
     private static boolean CURRICULUM_TRAINING_ON = false;
     private static int NUMBER_OF_GAMES_TO_PLAY = 5;
+    private static int NUMBER_OF_GAMES_PER_SCENARIO = 0;
     private static int NUMBER_OF_NODES_PER_TURN = 1000;
     private static int TRAINING_NUMBER_OF_GAMES_TO_PLAY = 200;
     private static int TRAINING_NUMBER_OF_NODES_PER_TURN = 100;
@@ -110,6 +132,10 @@ public class Main {
                 NUMBER_OF_GAMES_TO_PLAY = Integer.parseInt(args[i + 1]);
                 i++;
             }
+            if (args[i].equals("-c_scenario")) {
+                NUMBER_OF_GAMES_PER_SCENARIO = Integer.parseInt(args[i + 1]);
+                i++;
+            }
             if (args[i].equals("-n")) {
                 NUMBER_OF_NODES_PER_TURN = Integer.parseInt(args[i + 1]);
                 i++;
@@ -135,21 +161,24 @@ public class Main {
             }
         }
 
+        int n = state.properties.randomization == null ? 1 : state.properties.randomization.listRandomizations().size();
+        n *= state.properties.preBattleRandomization == null ? 1 : state.properties.preBattleRandomization.listRandomizations().size();
+        n *= state.properties.preBattleScenarios == null ? 1 : state.properties.preBattleScenarios.listRandomizations().size();
         if (SAVES_DIR.startsWith("../")) {
             SAVES_DIR = "../saves";
             Configuration.PRINT_DAMAGE_LEVEL = Configuration.PrintDamageLevel.NONE;
             Configuration.STATS_PRINT_CARD_USAGE_COUNT = false;
             Configuration.WRITE_MATCHES_MAX_COUNT = 100;
             Configuration.WRITE_MATCHES_FILTER = null;
-            int n = state.properties.randomization == null ? 1 : state.properties.randomization.listRandomizations().size();
-            n *= state.properties.preBattleRandomization == null ? 1 : state.properties.preBattleRandomization.listRandomizations().size();
-            n *= state.properties.preBattleScenarios == null ? 1 : state.properties.preBattleScenarios.listRandomizations().size();
             NUMBER_OF_GAMES_TO_PLAY = args[0].equals("--training") ? 1 : n * 2000;
             NUMBER_OF_NODES_PER_TURN = args[0].equals("--training") ? 1 : 200;
 //            ITERATION = 56;
 //            COMPARE_DIR = "../saves/iteration60";
            MAKE_PRE_BATTLE_SCENARIOS_RANDOM = COMPARE_DIR == null;
 //            WAIT_FOR_ITERATION = 66;
+        }
+        if (NUMBER_OF_GAMES_PER_SCENARIO > 0) {
+            NUMBER_OF_GAMES_TO_PLAY = NUMBER_OF_GAMES_PER_SCENARIO * n;
         }
         SCENARIO_GROUPS_PARAM = state.properties.randomization == null ? null : new int[] { state.properties.randomization.listRandomizations().size(), 1 };
 

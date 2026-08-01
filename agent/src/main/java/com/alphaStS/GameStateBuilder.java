@@ -82,12 +82,15 @@ public class GameStateBuilder {
         return enemies;
     }
 
-    public void addEnemyEncounter(PredefinedEncounter encounterEnum, Enemy... enemies) {
-        addEnemyEncounterInternal(encounterEnum, null, enemies);
+    public void addEnemyEncounter(PredefinedEncounter encounter, Enemy... enemies) {
+        addEnemyEncounterInternal(encounter, null, enemies);
     }
 
-    public void addEnemyEncounter(PredefinedEncounter encounterEnum, GameStateRandomization randomization, Enemy... enemies) {
-        addEnemyEncounterInternal(encounterEnum, randomization, enemies);
+    public void addEnemyEncounter(PredefinedEncounter encounter, GameStateRandomization randomization) {
+        addEnemyEncounterInternal(encounter, randomization, encounter.enemiesSupplier.get().toArray(Enemy[]::new));
+        if (encounter.encounterExtraLogic != null) {
+            encounter.encounterExtraLogic.accept(this);
+        }
     }
 
     public void addEnemyEncounter(Enemy... enemies) {

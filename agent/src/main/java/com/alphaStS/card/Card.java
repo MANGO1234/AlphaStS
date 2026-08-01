@@ -368,7 +368,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
     @Override public boolean equals(Object o) {
         if (this == o)
             return true;
-        if (o == null || getClass() != o.getClass())
+        if (o == null)
             return false;
         Card card = (Card) o;
         return Objects.equals(cardName, card.cardName);
@@ -620,7 +620,13 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
             canExhaustAnyCard = card.canExhaustAnyCard;
             discardNonAttack = card.discardNonAttack;
             canDiscardAnyCard = card.canDiscardAnyCard;
-            entityProperty = card.entityProperty;
+            if (mod.bound) {
+                entityProperty = new EntityProperty();
+                entityProperty.mergeFrom(card.entityProperty);
+                entityProperty.addPossibleBuff(PlayerBuff.BOUND_CARD_PLAYED);
+            } else {
+                entityProperty = card.entityProperty;
+            }
             needsLastCardType = card.needsLastCardType;
             healPlayer = card.healPlayer;
             scry = card.scry;

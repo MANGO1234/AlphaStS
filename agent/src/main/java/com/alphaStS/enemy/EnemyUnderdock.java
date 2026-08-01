@@ -1737,6 +1737,7 @@ public class EnemyUnderdock {
 
         private void interceptDeath(int prevHealth) {
             if (prevHealth > 0 && health <= 0 && steamEruption > 0) {
+                removeAllDebuffs();
                 health = 1;
                 move = ABOUT_TO_BLOW;
             }

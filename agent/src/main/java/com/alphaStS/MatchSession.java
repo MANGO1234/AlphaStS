@@ -745,6 +745,7 @@ public class MatchSession {
                 throw e;
             } catch (Exception e) {
                 System.out.println("Seed failed on: " + seeds.get(idx - 1));
+                e.printStackTrace(System.out);
                 throw e;
             }
             waitForBatchExecutorToFinish(threadIdx);
@@ -1086,6 +1087,7 @@ public class MatchSession {
                         throw e;
                     } catch (Exception e) {
                         System.out.println("Seed failed on: " + seeds.get(idx - 1));
+                        e.printStackTrace(System.out);
                         throw e;
                     }
                     modelExecutor.sleep(Configuration.SLEEP_PER_GAME_TRAINING);

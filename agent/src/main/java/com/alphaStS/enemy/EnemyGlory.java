@@ -1899,18 +1899,27 @@ public class EnemyGlory {
         }
 
         @Override public int getNNInputLen(GameProperties prop) {
-            return 3;
+            return 6;
         }
 
         @Override public String getNNInputDesc(GameProperties prop) {
-            return "3 inputs to keep track of Test Subject phase, multi-claw hits, and intangible";
+            return "6 inputs to keep track of Test Subject phase, real health, multi-claw hits, and intangible";
         }
 
         @Override public int writeNNInput(GameProperties prop, float[] input, int idx) {
-            input[idx] = phase / 3f;
-            input[idx + 1] = multiClawHits / 10f;
-            input[idx + 2] = intangible ? 0.5f : 0f;
-            return 3;
+            if (phase == 1) {
+                input[idx] = 0.5f;
+                input[idx + 3] = (health + 525) / 636f;
+            } else if (phase == 2) {
+                input[idx + 1] = 0.5f;
+                input[idx + 3] = (health + 313) / 636f;
+                input[idx + 4] = multiClawHits / 10f;
+            } else {
+                input[idx + 2] = 0.5f;
+                input[idx + 3] = health / 636f;
+                input[idx + 5] = intangible ? 0.5f : 0f;
+            }
+            return 6;
         }
 
         @Override public void interactiveModePrint(GameState state, PrintStream out) {

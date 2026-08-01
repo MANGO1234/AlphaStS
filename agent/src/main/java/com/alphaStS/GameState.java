@@ -1087,6 +1087,11 @@ public final class GameState implements State {
                 }
             }
         }
+        properties.perm0CostCardTransformIdxes = new int[cards.size()];
+        Arrays.fill(properties.perm0CostCardTransformIdxes, -1);
+        for (int i = 0; i < cards.size(); i++) {
+            properties.perm0CostCardTransformIdxes[i] = properties.findCardIndex(properties.cardDict[i].getPermCostIfPossible(0));
+        }
 
         properties.upgradeIdxes = findUpgradeIdxes(cards);
         properties.temporaryDowngradeIdxes = findTemporaryDowngradeIdxes(cards);
@@ -1358,24 +1363,28 @@ public final class GameState implements State {
     }
 
     private int getCardEnergyCost(int cardIdx) {
+        int cost;
         if (hasBuff(PlayerBuff.CORRUPTION) && properties.cardDict[cardIdx].cardType == Card.SKILL) {
-            return 0;
+            cost = 0;
         } else if (properties.blueCandle != null && properties.blueCandle.isRelicEnabledInScenario(this) && properties.cardDict[cardIdx].cardType == Card.CURSE) {
-            return 0;
+            cost = 0;
         } else if (properties.medicalKit != null && properties.medicalKit.isRelicEnabledInScenario(this) && properties.cardDict[cardIdx].cardType == Card.STATUS) {
-            return 0;
+            cost = 0;
         } else if (properties.swivelCounterIdx >= 0 && counter[properties.swivelCounterIdx] > 0 && properties.cardDict[cardIdx].cardType == Card.ATTACK) {
-            return 0;
+            cost = 0;
         } else if (properties.unrelentingCounterIdx >= 0 && counter[properties.unrelentingCounterIdx] > 0 && properties.cardDict[cardIdx].cardType == Card.ATTACK) {
-            return 0;
+            cost = 0;
         } else if (properties.nextEtherealCostZeroCounterIdx >= 0 && counter[properties.nextEtherealCostZeroCounterIdx] > 0 && properties.cardDict[cardIdx].ethereal()) {
-            return 0;
+            cost = 0;
         } else if (properties.voidFormCounterIdx >= 0 && (counter[properties.voidFormCounterIdx] & 0xFF) > 0) {
-            return 0;
+            cost = 0;
         } else if (properties.brilliantScarfCounterIdx >= 0 && counter[properties.brilliantScarfCounterIdx] == 4) {
-            return 0;
+            cost = 0;
+        } else if (properties.synthesisCounterIdx >= 0 && counter[properties.synthesisCounterIdx] >= 0 && properties.cardDict[cardIdx].cardType == Card.POWER) {
+            cost = 0;
+        } else {
+            cost = properties.cardDict[cardIdx].energyCost(this);
         }
-        int cost = properties.cardDict[cardIdx].energyCost(this);
         if (properties.spikedGauntlets != null && properties.spikedGauntlets.isRelicEnabledInScenario(this) && properties.cardDict[cardIdx].cardType == Card.POWER) {
             cost++;
         }
@@ -1522,7 +1531,7 @@ public final class GameState implements State {
                     var e = getEnemiesForRead().get(selectIdx);
                     if (e.isAlive()) {
                         lastSelectedIdx = selectIdx;
-                        if (!exhaustWhenPlayed) onSelectEnemy(selectIdx);
+                        onSelectEnemy(selectIdx);
                         setActionCtx(properties.cardDict[cardIdx].play(this, selectIdx, energyCost), action, cloneSource);
                         selectIdx = -1;
                     } else {
@@ -1684,7 +1693,7 @@ public final class GameState implements State {
                     }
                 }
             }
-            if (cloneSource == null && (properties.havocCounterIdx < 0 || getCounterForRead()[properties.havocCounterIdx] == 0)) {
+            if ((cloneSource == null || cloneSource == CardDefect2.Uproar.class) && (properties.havocCounterIdx < 0 || getCounterForRead()[properties.havocCounterIdx] == 0)) {
                 if (properties.cardDict[cardIdx].exhaustWhenPlayed) {
                     exhaustedCardHandle(cardIdx, true);
                 } else if (hasBuff(PlayerBuff.CORRUPTION) && properties.cardDict[cardIdx].cardType == Card.SKILL) {
@@ -1700,7 +1709,7 @@ public final class GameState implements State {
                     addCardOnTopOfDeck(cardIdx);
                 } else if (properties.cardDict[cardIdx].cardType != Card.POWER) {
                     if (properties.feralCounterIdx >= 0 && (getCounterForRead()[properties.feralCounterIdx] & 0xF) > 0
-                            && properties.cardDict[cardIdx].energyCost == 0
+                            && properties.cardDict[cardIdx].energyCost(this) == 0
                             && properties.cardDict[cardIdx].cardType == Card.ATTACK) {
                         getCounterForWrite()[properties.feralCounterIdx]--;
                         addCardToHand(cardIdx);
@@ -2044,7 +2053,7 @@ public final class GameState implements State {
         if (properties.sneckoEye != null && properties.sneckoEye.isRelicEnabledInScenario(this)) {
             drawCount += 2;
         }
-        if (properties.bigMushroom != null && properties.bigMushroom.isRelicEnabledInScenario(this)) {
+        if (turnNum == 1 && properties.bigMushroom != null && properties.bigMushroom.isRelicEnabledInScenario(this)) {
             drawCount -= 2;
         }
         isStartOfTurnPhase = true;
@@ -2993,6 +3002,9 @@ public final class GameState implements State {
                     }
                     if (potionUsable(i) && properties.potions.get(i) instanceof Potion.BloodPotion pot) {
                         maxHealPreBattleEnd += pot.getHealAmount(this);
+                    }
+                    if (potionUsable(i) && properties.potions.get(i) instanceof Potion.FruitJuice) {
+                        maxHealPreBattleEnd += 5;
                     }
                     if (potionUsable(i) && properties.potions.get(i) instanceof Potion.RegenPotion) {
                         maxPossibleRegen += Potion.RegenPotion.getRegenerationAmount(this);
