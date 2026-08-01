@@ -822,6 +822,7 @@ public class MatchSession {
         state.properties.currentMCTS = mcts;
         boolean noMoreExplore = false;
         state.properties.realMoveRandomGen = new RandomGen.RandomGenByCtx(seed);
+        mcts.setTrainingRandomSeed(state.properties.realMoveRandomGen.nextLong(RandomGenCtx.Other));
         state.setSearchRandomGen(state.properties.realMoveRandomGen.createWithSeed(state.properties.realMoveRandomGen.nextLong(RandomGenCtx.Misc)));
         boolean doNotExplore = state.getSearchRandomGen(true).nextFloat(RandomGenCtx.Other) < Configuration.TRAINING_PERCENTAGE_NO_TEMPERATURE;
         int noTemperatureTurn = doNotExplore ? 0 : -1;

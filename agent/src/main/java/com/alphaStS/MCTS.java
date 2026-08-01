@@ -3,6 +3,7 @@ package com.alphaStS;
 import java.util.*;
 
 import cc.mallet.types.Dirichlet;
+import cc.mallet.util.Randoms;
 import com.alphaStS.card.CardDefect;
 import com.alphaStS.enemy.PredefinedEncounter;
 import com.alphaStS.entity.Relic;
@@ -27,12 +28,17 @@ public class MCTS {
     private VArray realV; // v of the leaf node (used for variance calculation)
     private final int[] selectActionRet = new int[2]; // [0] is action selected, [1] is number of actions possible
     private boolean reachedGuaranteedWin; // win has been reached, propagate until first ChanceNode
+    private Randoms trainingDirichletNoiseRandom;
     public int forceRootAction = -1; // use in some circumstance to force root action to be an action (e.g. to search a ChanceNode)
 
     int numberOfPossibleActions; // the number of possible actions at root, used by the caller
 
     public MCTS(Model model) {
         this.model = model;
+    }
+
+    void setTrainingRandomSeed(long seed) {
+        trainingDirichletNoiseRandom = new Randoms((int) (seed ^ (seed >>> 32)));
     }
 
     void setModel(Model model) {
@@ -1725,7 +1731,7 @@ public class MCTS {
         var param = new double[policy.length];
         Arrays.fill(param, 2);
         var noiseGen = new Dirichlet(param);
-        var noise = noiseGen.nextDistribution(); // todo move out
+        var noise = trainingDirichletNoiseRandom != null ? noiseGen.randomVector(trainingDirichletNoiseRandom) : noiseGen.nextDistribution();
         for (int i = 0; i < policy.length; i++) {
             policy[i] = (float) noise[i] * proportion + policy[i] * (1 - proportion);
         }
