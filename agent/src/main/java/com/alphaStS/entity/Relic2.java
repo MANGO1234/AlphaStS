@@ -18,6 +18,7 @@ import com.alphaStS.eventHandler.OnStarChangeHandler;
 import com.alphaStS.gameAction.GameActionCtx;
 import com.alphaStS.random.RandomGenCtx;
 import com.alphaStS.utils.CounterStat;
+import com.alphaStS.utils.Tuple;
 
 import com.alphaStS.card.*;
 import java.util.ArrayList;
@@ -1023,7 +1024,7 @@ public class Relic2 {
                         return;
                     }
                     state.setIsStochastic();
-                    int r = state.getSearchRandomGen().nextInt(generatedCardIdxes.length, RandomGenCtx.RandomCardGen);
+                    int r = state.getSearchRandomGen().nextInt(generatedCardIdxes.length, RandomGenCtx.RandomCardGen, new Tuple<>(state, generatedCardIdxes));
                     state.addCardToHand(state.createCard(generatedCardIdxes[r]));
                 }
             });
@@ -1757,7 +1758,7 @@ public class Relic2 {
                 @Override public void handle(GameState state) {
                     if (isRelicEnabledInScenario(state)) {
                         state.setIsStochastic();
-                        int r = state.getSearchRandomGen().nextInt(generatedCardIdxes.length, RandomGenCtx.RandomCardGen);
+                        int r = state.getSearchRandomGen().nextInt(generatedCardIdxes.length, RandomGenCtx.RandomCardGen, new Tuple<>(state, generatedCardIdxes));
                         state.addCardToHand(state.createCard(generatedCardIdxes[r]));
                     }
                 }
@@ -1901,10 +1902,18 @@ public class Relic2 {
                     if (powerCount == 0) {
                         return;
                     }
+                    int[] powerCardIdxes = new int[powerCount];
+                    int powerCardIdx = 0;
+                    for (int i = 0; i < state.deckArrLen; i++) {
+                        if (state.properties.cardDict[state.deckArr[i]].cardType == Card.POWER) {
+                            powerCardIdxes[powerCardIdx] = state.deckArr[i];
+                            powerCardIdx++;
+                        }
+                    }
                     int r;
                     if (powerCount > 1) {
                         state.setIsStochastic();
-                        r = state.getSearchRandomGen().nextInt(powerCount, RandomGenCtx.RandomCardGen);
+                        r = state.getSearchRandomGen().nextInt(powerCount, RandomGenCtx.RandomCardGen, new Tuple<>(state, powerCardIdxes));
                     } else {
                         r = 0;
                     }
@@ -2321,11 +2330,13 @@ public class Relic2 {
                     }
                     int numCurses = generatedCardIdxes.length - 1;
                     int wishIdx = generatedCardIdxes[numCurses];
+                    int[] curseCardIdxes = new int[numCurses];
+                    System.arraycopy(generatedCardIdxes, 0, curseCardIdxes, 0, numCurses);
                     if (numCurses > 1) {
                         state.setIsStochastic();
                     }
                     for (int i = 0; i < 2; i++) {
-                        int r = numCurses > 1 ? state.getSearchRandomGen().nextInt(numCurses, RandomGenCtx.RandomCardGen) : 0;
+                        int r = numCurses > 1 ? state.getSearchRandomGen().nextInt(numCurses, RandomGenCtx.RandomCardGen, new Tuple<>(state, curseCardIdxes)) : 0;
                         state.addCardToDeckNonRandom(generatedCardIdxes[r]);
                     }
                     state.addCardToDeckNonRandom(wishIdx);
@@ -2885,7 +2896,7 @@ public class Relic2 {
                     if (!isRelicEnabledInScenario(state)) return;
                     state.setIsStochastic();
                     for (int i = 0; i < 2; i++) {
-                        int r = state.getSearchRandomGen().nextInt(generatedCardIdxes.length, RandomGenCtx.RandomCardGen);
+                        int r = state.getSearchRandomGen().nextInt(generatedCardIdxes.length, RandomGenCtx.RandomCardGen, new Tuple<>(state, generatedCardIdxes));
                         state.addCardToHand(state.createCard(generatedCardIdxes[r]));
                     }
                 }
@@ -2934,7 +2945,7 @@ public class Relic2 {
                     }
                     state.setIsStochastic();
                     for (int i = 0; i < 2; i++) {
-                        int r = state.getSearchRandomGen().nextInt(generatedCardIdxes.length, RandomGenCtx.RandomCardGen);
+                        int r = state.getSearchRandomGen().nextInt(generatedCardIdxes.length, RandomGenCtx.RandomCardGen, new Tuple<>(state, generatedCardIdxes));
                         state.addCardToHand(state.createCard(generatedCardIdxes[r]));
                     }
                 }
@@ -2987,32 +2998,12 @@ public class Relic2 {
                     if (!isRelicEnabledInScenario(state)) {
                         return;
                     }
-                    int retainedCardCount = 0;
-                    for (int i = 0; i < state.handArrLen; i++) {
-                        int cardIdx = state.handArr[i];
-                        if (cardIdx < state.properties.realCardsLen && state.properties.cardDict[cardIdx].retain(state) && state.properties.cardDict[cardIdx].energyCost > 0) {
-                            retainedCardCount++;
-                        }
-                    }
-                    if (retainedCardCount == 0) {
+                    int handIdx = GameStateUtils.getRandomCardInHand(state, (card, idx) -> idx < state.properties.realCardsLen && card.retain(state) && card.energyCost > 0);
+                    if (handIdx < 0) {
                         return;
                     }
-                    int r = 0;
-                    if (retainedCardCount > 1) {
-                        state.setIsStochastic();
-                        r = state.getSearchRandomGen().nextInt(retainedCardCount, RandomGenCtx.RandomCardHand);
-                    }
-                    int retainedCardIdx = 0;
-                    for (int i = 0; i < state.handArrLen; i++) {
-                        int cardIdx = state.handArr[i];
-                        if (cardIdx < state.properties.realCardsLen && state.properties.cardDict[cardIdx].retain(state) && state.properties.cardDict[cardIdx].energyCost > 0) {
-                            if (retainedCardIdx == r) {
-                                state.getHandArrForWrite()[i] = (short) state.lowerCardCostForCombat(cardIdx);
-                                return;
-                            }
-                            retainedCardIdx++;
-                        }
-                    }
+                    int cardIdx = state.handArr[handIdx];
+                    state.getHandArrForWrite()[handIdx] = (short) state.lowerCardCostForCombat(cardIdx);
                 }
             });
         }
@@ -3113,7 +3104,7 @@ public class Relic2 {
                         return;
                     }
                     state.setIsStochastic();
-                    int r = state.getSearchRandomGen().nextInt(generatedCardIdxes.length, RandomGenCtx.RandomCardGen);
+                    int r = state.getSearchRandomGen().nextInt(generatedCardIdxes.length, RandomGenCtx.RandomCardGen, new Tuple<>(state, generatedCardIdxes));
                     state.addCardToDeckNonRandom(generatedCardIdxes[r]);
                 }
             });
@@ -3134,7 +3125,7 @@ public class Relic2 {
                         return;
                     }
                     state.setIsStochastic();
-                    int r = state.getSearchRandomGen().nextInt(generatedCardIdxes.length, RandomGenCtx.RandomCardGen);
+                    int r = state.getSearchRandomGen().nextInt(generatedCardIdxes.length, RandomGenCtx.RandomCardGen, new Tuple<>(state, generatedCardIdxes));
                     state.addCardToDeckNonRandom(generatedCardIdxes[r]);
                 }
             });

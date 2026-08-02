@@ -12,8 +12,40 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.function.BiPredicate;
 
 public class GameStateUtils {
+    public static int getRandomCardInHand(GameState state, BiPredicate<Card, Integer> predicate) {
+        int[] handIdxes = new int[state.handArrLen];
+        int count = 0;
+        int firstCardIdx = -1;
+        int firstHandIdx = -1;
+        boolean allSameCardIdx = true;
+        for (int i = 0; i < state.handArrLen; i++) {
+            int cardIdx = state.getHandArrForRead()[i];
+            Card card = state.properties.cardDict[cardIdx];
+            if (predicate == null || predicate.test(card, cardIdx)) {
+                if (count == 0) {
+                    firstCardIdx = cardIdx;
+                    firstHandIdx = i;
+                } else if (cardIdx != firstCardIdx) {
+                    allSameCardIdx = false;
+                }
+                handIdxes[count] = i;
+                count++;
+            }
+        }
+        if (count == 0) {
+            return -1;
+        }
+        if (allSameCardIdx) {
+            return firstHandIdx;
+        }
+        state.setIsStochastic();
+        int r = state.getSearchRandomGen().nextInt(count, RandomGenCtx.RandomCardHand, new Tuple3<>(state, count, handIdxes));
+        return handIdxes[r];
+    }
+
     public static int getRandomEnemyIdx(GameState state, RandomGenCtx ctx) {
         int enemyIdx;
         if (state.enemiesAlive == 0) {

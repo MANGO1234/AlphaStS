@@ -471,33 +471,12 @@ public class CardColorless {
             if ((state.properties.generateCardOptions & GameProperties.GENERATE_CARD_MADNESS) == 0) {
                 return GameActionCtx.PLAY_CARD;
             }
-            int possibleCards = 0, diff = 0, idx = -1;
-            var hand = GameStateUtils.getCardArrCounts(state.getHandArrForRead(), state.handArrLen, state.properties.cardDict.length);
-            for (int i = 0; i < state.properties.realCardsLen; i++) {
-                if (hand[i] > 0 && !state.properties.cardDict[i].isXCost && state.properties.cardDict[i].energyCost > 0) {
-                    possibleCards += hand[i];
-                    diff += 1;
-                    idx = i;
-                }
-            }
-            if (possibleCards == 0) {
+            int handIdx = GameStateUtils.getRandomCardInHand(state, (card, cardIdx) -> !card.isXCost && card.energyCost > 0);
+            if (handIdx < 0) {
                 return GameActionCtx.PLAY_CARD;
             }
-            if (diff > 1) {
-                state.setIsStochastic();
-                var r = state.getSearchRandomGen().nextInt(possibleCards, RandomGenCtx.RandomCardHandMummifiedHand, state);
-                var acc = 0;
-                for (int i = 0; i < state.properties.realCardsLen; i++) {
-                    if (hand[i] > 0 && !state.properties.cardDict[i].isXCost && state.properties.cardDict[i].energyCost > 0) {
-                        acc += hand[i];
-                        if (acc > r) {
-                            idx = i;
-                            break;
-                        }
-                    }
-                }
-            }
-            state.removeCardFromHand(idx);
+            int idx = state.getHandArrForRead()[handIdx];
+            state.removeCardFromHandByPosition(handIdx);
             state.addCardToHand(state.properties.findCardIndex(state.properties.cardDict[idx].getPermCostIfPossible(0))); // todo
             return GameActionCtx.PLAY_CARD;
         }

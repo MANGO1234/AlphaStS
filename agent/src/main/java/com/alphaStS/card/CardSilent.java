@@ -836,24 +836,7 @@ public class CardSilent {
             for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
                 state.playerDoDamageToEnemy(enemy, damage, this);
             }
-            var hand = GameStateUtils.getCardArrCounts(state.getHandArrForRead(), state.getNumCardsInHand(), state.properties.cardDict.length);
-            int diffCards = 0, c = 0;
-            for (int i = 0; i < hand.length; i++) {
-                c += hand[i];
-                diffCards += hand[i] > 0 ? 1 : 0;
-            }
-            int r = 1;
-            if (diffCards > 1) {
-                state.setIsStochastic();
-                r = state.getSearchRandomGen().nextInt(c, RandomGenCtx.RandomCardHand, state) + 1;
-            }
-            for (int i = 0; i < hand.length; i++) {
-                r -= hand[i];
-                if (r <= 0) {
-                    state.discardCardFromHand(i);
-                    break;
-                }
-            }
+            state.discardCardFromHandByPosition(GameStateUtils.getRandomCardInHand(state, null), true);
             return GameActionCtx.PLAY_CARD;
         }
     }

@@ -1518,53 +1518,6 @@ public class InteractiveMode {
         }
     }
 
-    int selectCardFromHand(BufferedReader reader, GameState state, List<String> history) throws IOException {
-        for (int i = 0; i < state.handArrLen; i++) {
-            out.println(i + ". " + state.properties.cardDict[state.getHandArrForRead()[i]].cardName);
-        }
-        return readIntCommand(reader, history, state.handArrLen);
-    }
-
-    int selectCardForWarpedTongs(BufferedReader reader, GameState state, List<String> history) throws IOException {
-        int nonUpgradedCardCount = 0;
-        for (int i = 0; i < state.handArrLen; i++) {
-            if (state.properties.upgradeIdxes[state.getHandArrForRead()[i]] >= 0) {
-                out.println(nonUpgradedCardCount + ". " + state.properties.cardDict[state.getHandArrForRead()[i]].cardName);
-                nonUpgradedCardCount++;
-            }
-        }
-        return readIntCommand(reader, history, nonUpgradedCardCount);
-    }
-
-    int selectCardForMummifiedHand(BufferedReader reader, GameState state, List<String> history) throws IOException {
-        var hand = GameStateUtils.getCardArrCounts(state.getHandArrForRead(), state.handArrLen, state.properties.cardDict.length);
-        int cardCount = 0;
-        for (int i = 0; i < hand.length; i++) {
-            if (!state.properties.cardDict[i].isXCost && state.properties.cardDict[i].energyCost > 0 && hand[i] > 0) {
-                out.println(cardCount + ". " + state.properties.cardDict[i].cardName);
-                cardCount++;
-            }
-        }
-        while (true) {
-            out.print("> ");
-            String line = reader.readLine();
-            history.add(line);
-            int r = parseInt(line, -1);
-            if (r >= 0 && r < cardCount) {
-                int acc = 0;
-                int k = 0;
-                for (int i = 0; i < hand.length && k <= r; i++) {
-                    if (!state.properties.cardDict[i].isXCost && state.properties.cardDict[i].energyCost > 0 && hand[i] > 0) {
-                        acc += hand[i];
-                        k++;
-                    }
-                }
-                return acc - 1;
-            }
-            out.println("Unknown Command");
-        }
-    }
-
     int selectScenarioForRandomization(BufferedReader reader, GameStateRandomization randomization, List<String> history) throws IOException {
         var info = randomization.listRandomizations();
         if (info.size() == 1) {
@@ -1707,6 +1660,27 @@ public class InteractiveMode {
             out.println(i + ". " + state.properties.cardDict[cardIdxes[i]].cardName);
         }
         return readIntCommand(reader, history, cardIdxes.length);
+    }
+
+    int selectRandomCardInHand(BufferedReader reader, Tuple3<GameState, Integer, int[]> t, List<String> history) throws IOException {
+        var state = t.v1();
+        int count = t.v2();
+        int[] handIdxes = t.v3();
+        for (int i = 0; i < count; i++) {
+            int cardIdx = state.getHandArrForRead()[handIdxes[i]];
+            out.println(i + ". " + state.properties.cardDict[cardIdx].cardName);
+        }
+        return readIntCommand(reader, history, count);
+    }
+
+    int selectRandomCardDiscard(BufferedReader reader, Tuple<GameState, List<Integer>> t, List<String> history) throws IOException {
+        var state = t.v1();
+        var discardPositions = t.v2();
+        for (int i = 0; i < discardPositions.size(); i++) {
+            int cardIdx = state.getDiscardArrForRead()[discardPositions.get(i)];
+            out.println(i + ". " + state.properties.cardDict[cardIdx].cardName);
+        }
+        return readIntCommand(reader, history, discardPositions.size());
     }
 
 
@@ -2770,13 +2744,7 @@ public class InteractiveMode {
             try {
                 switch (ctx) {
                 case RandomCardHand -> {
-                    return interactiveMode.selectCardFromHand(reader, (GameState) arg, history);
-                }
-                case RandomCardHandWarpedTongs -> {
-                    return interactiveMode.selectCardForWarpedTongs(reader, (GameState) arg, history);
-                }
-                case RandomCardHandMummifiedHand -> {
-                    return interactiveMode.selectCardForMummifiedHand(reader, (GameState) arg, history);
+                    return interactiveMode.selectRandomCardInHand(reader, (Tuple3<GameState, Integer, int[]>) arg, history);
                 }
                 case BeginningOfGameRandomization -> {
                     return interactiveMode.selectScenarioForRandomization(reader, (GameStateRandomization) arg, history);
@@ -2802,6 +2770,9 @@ public class InteractiveMode {
                 }
                 case RandomCardGen -> {
                     return interactiveMode.selectRandomCardGen(reader, (Tuple<GameState, int[]>) arg, history);
+                }
+                case RandomCardDiscard -> {
+                    return interactiveMode.selectRandomCardDiscard(reader, (Tuple<GameState, List<Integer>>) arg, history);
                 }
                 case ShieldAndSpear -> {
                     return interactiveMode.selectShieldAndSpear(reader, history);

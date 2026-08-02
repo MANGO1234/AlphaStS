@@ -680,21 +680,7 @@ public class CardIronclad {
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.playerGainBlock(7);
             if (state.handArrLen > 0) {
-                int diff = 0;
-                var seen = new boolean[state.properties.cardDict.length];
-                for (int i = 0; i < state.handArrLen; i++) {
-                    if (!seen[state.getHandArrForRead()[i]]) {
-                        diff++;
-                        seen[state.getHandArrForRead()[i]] = true;
-                    }
-                }
-                if (diff > 1) {
-                    state.setIsStochastic();
-                    int r = state.getSearchRandomGen().nextInt(state.handArrLen, RandomGenCtx.RandomCardHand, state);
-                    state.exhaustCardFromHand(state.getHandArrForRead()[r]);
-                } else {
-                    state.exhaustCardFromHand(state.getHandArrForRead()[0]);
-                }
+                state.exhaustCardFromHandByPosition(GameStateUtils.getRandomCardInHand(state, null), true);
             }
             return GameActionCtx.PLAY_CARD;
         }

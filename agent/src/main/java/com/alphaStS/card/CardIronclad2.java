@@ -167,12 +167,7 @@ public class CardIronclad2 {
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             if (state.handArrLen > 0) {
-                int randomIdx = 0;
-                if (state.handArrLen > 1) {
-                    state.setIsStochastic();
-                    randomIdx = state.getSearchRandomGen().nextInt(state.handArrLen, RandomGenCtx.RandomCardHand, state);
-                }
-                state.exhaustCardFromHand(state.getHandArrForRead()[randomIdx]);
+                state.exhaustCardFromHandByPosition(GameStateUtils.getRandomCardInHand(state, null), true);
             }
             return GameActionCtx.PLAY_CARD;
         }
@@ -1345,29 +1340,9 @@ public class CardIronclad2 {
                     for (int k = 0; k < copies; k++) {
                         state.addGameActionToEndOfDeque(new GameEnvironmentAction() {
                             @Override public void doAction(GameState s) {
-                                int attackCount = 0;
-                                for (int i = 0; i < s.handArrLen; i++) {
-                                    if (s.properties.cardDict[s.getHandArrForRead()[i]].cardType == Card.ATTACK) {
-                                        attackCount++;
-                                    }
-                                }
-                                if (attackCount == 0) return;
-                                int r = 0;
-                                if (attackCount > 1) {
-                                    s.setIsStochastic();
-                                    r = s.getSearchRandomGen().nextInt(attackCount, RandomGenCtx.RandomCardHand, s);
-                                }
-                                int selectedCardIdx = -1;
-                                int acc = 0;
-                                for (int i = 0; i < s.handArrLen; i++) {
-                                    if (s.properties.cardDict[s.getHandArrForRead()[i]].cardType == Card.ATTACK) {
-                                        if (acc == r) {
-                                            selectedCardIdx = s.getHandArrForRead()[i];
-                                            break;
-                                        }
-                                        acc++;
-                                    }
-                                }
+                                int selectedCardPos = GameStateUtils.getRandomCardInHand(s, (card, cardIdx) -> card.cardType == Card.ATTACK);
+                                if (selectedCardPos < 0) return;
+                                int selectedCardIdx = s.getHandArrForRead()[selectedCardPos];
                                 int enemyIdx = GameStateUtils.getRandomEnemyIdx(s, RandomGenCtx.RandomEnemyGeneral);
                                 if (enemyIdx < 0) return;
                                 var a = s.properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][selectedCardIdx];
@@ -1667,7 +1642,7 @@ public class CardIronclad2 {
                         int posInDiscard;
                         if (attackIdxes.size() > 1) {
                             state.setIsStochastic();
-                            int pick = state.getSearchRandomGen().nextInt(attackIdxes.size(), RandomGenCtx.RandomCardDiscardAggression);
+                            int pick = state.getSearchRandomGen().nextInt(attackIdxes.size(), RandomGenCtx.RandomCardDiscard, new Tuple<>(state, attackIdxes));
                             posInDiscard = attackIdxes.get(pick);
                         } else {
                             posInDiscard = attackIdxes.get(0);
@@ -2423,36 +2398,17 @@ public class CardIronclad2 {
             state.playerDoDamageToEnemy(enemy, damage, this);
             state.getCounterForWrite()[counterIdx] = 0;
 
-            int attackCount = 0;
-            for (int i = 0; i < state.handArrLen; i++) {
-                if (state.properties.cardDict[state.getHandArrForRead()[i]].cardType == Card.ATTACK) {
-                    attackCount++;
-                }
-            }
-            if (attackCount == 0) {
+            int selectedAttackPos = GameStateUtils.getRandomCardInHand(state, (card, cardIdx) -> card.cardType == Card.ATTACK);
+            if (selectedAttackPos < 0) {
                 return GameActionCtx.PLAY_CARD;
             }
 
-            int selectedAttack = 0;
-            if (attackCount > 1) {
-                state.setIsStochastic();
-                selectedAttack = state.getSearchRandomGen().nextInt(attackCount, RandomGenCtx.RandomCardHand, state);
+            int cardIdx = state.getHandArrForRead()[selectedAttackPos];
+            int gainedDamage = state.properties.cardDict[cardIdx].getAttackDamage(state);
+            if (gainedDamage > 0) {
+                state.getCounterForWrite()[counterIdx] = gainedDamage;
             }
-            for (int i = 0; i < state.handArrLen; i++) {
-                int cardIdx = state.getHandArrForRead()[i];
-                if (state.properties.cardDict[cardIdx].cardType != Card.ATTACK) {
-                    continue;
-                }
-                if (selectedAttack == 0) {
-                    int gainedDamage = state.properties.cardDict[cardIdx].getAttackDamage(state);
-                    if (gainedDamage > 0) {
-                        state.getCounterForWrite()[counterIdx] = gainedDamage;
-                    }
-                    state.exhaustCardFromHandByPosition(i, true);
-                    break;
-                }
-                selectedAttack--;
-            }
+            state.exhaustCardFromHandByPosition(selectedAttackPos, true);
             return GameActionCtx.PLAY_CARD;
         }
 

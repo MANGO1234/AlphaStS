@@ -275,7 +275,7 @@ public class CardNecrobinder2 {
             if (upgradeablePositions.size() > numUpgrades) {
                 state.setIsStochastic();
                 for (int i = 0; i < upgrades; i++) {
-                    int pick = i + state.getSearchRandomGen().nextInt(upgradeablePositions.size() - i, RandomGenCtx.RandomCardDiscardAggression);
+                    int pick = i + state.getSearchRandomGen().nextInt(upgradeablePositions.size() - i, RandomGenCtx.RandomCardDiscard, new Tuple<>(state, upgradeablePositions.subList(i, upgradeablePositions.size())));
                     int temp = upgradeablePositions.get(i);
                     upgradeablePositions.set(i, upgradeablePositions.get(pick));
                     upgradeablePositions.set(pick, temp);

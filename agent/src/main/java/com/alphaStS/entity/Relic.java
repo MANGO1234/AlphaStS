@@ -1029,33 +1029,12 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                         return;
                     }
                     if (state.properties.cardDict[cardIdx].cardType == Card.POWER) {
-                        int possibleCards = 0, diff = 0, idx = -1;
-                        var hand = GameStateUtils.getCardArrCounts(state.getHandArrForRead(), state.handArrLen, state.properties.cardDict.length);
-                        for (int i = 0; i < state.properties.realCardsLen; i++) {
-                            if (hand[i] > 0 && !state.properties.cardDict[i].isXCost && state.properties.cardDict[i].energyCost > 0) {
-                                possibleCards += hand[i];
-                                diff += 1;
-                                idx = i;
-                            }
-                        }
-                        if (possibleCards == 0) {
+                        int handIdx = GameStateUtils.getRandomCardInHand(state, (card, idx) -> !card.isXCost && card.energyCost > 0);
+                        if (handIdx < 0) {
                             return;
                         }
-                        if (diff > 1) {
-                            state.setIsStochastic();
-                            var r = state.getSearchRandomGen().nextInt(possibleCards, RandomGenCtx.RandomCardHandMummifiedHand, state);
-                            var acc = 0;
-                            for (int i = 0; i < state.properties.realCardsLen; i++) {
-                                if (hand[i] > 0 && !state.properties.cardDict[i].isXCost && state.properties.cardDict[i].energyCost > 0) {
-                                    acc += hand[i];
-                                    if (acc > r) {
-                                        idx = i;
-                                        break;
-                                    }
-                                }
-                            }
-                        }
-                        state.removeCardFromHand(idx);
+                        int idx = state.getHandArrForRead()[handIdx];
+                        state.removeCardFromHandByPosition(handIdx);
                         state.addCardToHand(state.properties.tmp0CostCardTransformIdxes[idx]);
                     }
                 }
@@ -2378,35 +2357,13 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                     if (!isRelicEnabledInScenario(state)) {
                         return;
                     }
-                    int possibleCards = 0, diff = 0;
-                    var seen = new boolean[state.properties.cardDict.length];
-                    for (int i = 0; i < state.handArrLen; i++) {
-                        if (state.properties.upgradeIdxes[state.getHandArrForRead()[i]] >= 0) {
-                            possibleCards++;
-                            if (!seen[state.getHandArrForRead()[i]]) {
-                                diff++;
-                                seen[state.getHandArrForRead()[i]] = true;
-                            }
-                        }
-                    }
-                    if (possibleCards == 0) {
+                    int handIdx = GameStateUtils.getRandomCardInHand(state, (card, idx) -> state.properties.upgradeIdxes[idx] >= 0);
+                    if (handIdx < 0) {
                         return;
                     }
-                    int r = 0;
-                    if (diff > 1) {
-                        state.setIsStochastic();
-                        r = state.getSearchRandomGen().nextInt(possibleCards, RandomGenCtx.RandomCardHandWarpedTongs, state);
-                    }
-                    for (int i = 0; i < state.handArrLen; i++) {
-                        if (state.properties.upgradeIdxes[state.getHandArrForRead()[i]] >= 0) {
-                            if (r == 0) {
-                                state.getStateDesc().append(state.getStateDescStr().length() > 0 ? "; " : "").append("Warped Tongs: ").append(state.properties.cardDict[state.getHandArrForRead()[i]].cardName);
-                                state.getHandArrForWrite()[i] = (short) state.properties.upgradeIdxes[state.getHandArrForRead()[i]];
-                                break;
-                            }
-                            r--;
-                        }
-                    }
+                    int cardIdx = state.getHandArrForRead()[handIdx];
+                    state.getStateDesc().append(state.getStateDescStr().length() > 0 ? "; " : "").append("Warped Tongs: ").append(state.properties.cardDict[cardIdx].cardName);
+                    state.getHandArrForWrite()[handIdx] = (short) state.properties.upgradeIdxes[cardIdx];
                 }
             });
         }
