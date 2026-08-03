@@ -26,6 +26,7 @@ public record PlayerBuff(long mask, String name) {
     public final static PlayerBuff SPECTRAL_KNIGHT_HEX = new PlayerBuff(1L << 49, "Spectral Knight Hex");
     public final static PlayerBuff BOUND_CARD_PLAYED = new PlayerBuff(1L << 50, "Bound Card Played");
     public final static PlayerBuff MASTER_REALITY = new PlayerBuff(1L << 51, "Master Reality");
+    public final static PlayerBuff TENDER = new PlayerBuff(1L << 52, "Tender");
 
     public final static PlayerBuff[] BUFFS = new PlayerBuff[] {
             BARRICADE,

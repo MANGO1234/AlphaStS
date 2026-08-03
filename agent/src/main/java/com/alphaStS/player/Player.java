@@ -200,7 +200,7 @@ public class Player extends PlayerReadOnly {
         case DRAW_REDUCTION -> state.getCounterForWrite()[state.properties.drawReductionCounterIdx] += n;
         case NO_BLOCK_FROM_CARDS -> state.getCounterForWrite()[state.properties.noMoreBlockFromCardsCounterIdx] += n;
         case SNECKO -> state.getCounterForWrite()[state.properties.sneckoDebuffCounterIdx] = 1;
-        case TENDER -> state.getCounterForWrite()[state.properties.tenderCounterIdx] += n;
+        case TENDER -> state.addBuff(PlayerBuff.TENDER);
         case DOOM -> state.getCounterForWrite()[state.properties.playerDoomCounterIdx] += n;
         case DOOM_PER_TURN -> state.getCounterForWrite()[state.properties.doomPerTurnCounterIdx] += n;
         }

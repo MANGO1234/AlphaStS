@@ -3,6 +3,7 @@ package com.alphaStS.card;
 import com.alphaStS.*;
 import com.alphaStS.GameStateUtils;
 import com.alphaStS.action.AddCardToDiscardAction;
+import com.alphaStS.action.DecisionsDecisionsContinueAction;
 import com.alphaStS.action.PlayCardAction;
 import com.alphaStS.enemy.Enemy;
 import com.alphaStS.enums.DebuffType;
@@ -2772,12 +2773,27 @@ public class CardRegent2 {
                 return GameActionCtx.PLAY_CARD;
             } else {
                 state.removeCardFromHand(idx);
-                state.addGameActionToStartOfDeque(new AddCardToDiscardAction(idx, state));
-                for (int i = 0; i < 3; i++) {
-                    state.addGameActionToStartOfDeque(new PlayCardAction(idx, state, null));
-                }
+                state.getCounterForWrite()[counterIdx] = 3;
+                state.addGameActionToStartOfDeque(new DecisionsDecisionsContinueAction(idx));
                 return GameActionCtx.PLAY_CARD;
             }
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("DecisionsDecisions", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 3.0f;
+                    return idx + 1;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+
+                @Override public void onRegister(int counterIdx) {
+                    state.properties.decisionsDecisionsCounterIdx = counterIdx;
+                }
+            });
         }
     }
 

@@ -2,6 +2,8 @@ package com.alphaStS.enemy;
 
 import com.alphaStS.GameProperties;
 import com.alphaStS.GameState;
+import com.alphaStS.PlayerBuff;
+import com.alphaStS.action.GameEnvironmentAction;
 import com.alphaStS.card.Card;
 import com.alphaStS.card.CardOther2;
 import com.alphaStS.enums.DebuffType;
@@ -2226,7 +2228,7 @@ public class EnemyHive {
             }
         }, new GameProperties.NetworkInputHandler() {
             @Override public int addToInput(GameState state, float[] input, int idx) {
-                input[idx] = state.getCounterForRead()[state.properties.tenderCounterIdx] / 5.0f;
+                input[idx] = state.getCounterForRead()[state.properties.tenderCounterIdx] / 10.0f;
                 return idx + 1;
             }
 
@@ -2234,12 +2236,24 @@ public class EnemyHive {
                 return 1;
             }
         });
-        state.properties.addOnCardPlayedHandler("Tender", new GameEventCardHandler() {
+        state.properties.addOnPreCardPlayedHandler("Tender", new GameEventCardHandler() {
             @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
-                int tender = state.getCounterForRead()[state.properties.tenderCounterIdx];
-                if (tender > 0) {
-                    state.getPlayerForWrite().applyDebuff(state, DebuffType.LOSE_STRENGTH_EOT, tender);
-                    state.getPlayerForWrite().applyDebuff(state, DebuffType.LOSE_DEXTERITY_EOT, tender);
+                if (!state.hasBuff(PlayerBuff.TENDER)) {
+                    return;
+                }
+                state.addGameActionToStartOfDeque(state1 -> {
+                    state1.getPlayerForWrite().applyDebuff(state1, DebuffType.LOSE_STRENGTH, 1);
+                    state1.getPlayerForWrite().applyDebuff(state1, DebuffType.LOSE_DEXTERITY, 1);
+                    state1.getCounterForWrite()[state1.properties.tenderCounterIdx]++;
+                });
+            }
+        });
+        state.properties.addEndOfTurnHandler("Tender", new GameEventHandler() {
+            @Override public void handle(GameState state) {
+                if (state.getCounterForRead()[state.properties.tenderCounterIdx] > 0) {
+                    state.getPlayerForWrite().gainStrength(state.getCounterForRead()[state.properties.tenderCounterIdx]);
+                    state.getPlayerForWrite().gainDexterity(state.getCounterForRead()[state.properties.tenderCounterIdx]);
+                    state.getCounterForWrite()[state.properties.tenderCounterIdx] = 0;
                 }
             }
         });

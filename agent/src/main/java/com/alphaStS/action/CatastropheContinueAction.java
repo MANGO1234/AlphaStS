@@ -16,10 +16,10 @@ public class CatastropheContinueAction implements GameEnvironmentAction {
             }
             state.getStateDesc().append(state.properties.cardDict[cardIdx].cardName);
         }
+        state.addGameActionToEndOfDeque(new CatastropheAction(cardIdx));
         if (state.getCounterForRead()[state.properties.catastropheCounterIdx] > 0) {
-            state.addGameActionToStartOfDeque(new CatastropheContinueAction());
+            state.addGameActionToEndOfDeque(new CatastropheContinueAction());
         }
-        state.addGameActionToStartOfDeque(new CatastropheAction(cardIdx));
     }
 
     @Override public boolean equals(Object o) {
