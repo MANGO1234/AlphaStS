@@ -16,7 +16,6 @@ import com.alphaStS.random.RandomGen;
 import com.alphaStS.random.RandomGenCtx;
 import com.alphaStS.utils.CrashException;
 import com.alphaStS.utils.Tuple;
-import com.alphaStS.utils.Utils;
 
 import static java.lang.Math.sqrt;
 
@@ -1695,7 +1694,20 @@ public class MCTS {
         if (remainingCalls <= 0) {
             return policy;
         }
-        int max_n = Utils.max(state.n);
+        int max_n = 0;
+        boolean hasAction = false;
+        for (int i = 0; i < state.n.length; i++) {
+            if (policy[i] <= 0 || (state.bannedActions != null && state.bannedActions[i])) {
+                continue;
+            }
+            if (!hasAction || state.n[i] > max_n) {
+                max_n = state.n[i];
+                hasAction = true;
+            }
+        }
+        if (!hasAction) {
+            return policy;
+        }
         float[] newPolicy = policy;
         if (Configuration.isFlattenPolicyAsNodesIncreaseOn(state) && state.total_n > 100) {
             newPolicy = new float[policy.length];
