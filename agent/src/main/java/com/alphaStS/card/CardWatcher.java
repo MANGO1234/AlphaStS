@@ -2990,18 +2990,18 @@ public class CardWatcher {
             if (action != null) {
                 // First play
                 state.addGameActionToStartOfDeque(curState -> {
-                    curState.playCard(action, -1, true, null, false, true, -1, -1);
+                    curState.playCard(action, -1, true, null, false, false, -1, -1);
                     while (curState.actionCtx == GameActionCtx.SELECT_ENEMY) {
                         int enemyIdx = GameStateUtils.getRandomEnemyIdx(curState, RandomGenCtx.RandomEnemyGeneral);
-                        curState.playCard(action, enemyIdx, true, null, false, true, -1, -1);
+                        curState.playCard(action, enemyIdx, true, null, false, false, -1, -1);
                     }
                 });
                 // Second play
                 state.addGameActionToStartOfDeque(curState -> {
-                    curState.playCard(action, -1, true, null, false, true, -1, -1);
+                    curState.playCard(action, -1, true, null, false, false, -1, -1);
                     while (curState.actionCtx == GameActionCtx.SELECT_ENEMY) {
                         int enemyIdx = GameStateUtils.getRandomEnemyIdx(curState, RandomGenCtx.RandomEnemyGeneral);
-                        curState.playCard(action, enemyIdx, true, null, false, true, -1, -1);
+                        curState.playCard(action, enemyIdx, true, null, false, false, -1, -1);
                     }
                 });
             }

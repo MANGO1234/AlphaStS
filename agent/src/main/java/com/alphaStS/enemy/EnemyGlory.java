@@ -1756,7 +1756,7 @@ public class EnemyGlory {
 
         @Override public void doMove(GameState state, EnemyReadOnly self) {
             if (move == BITE) {
-                state.enemyDoDamageToPlayer(this, 19, 1);
+                state.enemyDoDamageToPlayer(this, 22, 1);
             } else if (move == SKULL_BASH) {
                 state.enemyDoDamageToPlayer(this, 16, 1);
                 state.getPlayerForWrite().applyDebuff(state, DebuffType.VULNERABLE, 1);

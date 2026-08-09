@@ -1443,7 +1443,7 @@ public final class GameState implements State {
                             boolean runActionQueueOnEnd, // need to set to prevent running action queue while already in action queue execution
                             Class cloneSource, // cloned card source
                             boolean useEnergy, // when cloning/havoc/etc., do not use energy
-                            boolean exhaustWhenPlayed, // havoc only flag todo: delete
+                            boolean removeFromHand,
                             int overrideEnergyCost, // when cloning, need to know cost of X card to use
                             int cloneParentLocation // when cloning, need to transform the prev card (e.g. Streamline)
     ) {
@@ -1470,11 +1470,11 @@ public final class GameState implements State {
         if (actionCtx == GameActionCtx.PLAY_CARD) {
             currentlyPlayedCardIdx = cardIdx;
             checkWristBladeBuffForZeroCostAttack(cardIdx);
-            if (cloneSource == null && (properties.havocCounterIdx < 0 || getCounterForRead()[properties.havocCounterIdx] == 0)) {
+            if (!removeFromHand && cloneSource == null && (properties.havocCounterIdx < 0 || getCounterForRead()[properties.havocCounterIdx] == 0)) {
                 removeCardFromHand(cardIdx);
             }
             if (realEnergyCost < 0) {
-                if (properties.cardDict[cardIdx].cardType == Card.CURSE) {
+                if (properties.cardDict[cardIdx].cardType == Card.CURSE || properties.cardDict[cardIdx].cardType == Card.STATUS) {
                     addCardToDiscard(cardIdx);
                 }
                 if (runActionQueueOnEnd) {
@@ -1693,50 +1693,7 @@ public final class GameState implements State {
                     }
                 }
             }
-            if ((cloneSource == null || cloneSource == CardDefect2.Uproar.class) && (properties.havocCounterIdx < 0 || getCounterForRead()[properties.havocCounterIdx] == 0)) {
-                if (properties.cardDict[cardIdx].exhaustWhenPlayed) {
-                    exhaustedCardHandle(cardIdx, true);
-                } else if (hasBuff(PlayerBuff.CORRUPTION) && properties.cardDict[cardIdx].cardType == Card.SKILL) {
-                    exhaustedCardHandle(cardIdx, true);
-                } else if (properties.cardDict[cardIdx].returnToDeckWhenPlay) {
-                    addCardToDeckRandom(cardIdx);
-                } else if (properties.cardDict[cardIdx].returnToTopOfDeckWhenPlay) {
-                    addCardOnTopOfDeck(cardIdx);
-                } else if (properties.cardDict[cardIdx].returnToHandWhenPlay) {
-                    addCardToHand(cardIdx);
-                } else if (properties.nostalgiaCounterIdx >= 0 && getCounterForRead()[properties.nostalgiaCounterIdx] > 0 && (properties.cardDict[cardIdx].cardType == Card.ATTACK || properties.cardDict[cardIdx].cardType == Card.SKILL)) {
-                    getCounterForWrite()[properties.nostalgiaCounterIdx]--;
-                    addCardOnTopOfDeck(cardIdx);
-                } else if (properties.cardDict[cardIdx].cardType != Card.POWER) {
-                    if (properties.feralCounterIdx >= 0 && (getCounterForRead()[properties.feralCounterIdx] & 0xF) > 0
-                            && properties.cardDict[cardIdx].energyCost(this) == 0
-                            && properties.cardDict[cardIdx].cardType == Card.ATTACK) {
-                        getCounterForWrite()[properties.feralCounterIdx]--;
-                        addCardToHand(cardIdx);
-                    } else if (properties.reboundCounterIdx >= 0 && getCounterForRead()[properties.reboundCounterIdx] > 0) {
-                        if ((getCounterForRead()[properties.reboundCounterIdx] & (1 << 8)) != 0) {
-                            addCardToDiscard(cardIdx);
-                            getCounterForWrite()[properties.reboundCounterIdx]++;
-                            getCounterForWrite()[properties.reboundCounterIdx] ^= 1 << 8;
-                        } else {
-                            addCardOnTopOfDeck(cardIdx);
-                        }
-                    } else {
-                        addCardToDiscard(cardIdx);
-                    }
-                }
-                if (properties.reboundCounterIdx >= 0 && getCounterForRead()[properties.reboundCounterIdx] > 0) {
-                    getCounterForWrite()[properties.reboundCounterIdx]--;
-                }
-            } else if (cloneSource != null && prevCardIdx != cardIdx) {
-                if (cloneParentLocation == GameState.DISCARD) {
-                    transformTopMostCard(getDiscardArrForWrite(), discardArrLen, prevCardIdx, cardIdx);
-                } else if (cloneParentLocation == GameState.EXHAUST) {
-                    transformTopMostCard(getExhaustArrForWrite(), exhaustArrLen, prevCardIdx, cardIdx);
-                } else if (cloneParentLocation == GameState.DECK) {
-                    transformTopMostCard(getDeckArrForWrite(), deckArrLen, prevCardIdx, cardIdx);
-                }
-            }
+            handleCardFinishPlayingLocation(cloneSource, cloneParentLocation, cardIdx, prevCardIdx);
             if (cardPlayedSuccessfully) {
                 if (properties.cardDict[cardIdx].delayUseEnergy && useEnergy) {
                     energy -= realEnergyCost;
@@ -1772,6 +1729,53 @@ public final class GameState implements State {
             runActionsInQueueDuringCardPlayIfNonEmpty();
         }
         return cardPlayedSuccessfully || targetHalfAlive;
+    }
+
+    public void handleCardFinishPlayingLocation(Class cloneSource, int cloneParentLocation, int cardIdx, int prevCardIdx) {
+        if ((cloneSource == null || cloneSource == CardDefect2.Uproar.class) && (properties.havocCounterIdx < 0 || getCounterForRead()[properties.havocCounterIdx] == 0)) {
+            if (properties.cardDict[cardIdx].exhaustWhenPlayed) {
+                exhaustedCardHandle(cardIdx, true);
+            } else if (hasBuff(PlayerBuff.CORRUPTION) && properties.cardDict[cardIdx].cardType == Card.SKILL) {
+                exhaustedCardHandle(cardIdx, true);
+            } else if (properties.cardDict[cardIdx].returnToDeckWhenPlay) {
+                addCardToDeckRandom(cardIdx);
+            } else if (properties.cardDict[cardIdx].returnToTopOfDeckWhenPlay) {
+                addCardOnTopOfDeck(cardIdx);
+            } else if (properties.cardDict[cardIdx].returnToHandWhenPlay) {
+                addCardToHand(cardIdx);
+            } else if (properties.nostalgiaCounterIdx >= 0 && getCounterForRead()[properties.nostalgiaCounterIdx] > 0 && (properties.cardDict[cardIdx].cardType == Card.ATTACK || properties.cardDict[cardIdx].cardType == Card.SKILL)) {
+                getCounterForWrite()[properties.nostalgiaCounterIdx]--;
+                addCardOnTopOfDeck(cardIdx);
+            } else if (properties.cardDict[cardIdx].cardType != Card.POWER) {
+                if (properties.feralCounterIdx >= 0 && (getCounterForRead()[properties.feralCounterIdx] & 0xF) > 0
+                        && properties.cardDict[cardIdx].energyCost(this) == 0
+                        && properties.cardDict[cardIdx].cardType == Card.ATTACK) {
+                    getCounterForWrite()[properties.feralCounterIdx]--;
+                    addCardToHand(cardIdx);
+                } else if (properties.reboundCounterIdx >= 0 && getCounterForRead()[properties.reboundCounterIdx] > 0) {
+                    if ((getCounterForRead()[properties.reboundCounterIdx] & (1 << 8)) != 0) {
+                        addCardToDiscard(cardIdx);
+                        getCounterForWrite()[properties.reboundCounterIdx]++;
+                        getCounterForWrite()[properties.reboundCounterIdx] ^= 1 << 8;
+                    } else {
+                        addCardOnTopOfDeck(cardIdx);
+                    }
+                } else {
+                    addCardToDiscard(cardIdx);
+                }
+            }
+            if (properties.reboundCounterIdx >= 0 && getCounterForRead()[properties.reboundCounterIdx] > 0) {
+                getCounterForWrite()[properties.reboundCounterIdx]--;
+            }
+        } else if (cloneSource != null && prevCardIdx != cardIdx) {
+            if (cloneParentLocation == GameState.DISCARD) {
+                transformTopMostCard(getDiscardArrForWrite(), discardArrLen, prevCardIdx, cardIdx);
+            } else if (cloneParentLocation == GameState.EXHAUST) {
+                transformTopMostCard(getExhaustArrForWrite(), exhaustArrLen, prevCardIdx, cardIdx);
+            } else if (cloneParentLocation == GameState.DECK) {
+                transformTopMostCard(getDeckArrForWrite(), deckArrLen, prevCardIdx, cardIdx);
+            }
+        }
     }
 
     private void runStartOfBattleActionLoop() {
@@ -2306,12 +2310,16 @@ public final class GameState implements State {
             }
             runActionsInQueueIfNonEmpty();
             getPlayerForWrite().preEndTurn(this);
-            triggerOrbsPassiveEndOfTurn();
-            discardEndOfTurnCards(spectralKnightHexActive);
         }
         if (stage < END_TURN_STAGE_NILRYS_CODEX_DONE && properties.nilrysCodex != null && ((Relic.NilrysCodex) properties.nilrysCodex).openSelection(this)) {
             return;
         }
+        for (GameEventHandler handler : properties.endOfTurnHandlers) {
+            handler.handle(this);
+        }
+        triggerOrbsPassiveEndOfTurn();
+        discardEndOfTurnCards(spectralKnightHexActive);
+        // todo: put this in endOfTurnHandler?
         if (properties.hoveringKiteCounterIdx >= 0 && getCounterForRead()[properties.hoveringKiteCounterIdx] > 0) {
             getCounterForWrite()[properties.hoveringKiteCounterIdx] = 0;
         }
@@ -2375,9 +2383,6 @@ public final class GameState implements State {
                 setActionCtx(GameActionCtx.SELECT_CARD_1_OUT_OF_3, action, EnemyHive.KnowledgeDemon.class);
                 return;
             }
-        }
-        for (GameEventHandler handler : properties.endOfTurnHandlers) {
-            handler.handle(this);
         }
         if (properties.timeEaterCounterIdx >= 0 && getCounterForRead()[properties.timeEaterCounterIdx] == 12) {
             getCounterForWrite()[properties.timeEaterCounterIdx] = 0;
@@ -2629,7 +2634,7 @@ public final class GameState implements State {
             } else if (currentAction.type() == GameActionType.PLAY_CARD) {
                 var previousAction = currentAction;
                 var selectingCard = properties.cardDict[currentAction.idx()];
-                if (currentAction.idx() == properties.wellLaidPlansCardIdx || currentAction.idx() == properties.gamblingChipsCardIdx) {
+                if (currentAction.idx() == properties.wellLaidPlansCardIdx) {
                     endTurn(previousAction);
                 } else {
                     setActionCtx(selectingCard.endSelectHandAction(this), action, null);
@@ -2669,6 +2674,7 @@ public final class GameState implements State {
             if (cardIdx < 0) {
                 continue;
             }
+            // todo: change to using action
             if (isCardPlayBlocked()) {
                 addCardToDiscard(cardIdx);
                 continue;
@@ -2679,7 +2685,7 @@ public final class GameState implements State {
                 getStateDesc().append(properties.cardDict[cardIdx].cardName);
             }
             var nextAction = properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][cardIdx];
-            playCard(nextAction, -1, true, null, false, false, -1, -1);
+            playCard(nextAction, -1, true, null, false, true, -1, -1);
             while (actionCtx == GameActionCtx.SELECT_ENEMY && isTerminal() == 0) {
                 int enemyIdx = GameStateUtils.getRandomEnemyIdx(this, RandomGenCtx.RandomEnemyGeneral);
                 if (properties.makingRealMove || properties.stateDescOn) {
@@ -2722,7 +2728,7 @@ public final class GameState implements State {
             if (a == null || action < 0 || action >= a.length) {
                 return false;
             }
-            return enemies.get(a[action].idx()).isAlive();
+            return enemies.get(a[action].idx()).isTargetable();
         } else if (actionCtx == GameActionCtx.SELECT_CARD_1_OUT_OF_3) {
             GameAction[] a = properties.actionsByCtx[GameActionCtx.SELECT_CARD_1_OUT_OF_3.ordinal()];
             if (action < 0 || action >= a.length) {
@@ -3410,13 +3416,24 @@ public final class GameState implements State {
             StringBuilder tmp = new StringBuilder();
             first = true;
             for (int i = 0; i < properties.counterInfos.length; i++) {
-                if (properties.counterInfos[i].handler != null && getCounterForRead()[properties.counterInfos[i].idx] != 0) {
-                    String s = properties.counterInfos[i].handler.getDisplayString(this);
-                    tmp.append(first ? "" : ", ").append(properties.counterInfos[i].name).append('=').append(s != null ? s : getCounterForRead()[properties.counterInfos[i].idx]);
-                    first = false;
+                if (properties.counterInfos[i].handler != null) {
+                    boolean all0 = true;
+                    for (int j = 0; j < properties.counterInfos[i].length; j++) {
+                        if (getCounterForRead()[properties.counterInfos[i].idx + j] != 0) {
+                            all0 = false;
+                        }
+                    }
+                    if (!all0) {
+                        String s = properties.counterInfos[i].handler.getDisplayString(this);
+                        tmp.append(first ? "" : ", ").append(properties.counterInfos[i].name).append('=').append(s != null ? s : getCounterForRead()[properties.counterInfos[i].idx]);
+                        for (int j = 1; j < properties.counterInfos[i].length; j++) {
+                            tmp.append("|").append(getCounterForRead()[properties.counterInfos[i].idx + j] );
+                        }
+                        first = false;
+                    }
                 }
             }
-            if (tmp.length() > 0) {
+            if (!tmp.isEmpty()) {
                 str.append(", other=[").append(tmp).append("]");
             }
         }
@@ -3521,6 +3538,17 @@ public final class GameState implements State {
                     for (int i = 0; i < properties.potions.size(); i++) {
                         if (properties.potions.get(i).isGenerated && properties.potions.get(i).generatedIdx > 0) {
                             continue;
+                        }
+                        if (potionUsable(i) && properties.potions.get(i).entityProperty.selectEnemy) {
+                            var atLeastOneTarget = false;
+                            for (int j = 0; j < enemies.size(); j++) {
+                                if (enemies.get(j).isTargetable()) {
+                                    atLeastOneTarget = true;
+                                }
+                            }
+                            if (!atLeastOneTarget) {
+                                continue;
+                            }
                         }
                         if (potionUsable(i) && properties.potions.get(i) instanceof Potion.SmokeBomb) {
                             if (!Relic.isBossFight(this) && !GameStateUtils.isSurrounded(this)) {

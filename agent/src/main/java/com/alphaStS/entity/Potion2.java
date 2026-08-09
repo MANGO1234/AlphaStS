@@ -708,7 +708,7 @@ public class Potion2 {
         }
 
         @Override public List<Card> getPossibleGeneratedCards(GameProperties props, List<Card> cards) {
-            return CardManager.getColorlessCards(false).stream()
+            return CardManager.getColorless2Cards(CardManager.ColorlessCard2Pool.CARD_GENERATION).stream()
                     .map(Card::getUpgrade).filter(Objects::nonNull).toList();
         }
     }

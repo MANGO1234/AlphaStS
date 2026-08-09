@@ -1487,9 +1487,13 @@ public class CardDefect {
             });
             state.properties.addOnCardPlayedHandler("FTL", new GameEventCardHandler() {
                 @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
-                    if (state.getCounterForRead()[counterIdx] <= 3) {
-                        state.getCounterForWrite()[counterIdx]++;
-                    }
+                    state.addGameActionToEndOfDeque(new GameEnvironmentAction() {
+                        @Override public void doAction(GameState state) {
+                            if (state.getCounterForRead()[counterIdx] <= 4) {
+                                state.getCounterForWrite()[counterIdx]++;
+                            }
+                        }
+                    });
                 }
             });
         }

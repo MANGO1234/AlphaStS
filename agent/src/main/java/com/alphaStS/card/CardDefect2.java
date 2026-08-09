@@ -1856,21 +1856,18 @@ public class CardDefect2 {
     }
 
     private static abstract class _HelixDrillT extends Card {
-        private final int damagePerEnergy;
 
         public _HelixDrillT(String cardName, int damagePerEnergy) {
             super(cardName, Card.ATTACK, 0, Card.RARE);
-            this.damagePerEnergy = damagePerEnergy;
+            this.damage = damagePerEnergy;
             entityProperty.selectEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), getBaseAttackDamage(state), this);
+            for (int i = 0; i < state.getCounterForRead()[counterIdx]; i++) {
+                state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), getBaseAttackDamage(state), this);
+            }
             return GameActionCtx.PLAY_CARD;
-        }
-
-        @Override public int getBaseAttackDamage(GameState state) {
-            return damagePerEnergy * state.getCounterForRead()[counterIdx];
         }
 
         @Override public void gamePropertiesSetup(GameState state) {

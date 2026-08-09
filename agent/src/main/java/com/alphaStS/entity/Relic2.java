@@ -443,9 +443,11 @@ public class Relic2 {
                         if (counter[counterIdx] == 3) {
                             counter[counterIdx] = 0;
                             int randomEnemyIdx = GameStateUtils.getRandomEnemyIdx(state, RandomGenCtx.RandomEnemyGeneral);
+                            if (state.enemiesAlive > 1) {
+                                state.setIsStochastic();
+                            }
                             if (randomEnemyIdx >= 0) {
                                 state.playerDoNonAttackDamageToEnemy(state.getEnemiesForWrite().getForWrite(randomEnemyIdx), 6, true);
-                                state.setIsStochastic();
                             }
                         }
                     }
@@ -1347,8 +1349,8 @@ public class Relic2 {
     // Happy Flower??? (Event)
     //   Effect: Every 5 turns, gain energy.
     public static class HappyFlowerQQQ extends Relic.HappyFlower {
-        public HappyFlowerQQQ() {
-            super(0, 0, 5);
+        public HappyFlowerQQQ(int n, int healthReward) {
+            super(n, healthReward, 5);
             counterName = "HappyFlowerQQQ";
         }
     }
@@ -2904,7 +2906,7 @@ public class Relic2 {
         }
 
         @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
-            return CardManager.getColorlessCards(false);
+            return CardManager.getColorless2Cards(CardManager.ColorlessCard2Pool.CARD_GENERATION);
         }
     }
 

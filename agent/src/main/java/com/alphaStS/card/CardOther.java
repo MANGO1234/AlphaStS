@@ -290,15 +290,9 @@ public class CardOther {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            if (state.actionCtx == GameActionCtx.PLAY_CARD) {
-                state.draw(state.getCounterForRead()[counterIdx]);
-                state.getCounterForWrite()[counterIdx] = 0;
-                return GameActionCtx.PLAY_CARD;
-            } else {
-                state.discardCardFromHand(idx);
-                state.getCounterForWrite()[counterIdx] += 1;
-                return GameActionCtx.SELECT_CARD_HAND;
-            }
+            state.discardCardFromHand(idx);
+            state.getCounterForWrite()[counterIdx] += 1;
+            return GameActionCtx.SELECT_CARD_HAND;
         }
 
         public void gamePropertiesSetup(GameState state) {
@@ -312,6 +306,12 @@ public class CardOther {
                     return 1;
                 }
             });
+        }
+
+        @Override public GameActionCtx endSelectHandAction(GameState state) {
+            state.draw(state.getCounterForRead()[counterIdx]);
+            state.getCounterForWrite()[counterIdx] = 0;
+            return GameActionCtx.BEGIN_TURN;
         }
     }
 

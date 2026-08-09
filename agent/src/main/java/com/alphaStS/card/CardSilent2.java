@@ -1879,9 +1879,9 @@ public class CardSilent2 {
                 state.removeCardFromExhaust(shivCardIdxes[i]);
                 var action = state.properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][shivCardIdxes[i]];
                 if (action != null) {
-                    state.playCard(action, -1, true, null, false, true, -1, -1);
+                    state.playCard(action, -1, true, null, false, false, -1, -1);
                     while (state.actionCtx == GameActionCtx.SELECT_ENEMY) {
-                        state.playCard(action, idx, true, null, false, true, -1, -1);
+                        state.playCard(action, idx, true, null, false, false, -1, -1);
                     }
                 }
             }

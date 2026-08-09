@@ -144,10 +144,11 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
     }
 
     public Card getUpgrade() {
-        if (CardUpgrade.map_sts1.get(this) != null) {
-            return CardUpgrade.map_sts1.get(this);
+        var cl = this.getClass().getEnclosingClass();
+        if (cl == CardIronclad2.class || cl == CardSilent2.class || cl == CardDefect2.class || cl == CardRegent2.class || cl == CardNecrobinder2.class || cl == CardColorless2.class  || cl == CardOther2.class) {
+            return CardUpgrade.map_sts2.get(this);
         }
-        return CardUpgrade.map_sts2.get(this);
+        return CardUpgrade.map_sts1.get(this);
     }
 
     public Card getDowngrade(GameProperties properties) {

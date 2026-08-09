@@ -1869,8 +1869,8 @@ public class InteractiveMode {
     private static GameState state2;
     private static int startingAction1;
     private static int startingAction2;
-    private static int cmpNodeCount = 500;
-    private static int cmpNumberOfGames = 100;
+    private static int cmpNodeCount = 100;
+    private static int cmpNumberOfGames = 1000;
     private int cmpNumberOfThreads = -1;
     private int cmpBatchSize = -1;
     private static int cmpRandomizationScenario = -1;
