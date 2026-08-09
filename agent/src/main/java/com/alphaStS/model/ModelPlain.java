@@ -169,6 +169,19 @@ public class ModelPlain implements Model {
                 }
                 throw CrashException.builder().withState(state).build();
             }
+//            if (!state.equals(o.state())) {
+//                var state2 = state.clone(false);
+//                var state3 = o.state().clone(false);
+//                state2.exhaustArrLen = 0;
+//                state3.exhaustArrLen = 0;
+//                state2.preBattleRandomizationIdxChosen = 0;
+//                state3.preBattleRandomizationIdxChosen = 0;
+//                if (!state2.equals(state3)) {
+//                    System.out.println(state2);
+//                    System.out.println(state3);
+//                    throw CrashException.builder().withState(state).build();
+//                }
+//            }
         }
 
         var x = new float[1][];

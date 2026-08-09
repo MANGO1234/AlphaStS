@@ -105,6 +105,9 @@ public enum PredefinedEncounter {
             new EnemyOvergrowth.Wriggler(2, false),
             new EnemyOvergrowth.Wriggler(3, false),
             new EnemyOvergrowth.Wriggler(4, false))),
+    THE_KIN("The Kin", 1, () -> List.of(new EnemyOvergrowth.KinFollower(63, EnemyOvergrowth.KinFollower.QUICK_SLASH),
+            new EnemyOvergrowth.KinFollower(63, EnemyOvergrowth.KinFollower.POWER_DANCE),
+            new EnemyOvergrowth.KinPriest())),
 
     // Slay the Spire 2: Hive
     BOWLBUG_ROCK("Bowlbug (Rock)", 2, () -> List.of(new EnemyHive.BowlbugRock())),
