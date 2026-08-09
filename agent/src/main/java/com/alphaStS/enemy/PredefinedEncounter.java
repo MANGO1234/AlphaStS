@@ -95,6 +95,17 @@ public enum PredefinedEncounter {
     LAGAVULIN_MATRIARCH("Lagavulin Matriarch", 1, () -> List.of(new EnemyUnderdock.LagavulinMatriarch())),
     LIVING_FOG("Living Fog", 1, () -> List.of(new EnemyUnderdock.LivingFog(), new EnemyUnderdock.GasBomb().startDead())),
 
+    // Slay the Spire 2: Act 1 Overgrowth
+    PHROG_PARASITE("Phrog Parasite", 1, () -> List.of(new EnemyOvergrowth.PhrogParasite(),
+            new EnemyOvergrowth.Wriggler(1, true).startDead(),
+            new EnemyOvergrowth.Wriggler(2, true).startDead(),
+            new EnemyOvergrowth.Wriggler(3, true).startDead(),
+            new EnemyOvergrowth.Wriggler(4, true).startDead())),
+    WRIGGLERS_4("4 Wrigglers", 1, () -> List.of(new EnemyOvergrowth.Wriggler(1, false),
+            new EnemyOvergrowth.Wriggler(2, false),
+            new EnemyOvergrowth.Wriggler(3, false),
+            new EnemyOvergrowth.Wriggler(4, false))),
+
     // Slay the Spire 2: Hive
     BOWLBUG_ROCK("Bowlbug (Rock)", 2, () -> List.of(new EnemyHive.BowlbugRock())),
     BOWLBUG_EGG("Bowlbug (Egg)", 2, () -> List.of(new EnemyHive.BowlbugEgg())),

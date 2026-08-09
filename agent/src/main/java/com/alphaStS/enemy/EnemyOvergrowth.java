@@ -957,10 +957,11 @@ public class EnemyOvergrowth {
         }
     }
 
-    // TODO: Wrigglers
     public static class PhrogParasite extends Enemy {
         public static final int INFECT = 0;
         public static final int LASH = 1;
+
+        private boolean infestedTriggered;
 
         public PhrogParasite() {
             this(68);
@@ -973,10 +974,37 @@ public class EnemyOvergrowth {
 
         public PhrogParasite(PhrogParasite other) {
             super(other);
+            infestedTriggered = other.infestedTriggered;
         }
 
         @Override public Enemy copy() {
             return new PhrogParasite(this);
+        }
+
+        @Override public int damage(double n, GameState state) {
+            int damageDone = super.damage(n, state);
+            triggerInfested(state);
+            return damageDone;
+        }
+
+        @Override public void nonAttackDamage(int n, boolean blockable, GameState state) {
+            super.nonAttackDamage(n, blockable, state);
+            triggerInfested(state);
+        }
+
+        private void triggerInfested(GameState state) {
+            if (infestedTriggered || health > 0) {
+                return;
+            }
+            infestedTriggered = true;
+            if (state.currentEncounter != null) {
+                for (var enemyInfo : state.currentEncounter.idxes) {
+                    int i = enemyInfo.index();
+                    if (state.getEnemiesForRead().get(i).getHealth() == 0 && state.getEnemiesForRead().get(i) instanceof Wriggler) {
+                        state.reviveEnemy(i, true, -1);
+                    }
+                }
+            }
         }
 
         @Override public void doMove(GameState state, EnemyReadOnly self) {
@@ -1009,6 +1037,79 @@ public class EnemyOvergrowth {
 
         @Override public String getName() {
             return "Phrog Parasite";
+        }
+
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties prop, List<Card> cards) {
+            return List.of(new CardOther2.Infection());
+        }
+    }
+
+    public static class Wriggler extends Enemy {
+        public static final int NASTY_BITE = 0;
+        public static final int WRIGGLE = 1;
+        public static final int STUNNED = 2;
+
+        private final int firstMove;
+        private final boolean stunnedFirst;
+
+        public Wriggler(int ordinal, boolean stunnedFirst) {
+            this(22, ordinal, stunnedFirst);
+        }
+
+        public Wriggler(int health, int ordinal, boolean stunnedFirst) {
+            super(health, 3, false);
+            firstMove = ordinal % 2 == 1 ? NASTY_BITE : WRIGGLE;
+            this.stunnedFirst = stunnedFirst;
+            properties.canGainStrength = true;
+        }
+
+        public Wriggler(Wriggler other) {
+            super(other);
+            firstMove = other.firstMove;
+            stunnedFirst = other.stunnedFirst;
+        }
+
+        @Override public Enemy copy() {
+            return new Wriggler(this);
+        }
+
+        @Override public void doMove(GameState state, EnemyReadOnly self) {
+            if (move == NASTY_BITE) {
+                state.enemyDoDamageToPlayer(this, 7, 1);
+            } else if (move == WRIGGLE) {
+                state.addCardToDiscard(properties.generatedCardIdx);
+                gainStrength(2);
+            }
+        }
+
+        @Override public void nextMove(GameState state, RandomGen random) {
+            lastMove = move;
+            if (move < 0) {
+                move = stunnedFirst ? STUNNED : firstMove;
+            } else if (move == STUNNED) {
+                move = firstMove;
+            } else {
+                move = move == NASTY_BITE ? WRIGGLE : NASTY_BITE;
+            }
+        }
+
+        @Override public String getMoveString(GameState state, int move) {
+            if (move == NASTY_BITE) {
+                return "Attack " + state.enemyCalcDamageToPlayer(this, 7);
+            } else if (move == WRIGGLE) {
+                return "Infection 1+Gain 2 Strength";
+            } else if (move == STUNNED) {
+                return "Stunned";
+            }
+            return "Unknown";
+        }
+
+        @Override public void randomize(GameState state, boolean training, int difficulty) {
+            randomizeHealth(this, state, training, 18, 22);
+        }
+
+        @Override public String getName() {
+            return "Wriggler";
         }
 
         @Override public List<Card> getPossibleGeneratedCards(GameProperties prop, List<Card> cards) {
