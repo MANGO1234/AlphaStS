@@ -1798,6 +1798,18 @@ public final class GameState implements State {
         }
     }
 
+    private void finishStartOfBattleAction() {
+        startOfBattleActionIdx++;
+        if (startOfBattleActionIdx >= properties.startOfBattleActions.size()) {
+            setActionCtx(GameActionCtx.BEGIN_BATTLE, null, null);
+            legalActions = null;
+            doAction(0);
+        } else {
+            setActionCtx(GameActionCtx.START_OF_BATTLE, null, null);
+            runStartOfBattleActionLoop();
+        }
+    }
+
     private boolean playImbuedCardsAtStartOfCombat() {
         List<Integer> imbuedCardIdxes = new ArrayList<>();
         for (int i = deckArrLen - 1; i >= 0; i--) {
@@ -2574,6 +2586,9 @@ public final class GameState implements State {
                 addCardToDeckRandom(createCard(action.idx()));
                 setActionCtx(GameActionCtx.BEGIN_TURN, null, null);
                 endTurn(previousAction);
+            } else if (currentAction != null && properties.cardDict[currentAction.idx()] instanceof CardOther.Choose1OutOf3BeforeBattleStarts) {
+                addCardToDeckNonRandom(action.idx());
+                finishStartOfBattleAction();
             } else if (currentAction != null && properties.knowledgeDemonChoiceCardIdx >= 0 && currentAction.idx() == properties.knowledgeDemonChoiceCardIdx) {
                 var previousAction = currentAction;
                 properties.cardDict[action.idx()].play(this, 0, 0, 0);
@@ -2653,6 +2668,8 @@ public final class GameState implements State {
                 var previousAction = currentAction;
                 setActionCtx(GameActionCtx.BEGIN_TURN, null, null);
                 endTurn(previousAction);
+            } else if (currentAction != null && properties.cardDict[currentAction.idx()] instanceof CardOther.Choose1OutOf3BeforeBattleStarts) {
+                finishStartOfBattleAction();
             } else if (turnNum == 0) {
                 if (Configuration.HEART_GAUNTLET_CARD_REWARD) { // todo
                     setActionCtx(GameActionCtx.BEGIN_BATTLE, null, null);
@@ -2740,6 +2757,9 @@ public final class GameState implements State {
             }
             if (a[action].type() != GameActionType.SELECT_CARD_1_OUT_OF_3) {
                 if (currentAction != null && currentAction.idx() == properties.knowledgeDemonChoiceCardIdx) {
+                    return false;
+                }
+                if (currentAction != null && properties.cardDict[currentAction.idx()] instanceof CardOther.Choose1OutOf3BeforeBattleStarts) {
                     return false;
                 }
                 return a[action].type() == GameActionType.END_SELECT_CARD_1_OUT_OF_3;

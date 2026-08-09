@@ -548,6 +548,32 @@ public class CardOther {
         }
     }
 
+    public static class Choose1OutOf3BeforeBattleStarts extends Card {
+        public final int rarity;
+        public final int cardType;
+        public final boolean upgraded;
+
+        public Choose1OutOf3BeforeBattleStarts(int rarity, int cardType, boolean upgraded) {
+            super("Choose 1 Out Of 3", Card.STATUS, -1, Card.COMMON);
+            this.rarity = rarity;
+            this.cardType = cardType;
+            this.upgraded = upgraded;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
+            state.setSelect1OutOf3Idxes(generatedCardIdxes);
+            return GameActionCtx.SELECT_CARD_1_OUT_OF_3;
+        }
+
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties gameProperties, List<Card> cards) {
+            return getPossibleSelect1OutOf3Cards(gameProperties);
+        }
+
+        @Override public List<Card> getPossibleSelect1OutOf3Cards(GameProperties gameProperties) {
+            return CardManager.getCharacterCardsByRarityAndType(gameProperties.character, rarity, cardType, false, upgraded);
+        }
+    }
+
     public static class RoomFullOfCheeseGorgeAction extends Card {
         private static final int NUM_CARDS_TO_OFFER = 8;
         private static final int NUM_CARDS_TO_ADD = 2;

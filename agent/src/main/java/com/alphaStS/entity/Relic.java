@@ -3117,6 +3117,34 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
+    public static class Choose1OutOf3BeforeBattleStarts extends Relic {
+        private final int rarity;
+        private final int cardType;
+        private final boolean upgraded;
+
+        public Choose1OutOf3BeforeBattleStarts(int rarity, int cardType) {
+            this(rarity, cardType, false);
+        }
+
+        public Choose1OutOf3BeforeBattleStarts(int rarity, int cardType, boolean upgraded) {
+            startOfBattleAction = new CardOther.Choose1OutOf3BeforeBattleStarts(rarity, cardType, upgraded);
+            this.rarity = rarity;
+            this.cardType = cardType;
+            this.upgraded = upgraded;
+        }
+
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties gameProperties, List<Card> cards) {
+            cards = new ArrayList<>();
+            cards.add(startOfBattleAction);
+            cards.addAll(getPossibleSelect1OutOf3Cards(gameProperties));
+            return cards;
+        }
+
+        @Override public List<Card> getPossibleSelect1OutOf3Cards(GameProperties gameProperties) {
+            return CardManager.getCharacterCardsByRarityAndType(gameProperties.character, rarity, cardType, false, upgraded);
+        }
+    }
+
     public static class ReplaceCardBeforeBattleStarts extends Relic {
         private final List<Tuple<Card, Card>> cards;
 

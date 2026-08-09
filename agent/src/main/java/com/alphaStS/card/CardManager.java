@@ -39,6 +39,20 @@ public class CardManager {
         return cards;
     }
 
+    public static List<Card> getCharacterCardsByRarityAndType(CharacterEnum character, int rarity, int cardType, boolean generateHealingCard, boolean upgraded) {
+        List<Card> baseCards = getCharacterCardsByType(character, cardType, generateHealingCard);
+        List<Card> cards = new ArrayList<>();
+        for (Card card : baseCards) {
+            if (card.rarity == rarity) {
+                Card cardToAdd = upgraded ? CardUpgrade.getUpgrade(card, character) : card;
+                if (cardToAdd != null) {
+                    cards.add(cardToAdd);
+                }
+            }
+        }
+        return cards;
+    }
+
     public static List<Card> getCharacterCards(CharacterEnum character, boolean generateHealingCard) {
         List<Card> cards = new ArrayList<>();
         cards.addAll(getCharacterCardsByType(character, Card.ATTACK, generateHealingCard));

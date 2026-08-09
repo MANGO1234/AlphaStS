@@ -2823,18 +2823,30 @@ public class Relic2 {
     // Galactic Dust (Uncommon)
     //   Effect: For every 10 star spent, gain 10 Block.
     public static class GalacticDust extends Relic {
+        int n;
+        int healthReward;
+
+        public GalacticDust() {
+            this(0, 0);
+        }
+
+        public GalacticDust(int n, int healthReward) {
+            this.n = n;
+            this.healthReward = healthReward;
+        }
+
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.registerCounter("GalacticDust", this, new GameProperties.NetworkInputHandler() {
                 @Override public int addToInput(GameState state, float[] input, int idx) {
-                    input[idx] = state.getCounterForRead()[counterIdx] / 10.0f;
+                    input[idx] = (state.getCounterForRead()[counterIdx] + 1) / 10.0f;
                     return idx + 1;
                 }
                 @Override public int getInputLenDelta() { return 1; }
             });
             state.properties.addStartOfBattleHandler("GalacticDust", new GameEventHandler() {
                 @Override public void handle(GameState state) {
-                    if (isRelicEnabledInScenario(state)) {
-                        state.getCounterForWrite()[counterIdx] = 0;
+                    if (isRelicEnabledInScenario(state) && state.isFirstEncounter()) {
+                        state.getCounterForWrite()[counterIdx] = n;
                     }
                 }
             });
@@ -2842,14 +2854,30 @@ public class Relic2 {
                 @Override public void handle(GameState state, int amount) {
                     if (!isRelicEnabledInScenario(state) || amount >= 0) return;
                     int prev = state.getCounterForRead()[counterIdx];
-                    state.getCounterForWrite()[counterIdx] += (-amount);
-                    int next = state.getCounterForRead()[counterIdx];
-                    int blocks = next / 10 - prev / 10;
+                    state.getCounterForWrite()[counterIdx] = (prev - amount) % 10;
+                    int blocks = (prev - amount) / 10;
                     if (blocks > 0) {
                         state.playerGainBlockNotFromCardPlay(blocks * 10);
                     }
                 }
             });
+            if (healthReward > 0) {
+                state.properties.addExtraTrainingTarget("GalacticDust", this, new TrainingTarget() {
+                    @Override public void fillVArray(GameState state, VArray v, int isTerminal) {
+                        if (isTerminal > 0) {
+                            v.setVExtra(vExtraIdx, state.getCounterForRead()[counterIdx] / 9.0);
+                        } else if (isTerminal == 0) {
+                            v.setVExtra(vExtraIdx, state.getVExtra(vExtraIdx));
+                        }
+                    }
+
+                    @Override public void updateQValues(GameState state, VArray v) {
+                        if (!state.isEncounter(PredefinedEncounter.CORRUPT_HEART)) {
+                            v.add(GameState.V_HEALTH_IDX, healthReward * v.getVExtra(vExtraIdx) / state.getPlayerForRead().getMaxHealth());
+                        }
+                    }
+                });
+            }
         }
     }
 
