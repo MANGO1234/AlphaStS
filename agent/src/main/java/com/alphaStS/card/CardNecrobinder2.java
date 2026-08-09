@@ -35,7 +35,7 @@ public class CardNecrobinder2 {
             entityProperty.canSummon = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.summon(n);
             return GameActionCtx.PLAY_CARD;
         }
@@ -82,7 +82,7 @@ public class CardNecrobinder2 {
             entityProperty.otsyAttack = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.otsyDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), getBaseAttackDamage(state));
             return GameActionCtx.PLAY_CARD;
         }
@@ -122,7 +122,7 @@ public class CardNecrobinder2 {
             entityProperty.canSummon = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.summon(n);
             return GameActionCtx.PLAY_CARD;
         }
@@ -151,7 +151,7 @@ public class CardNecrobinder2 {
             entityProperty.doomEnemy = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             var enemy = state.getEnemiesForWrite().getForWrite(idx);
             int dmgDealt = state.playerDoDamageToEnemy(enemy, damage, this);
             if (dmgDealt > 0 && enemy.isAlive()) {
@@ -184,7 +184,7 @@ public class CardNecrobinder2 {
             entityProperty.selectEnemy = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             return GameActionCtx.PLAY_CARD;
         }
@@ -218,7 +218,7 @@ public class CardNecrobinder2 {
             entityProperty.weakEnemy = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.playerGainBlock(block);
             state.getEnemiesForWrite().getForWrite(idx).applyDebuff(state, DebuffType.WEAK, weak);
             return GameActionCtx.PLAY_CARD;
@@ -255,7 +255,7 @@ public class CardNecrobinder2 {
             canUpgrade = (state.properties.generateCardOptions & GameProperties.GENERATE_CARD_DRAIN_POWER) != 0;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             if (!canUpgrade) {
                 return GameActionCtx.PLAY_CARD;
@@ -324,7 +324,7 @@ public class CardNecrobinder2 {
             entityProperty.vulnEnemy = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             var enemy = state.getEnemiesForWrite().getForWrite(idx);
             state.playerDoDamageToEnemy(enemy, damage, this);
             enemy.applyDebuff(state, DebuffType.VULNERABLE, vuln);
@@ -355,7 +355,7 @@ public class CardNecrobinder2 {
             entityProperty.otsyAttack = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.otsyDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage);
             return GameActionCtx.PLAY_CARD;
         }
@@ -395,7 +395,7 @@ public class CardNecrobinder2 {
             selectFromDiscardLater = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             if (state.actionCtx == GameActionCtx.SELECT_ENEMY) {
                 state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
                 return GameActionCtx.SELECT_CARD_DISCARD;
@@ -432,7 +432,7 @@ public class CardNecrobinder2 {
             this.block = block;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.playerGainBlock(block);
             state.addCardToDeckRandom(state.createCard(generatedCardIdx));
             return GameActionCtx.PLAY_CARD;
@@ -472,7 +472,7 @@ public class CardNecrobinder2 {
             entityProperty.canSummon = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.getCounterForWrite()[counterIdx] += n;
             state.getCounterForWrite()[energyRegistrant.getCounterIdx(state.properties)] += n;
             return GameActionCtx.PLAY_CARD;
@@ -510,7 +510,7 @@ public class CardNecrobinder2 {
             entityProperty.doomEnemy = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.playerGainBlock(block);
             for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
                 enemy.applyDebuff(state, DebuffType.DOOM, doom);
@@ -542,7 +542,7 @@ public class CardNecrobinder2 {
             entityProperty.otsyAttack = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.otsyDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage);
             return GameActionCtx.PLAY_CARD;
         }
@@ -574,7 +574,7 @@ public class CardNecrobinder2 {
             entityProperty.canSummon = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.summon(n);
             state.playerGainBlock(block);
             return GameActionCtx.PLAY_CARD;
@@ -604,7 +604,7 @@ public class CardNecrobinder2 {
             entityProperty.selectEnemy = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             return GameActionCtx.PLAY_CARD;
         }
@@ -632,7 +632,7 @@ public class CardNecrobinder2 {
             entityProperty.selectEnemy = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             state.addCardToDeckRandom(state.createCard(generatedCardIdx));
             return GameActionCtx.PLAY_CARD;
@@ -674,7 +674,7 @@ public class CardNecrobinder2 {
             entityProperty.doomEnemy = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.getEnemiesForWrite().getForWrite(idx).applyDebuff(state, DebuffType.DOOM, doom);
             state.draw(draws);
             return GameActionCtx.PLAY_CARD;
@@ -707,7 +707,7 @@ public class CardNecrobinder2 {
             selectFromHandLater = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             if (state.actionCtx == GameActionCtx.PLAY_CARD) {
                 state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
                 for (int i = 0; i < state.handArrLen; i++) {
@@ -770,7 +770,7 @@ public class CardNecrobinder2 {
             selectFromHandLater = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             if (state.actionCtx == GameActionCtx.PLAY_CARD) {
                 state.otsyDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage);
                 for (int i = 0; i < state.handArrLen; i++) {
@@ -828,7 +828,7 @@ public class CardNecrobinder2 {
             this.retain = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
                 state.playerDoDamageToEnemy(enemy, damage, this);
             }
@@ -858,7 +858,7 @@ public class CardNecrobinder2 {
             this.retain = retain;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.gainEnergy(1);
             return GameActionCtx.PLAY_CARD;
         }
@@ -890,7 +890,7 @@ public class CardNecrobinder2 {
             entityProperty.otsyAttack = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             int otsyHP = state.properties.otsyHPCounterIdx >= 0 ? state.getCounterForRead()[state.properties.otsyHPCounterIdx] : 0;
             if (otsyHP > 0) {
                 for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
@@ -926,7 +926,7 @@ public class CardNecrobinder2 {
             this.energy = energy;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.gainEnergy(energy);
             state.getCounterForWrite()[counterIdx]++;
             return GameActionCtx.PLAY_CARD;
@@ -978,7 +978,7 @@ public class CardNecrobinder2 {
             entityProperty.selectEnemy = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             return GameActionCtx.PLAY_CARD;
         }
@@ -1007,7 +1007,7 @@ public class CardNecrobinder2 {
             this.n = n;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.getCounterForWrite()[counterIdx] += n;
             return GameActionCtx.PLAY_CARD;
         }
@@ -1057,7 +1057,7 @@ public class CardNecrobinder2 {
             entityProperty.selectEnemy = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.playerDoNonAttackDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), hpLoss, false);
             for (int i = 0; i < souls; i++) {
                 state.addCardToDeckRandom(state.createCard(generatedCardIdx));
@@ -1099,7 +1099,7 @@ public class CardNecrobinder2 {
             entityProperty.selectFromDeck = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.summon(n);
             state.removeCardFromDeck(idx, false);
             state.exhaustedCardHandle(idx, false);
@@ -1131,7 +1131,7 @@ public class CardNecrobinder2 {
             entityProperty.doomEnemy = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.getCounterForWrite()[counterIdx] += n;
             return GameActionCtx.PLAY_CARD;
         }
@@ -1184,7 +1184,7 @@ public class CardNecrobinder2 {
             this.block = block;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.getCounterForWrite()[counterIdx] += block;
             return GameActionCtx.PLAY_CARD;
         }
@@ -1201,7 +1201,7 @@ public class CardNecrobinder2 {
                 }
             });
             state.properties.addOnCardPlayedHandler("DanseMacabre", new GameEventCardHandler() {
-                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, int starUsed, Class cloneSource, int cloneParentLocation) {
                     int blockAmt = state.getCounterForRead()[counterIdx];
                     if (blockAmt > 0 && energyUsed >= 2) {
                         state.playerGainBlockNotFromCardPlay(blockAmt);
@@ -1237,7 +1237,7 @@ public class CardNecrobinder2 {
             entityProperty.selectEnemy = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), getBaseAttackDamage(state), this);
             return GameActionCtx.PLAY_CARD;
         }
@@ -1264,7 +1264,7 @@ public class CardNecrobinder2 {
                 }
             });
             state.properties.addOnCardDrawnHandler("CardsDrawnThisTurn", new GameEventCardHandler() {
-                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, int starUsed, Class cloneSource, int cloneParentLocation) {
                     state.getCounterForWrite()[drawnRegistrant.getCounterIdx(state.properties)]++;
                 }
             });
@@ -1295,7 +1295,7 @@ public class CardNecrobinder2 {
             this.block = block;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.playerGainBlock(block);
             if (state.getCounterForRead()[doomAppliedRegistrant.getCounterIdx(state.properties)] > 0) {
                 state.playerGainBlock(block);
@@ -1355,7 +1355,7 @@ public class CardNecrobinder2 {
             entityProperty.weakEnemy = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
                 enemy.applyDebuff(state, DebuffType.DOOM, doom);
                 enemy.applyDebuff(state, DebuffType.WEAK, 1);
@@ -1390,7 +1390,7 @@ public class CardNecrobinder2 {
             entityProperty.debilitateEnemy = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             var enemy = state.getEnemiesForWrite().getForWrite(idx);
             state.playerDoDamageToEnemy(enemy, damage, this);
             enemy.applyDebuff(state, DebuffType.DEBILITATE, turns);
@@ -1424,7 +1424,7 @@ public class CardNecrobinder2 {
             this.energyGain = energyGain;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.playerGainBlock(block);
             state.getCounterForWrite()[energyRegistrant.getCounterIdx(state.properties)] += energyGain;
             return GameActionCtx.PLAY_CARD;
@@ -1462,7 +1462,7 @@ public class CardNecrobinder2 {
             entityProperty.canSummon = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             if (energyUsed > 0) {
                 state.summon(summonPerX * energyUsed);
                 for (int i = 0; i < energyUsed; i++) {
@@ -1508,7 +1508,7 @@ public class CardNecrobinder2 {
             entityProperty.selectFromDiscard = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.removeCardFromDiscard(idx);
             if (state.handArrLen < GameState.HAND_LIMIT) {
                 state.addCardToHand(idx);
@@ -1562,7 +1562,7 @@ public class CardNecrobinder2 {
             entityProperty.affectEnemyStrengthEot = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.getEnemiesForWrite().getForWrite(idx).applyDebuff(state, DebuffType.LOSE_STRENGTH_EOT, n);
             return GameActionCtx.PLAY_CARD;
         }
@@ -1591,7 +1591,7 @@ public class CardNecrobinder2 {
             entityProperty.otsyAttack = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.otsyDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage);
             state.draw(1);
             return GameActionCtx.PLAY_CARD;
@@ -1629,7 +1629,7 @@ public class CardNecrobinder2 {
             entityProperty.otsyAttack = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.otsyDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage);
             return GameActionCtx.PLAY_CARD;
         }
@@ -1673,7 +1673,7 @@ public class CardNecrobinder2 {
             entityProperty.changeEnergyRefill = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.getPlayerForWrite().applyDebuff(state, DebuffType.LOSE_STRENGTH, strengthLoss);
             state.energyRefill += 1;
             return GameActionCtx.PLAY_CARD;
@@ -1703,7 +1703,7 @@ public class CardNecrobinder2 {
             this.n = n;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.getCounterForWrite()[counterIdx] += n;
             return GameActionCtx.PLAY_CARD;
         }
@@ -1725,7 +1725,7 @@ public class CardNecrobinder2 {
                 isSoul[i] = base instanceof CardColorless2.Soul || base instanceof CardColorless2.SoulP;
             }
             state.properties.addOnCardPlayedHandler("Haunt", new GameEventCardHandler() {
-                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, int starUsed, Class cloneSource, int cloneParentLocation) {
                     int dmg = state.getCounterForRead()[counterIdx];
                     if (dmg > 0 && isSoul[cardIdx]) {
                         int enemyIdx = GameStateUtils.getRandomEnemyIdx(state, RandomGenCtx.RandomEnemyGeneral);
@@ -1764,7 +1764,7 @@ public class CardNecrobinder2 {
             entityProperty.otsyAttack = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
                 state.otsyDoDamageToEnemy(enemy, damage);
                 enemy.applyDebuff(state, DebuffType.VULNERABLE, vuln);
@@ -1799,7 +1799,7 @@ public class CardNecrobinder2 {
             this.ethereal = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.getCounterForWrite()[counterIdx] += bonus;
             return GameActionCtx.PLAY_CARD;
         }
@@ -1847,7 +1847,7 @@ public class CardNecrobinder2 {
             this.block = block;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.playerGainBlock(block);
             return GameActionCtx.PLAY_CARD;
         }
@@ -1906,7 +1906,7 @@ public class CardNecrobinder2 {
             entityProperty.doomEnemy = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             var enemy = state.getEnemiesForWrite().getForWrite(idx);
             int doom = baseDoom + (enemy.getDoom() / 10) * 5;
             enemy.applyDebuff(state, DebuffType.DOOM, doom);
@@ -1934,7 +1934,7 @@ public class CardNecrobinder2 {
             super(cardName, Card.POWER, cost, Card.UNCOMMON);
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.getCounterForWrite()[counterIdx]++;
             return GameActionCtx.PLAY_CARD;
         }
@@ -1951,7 +1951,7 @@ public class CardNecrobinder2 {
                 }
             });
             state.properties.addOnCardDrawnHandler("Pagestorm", new GameEventCardHandler() {
-                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, int starUsed, Class cloneSource, int cloneParentLocation) {
                     int stacks = state.getCounterForRead()[counterIdx];
                     if (stacks > 0 && state.properties.cardDict[cardIdx].ethereal()) {
                         state.draw(stacks);
@@ -1985,7 +1985,7 @@ public class CardNecrobinder2 {
             this.ethereal = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.draw(n);
             return GameActionCtx.PLAY_CARD;
         }
@@ -2016,7 +2016,7 @@ public class CardNecrobinder2 {
             entityProperty.selectEnemy = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), getBaseAttackDamage(state), this);
             return GameActionCtx.PLAY_CARD;
         }
@@ -2037,7 +2037,7 @@ public class CardNecrobinder2 {
                 }
             });
             state.properties.addOnCardPlayedHandler("EtherealCardsPlayedThisCombat", new GameEventCardHandler() {
-                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, int starUsed, Class cloneSource, int cloneParentLocation) {
                     if (state.properties.cardDict[cardIdx].ethereal()) {
                         state.getCounterForWrite()[etherealCountRegistrant.getCounterIdx(state.properties)]++;
                     }
@@ -2073,7 +2073,7 @@ public class CardNecrobinder2 {
             entityProperty.vulnEnemy = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             var enemy = state.getEnemiesForWrite().getForWrite(idx);
             enemy.applyDebuff(state, DebuffType.WEAK, n);
             enemy.applyDebuff(state, DebuffType.VULNERABLE, n);
@@ -2104,7 +2104,7 @@ public class CardNecrobinder2 {
             entityProperty.otsyAttack = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             var enemy = state.getEnemiesForWrite().getForWrite(idx);
             int priorAttacks = state.properties.otsyAttackedThisTurnCounterIdx >= 0 ?
                     state.getCounterForRead()[state.properties.otsyAttackedThisTurnCounterIdx] : 0;
@@ -2142,14 +2142,14 @@ public class CardNecrobinder2 {
             entityProperty.otsyAttack = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.otsyDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage);
             return GameActionCtx.PLAY_CARD;
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addOnCardPlayedHandler("RightHandHand", new GameEventCardHandler() {
-                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, int starUsed, Class cloneSource, int cloneParentLocation) {
                     if (energyUsed >= 2) {
                         for (int i = 0; i < state.discardArrLen && state.handArrLen < GameState.HAND_LIMIT; i++) {
                             int cIdx = state.getDiscardArrForRead()[i];
@@ -2187,7 +2187,7 @@ public class CardNecrobinder2 {
             entityProperty.selectEnemy = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             state.addCardToDeckRandom(state.createCard(generatedCardIdx));
             state.addCardToHand(state.createCard(generatedCardIdx));
@@ -2227,7 +2227,7 @@ public class CardNecrobinder2 {
             this.block = block;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.getCounterForWrite()[counterIdx] += block;
             return GameActionCtx.PLAY_CARD;
         }
@@ -2284,7 +2284,7 @@ public class CardNecrobinder2 {
             entityProperty.otsyAttack = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             var enemy = state.getEnemiesForWrite().getForWrite(idx);
             state.otsyDoDamageToEnemy(enemy, damage);
             enemy.applyDebuff(state, DebuffType.SIC_EM, summon);
@@ -2344,7 +2344,7 @@ public class CardNecrobinder2 {
             entityProperty.canSummon = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.summon(summon);
             if (state.properties.otsyHPCounterIdx >= 0) {
                 int hp = state.getCounterForRead()[state.properties.otsyHPCounterIdx];
@@ -2377,7 +2377,7 @@ public class CardNecrobinder2 {
             entityProperty.selectEnemy = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             state.getCounterForWrite()[counterIdx]++;
             return GameActionCtx.PLAY_CARD;
@@ -2395,7 +2395,7 @@ public class CardNecrobinder2 {
                 }
             });
             state.properties.addOnCardPlayedHandler("NextEtherealCostZero", new GameEventCardHandler() {
-                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, int starUsed, Class cloneSource, int cloneParentLocation) {
                     if (state.properties.cardDict[cardIdx].ethereal() && state.getCounterForRead()[counterIdx] > 0) {
                         state.getCounterForWrite()[counterIdx]--;
                     }
@@ -2434,7 +2434,7 @@ public class CardNecrobinder2 {
             this.damage = damage;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
                 state.playerDoDamageToEnemy(enemy, damage, this);
             }
@@ -2458,7 +2458,7 @@ public class CardNecrobinder2 {
                 }
             });
             state.properties.addOnCardPlayedHandler("EtherealCardsPlayedThisCombat", new GameEventCardHandler() {
-                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, int starUsed, Class cloneSource, int cloneParentLocation) {
                     if (state.properties.cardDict[cardIdx].ethereal()) {
                         state.getCounterForWrite()[counterIdx]++;
                     }
@@ -2488,7 +2488,7 @@ public class CardNecrobinder2 {
             this.innate = innate;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.getCounterForWrite()[counterIdx]++;
             return GameActionCtx.PLAY_CARD;
         }
@@ -2539,7 +2539,7 @@ public class CardNecrobinder2 {
             this.ethereal = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.getCounterForWrite()[counterIdx]++;
             return GameActionCtx.PLAY_CARD;
         }
@@ -2591,7 +2591,7 @@ public class CardNecrobinder2 {
             entityProperty.canSummon = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.getCounterForWrite()[counterIdx] += n;
             return GameActionCtx.PLAY_CARD;
         }
@@ -2608,7 +2608,7 @@ public class CardNecrobinder2 {
                 }
             });
             state.properties.addOnCardPlayedHandler("DevourLife", new GameEventCardHandler() {
-                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, int starUsed, Class cloneSource, int cloneParentLocation) {
                     var base = state.properties.cardDict[cardIdx].getBaseCard();
                     if (base instanceof CardColorless2.Soul || base instanceof CardColorless2.SoulP) {
                         int summonAmt = state.getCounterForRead()[counterIdx];
@@ -2641,7 +2641,7 @@ public class CardNecrobinder2 {
             super(cardName, Card.SKILL, cost, Card.RARE);
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             int handSize = state.handArrLen;
             for (int i = handSize - 1; i >= 0; i--) {
                 state.exhaustCardFromHandByPosition(i, false);
@@ -2682,7 +2682,7 @@ public class CardNecrobinder2 {
             entityProperty.doomEnemy = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
                 enemy.applyDebuff(state, DebuffType.DOOM, doom);
             }
@@ -2720,7 +2720,7 @@ public class CardNecrobinder2 {
             entityProperty.selectEnemy = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             var enemy = state.getEnemiesForWrite().getForWrite(idx);
             for (int i = 0; i < energyUsed; i++) {
                 state.playerDoDamageToEnemy(enemy, damage, this);
@@ -2758,7 +2758,7 @@ public class CardNecrobinder2 {
             entityProperty.hangEnemy = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             var enemy = state.getEnemiesForWrite().getForWrite(idx);
             state.playerDoDamageToEnemy(enemy, damage * (1 << enemy.getHang()), this);
             enemy.applyDebuff(state, DebuffType.HANG, 1);
@@ -2789,7 +2789,7 @@ public class CardNecrobinder2 {
             entityProperty.selectEnemy = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             var target = state.getEnemiesForRead().get(idx);
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             for (int i = 0; i < state.getEnemiesForRead().size(); i++) {
@@ -2824,7 +2824,7 @@ public class CardNecrobinder2 {
             entityProperty.canSummon = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.summon(summonAmt);
             state.getCounterForWrite()[counterIdx]++;
             return GameActionCtx.PLAY_CARD;
@@ -2876,7 +2876,7 @@ public class CardNecrobinder2 {
             this.energy = energy;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.gainEnergy(energy);
             state.draw(2);
             state.getPlayerForWrite().applyDebuff(state, DebuffType.DOOM_PER_TURN, 3);
@@ -2937,14 +2937,14 @@ public class CardNecrobinder2 {
             entityProperty.doomPerCardEnemy = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.getEnemiesForWrite().getForWrite(idx).applyDebuff(state, DebuffType.DOOM_PER_CARD, doomPerCard);
             return GameActionCtx.PLAY_CARD;
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addOnCardPlayedHandler("OblivionDoomPerCard", new GameEventCardHandler() {
-                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, int starUsed, Class cloneSource, int cloneParentLocation) {
                     for (int i = 0; i < state.getEnemiesForRead().size(); i++) {
                         var enemy = state.getEnemiesForRead().get(i);
                         if (enemy.isAlive() && enemy.getDoomPerCard() > 0) {
@@ -2981,7 +2981,7 @@ public class CardNecrobinder2 {
             entityProperty.canSummon = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.summon(summonAmt);
             return GameActionCtx.PLAY_CARD;
         }
@@ -3010,7 +3010,7 @@ public class CardNecrobinder2 {
             entityProperty.doomEnemy = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.addBuff(PlayerBuff.REAPER_FORM);
             return GameActionCtx.PLAY_CARD;
         }
@@ -3037,7 +3037,7 @@ public class CardNecrobinder2 {
             this.retain = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             if (state.properties.otsyHPCounterIdx >= 0) {
                 int otsyHP = state.getCounterForRead()[state.properties.otsyHPCounterIdx];
                 if (otsyHP > 0) {
@@ -3072,7 +3072,7 @@ public class CardNecrobinder2 {
             entityProperty.selectFromDeck = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             for (int i = 0; i < state.deckArrLen; i++) {
                 if (state.deckArr[i] == idx) {
                     state.transformCard(state.deckArr, i, state.createCard(generatedCardIdx));
@@ -3111,7 +3111,7 @@ public class CardNecrobinder2 {
             super(cardName, Card.POWER, cost, Card.RARE);
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.getCounterForWrite()[counterIdx]++;
             return GameActionCtx.PLAY_CARD;
         }
@@ -3165,7 +3165,7 @@ public class CardNecrobinder2 {
             this.exhaustWhenPlayed = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.playerGainStrength(-2);
             for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
                 enemy.applyDebuff(state, DebuffType.LOSE_STRENGTH, enemyStrLoss);
@@ -3199,7 +3199,7 @@ public class CardNecrobinder2 {
             entityProperty.selectEnemy = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), getBaseAttackDamage(state), this);
             return GameActionCtx.PLAY_CARD;
         }
@@ -3239,7 +3239,7 @@ public class CardNecrobinder2 {
             this.blockPerEthereal = blockPerEthereal;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.getCounterForWrite()[counterIdx] += blockPerEthereal;
             return GameActionCtx.PLAY_CARD;
         }
@@ -3256,7 +3256,7 @@ public class CardNecrobinder2 {
                 }
             });
             state.properties.addOnCardPlayedHandler("SpiritOfAsh", new GameEventCardHandler() {
-                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, int starUsed, Class cloneSource, int cloneParentLocation) {
                     int block = state.getCounterForRead()[counterIdx];
                     if (block > 0 && state.properties.cardDict[cardIdx].ethereal()) {
                         state.playerGainBlockNotFromCardPlay(block);
@@ -3293,7 +3293,7 @@ public class CardNecrobinder2 {
             entityProperty.otsyAttack = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.otsyDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), getBaseAttackDamage(state));
             return GameActionCtx.PLAY_CARD;
         }
@@ -3346,7 +3346,7 @@ public class CardNecrobinder2 {
             exhaustWhenPlayed = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             int bonus = state.getCounterForRead()[counterIdx];
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), getBaseAttackDamage(state), this);
             state.getCounterForWrite()[counterIdx] += dmgInc;
@@ -3410,7 +3410,7 @@ public class CardNecrobinder2 {
             exhaustWhenPlayed = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             int doom = state.getEnemiesForRead().get(idx).getDoom();
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), doom, this);
             return GameActionCtx.PLAY_CARD;
@@ -3438,7 +3438,7 @@ public class CardNecrobinder2 {
             selectFromHandLater = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             if (state.actionCtx == GameActionCtx.PLAY_CARD) {
                 return GameActionCtx.SELECT_CARD_HAND;
             } else {
@@ -3498,7 +3498,7 @@ public class CardNecrobinder2 {
             this.block = block;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.playerGainBlock(block);
             state.addCardToDiscard(state.createCard(state.currentlyPlayedCardIdx));
             return GameActionCtx.PLAY_CARD;
@@ -3526,7 +3526,7 @@ public class CardNecrobinder2 {
             returnToDeckWhenPlay = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             return GameActionCtx.PLAY_CARD;
         }
 
@@ -3564,7 +3564,7 @@ public class CardNecrobinder2 {
             entityProperty.otsyAttack = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.otsyDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), getBaseAttackDamage(state));
             return GameActionCtx.PLAY_CARD;
         }

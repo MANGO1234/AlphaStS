@@ -18,10 +18,10 @@ public class PlayCardAction implements GameEnvironmentAction {
 
     @Override public void doAction(GameState state) {
         var action = state.properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][cardIdx];
-        state.playCard(action, -1, true, cloneSource, false, false, -1, -1);
+        state.playCard(action, -1, true, cloneSource, false, false, -1, -1, -1);
         while (state.actionCtx == GameActionCtx.SELECT_ENEMY) {
             int enemyIdx = GameStateUtils.getRandomEnemyIdx(state, RandomGenCtx.RandomEnemyGeneral);
-            state.playCard(action, enemyIdx, true, cloneSource, false, false, -1, -1);
+            state.playCard(action, enemyIdx, true, cloneSource, false, false, -1, -1, -1);
         }
     }
 

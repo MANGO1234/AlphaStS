@@ -15,10 +15,10 @@ public class DecisionsDecisionsAction implements GameEnvironmentAction {
 
     @Override public void doAction(GameState state) {
         var action = state.properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][cardIdx];
-        state.playCard(action, -1, true, CardRegent2.DecisionsDecisions.class, false, false, -1, -1);
+        state.playCard(action, -1, true, CardRegent2.DecisionsDecisions.class, false, false, -1, -1, -1);
         while (state.actionCtx == GameActionCtx.SELECT_ENEMY) {
             int enemyIdx = GameStateUtils.getRandomEnemyIdx(state, RandomGenCtx.RandomEnemyGeneral);
-            state.playCard(action, enemyIdx, true, CardRegent2.DecisionsDecisions.class, false, false, -1, -1);
+            state.playCard(action, enemyIdx, true, CardRegent2.DecisionsDecisions.class, false, false, -1, -1, -1);
         }
     }
 

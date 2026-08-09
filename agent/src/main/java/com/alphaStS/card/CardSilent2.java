@@ -69,7 +69,7 @@ public class CardSilent2 {
             canDiscardAnyCard = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             if (state.actionCtx == GameActionCtx.PLAY_CARD) {
                 state.draw(n);
                 return GameActionCtx.SELECT_CARD_HAND;
@@ -104,7 +104,7 @@ public class CardSilent2 {
             entityProperty.changePlayerDexterityEot = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.getPlayerForWrite().gainDexterity(n);
             state.getPlayerForWrite().applyDebuff(state, DebuffType.LOSE_DEXTERITY_EOT, n);
             return GameActionCtx.PLAY_CARD;
@@ -213,7 +213,7 @@ public class CardSilent2 {
             entityProperty.sly = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
                 state.playerDoDamageToEnemy(enemy, damage, this);
             }
@@ -243,7 +243,7 @@ public class CardSilent2 {
             entityProperty.selectEnemy = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             state.addCardToHand(state.createCard(generatedCardIdx));
             state.addCardToHand(state.createCard(generatedCardIdx));
@@ -307,7 +307,7 @@ public class CardSilent2 {
             entityProperty.sly = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             for (int i = 0; i < n; i++) {
                 int enemyIdx = GameStateUtils.getRandomEnemyIdx(state, RandomGenCtx.RandomEnemyGeneral);
                 if (enemyIdx >= 0) {
@@ -353,7 +353,7 @@ public class CardSilent2 {
             entityProperty.poisonEnemy = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.getEnemiesForWrite().getForWrite(idx).applyDebuff(state, DebuffType.POISON, n);
             return GameActionCtx.PLAY_CARD;
         }
@@ -398,7 +398,7 @@ public class CardSilent2 {
             entityProperty.sly = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.playerGainBlock(n);
             return GameActionCtx.PLAY_CARD;
         }
@@ -469,7 +469,7 @@ public class CardSilent2 {
             entityProperty.poisonEnemy = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             if (state.getEnemiesForRead().get(idx).getPoison() > 0) {
                 state.getEnemiesForWrite().getForWrite(idx).applyDebuff(state, DebuffType.POISON, n);
             }
@@ -543,7 +543,7 @@ public class CardSilent2 {
             entityProperty.vulnEnemy = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             var enemy = state.getEnemiesForWrite().getForWrite(idx);
             enemy.setBlock(0);
             enemy.setArtifact(0);
@@ -604,7 +604,7 @@ public class CardSilent2 {
             entityProperty.weakEnemy = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
                 state.playerDoDamageToEnemy(enemy, damage, this);
             }
@@ -655,7 +655,7 @@ public class CardSilent2 {
             selectFromHandLater = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             if (state.actionCtx == GameActionCtx.PLAY_CARD) {
                 state.playerGainBlock(block);
                 for (int i = 0; i < state.handArrLen; i++) {
@@ -724,7 +724,7 @@ public class CardSilent2 {
             entityProperty.poisonEnemy = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
                 enemy.applyDebuff(state, DebuffType.POISON, n);
             }
@@ -754,7 +754,7 @@ public class CardSilent2 {
             this.canDiscardAnyCard = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.discardCardFromHand(idx);
             state.getCounterForWrite()[counterIdx]++;
             if (state.getCounterForRead()[counterIdx] < 2) {
@@ -831,7 +831,7 @@ public class CardSilent2 {
             entityProperty.selectEnemy = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             int discarded = state.getCounterForRead()[state.properties.cardsDiscardedThisTurnCounterIdx];
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), getBaseAttackDamage(state), this);
             return GameActionCtx.PLAY_CARD;
@@ -886,7 +886,7 @@ public class CardSilent2 {
             this.exhaustWhenPlayed = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             int totalPoison = 0;
             for (int i = 0; i < state.getEnemiesForRead().size(); i++) {
                 var e = state.getEnemiesForRead().get(i);
@@ -931,7 +931,7 @@ public class CardSilent2 {
             this.n = n;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.getCounterForWrite()[counterIdx] += n;
             return GameActionCtx.PLAY_CARD;
         }
@@ -990,7 +990,7 @@ public class CardSilent2 {
             this.bonusDamage = bonusDamage;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.getCounterForWrite()[counterIdx] += bonusDamage;
             return GameActionCtx.PLAY_CARD;
         }
@@ -1038,7 +1038,7 @@ public class CardSilent2 {
             entityProperty.selectEnemy = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             return GameActionCtx.PLAY_CARD;
         }
@@ -1075,7 +1075,7 @@ public class CardSilent2 {
             entityProperty.selectEnemy = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             state.getCounterForWrite()[counterIdx]++;
             return GameActionCtx.PLAY_CARD;
@@ -1093,7 +1093,7 @@ public class CardSilent2 {
                 }
             });
             state.properties.addOnCardPlayedHandler("Pounce", new GameEventCardHandler() {
-                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, int starUsed, Class cloneSource, int cloneParentLocation) {
                     if (state.properties.cardDict[cardIdx].cardType == Card.SKILL && state.getCounterForRead()[counterIdx] > 0) {
                         state.getCounterForWrite()[counterIdx]--;
                         state.gainEnergy(energyUsed);
@@ -1125,7 +1125,7 @@ public class CardSilent2 {
             entityProperty.selectEnemy = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), getBaseAttackDamage(state), this);
             return GameActionCtx.PLAY_CARD;
         }
@@ -1157,7 +1157,7 @@ public class CardSilent2 {
             entityProperty.selectEnemy = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             state.getCounterForWrite()[counterIdx]++;
             return GameActionCtx.PLAY_CARD;
@@ -1209,7 +1209,7 @@ public class CardSilent2 {
             entityProperty.sly = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.draw(n);
             return GameActionCtx.PLAY_CARD;
         }
@@ -1239,7 +1239,7 @@ public class CardSilent2 {
             delayUseEnergy = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             for (int i = 0; i < energyUsed; i++) {
                 state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             }
@@ -1274,7 +1274,7 @@ public class CardSilent2 {
             this.n = n;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.getCounterForWrite()[counterIdx]++;
             return GameActionCtx.PLAY_CARD;
         }
@@ -1292,7 +1292,7 @@ public class CardSilent2 {
             });
             state.properties.registerIsPlayerTurnCounter();
             state.properties.addOnCardDrawnHandler("Speedster", new GameEventCardHandler() {
-                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, int starUsed, Class cloneSource, int cloneParentLocation) {
                     int stacks = state.getCounterForRead()[counterIdx];
                     if (stacks > 0 && state.getCounterForRead()[state.properties.isPlayerTurnCounterIdx] > 0) {
                         for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
@@ -1331,7 +1331,7 @@ public class CardSilent2 {
             entityProperty.chokeEnemy = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             var enemy = state.getEnemiesForWrite().getForWrite(idx);
             state.playerDoDamageToEnemy(enemy, damage, this);
             enemy.applyDebuff(state, DebuffType.CHOKE, choke);
@@ -1340,7 +1340,7 @@ public class CardSilent2 {
 
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addOnPreCardPlayedHandler("Choke", new GameEventCardHandler() {
-                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, int starUsed, Class cloneSource, int cloneParentLocation) {
                     for (int i = 0; i < state.getEnemiesForRead().size(); i++) {
                         if (state.getEnemiesForRead().get(i).getChoke() > 0) {
                             state.playerDoNonAttackDamageToEnemy(state.getEnemiesForWrite().getForWrite(i), state.getEnemiesForRead().get(i).getChoke(), false);
@@ -1375,7 +1375,7 @@ public class CardSilent2 {
             entityProperty.sly = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.gainEnergy(n);
             return GameActionCtx.PLAY_CARD;
         }
@@ -1408,7 +1408,7 @@ public class CardSilent2 {
             this(2);
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             for (int i = 0; i < 3; i++) {
                 state.addCardToHand(state.createCard(generatedCardIdx));
             }
@@ -1444,7 +1444,7 @@ public class CardSilent2 {
             this(2);
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             for (int i = 0; i < 4; i++) {
                 state.addCardToHand(state.createCard(generatedCardIdx));
             }
@@ -1494,7 +1494,7 @@ public class CardSilent2 {
             entityProperty.changePlayerDexterity = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.getPlayerForWrite().gainDexterity(1);
             state.getCounterForWrite()[counterIdx] += thorns;
             return GameActionCtx.PLAY_CARD;
@@ -1528,7 +1528,7 @@ public class CardSilent2 {
             this.n = n;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.getCounterForWrite()[counterIdx] += n;
             return GameActionCtx.PLAY_CARD;
         }
@@ -1597,7 +1597,7 @@ public class CardSilent2 {
             entityProperty.vulnEnemy = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             var enemy = state.getEnemiesForWrite().getForWrite(idx);
             state.playerDoDamageToEnemy(enemy, damage, this);
             enemy.applyDebuff(state, DebuffType.VULNERABLE, vul);
@@ -1628,7 +1628,7 @@ public class CardSilent2 {
             this.n = n;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             for (int i = 0; i < n; i++) {
                 state.addCardToHand(state.createCard(generatedCardIdx));
             }
@@ -1682,7 +1682,7 @@ public class CardSilent2 {
             entityProperty.poisonEnemy = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.getCounterForWrite()[counterIdx] += poison;
             return GameActionCtx.PLAY_CARD;
         }
@@ -1703,7 +1703,7 @@ public class CardSilent2 {
                 }
             });
             state.properties.addOnCardDrawnHandler("CorrosiveWave", new GameEventCardHandler() {
-                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, int starUsed, Class cloneSource, int cloneParentLocation) {
                     if (state.getCounterForRead()[counterIdx] > 0) {
                         int poisonAmt = state.getCounterForRead()[counterIdx];
                         for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
@@ -1741,7 +1741,7 @@ public class CardSilent2 {
             damage = dmg;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             int numKills;
             do {
                 numKills = 0;
@@ -1792,7 +1792,7 @@ public class CardSilent2 {
             this.n = n;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.getCounterForWrite()[counterIdx] += 1;
             for (int i = 0; i < n; i++) {
                 state.addCardToHand(state.createCard(generatedCardIdx));
@@ -1861,7 +1861,7 @@ public class CardSilent2 {
             entityProperty.selectEnemy = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             if (upgraded && state.properties.shivUpgradeIdxes != null) {
                 state.exhaustArrTransform(state.properties.shivUpgradeIdxes);
             }
@@ -1879,9 +1879,9 @@ public class CardSilent2 {
                 state.removeCardFromExhaust(shivCardIdxes[i]);
                 var action = state.properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][shivCardIdxes[i]];
                 if (action != null) {
-                    state.playCard(action, -1, true, null, false, false, -1, -1);
+                    state.playCard(action, -1, true, null, false, false, -1, -1, -1);
                     while (state.actionCtx == GameActionCtx.SELECT_ENEMY) {
-                        state.playCard(action, idx, true, null, false, false, -1, -1);
+                        state.playCard(action, idx, true, null, false, false, -1, -1, -1);
                     }
                 }
             }
@@ -1935,7 +1935,7 @@ public class CardSilent2 {
             entityProperty.addPossibleBuff(PlayerBuff.MASTER_PLANNER);
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.addBuff(PlayerBuff.MASTER_PLANNER);
             return GameActionCtx.PLAY_CARD;
         }
@@ -1978,7 +1978,7 @@ public class CardSilent2 {
             entityProperty.selectEnemy = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), getBaseAttackDamage(state), this);
             return GameActionCtx.PLAY_CARD;
         }
@@ -2003,7 +2003,7 @@ public class CardSilent2 {
                 }
             });
             state.properties.addOnCardDrawnHandler("CardsDrawnThisCombat", new GameEventCardHandler() {
-                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, int starUsed, Class cloneSource, int cloneParentLocation) {
                     state.getCounterForWrite()[counterIdx]++;
                 }
             });
@@ -2042,7 +2042,7 @@ public class CardSilent2 {
             this.n = n;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.getCounterForWrite()[counterIdx] += n;
             return GameActionCtx.PLAY_CARD;
         }
@@ -2059,7 +2059,7 @@ public class CardSilent2 {
                 }
             });
             state.properties.addOnCardPlayedHandler("SerpentForm", new GameEventCardHandler() {
-                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, int starUsed, Class cloneSource, int cloneParentLocation) {
                     if (state.getCounterForRead()[counterIdx] > 0) {
                         if (state.properties.cardDict[cardIdx].cardName.startsWith("Serpent Form")) {
                             return;
@@ -2094,7 +2094,7 @@ public class CardSilent2 {
             super(cardName, Card.SKILL, cost, Card.RARE);
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.discardHand(true);
             state.getCounterForWrite()[counterIdx] += 1 << 8;
             return GameActionCtx.PLAY_CARD;
@@ -2126,7 +2126,7 @@ public class CardSilent2 {
             super(cardName, Card.SKILL, cost, Card.RARE);
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.getCounterForWrite()[counterIdx] += 1;
             return GameActionCtx.PLAY_CARD;
         }
@@ -2193,7 +2193,7 @@ public class CardSilent2 {
             this.exhaustWhenPlayed = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             var enemy = state.getEnemiesForWrite().getForWrite(idx);
             int prevHp = enemy.getHealth();
             state.playerDoDamageToEnemy(enemy, damage, this);
@@ -2260,7 +2260,7 @@ public class CardSilent2 {
             entityProperty.weakEnemy = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.getCounterForWrite()[counterIdx] += 1;
             return GameActionCtx.PLAY_CARD;
         }
@@ -2345,7 +2345,7 @@ public class CardSilent2 {
             entityProperty.weakEnemy = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             var enemy = state.getEnemiesForWrite().getForWrite(idx);
             state.playerDoDamageToEnemy(enemy, damage, this);
             enemy.applyDebuff(state, DebuffType.WEAK, weak);
@@ -2391,7 +2391,7 @@ public class CardSilent2 {
             entityProperty.weakEnemy = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
                 enemy.applyDebuff(state, DebuffType.WEAK, 1);
             }

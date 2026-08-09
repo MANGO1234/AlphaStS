@@ -80,7 +80,7 @@ public class CardOther {
 
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addOnCardDrawnHandler("Void", new GameEventCardHandler() {
-                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, int starUsed, Class cloneSource, int cloneParentLocation) {
                     if (state.properties.cardDict[cardIdx] instanceof CardOther.Void) {
                         state.gainEnergy(-1);
                     }
@@ -179,7 +179,7 @@ public class CardOther {
                 }
             });
             state.properties.addOnCardPlayedHandler("Normality", new GameEventCardHandler() {
-                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, int starUsed, Class cloneSource, int cloneParentLocation) {
                     state.getCounterForWrite()[counterIdx] += 1;
                 }
             });
@@ -207,7 +207,7 @@ public class CardOther {
         @Override public void gamePropertiesSetup(GameState state) {
             var _this = this;
             state.properties.addOnCardPlayedHandler("Pain", new GameEventCardHandler() {
-                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, int starUsed, Class cloneSource, int cloneParentLocation) {
                     for (int i = 0; i < state.handArrLen; i++) {
                         if (state.properties.cardDict[state.getHandArrForRead()[i]] instanceof CardOther.Pain) {
                             state.doNonAttackDamageToPlayer(1, false, _this);
@@ -289,7 +289,7 @@ public class CardOther {
             entityProperty.selectFromHand = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.discardCardFromHand(idx);
             state.getCounterForWrite()[counterIdx] += 1;
             return GameActionCtx.SELECT_CARD_HAND;
@@ -329,7 +329,7 @@ public class CardOther {
             this.cards = cards;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             if (state.actionCtx == GameActionCtx.START_OF_BATTLE) {
                 return GameActionCtx.SELECT_CARD_DECK;
             }
@@ -381,7 +381,7 @@ public class CardOther {
             this.cards = cards;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             if (state.actionCtx == GameActionCtx.START_OF_BATTLE) {
                 return GameActionCtx.SELECT_CARD_DECK;
             }
@@ -431,7 +431,7 @@ public class CardOther {
             this.exhaustWhenPlayed = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             if (state.actionCtx == GameActionCtx.START_OF_BATTLE) {
                 var cards = this.cards.get(state.getCounterForWrite()[counterIdx]);
                 for (Card card : cards) {
@@ -490,7 +490,7 @@ public class CardOther {
             this.canEndEarly = canEndEarly;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             if (state.actionCtx == GameActionCtx.START_OF_BATTLE) {
                 addCardsToExhaust(state);
                 return GameActionCtx.SELECT_CARD_EXHAUST;
@@ -560,7 +560,7 @@ public class CardOther {
             this.parentRelic = parentRelic;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             if (!parentRelic.isRelicEnabledInScenario(state)) {
                 return GameActionCtx.START_OF_BATTLE;
             }
@@ -628,7 +628,7 @@ public class CardOther {
             this(cards, -1);
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             if (state.actionCtx != GameActionCtx.START_OF_BATTLE) {
                 var cards = this.cards.get(state.getCounterForRead()[counterIdx]);
                 state.removeCardFromExhaust(state.properties.findCardIndex(cards.v1()));
@@ -699,7 +699,7 @@ public class CardOther {
             this(cards, -1);
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             if (state.actionCtx == GameActionCtx.START_OF_BATTLE) {
                 for (var cards : this.cards) {
                     if (GameStateUtils.getCardCount(state.getDeckArrForRead(), state.getNumCardsInDeck(), state.properties.findCardIndex(cards.v1())) > 0) {
@@ -777,7 +777,7 @@ public class CardOther {
             this.select1OutOf3CardEffectCard = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.getCounterForWrite()[state.properties.platedArmorCounterIdx] += armor;
             return GameActionCtx.PLAY_CARD;
         }
@@ -809,7 +809,7 @@ public class CardOther {
             this.select1OutOf3CardEffectCard = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.playerGainStrength(strength);
             return GameActionCtx.PLAY_CARD;
         }
@@ -837,7 +837,7 @@ public class CardOther {
             this.healthRewardRatio = healthRewardRatio;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.getCounterForWrite()[counterIdx] += gold;
             this.select1OutOf3CardEffectCard = true;
             return GameActionCtx.PLAY_CARD;
@@ -898,7 +898,7 @@ public class CardOther {
             this.select1OutOf3CardEffectCard = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.changeStance(Stance.CALM);
             return GameActionCtx.PLAY_CARD;
         }
@@ -910,7 +910,7 @@ public class CardOther {
             this.select1OutOf3CardEffectCard = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.changeStance(Stance.WRATH);
             return GameActionCtx.PLAY_CARD;
         }
@@ -921,7 +921,7 @@ public class CardOther {
             super("Nilroy's Codex", Card.SKILL, 0, Card.RARE);
         }
 
-        @Override public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        @Override public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -931,7 +931,7 @@ public class CardOther {
             super("Scry On Shuffle", Card.SKILL, 0, Card.COMMON);
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             return GameActionCtx.PLAY_CARD;
         }
     }

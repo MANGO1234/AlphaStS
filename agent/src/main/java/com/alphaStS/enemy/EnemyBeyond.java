@@ -88,7 +88,7 @@ public class EnemyBeyond {
         @Override public void gamePropertiesSetup(GameState state) {
             var idx = state.getEnemiesForRead().find(this);
             state.properties.addOnCardPlayedHandler(new GameEventCardHandler() {
-                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, int starUsed, Class cloneSource, int cloneParentLocation) {
                     var enemy = state.getEnemiesForRead().get(idx);
                     if (state.properties.cardDict[cardIdx].cardType == Card.POWER) {
                         if (!((AwakenedOne) enemy).awakened && enemy.isAlive() && enemy.move != REBIRTH) {
@@ -487,7 +487,7 @@ public class EnemyBeyond {
                 }
             });
             state.properties.addOnCardPlayedHandler(new GameEventCardHandler() {
-                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, int starUsed, Class cloneSource, int cloneParentLocation) {
                     var c = state.getCounterForWrite();
                     if (c[state.properties.timeEaterCounterIdx] == 12) {
                         throw CrashException.builder().withState(state).build();
@@ -730,7 +730,7 @@ public class EnemyBeyond {
         @Override public void gamePropertiesSetup(GameState state) {
             var idx = state.getEnemiesForRead().find(this);
             state.properties.addOnCardPlayedHandler(new GameEventCardHandler() {
-                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, int starUsed, Class cloneSource, int cloneParentLocation) {
                     if (idx < 0 || !state.getEnemiesForRead().get(idx).isAlive()) {
                         return;
                     }

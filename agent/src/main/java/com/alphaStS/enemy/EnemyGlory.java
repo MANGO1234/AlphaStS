@@ -119,7 +119,7 @@ public class EnemyGlory {
                 }
             });
             state.properties.addOnCardPlayedHandler("Withering Presence", new GameEventCardHandler() {
-                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, int starUsed, Class cloneSource, int cloneParentLocation) {
                     if (idx < 0 || !state.getEnemiesForRead().get(idx).isAlive()) {
                         return;
                     }
@@ -1813,7 +1813,7 @@ public class EnemyGlory {
         @Override public void gamePropertiesSetup(GameState state) {
             var idx = state.getEnemiesForRead().find(this);
             state.properties.addOnCardPlayedHandler("TestSubjectEnrage", new GameEventCardHandler() {
-                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, int starUsed, Class cloneSource, int cloneParentLocation) {
                     EnemyReadOnly enemy = state.getEnemiesForRead().get(idx);
                     if (enemy instanceof TestSubject testSubject && testSubject.phase == 1 && enemy.isAlive()
                             && enemy.getMove() != ADAPTABLE && state.properties.cardDict[cardIdx].cardType == Card.SKILL) {

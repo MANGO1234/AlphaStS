@@ -54,7 +54,7 @@ public class CardOther2 {
             select1OutOf3CardEffectCard = true;
         }
 
-        @Override public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        @Override public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             if (state.properties.disintegrationCounterIdx >= 0) {
                 state.getCounterForWrite()[state.properties.disintegrationCounterIdx] += EnemyHive.KnowledgeDemon.getCurseOfKnowledgeDamage(state);
             }
@@ -98,7 +98,7 @@ public class CardOther2 {
             this(1);
         }
 
-        @Override public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        @Override public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             if (state.properties.sandpitCounterIdx >= 0) {
                 state.getCounterForWrite()[state.properties.sandpitCounterIdx]++;
             }
@@ -150,7 +150,7 @@ public class CardOther2 {
             select1OutOf3CardEffectCard = true;
         }
 
-        @Override public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        @Override public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             if (state.properties.mindRotCounterIdx >= 0) {
                 state.getCounterForWrite()[state.properties.mindRotCounterIdx]++;
             }
@@ -185,7 +185,7 @@ public class CardOther2 {
             exhaustWhenPlayed = true;
         }
 
-        @Override public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        @Override public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.draw(1);
             return GameActionCtx.PLAY_CARD;
         }
@@ -200,7 +200,7 @@ public class CardOther2 {
             select1OutOf3CardEffectCard = true;
         }
 
-        @Override public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        @Override public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             if (state.properties.slothCounterIdx >= 0) {
                 state.getCounterForWrite()[state.properties.slothCounterIdx]++;
             }
@@ -263,7 +263,7 @@ public class CardOther2 {
             entityProperty.changeEnergyRefill = true;
         }
 
-        @Override public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        @Override public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.energyRefill--;
             return GameActionCtx.PLAY_CARD;
         }

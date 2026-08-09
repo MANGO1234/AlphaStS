@@ -2237,7 +2237,7 @@ public class EnemyHive {
             }
         });
         state.properties.addOnPreCardPlayedHandler("Tender", new GameEventCardHandler() {
-            @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+            @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, int starUsed, Class cloneSource, int cloneParentLocation) {
                 if (!state.hasBuff(PlayerBuff.TENDER)) {
                     return;
                 }

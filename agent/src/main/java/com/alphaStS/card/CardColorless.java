@@ -24,7 +24,7 @@ public class CardColorless {
             this.exhaustWhenPlayed = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.healPlayer(heal);
             return GameActionCtx.PLAY_CARD;
         }
@@ -55,7 +55,7 @@ public class CardColorless {
             entityProperty.weakEnemy = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.getEnemiesForWrite().getForWrite(idx).applyDebuff(state, DebuffType.WEAK, 2);
             return GameActionCtx.PLAY_CARD;
         }
@@ -67,7 +67,7 @@ public class CardColorless {
             entityProperty.weakEnemy = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             for (var enemy : state.getEnemiesForWrite().iterateOverAlive()) {
                 enemy.applyDebuff(state, DebuffType.WEAK, 2);
             }
@@ -87,7 +87,7 @@ public class CardColorless {
             this.entityProperty.affectEnemyStrengthEot = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.getEnemiesForWrite().getForWrite(idx).applyDebuff(state, DebuffType.LOSE_STRENGTH_EOT, n);
             return GameActionCtx.PLAY_CARD;
         }
@@ -116,7 +116,7 @@ public class CardColorless {
             this.n = n;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.reshuffle();
             state.draw(n);
             return GameActionCtx.PLAY_CARD;
@@ -144,7 +144,7 @@ public class CardColorless {
             this.exhaustWhenPlayed = exhausts;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             if ((state.properties.generateCardOptions & GameProperties.GENERATE_CARD_DISCOVERY) == 0) {
                 return GameActionCtx.PLAY_CARD;
             }
@@ -187,7 +187,7 @@ public class CardColorless {
             innate = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             for (var enemy : state.getEnemiesForWrite().iterateOverAlive()) {
                 state.playerDoDamageToEnemy(enemy, damage, this);
             }
@@ -270,7 +270,7 @@ public class CardColorless {
             this.n = n;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.playerGainBlock(n);
             state.draw(1);
             return GameActionCtx.PLAY_CARD;
@@ -299,7 +299,7 @@ public class CardColorless {
             entityProperty.selectEnemy = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             state.draw(1);
             return GameActionCtx.PLAY_CARD;
@@ -329,7 +329,7 @@ public class CardColorless {
             this.cardCount = cardCount;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             // TODO: Implement placing card(s) from hand on bottom of draw pile with 0 cost
             return GameActionCtx.PLAY_CARD;
         }
@@ -358,7 +358,7 @@ public class CardColorless {
             this.n = n;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.playerGainBlock(n);
             return GameActionCtx.PLAY_CARD;
         }
@@ -387,7 +387,7 @@ public class CardColorless {
             this.n = n;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             for (int i = 0; i < state.handArrLen; i++) {
                 if (state.properties.cardDict[state.getHandArrForRead()[i]].cardType == Card.ATTACK) {
                     return GameActionCtx.PLAY_CARD;
@@ -422,7 +422,7 @@ public class CardColorless {
             this.exhaustWhenPlayed = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             if ((state.properties.generateCardOptions & GameProperties.GENERATE_CARD_COLORLESS) == 0) {
                 return GameActionCtx.PLAY_CARD;
             }
@@ -511,7 +511,7 @@ public class CardColorless {
             entityProperty.selectEnemy = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), getBaseAttackDamage(state), this);
             return GameActionCtx.PLAY_CARD;
         }
@@ -546,7 +546,7 @@ public class CardColorless {
             exhaustWhenPlayed = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.getPlayerForWrite().gainArtifact(n);
             return GameActionCtx.PLAY_CARD;
         }
@@ -576,7 +576,7 @@ public class CardColorless {
             this.exhaustWhenPlayed = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.playerGainBlock(n);
             state.getPlayerForWrite().applyDebuff(state, DebuffType.NO_BLOCK_FROM_CARDS, 2);
             return GameActionCtx.PLAY_CARD;
@@ -626,7 +626,7 @@ public class CardColorless {
             });
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             if (state.actionCtx == GameActionCtx.PLAY_CARD) {
                 // Initial play - start selecting if hand has cards
                 state.getCounterForWrite()[counterIdx] = 0;
@@ -679,7 +679,7 @@ public class CardColorless {
             entityProperty.selectEnemy = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             return GameActionCtx.PLAY_CARD;
         }
@@ -710,7 +710,7 @@ public class CardColorless {
             entityProperty.vulnEnemy = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.getEnemiesForWrite().getForWrite(idx).applyDebuff(state, DebuffType.VULNERABLE, 2);
             return GameActionCtx.PLAY_CARD;
         }
@@ -722,7 +722,7 @@ public class CardColorless {
             entityProperty.vulnEnemy = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             for (var enemy : state.getEnemiesForWrite().iterateOverAlive()) {
                 enemy.applyDebuff(state, DebuffType.VULNERABLE, 2);
             }
@@ -742,7 +742,7 @@ public class CardColorless {
             canUpgrade = (state.properties.generateCardOptions & GameProperties.GENERATE_CARD_APOTHEOSIS) != 0;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             if (!canUpgrade) {
                 return GameActionCtx.PLAY_CARD;
             }
@@ -785,7 +785,7 @@ public class CardColorless {
             this.exhaustWhenPlayed = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             if ((state.properties.generateCardOptions & GameProperties.GENERATE_CARD_CHRYSALIS) == 0) {
                 return GameActionCtx.PLAY_CARD;
             }
@@ -835,7 +835,7 @@ public class CardColorless {
             }
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             if (!state.getEnemiesForRead().get(idx).properties.isMinion && state.getEnemiesForRead().get(idx).getHealth() <= 0) {
                 if (state.getEnemiesForRead().get(idx) instanceof EnemyBeyond.Darkling ||
@@ -895,7 +895,7 @@ public class CardColorless {
             super(cardName, Card.POWER, energyCost, rarity);
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             if ((state.properties.generateCardOptions & GameProperties.GENERATE_CARD_COLORLESS) != 0) {
                 state.getCounterForWrite()[counterIdx]++;
             }
@@ -961,7 +961,7 @@ public class CardColorless {
             exhaustWhenPlayed = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.draw(n);
             return GameActionCtx.PLAY_CARD;
         }
@@ -987,7 +987,7 @@ public class CardColorless {
             super(cardName, Card.POWER, energyCost, Card.RARE);
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.getCounterForWrite()[counterIdx]++;
             return GameActionCtx.PLAY_CARD;
         }
@@ -1038,7 +1038,7 @@ public class CardColorless {
             this.exhaustWhenPlayed = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             if ((state.properties.generateCardOptions & GameProperties.GENERATE_CARD_METAMORPHOSIS) == 0) {
                 return GameActionCtx.PLAY_CARD;
             }
@@ -1083,7 +1083,7 @@ public class CardColorless {
             this.n = n;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.getCounterForWrite()[counterIdx] += n << 3;
             return GameActionCtx.PLAY_CARD;
         }
@@ -1108,7 +1108,7 @@ public class CardColorless {
                 }
             });
             state.properties.addOnCardPlayedHandler("Panache", new GameEventCardHandler() {
-                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, int starUsed, Class cloneSource, int cloneParentLocation) {
                     if (state.getCounterForRead()[counterIdx] >> 3 == 0) {
                         return;
                     }
@@ -1168,7 +1168,7 @@ public class CardColorless {
             });
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.getCounterForWrite()[counterIdx] += n;
             return GameActionCtx.PLAY_CARD;
         }
@@ -1196,7 +1196,7 @@ public class CardColorless {
             entityProperty.selectFromDeck = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.removeCardFromDeck(idx, false);
             state.addCardToHand(idx);
             return GameActionCtx.PLAY_CARD;
@@ -1229,7 +1229,7 @@ public class CardColorless {
             entityProperty.selectFromDeck = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.removeCardFromDeck(idx, false);
             state.addCardToHand(idx);
             return GameActionCtx.PLAY_CARD;
@@ -1263,7 +1263,7 @@ public class CardColorless {
             this.n = n;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.getCounterForWrite()[counterIdx]++;
             return GameActionCtx.PLAY_CARD;
         }
@@ -1329,7 +1329,7 @@ public class CardColorless {
             entityProperty.putCardOnTopDeck = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             if (state.actionCtx == GameActionCtx.PLAY_CARD) {
                 state.draw(2);
                 return GameActionCtx.SELECT_CARD_HAND;
@@ -1366,7 +1366,7 @@ public class CardColorless {
             this.isXCost = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             if ((state.properties.generateCardOptions & GameProperties.GENERATE_CARD_COLORLESS) == 0) {
                 return GameActionCtx.PLAY_CARD;
             }
@@ -1418,7 +1418,7 @@ public class CardColorless {
             this.exhaustWhenPlayed = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             var possibleIndexes = new short[state.deckArrLen];
             var len = 0;
             for (int i = 0; i < state.deckArrLen; i++) {
@@ -1469,7 +1469,7 @@ public class CardColorless {
             this.healPlayer = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             state.healPlayer(heal);
             return GameActionCtx.PLAY_CARD;
@@ -1504,7 +1504,7 @@ public class CardColorless {
             this.healthRewardRatio = healthRewardRatio;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             if (!state.getEnemiesForRead().get(idx).properties.isMinion && state.getEnemiesForRead().get(idx).getHealth() <= 0) {
                 if (state.getEnemiesForRead().get(idx) instanceof EnemyBeyond.Darkling ||
@@ -1627,7 +1627,7 @@ public class CardColorless {
             this.exhaustWhenPlayed = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             int damage = this.damage;
             if (state.properties.phantomBladesCounterIdx >= 0
                     && state.getCounterForRead()[state.properties.phantomBladesCounterIdx] > 0
@@ -1673,7 +1673,7 @@ public class CardColorless {
             this.exhaustWhenPlayed = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.getCounterForWrite()[state.properties.intangibleCounterIdx]++;
             return GameActionCtx.PLAY_CARD;
         }
@@ -1707,7 +1707,7 @@ public class CardColorless {
             this.exhaustWhenPlayed = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.playerDoNonAttackDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, true);
             return GameActionCtx.PLAY_CARD;
         }
@@ -1738,7 +1738,7 @@ public class CardColorless {
             this.exhaustWhenPlayed = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.draw(drawCount);
             return GameActionCtx.PLAY_CARD;
         }
@@ -1769,7 +1769,7 @@ public class CardColorless {
             this.exhaustWhenPlayed = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.playerGainBlock(block);
             return GameActionCtx.PLAY_CARD;
         }
@@ -1799,7 +1799,7 @@ public class CardColorless {
             this.exhaustWhenPlayed = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.playerDoNonAttackDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, true);
             return GameActionCtx.PLAY_CARD;
         }
@@ -1830,7 +1830,7 @@ public class CardColorless {
             this.retain = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.gainEnergy(energyGain);
             return GameActionCtx.PLAY_CARD;
         }
@@ -1856,7 +1856,7 @@ public class CardColorless {
             this.exhaustWhenPlayed = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.addCardToDeckRandom(state.createCard(generatedCardIdx));
             return GameActionCtx.PLAY_CARD;
         }
@@ -1889,7 +1889,7 @@ public class CardColorless {
             this.n = damage;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.getCounterForWrite()[counterIdx] += n;
             return GameActionCtx.PLAY_CARD;
         }
@@ -1941,7 +1941,7 @@ public class CardColorless {
             entityProperty.selectEnemy = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             for (int i = 0; i < xValue; i++) {
                 state.playerDoNonAttackDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, true);
             }
@@ -1988,7 +1988,7 @@ public class CardColorless {
             this.strength = strength;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.doNonAttackDamageToPlayer(3, false, this);
             state.playerGainStrength(strength);
             return GameActionCtx.PLAY_CARD;

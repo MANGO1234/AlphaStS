@@ -152,7 +152,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                 }
             });
             state.properties.addOnCardPlayedHandler(new GameEventCardHandler() {
-                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, int starUsed, Class cloneSource, int cloneParentLocation) {
                     if (state.properties.cardDict[cardIdx].cardType == Card.ATTACK) {
                         state.removeBuff(PlayerBuff.AKABEKO);
                     }
@@ -208,7 +208,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addOnCardPlayedHandler(new GameEventCardHandler() {
-                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, int starUsed, Class cloneSource, int cloneParentLocation) {
                     if (!isRelicEnabledInScenario(state)) {
                         return;
                     }
@@ -460,7 +460,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                 }
             }, true);
             state.properties.addOnCardPlayedHandler(new GameEventCardHandler() {
-                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, int starUsed, Class cloneSource, int cloneParentLocation) {
                     if (!isRelicEnabledInScenario(state)) {
                         return;
                     }
@@ -561,7 +561,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                 }
             }, true);
             state.properties.addOnCardPlayedHandler(new GameEventCardHandler() {
-                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, int starUsed, Class cloneSource, int cloneParentLocation) {
                     if (!isRelicEnabledInScenario(state)) {
                         return;
                     }
@@ -864,7 +864,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                 }
             });
             state.properties.addOnCardPlayedHandler(new GameEventCardHandler() {
-                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, int starUsed, Class cloneSource, int cloneParentLocation) {
                     if (!isRelicEnabledInScenario(state)) {
                         return;
                     }
@@ -919,7 +919,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                 }
             });
             state.properties.addOnCardPlayedHandler(new GameEventCardHandler() {
-                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, int starUsed, Class cloneSource, int cloneParentLocation) {
                     if (!isRelicEnabledInScenario(state)) {
                         return;
                     }
@@ -958,7 +958,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                 }
             });
             state.properties.addOnCardPlayedHandler(new GameEventCardHandler() {
-                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, int starUsed, Class cloneSource, int cloneParentLocation) {
                     if (!isRelicEnabledInScenario(state)) {
                         return;
                     }
@@ -1024,7 +1024,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     public static class MummifiedHand extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addOnCardPlayedHandler(new GameEventCardHandler() {
-                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, int starUsed, Class cloneSource, int cloneParentLocation) {
                     if (!isRelicEnabledInScenario(state)) {
                         return;
                     }
@@ -1064,7 +1064,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                 }
             });
             state.properties.addOnCardPlayedHandler(new GameEventCardHandler() {
-                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, int starUsed, Class cloneSource, int cloneParentLocation) {
                     if (!isRelicEnabledInScenario(state)) {
                         return;
                     }
@@ -1126,7 +1126,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                 }
             });
             state.properties.addOnCardPlayedHandler("Shuriken", new GameEventCardHandler() {
-                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, int starUsed, Class cloneSource, int cloneParentLocation) {
                     if (!isRelicEnabledInScenario(state)) {
                         return;
                     }
@@ -1256,7 +1256,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.birdFacedUrn = this;
             state.properties.addOnCardPlayedHandler(new GameEventCardHandler() {
-                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, int starUsed, Class cloneSource, int cloneParentLocation) {
                     if (!isRelicEnabledInScenario(state)) {
                         return;
                     }
@@ -1562,7 +1562,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
             });
 
             state.properties.addOnCardPlayedHandler("Pocketwatch", new GameEventCardHandler() {
-                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, int starUsed, Class cloneSource, int cloneParentLocation) {
                     if (isRelicEnabledInScenario(state)) {
                         state.getCounterForWrite()[counterIdx]++;
                     }
@@ -1738,7 +1738,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                 }
             });
             state.properties.addOnCardPlayedHandler("OrangePellets", new GameEventCardHandler() {
-                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, int starUsed, Class cloneSource, int cloneParentLocation) {
                     if (!isRelicEnabledInScenario(state)) {
                         return;
                     }
@@ -2129,7 +2129,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                 }
             });
             state.properties.addOnCardPlayedHandler(new GameEventCardHandler() {
-                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, int starUsed, Class cloneSource, int cloneParentLocation) {
                     if (state.getCounterForRead()[counterIdx] < 6 && isRelicEnabledInScenario(state)) {
                         state.getCounterForWrite()[counterIdx]++;
                     }
@@ -2266,7 +2266,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                 }
             });
             state.properties.addOnCardPlayedHandler(new GameEventCardHandler() {
-                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, int starUsed, Class cloneSource, int cloneParentLocation) {
                     if (state.properties.cardDict[cardIdx].cardType != Card.ATTACK) {
                         return;
                     }
@@ -2274,7 +2274,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                         state.removeBuff(PlayerBuff.NECRONOMICON);
                         state.addGameActionToEndOfDeque(curState -> {
                             var action = curState.properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][cardIdx];
-                            curState.playCard(action, lastIdx, true, Relic.Necronomicon.class, false, false, energyUsed, cloneParentLocation);
+                            curState.playCard(action, lastIdx, true, Relic.Necronomicon.class, false, false, energyUsed, starUsed, cloneParentLocation);
                         });
 
                     }
@@ -3284,7 +3284,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addOnCardPlayedHandler(new GameEventCardHandler() {
-                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, int starUsed, Class cloneSource, int cloneParentLocation) {
                     if (isRelicEnabledInScenario(state)) {
                         if (state.properties.cardDict[cardIdx].cardType == Card.ATTACK) {
                             state.getPlayerForWrite().gainDexterity(1);

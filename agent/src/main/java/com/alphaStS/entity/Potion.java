@@ -270,7 +270,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
                 }
             });
             state.properties.addOnCardPlayedHandler("DuplicationPotion", new GameEventCardHandler(GameEventCardHandler.CLONE_CARD_PRIORITY) {
-                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, int starUsed, Class cloneSource, int cloneParentLocation) {
                     if (state.getCounterForRead()[counterIdx] == 0) {
                         return;
                     }
@@ -284,7 +284,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
                         counters[counterIdx] |= 1 << 8;
                         state.addGameActionToEndOfDeque(curState -> {
                             var action = curState.properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][cardIdx];
-                            if (!curState.playCard(action, lastIdx, true, DuplicationPotion.class, false, false, energyUsed, cloneParentLocation)) {
+                            if (!curState.playCard(action, lastIdx, true, DuplicationPotion.class, false, false, energyUsed, starUsed, cloneParentLocation)) {
                                 curState.getCounterForWrite()[counterIdx] ^= 1 << 8;
                             }
                         });

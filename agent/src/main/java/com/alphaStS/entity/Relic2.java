@@ -221,7 +221,7 @@ public class Relic2 {
                 }
             });
             state.properties.addOnCardPlayedHandler(new GameEventCardHandler() {
-                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, int starUsed, Class cloneSource, int cloneParentLocation) {
                     if (!isRelicEnabledInScenario(state)) {
                         return;
                     }
@@ -297,7 +297,7 @@ public class Relic2 {
                 }
             });
             state.properties.addOnCardDrawnHandler("Bellows", new GameEventCardHandler() {
-                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, int starUsed, Class cloneSource, int cloneParentLocation) {
                     if (!isRelicEnabledInScenario(state) || state.getCounterForRead()[counterIdx] != 0) {
                         return;
                     }
@@ -433,7 +433,7 @@ public class Relic2 {
                 }
             });
             state.properties.addOnCardPlayedHandler(new GameEventCardHandler() {
-                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, int starUsed, Class cloneSource, int cloneParentLocation) {
                     if (!isRelicEnabledInScenario(state)) {
                         return;
                     }
@@ -582,7 +582,7 @@ public class Relic2 {
                 }
             });
             state.properties.addOnCardPlayedHandler(new GameEventCardHandler() {
-                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, int starUsed, Class cloneSource, int cloneParentLocation) {
                     if (isRelicEnabledInScenario(state) && state.properties.cardDict[cardIdx].cardType == Card.ATTACK) {
                         state.getCounterForWrite()[counterIdx] = 1;
                     }
@@ -696,7 +696,7 @@ public class Relic2 {
                 }
             });
             state.properties.addOnCardPlayedHandler(new GameEventCardHandler() {
-                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, int starUsed, Class cloneSource, int cloneParentLocation) {
                     if (!isRelicEnabledInScenario(state)) {
                         return;
                     }
@@ -838,7 +838,7 @@ public class Relic2 {
     public static class GamePiece extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addOnCardPlayedHandler(new GameEventCardHandler() {
-                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, int starUsed, Class cloneSource, int cloneParentLocation) {
                     if (isRelicEnabledInScenario(state) && state.properties.cardDict[cardIdx].cardType == Card.POWER) {
                         state.draw(1);
                     }
@@ -865,7 +865,7 @@ public class Relic2 {
     public static class IntimidatingHelmet extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addOnCardPlayedHandler(new GameEventCardHandler() {
-                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, int starUsed, Class cloneSource, int cloneParentLocation) {
                     if (isRelicEnabledInScenario(state) && energyUsed >= 2) {
                         state.playerGainBlockNotFromCardPlay(4);
                     }
@@ -927,7 +927,7 @@ public class Relic2 {
                 }
             });
             state.properties.addOnCardPlayedHandler("RainbowRing", new GameEventCardHandler() {
-                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, int starUsed, Class cloneSource, int cloneParentLocation) {
                     if (!isRelicEnabledInScenario(state) || state.getCounterForRead()[counterIdx] == 0b111) {
                         return;
                     }
@@ -1076,7 +1076,7 @@ public class Relic2 {
                 }
             });
             state.properties.addOnCardPlayedHandler("BeltBuckle", new GameEventCardHandler() {
-                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, int starUsed, Class cloneSource, int cloneParentLocation) {
                     if (isRelicEnabledInScenario(state) && state.getCounterForRead()[counterIdx] == 1 && state.getPotionCount() > 0) {
                         state.getPlayerForWrite().applyDebuff(state, DebuffType.LOSE_DEXTERITY, 2);
                         state.getCounterForWrite()[counterIdx] = 0;
@@ -1294,7 +1294,7 @@ public class Relic2 {
     public static class DaughterOfTheWind extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addOnCardPlayedHandler("DaughterOfTheWind", new GameEventCardHandler() {
-                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, int starUsed, Class cloneSource, int cloneParentLocation) {
                     if (isRelicEnabledInScenario(state) && state.properties.cardDict[cardIdx].cardType == Card.ATTACK) {
                         state.playerGainBlockNotFromCardPlay(1);
                     }
@@ -1388,7 +1388,7 @@ public class Relic2 {
                 }
             });
             state.properties.addOnCardPlayedHandler("HistoryCourse", new GameEventCardHandler() {
-                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, int starUsed, Class cloneSource, int cloneParentLocation) {
                     if (!isRelicEnabledInScenario(state) || cloneSource == CardDefect2.Uproar.class) {
                         return;
                     }
@@ -1416,7 +1416,7 @@ public class Relic2 {
     public static class LostWisp extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addOnCardPlayedHandler("LostWisp", new GameEventCardHandler() {
-                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, int starUsed, Class cloneSource, int cloneParentLocation) {
                     if (isRelicEnabledInScenario(state) && state.properties.cardDict[cardIdx].cardType == Card.POWER) {
                         for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
                             state.playerDoNonAttackDamageToEnemy(enemy, 8, true);
@@ -1726,7 +1726,7 @@ public class Relic2 {
                 }
             });
             state.properties.addOnCardPlayedHandler("BrilliantScarf", new GameEventCardHandler() {
-                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, int starUsed, Class cloneSource, int cloneParentLocation) {
                     if (isRelicEnabledInScenario(state)) {
                         state.getCounterForWrite()[counterIdx]++;
                     }
@@ -1849,7 +1849,7 @@ public class Relic2 {
                 }
             }, true);
             state.properties.addOnCardPlayedHandler("IronClub", new GameEventCardHandler() {
-                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, int starUsed, Class cloneSource, int cloneParentLocation) {
                     if (!isRelicEnabledInScenario(state)) {
                         return;
                     }
@@ -1978,7 +1978,7 @@ public class Relic2 {
 
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addOnCardPlayedHandler("MusicBox", new GameEventCardHandler() {
-                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, int starUsed, Class cloneSource, int cloneParentLocation) {
                     if (!isRelicEnabledInScenario(state) || cloneSource != null || !state.hasBuff(PlayerBuff.MUSIC_BOX)) {
                         return;
                     }
@@ -2110,7 +2110,7 @@ public class Relic2 {
                 }
             });
             state.properties.addOnCardPlayedHandler("PaelsLegion", new GameEventCardHandler() {
-                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, int starUsed, Class cloneSource, int cloneParentLocation) {
                     if (state.getCounterForRead()[state.properties.paelsLegionCounterIdx + 1] == 1) {
                         state.getCounterForWrite()[state.properties.paelsLegionCounterIdx + 1] = 0;
                         state.getCounterForWrite()[state.properties.paelsLegionCounterIdx] = 2;
@@ -2401,14 +2401,14 @@ public class Relic2 {
 
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addOnCardPlayedHandler("ThrowingAxe", new GameEventCardHandler(GameEventCardHandler.CLONE_CARD_PRIORITY) {
-                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, int starUsed, Class cloneSource, int cloneParentLocation) {
                     if (!isRelicEnabledInScenario(state) || cloneSource != null || !state.hasBuff(PlayerBuff.THROWING_AXE)) {
                         return;
                     }
                     state.removeBuff(PlayerBuff.THROWING_AXE);
                     state.addGameActionToStartOfDeque(curState -> {
                         var action = curState.properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][cardIdx];
-                        if (curState.playCard(action, lastIdx, false, ThrowingAxe.class, false, false, energyUsed, cloneParentLocation)) {
+                        if (curState.playCard(action, lastIdx, false, ThrowingAxe.class, false, false, energyUsed, starUsed, cloneParentLocation)) {
                             curState.runActionsInQueueIfNonEmpty();
                         }
                     });
@@ -2593,7 +2593,7 @@ public class Relic2 {
         @Override public void gamePropertiesSetup(GameState state) {
             entityProperty.changePlayerDexterity = true;
             state.properties.addOnCardPlayedHandler("HelicalDart", new GameEventCardHandler() {
-                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, int starUsed, Class cloneSource, int cloneParentLocation) {
                     if (!isRelicEnabledInScenario(state)) return;
                     if (state.properties.cardDict[cardIdx].getBaseCard() instanceof CardColorless.Shiv) {
                         state.getPlayerForWrite().gainDexterity(1);
@@ -3056,7 +3056,7 @@ public class Relic2 {
     public static class IvoryTile extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addOnCardPlayedHandler("IvoryTile", new GameEventCardHandler() {
-                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, int starUsed, Class cloneSource, int cloneParentLocation) {
                     if (isRelicEnabledInScenario(state) && energyUsed >= 3) {
                         state.gainEnergy(1);
                     }

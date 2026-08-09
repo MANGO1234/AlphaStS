@@ -86,7 +86,7 @@ public class EnemyOvergrowth {
         @Override public void gamePropertiesSetup(GameState state) {
             var idx = state.getEnemiesForRead().find(this);
             state.properties.addOnCardPlayedHandler(new GameEventCardHandler() {
-                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, int starUsed, Class cloneSource, int cloneParentLocation) {
                     if (idx < 0 || !state.getEnemiesForRead().get(idx).isAlive()) {
                         return;
                     }

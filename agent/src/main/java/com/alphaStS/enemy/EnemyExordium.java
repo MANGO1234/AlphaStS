@@ -64,7 +64,7 @@ public class EnemyExordium {
         @Override public void gamePropertiesSetup(GameState state) {
             var idx = state.getEnemiesForRead().find(this);
             state.properties.addOnCardPlayedHandler(new GameEventCardHandler() {
-                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, int starUsed, Class cloneSource, int cloneParentLocation) {
                     if (state.properties.cardDict[cardIdx].cardType == Card.SKILL) {
                         var e = state.getEnemiesForRead().get(idx);
                         if (e instanceof MergedEnemy m) {
@@ -506,7 +506,7 @@ public class EnemyExordium {
         @Override public void gamePropertiesSetup(GameState state) {
             var idx = state.getEnemiesForRead().find(this);
             state.properties.addOnCardPlayedHandler(new GameEventCardHandler() {
-                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, int starUsed, Class cloneSource, int cloneParentLocation) {
                     if (state.properties.cardDict[cardIdx].cardType == Card.ATTACK) {
                         var move = state.getEnemiesForRead().get(idx).move;
                         if (move == ROLL_ATTACK || move == TWIN_SLAM) {

@@ -30,7 +30,7 @@ public class CardDefect {
             super("Dualcast", Card.SKILL, 1, Card.COMMON);
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.evokeOrb(2);
             return GameActionCtx.PLAY_CARD;
         }
@@ -41,7 +41,7 @@ public class CardDefect {
             super("Dualcast+", Card.SKILL, 0, Card.COMMON);
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.evokeOrb(2);
             return GameActionCtx.PLAY_CARD;
         }
@@ -56,7 +56,7 @@ public class CardDefect {
             entityProperty.orbGenerationPossible |= OrbType.LIGHTNING.mask;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.channelOrb(OrbType.LIGHTNING);
             return GameActionCtx.PLAY_CARD;
         }
@@ -68,7 +68,7 @@ public class CardDefect {
             entityProperty.orbGenerationPossible |= OrbType.LIGHTNING.mask;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.channelOrb(OrbType.LIGHTNING);
             return GameActionCtx.PLAY_CARD;
         }
@@ -82,7 +82,7 @@ public class CardDefect {
             entityProperty.orbGenerationPossible |= OrbType.LIGHTNING.mask;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             state.channelOrb(OrbType.LIGHTNING);
             return GameActionCtx.PLAY_CARD;
@@ -111,7 +111,7 @@ public class CardDefect {
             entityProperty.selectEnemy = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             var orbs = state.getOrbs();
             if (orbs != null) {
                 var enemy = state.getEnemiesForWrite().getForWrite(idx);
@@ -148,7 +148,7 @@ public class CardDefect {
             entityProperty.selectEnemy = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             state.getEnemiesForWrite().getForWrite(idx).applyDebuff(state, DebuffType.VULNERABLE, n2);
             return GameActionCtx.PLAY_CARD;
@@ -178,7 +178,7 @@ public class CardDefect {
             this.n = n;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.playerGainBlock(n);
             state.getCounterForWrite()[counterIdx]++;
             return GameActionCtx.PLAY_CARD;
@@ -242,7 +242,7 @@ public class CardDefect {
 
         protected abstract void setAfterPlayTransformIndexes(GameProperties properties, int[] transformIndexes);
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), getBaseAttackDamage(state), this);
             state.handArrTransform(getTransformIndexes(state.properties));
             state.discardArrTransform(getTransformIndexes(state.properties));
@@ -380,7 +380,7 @@ public class CardDefect {
             entityProperty.orbGenerationPossible |= OrbType.FROST.mask;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             state.channelOrb(OrbType.FROST);
             return GameActionCtx.PLAY_CARD;
@@ -409,7 +409,7 @@ public class CardDefect {
             entityProperty.selectEnemy = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             var orbs = state.getOrbs();
             if (orbs != null) {
@@ -447,7 +447,7 @@ public class CardDefect {
             entityProperty.orbGenerationPossible |= OrbType.FROST.mask;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.channelOrb(OrbType.FROST);
             state.draw(n);
             return GameActionCtx.PLAY_CARD;
@@ -479,7 +479,7 @@ public class CardDefect {
             entityProperty.selectEnemy = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             if (state.getEnemiesForWrite().get(idx).getMoveString(state).contains("Attack")) {
                 state.getEnemiesForWrite().getForWrite(idx).applyDebuff(state, DebuffType.WEAK, n2);
             }
@@ -514,7 +514,7 @@ public class CardDefect {
             selectFromDiscardLater = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             if (state.actionCtx == GameActionCtx.PLAY_CARD) {
                 state.playerGainBlock(n);
                 return GameActionCtx.SELECT_CARD_DISCARD;
@@ -551,7 +551,7 @@ public class CardDefect {
             this.n = n;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.playerGainBlock(n);
             return GameActionCtx.PLAY_CARD;
         }
@@ -580,7 +580,7 @@ public class CardDefect {
             entityProperty.putCardOnTopDeck = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             state.getCounterForWrite()[counterIdx]++;
             state.getCounterForWrite()[counterIdx] |= 1 << 8;
@@ -630,7 +630,7 @@ public class CardDefect {
             super(cardName, Card.SKILL, energyCost, Card.COMMON);
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.triggerRightmostOrbActive();
             state.rotateOrbToBack();
             return GameActionCtx.PLAY_CARD;
@@ -660,7 +660,7 @@ public class CardDefect {
             this.n = n;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.playerGainBlock(state.getNumCardsInDiscard() + n);
             return GameActionCtx.PLAY_CARD;
         }
@@ -706,7 +706,7 @@ public class CardDefect {
             this(n, 0);
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.playerGainBlock(n);
             return GameActionCtx.PLAY_CARD;
         }
@@ -765,7 +765,7 @@ public class CardDefect {
             return new SteamBarrier(n - 2, limit);
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.playerGainBlock(n);
             return GameActionCtx.PLAY_CARD;
         }
@@ -812,7 +812,7 @@ public class CardDefect {
             this(2);
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             return GameActionCtx.PLAY_CARD;
         }
@@ -851,7 +851,7 @@ public class CardDefect {
             this(2);
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             return GameActionCtx.PLAY_CARD;
         }
@@ -885,7 +885,7 @@ public class CardDefect {
             damage = n;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             for (var enemy : state.getEnemiesForWrite().iterateOverAlive()) {
                 state.playerDoDamageToEnemy(enemy, damage, this);
             }
@@ -917,7 +917,7 @@ public class CardDefect {
             this.n = n;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.gainEnergy(n);
             state.addCardToDiscard(state.createCard(generatedCardIdx));
             return GameActionCtx.PLAY_CARD;
@@ -950,7 +950,7 @@ public class CardDefect {
             this.n = n;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.gainEnergy(state.getNumCardsInDeck() / n);
             return GameActionCtx.PLAY_CARD;
         }
@@ -979,7 +979,7 @@ public class CardDefect {
             this.n = n;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             if (state.getPlayerForRead().getBlock() == 0) {
                 state.playerGainBlock(n);
             }
@@ -1010,7 +1010,7 @@ public class CardDefect {
             this.n = n;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             for (var enemy : state.getEnemiesForWrite().iterateOverAlive()) {
                 state.playerDoDamageToEnemy(enemy, getBaseAttackDamage(state), this);
             }
@@ -1064,7 +1064,7 @@ public class CardDefect {
             this.n = n;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.playerGainBlock(n);
             return GameActionCtx.PLAY_CARD;
         }
@@ -1093,7 +1093,7 @@ public class CardDefect {
             entityProperty.lockOnEnemy = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             state.getEnemiesForWrite().getForWrite(idx).applyDebuff(state, DebuffType.LOCK_ON, damage / 3);
             return GameActionCtx.PLAY_CARD;
@@ -1123,7 +1123,7 @@ public class CardDefect {
             this.n = n;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.gainOrbSlot(n);
             return GameActionCtx.PLAY_CARD;
         }
@@ -1186,7 +1186,7 @@ public class CardDefect {
             entityProperty.orbGenerationPossible |= OrbType.LIGHTNING.mask | OrbType.FROST.mask | OrbType.DARK.mask | OrbType.PLASMA.mask;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.channelOrb(OrbType.getRandom(state));
             if (n > 1) {
                 state.channelOrb(OrbType.getRandom(state));
@@ -1218,7 +1218,7 @@ public class CardDefect {
             entityProperty.orbGenerationPossible |= OrbType.FROST.mask;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             var count = 0;
             for (var enemy : state.getEnemiesForRead()) {
                 if (enemy.isAlive()) {
@@ -1256,7 +1256,7 @@ public class CardDefect {
             this.entityProperty.changePlayerFocus = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.gainOrbSlot(-1);
             state.gainFocus(n);
             return GameActionCtx.PLAY_CARD;
@@ -1287,7 +1287,7 @@ public class CardDefect {
             entityProperty.orbGenerationPossible |= OrbType.DARK.mask;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.channelOrb(OrbType.DARK);
             for (int i = 0; i < triggerDarkPassiveTimes; i++) {
                 state.triggerDarkPassive();
@@ -1320,7 +1320,7 @@ public class CardDefect {
             this.entityProperty.changePlayerFocus = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.gainFocus(n);
             return GameActionCtx.PLAY_CARD;
         }
@@ -1348,7 +1348,7 @@ public class CardDefect {
             entityProperty.orbGenerationPossible |= OrbType.DARK.mask;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             for (var enemy : state.getEnemiesForWrite().iterateOverAlive()) {
                 state.playerDoDamageToEnemy(enemy, damage, this);
             }
@@ -1378,7 +1378,7 @@ public class CardDefect {
             this.exhaustWhenPlayed = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.gainEnergy(state.energy);
             return GameActionCtx.PLAY_CARD;
         }
@@ -1407,7 +1407,7 @@ public class CardDefect {
             this.n = n;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.playerGainBlock(n);
             state.getCounterForWrite()[counterIdx]++;
             return GameActionCtx.PLAY_CARD;
@@ -1460,7 +1460,7 @@ public class CardDefect {
             entityProperty.selectEnemy = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             if (state.getCounterForRead()[counterIdx] <= damage / 2) {
                 state.draw(1);
@@ -1486,7 +1486,7 @@ public class CardDefect {
                 }
             });
             state.properties.addOnCardPlayedHandler("FTL", new GameEventCardHandler() {
-                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, int starUsed, Class cloneSource, int cloneParentLocation) {
                     state.addGameActionToEndOfDeque(new GameEnvironmentAction() {
                         @Override public void doAction(GameState state) {
                             if (state.getCounterForRead()[counterIdx] <= 4) {
@@ -1526,7 +1526,7 @@ public class CardDefect {
             this(4);
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.playerGainBlock(12);
             return GameActionCtx.PLAY_CARD;
         }
@@ -1555,7 +1555,7 @@ public class CardDefect {
                 }
             }
             state.properties.addOnCardPlayedHandler("ForceField", new GameEventCardHandler() {
-                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, int starUsed, Class cloneSource, int cloneParentLocation) {
                     if (state.properties.cardDict[cardIdx].cardType == Card.POWER) {
                         state.handArrTransform(state.properties.forceFieldTransformIndexes);
                         state.discardArrTransform(state.properties.forceFieldTransformIndexes);
@@ -1593,7 +1593,7 @@ public class CardDefect {
             this(4);
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.playerGainBlock(16);
             return GameActionCtx.PLAY_CARD;
         }
@@ -1622,7 +1622,7 @@ public class CardDefect {
                 }
             }
             state.properties.addOnCardPlayedHandler("ForceField+", new GameEventCardHandler() {
-                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, int starUsed, Class cloneSource, int cloneParentLocation) {
                     if (state.properties.cardDict[cardIdx].cardType == Card.POWER) {
                         state.handArrTransform(state.properties.forceFieldPTransformIndexes);
                         state.discardArrTransform(state.properties.forceFieldPTransformIndexes);
@@ -1642,7 +1642,7 @@ public class CardDefect {
             entityProperty.orbGenerationPossible |= OrbType.PLASMA.mask;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.channelOrb(OrbType.PLASMA);
             return GameActionCtx.PLAY_CARD;
         }
@@ -1677,7 +1677,7 @@ public class CardDefect {
             this.exhaustWhenPlayed = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             if (state.properties.echoFormCounterIdx >= 0 && state.getCounterForRead()[state.properties.echoFormCounterIdx] < 0) {
                 state.playerGainBlock(block + blockInc);
             } else {
@@ -1851,7 +1851,7 @@ public class CardDefect {
             entityProperty.orbGenerationPossible |= OrbType.FROST.mask;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.playerGainBlock(n);
             state.channelOrb(OrbType.FROST);
             state.channelOrb(OrbType.FROST);
@@ -1882,7 +1882,7 @@ public class CardDefect {
             this.n = n;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.getCounterForWrite()[counterIdx] += n;
             return GameActionCtx.PLAY_CARD;
         }
@@ -1898,7 +1898,7 @@ public class CardDefect {
                 }
             });
             state.properties.addOnPreCardPlayedHandler("Heatsinks", new GameEventCardHandler() {
-                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, int starUsed, Class cloneSource, int cloneParentLocation) {
                     if (state.getCounterForRead()[counterIdx] > 0 && state.properties.cardDict[cardIdx].cardType == Card.POWER) {
                         state.addGameActionToEndOfDeque(new CardDrawAction(state.getCounterForRead()[counterIdx]));
                     }
@@ -1928,7 +1928,7 @@ public class CardDefect {
             this.innate = innate;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.getCounterForWrite()[counterIdx]++;
             return GameActionCtx.PLAY_CARD;
         }
@@ -2016,7 +2016,7 @@ public class CardDefect {
             this.n = n;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.getCounterForWrite()[counterIdx] += n;
             return GameActionCtx.PLAY_CARD;
         }
@@ -2064,7 +2064,7 @@ public class CardDefect {
             entityProperty.selectEnemy = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             Enemy enemy = state.getEnemiesForWrite().getForWrite(idx);
             enemy.setBlock(0);
             state.playerDoDamageToEnemy(enemy, damage, this);
@@ -2095,7 +2095,7 @@ public class CardDefect {
             this.n = n;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.draw(n);
             state.addCardToDiscard(state.createCard(generatedCardIdx));
             return GameActionCtx.PLAY_CARD;
@@ -2128,7 +2128,7 @@ public class CardDefect {
             canExhaustAnyCard = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             int cost = Math.max(0, state.properties.cardDict[idx].energyCost(state));
             state.exhaustCardFromHand(idx);
             state.gainEnergy(cost);
@@ -2160,7 +2160,7 @@ public class CardDefect {
             isXCost = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             for (int i = 0; i < energyUsed; i++) {
                 state.playerGainBlock(n);
             }
@@ -2198,7 +2198,7 @@ public class CardDefect {
             entityProperty.changePlayerFocus = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.getPlayerForWrite().applyDebuff(state, DebuffType.LOSE_FOCUS, n);
             state.playerGainStrength(n);
             state.getPlayerForWrite().gainDexterity(n);
@@ -2227,7 +2227,7 @@ public class CardDefect {
             damage = n;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             boolean stochastic = state.isStochastic;
             var i = GameStateUtils.getRandomEnemyIdx(state, RandomGenCtx.RandomEnemyRipAndTear);
             if (i >= 0) {
@@ -2269,7 +2269,7 @@ public class CardDefect {
             entityProperty.selectEnemy = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             var handCount = state.getNumCardsInHand();
             state.draw(Math.min((damage + 1) / 2, GameState.HAND_LIMIT - handCount));
@@ -2308,7 +2308,7 @@ public class CardDefect {
             healPlayer = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.getCounterForWrite()[counterIdx] += n;
             return GameActionCtx.PLAY_CARD;
         }
@@ -2361,7 +2361,7 @@ public class CardDefect {
             this.n = n;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.draw(n);
             return GameActionCtx.PLAY_CARD;
         }
@@ -2391,7 +2391,7 @@ public class CardDefect {
             entityProperty.orbGenerationPossible |= OrbType.LIGHTNING.mask;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.getCounterForWrite()[counterIdx] += n;
             return GameActionCtx.PLAY_CARD;
         }
@@ -2443,7 +2443,7 @@ public class CardDefect {
             entityProperty.orbGenerationPossible |= OrbType.LIGHTNING.mask;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.getCounterForWrite()[counterIdx] += lightningPerPower;
             return GameActionCtx.PLAY_CARD;
         }
@@ -2459,7 +2459,7 @@ public class CardDefect {
                 }
             });
             state.properties.addOnPreCardPlayedHandler("Storm", new GameEventCardHandler() {
-                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, int starUsed, Class cloneSource, int cloneParentLocation) {
                     if (state.getCounterForRead()[counterIdx] > 0 && state.properties.cardDict[cardIdx].cardType == Card.POWER) {
                         var _n = state.getCounterForRead()[counterIdx];
                         state.addGameActionToEndOfDeque(new GameEnvironmentAction() {
@@ -2497,7 +2497,7 @@ public class CardDefect {
             entityProperty.selectEnemy = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             if (state.getEnemiesForRead().get(idx).getHealth() <= 0) {
                 state.gainEnergy(3);
@@ -2531,7 +2531,7 @@ public class CardDefect {
             entityProperty.orbGenerationPossible |= OrbType.LIGHTNING.mask;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             for (int i = 0; i < energyUsed + n; i++) {
                 state.channelOrb(OrbType.LIGHTNING);
             }
@@ -2564,7 +2564,7 @@ public class CardDefect {
             this.exhaustWhenPlayed = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.setIsStochastic();
             var r = state.getSearchRandomGen().nextInt(generatedCardIdxes.length, RandomGenCtx.RandomCardGen, new Tuple<>(state, generatedCardIdxes));
             state.addCardToHand(state.createCard(generatedCardIdxes[r]));
@@ -2612,7 +2612,7 @@ public class CardDefect {
             this.discardOrder0CardMaxCopies = discardOrder0CardMaxCopies;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             for (int i = 0; i < state.discardArrLen && state.handArrLen < GameState.HAND_LIMIT; i++) {
                 var cardIdx = (int) state.getDiscardArrForRead()[i];
@@ -2675,7 +2675,7 @@ public class CardDefect {
             this.n = n;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.getCounterForWrite()[counterIdx] += n;
             return GameActionCtx.PLAY_CARD;
         }
@@ -2698,7 +2698,7 @@ public class CardDefect {
                 }
             });
             state.properties.addOnCardPlayedHandler("Amplify", new GameEventCardHandler(GameEventCardHandler.CLONE_CARD_PRIORITY) {
-                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, int starUsed, Class cloneSource, int cloneParentLocation) {
                     var card = state.properties.cardDict[cardIdx];
                     if (card.cardType != Card.POWER || state.getCounterForRead()[counterIdx] == 0) {
                         return;
@@ -2711,7 +2711,7 @@ public class CardDefect {
                         counters[counterIdx] |= 1 << 8;
                         state.addGameActionToEndOfDeque(curState -> {
                             var action = curState.properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][cardIdx];
-                            if (curState.playCard(action, lastIdx, true, Amplify.class, false, false, energyUsed, cloneParentLocation)) {
+                            if (curState.playCard(action, lastIdx, true, Amplify.class, false, false, energyUsed, starUsed, cloneParentLocation)) {
                             } else {
                                 curState.getCounterForWrite()[counterIdx] ^= 1 << 8;
                             }
@@ -2746,7 +2746,7 @@ public class CardDefect {
             this.n = n;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.gainFocus(n);
             state.getPlayerForWrite().applyDebuff(state, DebuffType.LOSE_FOCUS_PER_TURN, 1);
             return GameActionCtx.PLAY_CARD;
@@ -2804,7 +2804,7 @@ public class CardDefect {
             this.n = n;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.getCounterForWrite()[state.properties.bufferCounterIdx] += n;
             return GameActionCtx.PLAY_CARD;
         }
@@ -2838,7 +2838,7 @@ public class CardDefect {
             exhaustWhenPlayed = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             state.getPlayerForWrite().gainArtifact(1);
             return GameActionCtx.PLAY_CARD;
@@ -2865,7 +2865,7 @@ public class CardDefect {
             super(cardName, Card.POWER, energyCost, Card.RARE);
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.getCounterForWrite()[counterIdx]++;
             return GameActionCtx.PLAY_CARD;
         }
@@ -2933,7 +2933,7 @@ public class CardDefect {
             this.ethereal = ethereal;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             // we split counter into three component, 1 for number of duplicated cards per turn and 1 for the number of cards played this turn (up to the max)
             // and negative means the current played card is echoed (todo: register multiple counter so code is clearer and not a mess)
             if (state.getCounterForWrite()[counterIdx] < 0) {
@@ -2971,7 +2971,7 @@ public class CardDefect {
                 }
             });
             state.properties.addOnCardPlayedHandler("EchoForm", new GameEventCardHandler(GameEventCardHandler.CLONE_CARD_PRIORITY) {
-                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, int starUsed, Class cloneSource, int cloneParentLocation) {
                     if (state.getCounterForRead()[counterIdx] < 0) {
                         state.getCounterForWrite()[counterIdx] = -state.getCounterForWrite()[counterIdx];
                     }
@@ -2990,7 +2990,7 @@ public class CardDefect {
                         state.addGameActionToStartOfDeque(curState -> {
                             var action = curState.properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][cardIdx];
                             curState.getCounterForWrite()[counterIdx] = -curState.getCounterForWrite()[counterIdx];
-                            if (curState.playCard(action, lastIdx, false, EchoForm.class, false, false, energyUsed, cloneParentLocation)) {
+                            if (curState.playCard(action, lastIdx, false, EchoForm.class, false, false, energyUsed, starUsed, cloneParentLocation)) {
                                 curState.runActionsInQueueIfNonEmpty();
                             } else {
                                 curState.getCounterForWrite()[counterIdx] = -curState.getCounterForWrite()[counterIdx];
@@ -3041,7 +3041,7 @@ public class CardDefect {
             entityProperty.orbGenerationPossible |= OrbType.LIGHTNING.mask;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.getCounterForWrite()[counterIdx] = 1;
             for (int i = 0; i < n; i++) {
                 state.channelOrb(OrbType.LIGHTNING);
@@ -3089,7 +3089,7 @@ public class CardDefect {
             this.exhaustWhenPlayed = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             if (state.getOrbs() != null) {
                 int n = 0;
                 while (state.getOrbs()[0] != OrbType.EMPTY.ordinal()) {
@@ -3129,7 +3129,7 @@ public class CardDefect {
             this.entityProperty.changePlayerFocus = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             for (var enemy : state.getEnemiesForWrite().iterateOverAlive()) {
                 state.playerDoDamageToEnemy(enemy, damage, this);
             }
@@ -3159,7 +3159,7 @@ public class CardDefect {
             this.innate = innate;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.getCounterForWrite()[counterIdx] += 1;
             return GameActionCtx.PLAY_CARD;
         }
@@ -3207,7 +3207,7 @@ public class CardDefect {
             entityProperty.orbGenerationPossible |= OrbType.PLASMA.mask;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             state.channelOrb(OrbType.PLASMA);
             state.channelOrb(OrbType.PLASMA);
@@ -3239,7 +3239,7 @@ public class CardDefect {
             this.n = n;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             if (energyUsed + n > 0) {
                 state.evokeOrb(energyUsed + n);
             }
@@ -3273,7 +3273,7 @@ public class CardDefect {
             entityProperty.orbGenerationPossible |= OrbType.LIGHTNING.mask | OrbType.FROST.mask | OrbType.DARK.mask;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.channelOrb(OrbType.LIGHTNING);
             state.channelOrb(OrbType.FROST);
             state.channelOrb(OrbType.DARK);
@@ -3305,7 +3305,7 @@ public class CardDefect {
             this.n = n;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.discardHand(false);
             state.reshuffle();
             state.draw(n);
@@ -3338,7 +3338,7 @@ public class CardDefect {
             entityProperty.selectFromDeck = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.removeCardFromDeck(idx, false);
             state.addCardToHand(idx);
             if (!isUpgraded) {
@@ -3388,7 +3388,7 @@ public class CardDefect {
             damage = n;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             int c = state.getCounterForRead()[counterIdx];
             for (int i = 0; i < c; i++) {
                 var j = GameStateUtils.getRandomEnemyIdx(state, RandomGenCtx.RandomEnemySwordBoomerang);

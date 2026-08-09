@@ -15,13 +15,13 @@ public class HavocAction implements GameEnvironmentAction {
     @Override public void doAction(GameState state) {
         state.getCounterForWrite()[state.properties.havocCounterIdx]++;
         var action = state.properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][cardIdx];
-        state.playCard(action, -1, true, null, false, false, -1, -1);
+        state.playCard(action, -1, true, null, false, false, -1, -1, -1);
         while (state.actionCtx == GameActionCtx.SELECT_ENEMY) {
             int enemyIdx = GameStateUtils.getRandomEnemyIdx(state, RandomGenCtx.RandomEnemyGeneral);
             if (state.properties.makingRealMove || state.properties.stateDescOn) {
                 state.getStateDesc().append(" -> ").append(state.getEnemiesForRead().get(enemyIdx).getName()).append(" (").append(enemyIdx).append(")");
             }
-            state.playCard(action, enemyIdx, true, null, false, false, -1, -1);
+            state.playCard(action, enemyIdx, true, null, false, false, -1, -1, -1);
         }
     }
 

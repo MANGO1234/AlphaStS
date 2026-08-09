@@ -41,6 +41,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
     public boolean retain = false;
     public boolean delayUseEnergy;
     public boolean isXCost;
+    public boolean isXStarCost;
     public boolean selectFromDeckLater;
     public boolean selectFromDiscardLater;
     public boolean selectFromHandLater;
@@ -116,7 +117,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         return false;
     }
 
-    public GameActionCtx play(GameState state, int idx, int energyUsed) { return GameActionCtx.PLAY_CARD; }
+    public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) { return GameActionCtx.PLAY_CARD; }
     public void onExhaust(GameState state) {}
     public GameActionCtx endSelectHandAction(GameState state) { return GameActionCtx.PLAY_CARD; }
     public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) { return List.of(); }
@@ -614,6 +615,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
             retain = card.retain;
             delayUseEnergy = card.delayUseEnergy;
             isXCost = card.isXCost;
+            isXStarCost = card.isXStarCost;
             selectFromDeckLater = card.selectFromDeckLater;
             selectFromDiscardLater = card.selectFromDiscardLater;
             selectFromHandLater = card.selectFromHandLater;
@@ -661,8 +663,8 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         }
 
         @Override
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            var result = card.play(state, idx, energyUsed);
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
+            var result = card.play(state, idx, energyUsed, starUsed);
             if (mod.adroit > 0) {
                 state.playerGainBlock(mod.adroit);
             }
@@ -788,14 +790,14 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
             card.gamePropertiesSetup(state);
             if (mod.glam || mod.spiral > 0 || mod.replay > 0) {
                 state.properties.addOnCardPlayedHandler("Replay", new GameEventCardHandler(GameEventCardHandler.CLONE_CARD_PRIORITY) {
-                    @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                    @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, int starUsed, Class cloneSource, int cloneParentLocation) {
                         if (cloneSource != null) return;
                         if (!(state.properties.cardDict[cardIdx] instanceof CardWrapper cw)) return;
                         int replays = (cw.mod.glam || cw.mod.spiral > 0 ? 1 : 0) + cw.mod.replay;
                         for (int i = 0; i < replays; i++) {
                             state.addGameActionToStartOfDeque(curState -> {
                                 var action = curState.properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][cardIdx];
-                                if (curState.playCard(action, lastIdx, false, CardWrapper.class, false, false, energyUsed, cloneParentLocation)) {
+                                if (curState.playCard(action, lastIdx, false, CardWrapper.class, false, false, energyUsed, starUsed, cloneParentLocation)) {
                                     curState.runActionsInQueueIfNonEmpty();
                                 }
                             });
@@ -1243,7 +1245,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
             entityProperty.selectEnemy = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             return GameActionCtx.PLAY_CARD;
         }
@@ -1256,7 +1258,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
             entityProperty.selectEnemy = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             return GameActionCtx.PLAY_CARD;
         }
@@ -1267,7 +1269,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
             super("Defend", Card.SKILL, 1,  Card.COMMON);
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             int bonus = state.properties.fastenCounterIdx >= 0 ? state.getCounterForRead()[state.properties.fastenCounterIdx] : 0;
             state.playerGainBlock(5 + bonus);
             return GameActionCtx.PLAY_CARD;
@@ -1279,7 +1281,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
             super("Defend+", Card.SKILL, 1, Card.COMMON);
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             int bonus = state.properties.fastenCounterIdx >= 0 ? state.getCounterForRead()[state.properties.fastenCounterIdx] : 0;
             state.playerGainBlock(8 + bonus);
             return GameActionCtx.PLAY_CARD;
@@ -1293,7 +1295,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
             entityProperty.selectEnemy = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             return GameActionCtx.PLAY_CARD;
         }
@@ -1306,7 +1308,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
             entityProperty.selectEnemy = true;
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             return GameActionCtx.PLAY_CARD;
         }

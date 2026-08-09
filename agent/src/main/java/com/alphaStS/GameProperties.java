@@ -1374,7 +1374,7 @@ public class GameProperties implements Cloneable {
             }
         });
         addOnCardPlayedHandler("Vigor", new GameEventCardHandler() {
-            @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+            @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, int starUsed, Class cloneSource, int cloneParentLocation) {
                 if (state.getCounterForRead()[state.properties.vigorCounterIdx] > 0 && state.properties.cardDict[cardIdx].cardType == Card.ATTACK) {
                     state.getCounterForWrite()[state.properties.vigorCounterIdx] = 0;
                 }
@@ -1486,7 +1486,7 @@ public class GameProperties implements Cloneable {
             }
         });
         addOnCardPlayedHandler("AttacksPlayedThisTurn", new GameEventCardHandler() {
-            @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+            @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, int starUsed, Class cloneSource, int cloneParentLocation) {
                 if (state.properties.cardDict[cardIdx].cardType == Card.ATTACK) {
                     state.getCounterForWrite()[state.properties.attacksPlayedThisTurnCounterIdx]++;
                 }
@@ -1529,7 +1529,7 @@ public class GameProperties implements Cloneable {
             }
         });
         addOnCardPlayedHandler("SkillsPlayedThisTurn", new GameEventCardHandler() {
-            @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+            @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, int starUsed, Class cloneSource, int cloneParentLocation) {
                 if (state.properties.cardDict[cardIdx].cardType == Card.SKILL) {
                     state.getCounterForWrite()[state.properties.skillsPlayedThisTurnCounterIdx]++;
                 }
@@ -1554,7 +1554,7 @@ public class GameProperties implements Cloneable {
             }
         });
         addOnCardPlayedHandler("CardsPlayedThisTurn", new GameEventCardHandler() {
-            @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+            @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, int starUsed, Class cloneSource, int cloneParentLocation) {
                 state.getCounterForWrite()[state.properties.cardsPlayedThisTurnCounterIdx]++;
             }
         });

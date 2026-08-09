@@ -1295,7 +1295,7 @@ public final class GameState implements State {
                 getCounterForWrite()[properties.chainsOfBindingCounterIdx]--;
             }
             for (var handler : properties.onCardDrawnHandlers) {
-                handler.handle(this, cardIdx, -1, -1, null, -1);
+                handler.handle(this, cardIdx, -1, -1, -1, null, -1);
             }
         }
         return drawnIdx;
@@ -1445,6 +1445,7 @@ public final class GameState implements State {
                             boolean useEnergy, // when cloning/havoc/etc., do not use energy
                             boolean removeFromHand,
                             int overrideEnergyCost, // when cloning, need to know cost of X card to use
+                            int overrideStarCost,
                             int cloneParentLocation // when cloning, need to transform the prev card (e.g. Streamline)
     ) {
         int cardIdx = action.idx();
@@ -1454,7 +1455,11 @@ public final class GameState implements State {
         boolean targetHalfAlive = false;
         int energyCost = overrideEnergyCost >= 0 ? overrideEnergyCost : getCardEnergyCost(cardIdx);
         int realEnergyCost = energyCost;
-        if (properties.cardDict[cardIdx].isXCost && properties.chemicalX != null && 
+        int starUsed = overrideStarCost >= 0 ? overrideStarCost : properties.cardDict[cardIdx].starCost;
+        if (overrideStarCost < 0 && properties.cardDict[cardIdx].isXStarCost) {
+            starUsed = starResource;
+        }
+        if (properties.cardDict[cardIdx].isXCost && properties.chemicalX != null &&
             properties.chemicalX.isRelicEnabledInScenario(this)) {
             energyCost += 2;
         }
@@ -1488,11 +1493,10 @@ public final class GameState implements State {
                     properties.onEnergySpendHandlers.get(i).handle(this, realEnergyCost);
                 }
             }
-            int realStarCost = properties.cardDict[cardIdx].starCost;
-            if (realStarCost > 0 && useEnergy && !(properties.voidFormCounterIdx >= 0 && (counter[properties.voidFormCounterIdx] & 0xFF) > 0)) {
-                starResource -= realStarCost;
+            if (starUsed > 0 && useEnergy && !(properties.voidFormCounterIdx >= 0 && (counter[properties.voidFormCounterIdx] & 0xFF) > 0)) {
+                starResource -= starUsed;
                 for (int i = 0; i < properties.onStarChangeHandlers.size(); i++) {
-                    properties.onStarChangeHandlers.get(i).handle(this, -realStarCost);
+                    properties.onStarChangeHandlers.get(i).handle(this, -starUsed);
                 }
             }
             if (cardIdx >= properties.realCardsLen) {
@@ -1500,7 +1504,7 @@ public final class GameState implements State {
                 action = properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][cardIdx];
             }
             for (var handler : properties.onPreCardPlayedHandlers) {
-                handler.handle(this, cardIdx, lastSelectedIdx, energyCost, cloneSource, -1);
+                handler.handle(this, cardIdx, lastSelectedIdx, energyCost, starUsed, cloneSource, -1);
             }
             if (properties.cardDict[cardIdx].entityProperty.selectEnemy) {
                 setActionCtx(GameActionCtx.SELECT_ENEMY, action, cloneSource);
@@ -1532,7 +1536,7 @@ public final class GameState implements State {
                     if (e.isAlive()) {
                         lastSelectedIdx = selectIdx;
                         onSelectEnemy(selectIdx);
-                        setActionCtx(properties.cardDict[cardIdx].play(this, selectIdx, energyCost), action, cloneSource);
+                        setActionCtx(properties.cardDict[cardIdx].play(this, selectIdx, energyCost, starUsed), action, cloneSource);
                         selectIdx = -1;
                     } else {
                         cardPlayedSuccessfully = false;
@@ -1542,7 +1546,7 @@ public final class GameState implements State {
                 } else if (targetableEnemies == 1) {
                     lastSelectedIdx = idx;
                     onSelectEnemy(idx);
-                    setActionCtx(properties.cardDict[cardIdx].play(this, idx, energyCost), action, cloneSource);
+                    setActionCtx(properties.cardDict[cardIdx].play(this, idx, energyCost, starUsed), action, cloneSource);
                 } else if (targetableEnemies == 0) {
                     selectEnemyFailed = true;
                     cardPlayedSuccessfully = false;
@@ -1555,12 +1559,12 @@ public final class GameState implements State {
                 Card selectingCard = currentAction.type() == GameActionType.PLAY_CARD ? properties.cardDict[currentAction.idx()] : null;
                 int singleCardIdx = countUniqueSelectableCards(discardArr, discardArrLen, selectingCard);
                 if (selectIdx >= 0) {
-                    setActionCtx(properties.cardDict[cardIdx].play(this, selectIdx, energyCost), action, cloneSource);
+                    setActionCtx(properties.cardDict[cardIdx].play(this, selectIdx, energyCost, starUsed), action, cloneSource);
                     selectIdx = -1;
                 } else if (singleCardIdx == -1) {
                     setActionCtx(GameActionCtx.PLAY_CARD, action, cloneSource);
                 } else if (singleCardIdx >= 0) {
-                    setActionCtx(properties.cardDict[cardIdx].play(this, singleCardIdx, energyCost), action, cloneSource);
+                    setActionCtx(properties.cardDict[cardIdx].play(this, singleCardIdx, energyCost, starUsed), action, cloneSource);
                 } else {
                     break;
                 }
@@ -1569,7 +1573,7 @@ public final class GameState implements State {
                 int singleCardIdx = countUniqueSelectableCards(handArr, handArrLen, selectingCard);
                 if (cardIdx == properties.wellLaidPlansCardIdx) {
                     if (selectIdx >= 0) {
-                        setActionCtx(properties.cardDict[cardIdx].play(this, selectIdx, energyCost), action, cloneSource);
+                        setActionCtx(properties.cardDict[cardIdx].play(this, selectIdx, energyCost, starUsed), action, cloneSource);
                         if (getCounterForRead()[properties.wellLaidPlansCounterIdx] >> 5 == (getCounterForRead()[properties.wellLaidPlansCounterIdx] & 31)) {
                             endTurn();
                             runActionsInQueueIfNonEmpty();
@@ -1585,7 +1589,7 @@ public final class GameState implements State {
                     return true;
                 } else if (cardIdx == properties.gamblingChipsCardIdx) {
                     if (selectIdx >= 0) {
-                        setActionCtx(properties.cardDict[cardIdx].play(this, selectIdx, energyCost), action, cloneSource);
+                        setActionCtx(properties.cardDict[cardIdx].play(this, selectIdx, energyCost, starUsed), action, cloneSource);
                     } else if (singleCardIdx == -1) {
                         endTurn();
                         runActionsInQueueIfNonEmpty();
@@ -1593,12 +1597,12 @@ public final class GameState implements State {
                     return true;
                 }
                 if (selectIdx >= 0) {
-                    setActionCtx(properties.cardDict[cardIdx].play(this, selectIdx, energyCost), action, cloneSource);
+                    setActionCtx(properties.cardDict[cardIdx].play(this, selectIdx, energyCost, starUsed), action, cloneSource);
                     selectIdx = -1;
                 } else if (singleCardIdx == -1) {
                     setActionCtx(GameActionCtx.PLAY_CARD, action, cloneSource);
                 } else if (singleCardIdx >= 0) {
-                    setActionCtx(properties.cardDict[cardIdx].play(this, singleCardIdx, energyCost), action, cloneSource);
+                    setActionCtx(properties.cardDict[cardIdx].play(this, singleCardIdx, energyCost, starUsed), action, cloneSource);
                 } else {
                     break;
                 }
@@ -1606,12 +1610,12 @@ public final class GameState implements State {
                 Card selectingCard = currentAction.type() == GameActionType.PLAY_CARD ? properties.cardDict[currentAction.idx()] : null;
                 int singleCardIdx = countUniqueSelectableCards(exhaustArr, exhaustArrLen, selectingCard);
                 if (selectIdx >= 0) {
-                    setActionCtx(properties.cardDict[cardIdx].play(this, selectIdx, energyCost), action, cloneSource);
+                    setActionCtx(properties.cardDict[cardIdx].play(this, selectIdx, energyCost, starUsed), action, cloneSource);
                     selectIdx = -1;
                 } else if (singleCardIdx == -1) {
                     setActionCtx(GameActionCtx.PLAY_CARD, action, cloneSource);
                 } else if (singleCardIdx >= 0) {
-                    setActionCtx(properties.cardDict[cardIdx].play(this, singleCardIdx, energyCost), action, cloneSource);
+                    setActionCtx(properties.cardDict[cardIdx].play(this, singleCardIdx, energyCost, starUsed), action, cloneSource);
                 } else {
                     break;
                 }
@@ -1619,12 +1623,12 @@ public final class GameState implements State {
                 Card selectingCard = currentAction.type() == GameActionType.PLAY_CARD ? properties.cardDict[currentAction.idx()] : null;
                 int singleCardIdx = countUniqueSelectableCards(deckArr, deckArrLen, selectingCard);
                 if (selectIdx >= 0) {
-                    setActionCtx(properties.cardDict[cardIdx].play(this, selectIdx, energyCost), action, cloneSource);
+                    setActionCtx(properties.cardDict[cardIdx].play(this, selectIdx, energyCost, starUsed), action, cloneSource);
                     selectIdx = -1;
                 } else if (singleCardIdx == -1) {
                     setActionCtx(GameActionCtx.PLAY_CARD, action, cloneSource);
                 } else if (singleCardIdx >= 0) {
-                    setActionCtx(properties.cardDict[cardIdx].play(this, singleCardIdx, energyCost), action, cloneSource);
+                    setActionCtx(properties.cardDict[cardIdx].play(this, singleCardIdx, energyCost, starUsed), action, cloneSource);
                 } else {
                     break;
                 }
@@ -1632,13 +1636,13 @@ public final class GameState implements State {
                 if (scryCardIsKept != null) {
                     setActionCtx(GameActionCtx.SCRYING, action, cloneSource);
                 } else {
-                    setActionCtx(properties.cardDict[cardIdx].play(this, -1, energyCost), action, cloneSource);
+                    setActionCtx(properties.cardDict[cardIdx].play(this, -1, energyCost, starUsed), action, cloneSource);
                 }
                 break;
             } else if (actionCtx == GameActionCtx.SELECT_CARD_1_OUT_OF_3) {
                 break;
             } else if (actionCtx == GameActionCtx.PLAY_CARD) {
-                setActionCtx(properties.cardDict[cardIdx].play(this, -1, energyCost), action, cloneSource);
+                setActionCtx(properties.cardDict[cardIdx].play(this, -1, energyCost, starUsed), action, cloneSource);
             }
         } while (actionCtx != GameActionCtx.PLAY_CARD && actionCtx != GameActionCtx.START_OF_BATTLE);
 
@@ -1673,7 +1677,7 @@ public final class GameState implements State {
                 }
             }
             for (var handler : properties.onCardPlayedHandlers) {
-                handler.handle(this, cardIdx, lastSelectedIdx, energyCost, cloneSource, cloneParentLocation);
+                handler.handle(this, cardIdx, lastSelectedIdx, energyCost, starUsed, cloneSource, cloneParentLocation);
             }
             int transformCardIdx = properties.cardDict[cardIdx].onPlayTransformCardIdx(this, cardIdx);
             int prevCardIdx = cardIdx;
@@ -1782,7 +1786,7 @@ public final class GameState implements State {
         while (actionCtx == GameActionCtx.START_OF_BATTLE && startOfBattleActionIdx < properties.startOfBattleActions.size()) {
             if (properties.startOfBattleActions.get(startOfBattleActionIdx).isRelicEnabledInScenario(this)) {
                 var card = properties.startOfBattleActions.get(startOfBattleActionIdx).startOfBattleAction;
-                setActionCtx(card.play(this, properties.findCardIndex(card), 0), findPlayCardAction(card), null);
+                setActionCtx(card.play(this, properties.findCardIndex(card), 0, 0), findPlayCardAction(card), null);
             }
             if (actionCtx == GameActionCtx.START_OF_BATTLE) {
                 startOfBattleActionIdx++;
@@ -1810,13 +1814,13 @@ public final class GameState implements State {
             }
             var action = properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][cardIdx];
             setActionCtx(GameActionCtx.PLAY_CARD, action, null);
-            playCard(action, -1, true, null, false, false, -1, -1);
+            playCard(action, -1, true, null, false, false, -1, -1, -1);
             while (actionCtx == GameActionCtx.SELECT_ENEMY) {
                 int enemyIdx = GameStateUtils.getRandomEnemyIdx(this, RandomGenCtx.RandomEnemyGeneral);
                 if (properties.makingRealMove || properties.stateDescOn) {
                     getStateDesc().append(" -> ").append(getEnemiesForRead().get(enemyIdx).getName()).append(" (").append(enemyIdx).append(")");
                 }
-                playCard(action, enemyIdx, true, null, false, false, -1, -1);
+                playCard(action, enemyIdx, true, null, false, false, -1, -1, -1);
             }
             if (actionCtx != GameActionCtx.PLAY_CARD) {
                 return false;
@@ -2300,7 +2304,7 @@ public final class GameState implements State {
         }
         if (stage < END_TURN_STAGE_WELL_LAID_PLANS_DONE && properties.gamblingChipsCardIdx >= 0 && actionCtx == GameActionCtx.SELECT_CARD_HAND) {
             setActionCtx(GameActionCtx.PLAY_CARD, null, null);
-            properties.cardDict[properties.gamblingChipsCardIdx].play(this, -1, 0);
+            properties.cardDict[properties.gamblingChipsCardIdx].play(this, -1, 0, 0);
             return;
         }
         if (stage < END_TURN_STAGE_DISCARD_DONE) {
@@ -2421,7 +2425,7 @@ public final class GameState implements State {
                 getHandArrForWrite()[i] = REMOVED_CARD_TOMBSTONE;
             } else if (properties.cardDict[handArr[i]].retain(this)) {
                 for (var handler : properties.onRetainHandlers) {
-                    handler.handle(this, i, -1, -1, null, -1);
+                    handler.handle(this, i, -1, -1, -1, null, -1);
                 }
                 if (properties.establishmentCounterIdx >= 0 && getCounterForRead()[properties.establishmentCounterIdx] > 0) {
                     if (properties.tmpModifiedCardReverseTransformIdxes != null && properties.cardDict[handArr[i]].isTmpModifiedUntilEndOfTurnCard()) {
@@ -2522,17 +2526,17 @@ public final class GameState implements State {
         } else if (action.type() == GameActionType.END_TURN) {
             endTurn();
         } else if (action.type() == GameActionType.PLAY_CARD) {
-            playCard(action, -1, true, null, true, false, -1, -1);
+            playCard(action, -1, true, null, true, false, -1, -1, -1);
         } else if (action.type() == GameActionType.SELECT_ENEMY) {
             if (currentAction.type() == GameActionType.PLAY_CARD) {
-                playCard(currentAction, action.idx(), true, actionCardCloneSource, true, false, -1, -1);
+                playCard(currentAction, action.idx(), true, actionCardCloneSource, true, false, -1, -1, -1);
             } else if (currentAction.type() == GameActionType.USE_POTION) {
                 usePotion(currentAction, action.idx());
             }
         } else if (action.type() == GameActionType.SELECT_CARD_HAND) {
             if (currentAction.type() == GameActionType.PLAY_CARD) {
                 var previousAction = currentAction;
-                playCard(currentAction, action.idx(), true, actionCardCloneSource, true, false, -1, -1);
+                playCard(currentAction, action.idx(), true, actionCardCloneSource, true, false, -1, -1, -1);
                 if (actionCtx == GameActionCtx.PLAY_CARD && isBeginTurnAction(previousAction)) {
                     beginTurn(previousAction);
                 }
@@ -2541,15 +2545,15 @@ public final class GameState implements State {
             }
         } else if (action.type() == GameActionType.SELECT_CARD_DISCARD) {
             if (currentAction.type() == GameActionType.PLAY_CARD) {
-                playCard(currentAction, action.idx(), true, actionCardCloneSource, true, false, -1, -1);
+                playCard(currentAction, action.idx(), true, actionCardCloneSource, true, false, -1, -1, -1);
             } else if (currentAction.type() == GameActionType.USE_POTION) {
                 usePotion(currentAction, action.idx());
             }
         } else if (action.type() == GameActionType.SELECT_CARD_EXHAUST) {
-            playCard(currentAction, action.idx(), true, actionCardCloneSource, true, false, -1, -1);
+            playCard(currentAction, action.idx(), true, actionCardCloneSource, true, false, -1, -1, -1);
         } else if (action.type() == GameActionType.SELECT_CARD_DECK) {
             var previousAction = currentAction;
-            playCard(currentAction, action.idx(), true, actionCardCloneSource, true, false, -1, -1);
+            playCard(currentAction, action.idx(), true, actionCardCloneSource, true, false, -1, -1, -1);
             if (actionCtx == GameActionCtx.PLAY_CARD && isBeginTurnAction(previousAction)) {
                 beginTurn(previousAction);
             }
@@ -2559,7 +2563,7 @@ public final class GameState implements State {
                     handler.handle(this);
                 }
                 var previousAction = currentAction;
-                playCard(currentAction, action.idx(), true, actionCardCloneSource, true, false, -1, -1);
+                playCard(currentAction, action.idx(), true, actionCardCloneSource, true, false, -1, -1, -1);
                 if (actionCtx == GameActionCtx.PLAY_CARD && isBeginTurnAction(previousAction)) {
                     beginTurn(previousAction);
                 }
@@ -2572,7 +2576,7 @@ public final class GameState implements State {
                 endTurn(previousAction);
             } else if (currentAction != null && properties.knowledgeDemonChoiceCardIdx >= 0 && currentAction.idx() == properties.knowledgeDemonChoiceCardIdx) {
                 var previousAction = currentAction;
-                properties.cardDict[action.idx()].play(this, 0, 0);
+                properties.cardDict[action.idx()].play(this, 0, 0, 0);
                 setActionCtx(GameActionCtx.BEGIN_TURN, null, null);
                 endTurn(previousAction);
             } else if (turnNum == 0) {
@@ -2585,9 +2589,9 @@ public final class GameState implements State {
                 }
             } else {
                 if (currentAction != null && properties.cardDict[currentAction.idx()].select1OutOf3CardExtraEffect) {
-                    properties.cardDict[currentAction.idx()].play(this, action.idx(), 0);
+                    properties.cardDict[currentAction.idx()].play(this, action.idx(), 0, 0);
                 } else if (properties.cardDict[action.idx()].select1OutOf3CardEffectCard) {
-                    properties.cardDict[action.idx()].play(this, 0, 0);
+                    properties.cardDict[action.idx()].play(this, 0, 0, 0);
                 } else {
                     addCardToHand(createCard(action.idx()));
                 }
@@ -2685,14 +2689,14 @@ public final class GameState implements State {
                 getStateDesc().append(properties.cardDict[cardIdx].cardName);
             }
             var nextAction = properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][cardIdx];
-            playCard(nextAction, -1, true, null, false, true, -1, -1);
+            playCard(nextAction, -1, true, null, false, true, -1, -1, -1);
             while (actionCtx == GameActionCtx.SELECT_ENEMY && isTerminal() == 0) {
                 int enemyIdx = GameStateUtils.getRandomEnemyIdx(this, RandomGenCtx.RandomEnemyGeneral);
                 if (properties.makingRealMove || properties.stateDescOn) {
                     getStateDesc().append(" -> ").append(enemyIdx < 0 ? "None" : getEnemiesForRead().get(enemyIdx).getName())
                             .append(" (").append(enemyIdx).append(")");
                 }
-                playCard(nextAction, enemyIdx, true, null, false, false, -1, -1);
+                playCard(nextAction, enemyIdx, true, null, false, false, -1, -1, -1);
             }
         }
         actionsInCurTurn++;
@@ -4144,10 +4148,10 @@ public final class GameState implements State {
             addGameActionToEndOfDeque(state1 -> {
                 var action = state1.properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][slyCardIdx];
                 if (action != null) {
-                    state1.playCard(action, -1, false, null, false, false, -1, -1);
+                    state1.playCard(action, -1, false, null, false, false, -1, -1, -1);
                     while (state1.actionCtx == GameActionCtx.SELECT_ENEMY) {
                         int enemyIdx = GameStateUtils.getRandomEnemyIdx(state1, RandomGenCtx.RandomEnemyGeneral);
-                        state1.playCard(action, enemyIdx, false, null, false, false, -1, -1);
+                        state1.playCard(action, enemyIdx, false, null, false, false, -1, -1, -1);
                     }
                 }
             });
