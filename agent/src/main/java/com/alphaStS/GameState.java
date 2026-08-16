@@ -1081,7 +1081,8 @@ public final class GameState implements State {
             Arrays.fill(properties.tmpModifiedCardReverseTransformIdxes, -1);
             for (int i = 0; i < cards.size(); i++) {
                 if (properties.cardDict[i].isTmpModifiedCard()) {
-                    properties.tmpModifiedCardReverseTransformIdxes[i] = properties.findCardIndex(properties.cardDict[i].getBaseCard());
+                    var reverseCard = properties.cardDict[i].wrapAfterPlay(properties.cardDict[i].getBaseCard());
+                    properties.tmpModifiedCardReverseTransformIdxes[i] = properties.findCardIndex(reverseCard);
                 } else {
                     properties.tmp0CostCardTransformIdxes[i] = properties.findCardIndex(properties.cardDict[i].getTemporaryCostIfPossible(0));
                 }
@@ -1095,7 +1096,7 @@ public final class GameState implements State {
 
         properties.upgradeIdxes = findUpgradeIdxes(cards);
         properties.temporaryDowngradeIdxes = findTemporaryDowngradeIdxes(cards);
-        properties.temporaryDowngradeReverseIdxes = getReverseIdxes(properties.temporaryDowngradeIdxes);
+        properties.temporaryDowngradeReverseIdxes = findTemporaryDowngradeReverseIdxes(cards);
         properties.boundCardIdxes = findBoundCardIdxes(cards);
         properties.boundCardReverseIdxes = getReverseIdxes(properties.boundCardIdxes);
         properties.discardIdxes = findDiscardToKeepTrackOf(discardSet, cards, potions);
