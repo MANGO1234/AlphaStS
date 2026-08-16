@@ -3124,6 +3124,35 @@ public class Relic2 {
     // ********************************************* Special *********************************************
     // **************************************************************************************************
 
+    // Endless Conveyor: Observe the Chef (Event)
+    //   Effect: Upon pickup, upgrade a random card.
+    public static class EndlessConveyorObserveTheChef extends Relic.UpgradeRandomCardOnBattleStart {
+        public EndlessConveyorObserveTheChef() {
+            super(1);
+        }
+    }
+
+    // Endless Conveyor: Grab Fried Eel Off the Belt (Event)
+    //   Effect: Upon pickup, gain a random Colorless card.
+    public static class EndlessConveyorGrabFriedEelOffTheBelt extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.addStartOfBattleHandler("EndlessConveyorGrabFriedEelOffTheBelt", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (!isRelicEnabledInScenario(state) || !state.isFirstEncounter()) {
+                        return;
+                    }
+                    state.setIsStochastic();
+                    int r = state.getSearchRandomGen().nextInt(generatedCardIdxes.length, RandomGenCtx.RandomCardGen, new Tuple<>(state, generatedCardIdxes));
+                    state.addCardToDeckNonRandom(generatedCardIdxes[r]);
+                }
+            });
+        }
+
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            return CardManager.getColorless2Cards(CardManager.ColorlessCard2Pool.CARD_GENERATION);
+        }
+    }
+
     // Infested Automation: Study (Event)
     //   Effect: Upon pickup, gain a random Power.
     public static class InfestedAutomationStudy extends Relic {

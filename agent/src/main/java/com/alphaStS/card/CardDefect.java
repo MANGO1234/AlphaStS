@@ -1414,27 +1414,7 @@ public class CardDefect {
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
-            state.properties.registerCounter("Equilibrium", this, new GameProperties.NetworkInputHandler() {
-                @Override public int addToInput(GameState state, float[] input, int idx) {
-                    input[idx] = state.getCounterForRead()[counterIdx] / 5.0f;
-                    return idx + 1;
-                }
-                @Override public int getInputLenDelta() {
-                    return 1;
-                }
-            });
-            state.properties.addEndOfTurnHandler("Equilibirum", new GameEventHandler() {
-                @Override public void handle(GameState state) {
-                    if (state.getCounterForRead()[counterIdx] > 0) {
-                        state.getCounterForWrite()[counterIdx]--;
-                    }
-                }
-            });
-        }
-
-        @Override public void setCounterIdx(GameProperties gameProperties, int idx) {
-            super.setCounterIdx(gameProperties, idx);
-            gameProperties.equilibriumCounterIdx = idx;
+            state.properties.registerRetainHandCounter(this);
         }
     }
 

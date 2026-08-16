@@ -2998,11 +2998,19 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
-    public static class ShiningLight extends Relic {
-        private final int dmg;
+    public static class UpgradeRandomCardOnBattleStart extends Relic {
+        private final int numCardsToUpgrade;
+        private final int hpLoss;
+        private final String desc;
 
-        public ShiningLight(int dmg) {
-            this.dmg = dmg;
+        public UpgradeRandomCardOnBattleStart(int numCardsToUpgrade) {
+            this(numCardsToUpgrade, 0, "Upgrade Random Card");
+        }
+
+        protected UpgradeRandomCardOnBattleStart(int numCardsToUpgrade, int hpLoss, String desc) {
+            this.numCardsToUpgrade = numCardsToUpgrade;
+            this.hpLoss = hpLoss;
+            this.desc = desc;
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
@@ -3011,24 +3019,43 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                     if (!isRelicEnabledInScenario(state)) {
                         return;
                     }
-                    state.getPlayerForWrite().setHealth(state.getPlayerForRead().getHealth() - dmg);
-                    var cards = IntStreamEx.of(state.getDeckArrForRead()).mapToObj((cardIdx) -> new Tuple<>(cardIdx, state.properties.cardDict[cardIdx].getUpgrade(state.properties))).filter((t) -> t.v2() != null).toList();
-                    if (cards.size() == 1) {
-                        state.removeCardFromDeck(cards.get(0).v1(), false);
-                        state.addCardToDeckNonRandom(state.properties.findCardIndex(cards.get(0).v2()));
-                        state.getStateDesc().append("Shining Light Event: ").append(cards.get(0).v2().cardName);
-                    } else if (cards.size() > 1) {
-                        state.setIsStochastic();
-                        var r1 = state.getSearchRandomGen().nextInt(cards.size(), RandomGenCtx.Misc);
-                        var r2 = state.getSearchRandomGen().nextInt(cards.size() - 1, RandomGenCtx.Misc);
-                        if (r2 >= r1) {
-                            r2 += 1;
+
+                    if (hpLoss > 0) {
+                        state.getPlayerForWrite().setHealth(state.getPlayerForRead().getHealth() - hpLoss);
+                    }
+
+                    var upgradedCards = new ArrayList<Card>();
+                    for (int i = 0; i < numCardsToUpgrade; i++) {
+                        var cards = new ArrayList<Integer>();
+                        for (int j = 0; j < state.deckArrLen; j++) {
+                            int cardIdx = state.getDeckArrForRead()[j];
+                            if (state.properties.cardDict[cardIdx].getUpgrade(state.properties) != null) {
+                                cards.add(cardIdx);
+                            }
                         }
-                        state.removeCardFromDeck(cards.get(r1).v1(), false);
-                        state.addCardToDeckNonRandom(state.properties.findCardIndex(cards.get(r1).v2()));
-                        state.removeCardFromDeck(cards.get(r2).v1(), false);
-                        state.addCardToDeckNonRandom(state.properties.findCardIndex(cards.get(r2).v2()));
-                        state.getStateDesc().append("Shining Light Event: ").append(cards.get(r1).v2().cardName).append(", ").append(cards.get(r2).v2().cardName);
+                        if (cards.isEmpty()) {
+                            break;
+                        }
+                        int r = 0;
+                        if (cards.size() > 1) {
+                            state.setIsStochastic();
+                            r = state.getSearchRandomGen().nextInt(cards.size(), RandomGenCtx.Misc);
+                        }
+                        int cardIdx = cards.get(r);
+                        Card upgradedCard = state.properties.cardDict[cardIdx].getUpgrade(state.properties);
+                        state.removeCardFromDeck(cardIdx, false);
+                        state.addCardToDeckNonRandom(state.properties.findCardIndex(upgradedCard));
+                        upgradedCards.add(upgradedCard);
+                    }
+
+                    if (!upgradedCards.isEmpty()) {
+                        state.getStateDesc().append(desc).append(": ");
+                        for (int i = 0; i < upgradedCards.size(); i++) {
+                            if (i > 0) {
+                                state.getStateDesc().append(", ");
+                            }
+                            state.getStateDesc().append(upgradedCards.get(i).cardName);
+                        }
                     }
                 }
             });
@@ -3036,6 +3063,12 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
         @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
             return cards.stream().map(Card::getUpgrade).filter(Objects::nonNull).distinct().toList();
+        }
+    }
+
+    public static class ShiningLight extends UpgradeRandomCardOnBattleStart {
+        public ShiningLight(int dmg) {
+            super(2, dmg, "Shining Light Event");
         }
     }
 
