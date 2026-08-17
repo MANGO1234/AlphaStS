@@ -83,6 +83,12 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         return scenarioEnabled && battleRandomizationEnabled;
     }
 
+    public boolean isRelicEnabledInScenario(int preBattleScenariosIdx) {
+        boolean scenarioEnabled = preBattleScenariosEnabled == null ||
+            (preBattleScenariosIdx >= 0 && preBattleScenariosIdx < preBattleScenariosEnabled.length && preBattleScenariosEnabled[preBattleScenariosIdx]);
+        return scenarioEnabled;
+    }
+
     int counterIdx = -1;
 
     @Override public void setCounterIdx(GameProperties gameProperties, int idx) {

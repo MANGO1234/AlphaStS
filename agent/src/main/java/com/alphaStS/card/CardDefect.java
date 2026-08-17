@@ -1923,11 +1923,6 @@ public class CardDefect {
                     return 1;
                 }
             });
-            var c = getPossibleGeneratedCards();
-            cardsIdx = new int[c.size()];
-            for (int i = 0; i < c.size(); i++) {
-                cardsIdx[i] = state.properties.findCardIndex(c.get(i));
-            }
             state.properties.addStartOfTurnHandler("HelloWorld", new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     for (int i = 0; i < state.getCounterForRead()[counterIdx]; i++) {
@@ -1939,37 +1934,27 @@ public class CardDefect {
             });
         }
 
-        private static List<Card> cards;
-        private static int[] cardsIdx;
-
-        private static List<Card> getPossibleGeneratedCards() {
-            if (cards == null) {
-                cards = List.of(
-                        new CardDefect.BallLightning(),
-                        new CardDefect.Barrage(),
-                        new CardDefect.BeamCell(),
-                        new CardDefect.ChargeBattery(),
-                        new CardDefect.Claw(),
-                        new CardDefect.ColdSnap(),
-                        new CardDefect.CompileDriver(),
-                        new CardDefect.Coolheaded(),
-                        new GoForTheEyes(),
-                        new CardDefect.Hologram(),
-                        new CardDefect.Leap(),
-                        new CardDefect.Rebound(),
-                        new CardDefect.Recursion(),
-                        new CardDefect.Stack(),
-                        new CardDefect.SteamBarrier(),
-                        new CardDefect.Streamline(),
-                        new CardDefect.SweepingBeam(),
-                        new CardDefect.Turbo()
-                );
-            }
-            return cards;
-        }
-
         @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
-            return getPossibleGeneratedCards();
+            return List.of(
+                    new CardDefect.BallLightning(),
+                    new CardDefect.Barrage(),
+                    new CardDefect.BeamCell(),
+                    new CardDefect.ChargeBattery(),
+                    new CardDefect.Claw(),
+                    new CardDefect.ColdSnap(),
+                    new CardDefect.CompileDriver(),
+                    new CardDefect.Coolheaded(),
+                    new GoForTheEyes(),
+                    new CardDefect.Hologram(),
+                    new CardDefect.Leap(),
+                    new CardDefect.Rebound(),
+                    new CardDefect.Recursion(),
+                    new CardDefect.Stack(),
+                    new CardDefect.SteamBarrier(),
+                    new CardDefect.Streamline(),
+                    new CardDefect.SweepingBeam(),
+                    new CardDefect.Turbo()
+            );
         }
     }
 
@@ -2551,17 +2536,8 @@ public class CardDefect {
             return GameActionCtx.PLAY_CARD;
         }
 
-        private static List<Card> cards;
-
-        private static List<Card> getPossibleGeneratedCards() {
-            if (cards == null) {
-                cards = CardManager.getCharacterCardsByTypeTmp0Cost(CharacterEnum.DEFECT, Card.POWER, false);
-            }
-            return cards;
-        }
-
         @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
-            return getPossibleGeneratedCards();
+            return CardManager.getCharacterCardsByTypeTmp0Cost(properties.character, Card.POWER, false);
         }
     }
 
@@ -2860,11 +2836,6 @@ public class CardDefect {
                     return 1;
                 }
             });
-            var c = getPossibleGeneratedCards();
-            cardsIdx = new int[c.size()];
-            for (int i = 0; i < c.size(); i++) {
-                cardsIdx[i] = state.properties.findCardIndex(c.get(i));
-            }
             state.properties.addStartOfTurnHandler("CreativeAI", new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     for (int i = 0; i < state.getCounterForRead()[counterIdx]; i++) {
@@ -2877,18 +2848,8 @@ public class CardDefect {
             state.properties.maxNumOfOrbs = 10;
         }
 
-        private static List<Card> cards;
-        private static int[] cardsIdx;
-
-        private static List<Card> getPossibleGeneratedCards() {
-            if (cards == null) {
-                cards = CardManager.getCharacterCardsByType(CharacterEnum.DEFECT, Card.POWER, false);
-            }
-            return cards;
-        }
-
         @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
-            return getPossibleGeneratedCards();
+            return CardManager.getCharacterCardsByType(properties.character, Card.POWER, false);
         }
     }
 

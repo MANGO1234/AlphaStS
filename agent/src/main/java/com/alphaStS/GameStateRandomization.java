@@ -18,6 +18,10 @@ public interface GameStateRandomization {
     Map<Integer, Info> listRandomizations();
     List<Card> getPossibleGeneratedCards();
 
+    default List<Card> getPossibleGeneratedCards(int idx) {
+        return getPossibleGeneratedCards();
+    }
+
     default GameStateRandomization doAfter(GameStateRandomization prev) {
         if (prev == null) {
             return this;
@@ -106,6 +110,14 @@ public interface GameStateRandomization {
             cards.addAll(b.getPossibleGeneratedCards());
             return cards;
         }
+
+        @Override public List<Card> getPossibleGeneratedCards(int idx) {
+            var bLen = b.listRandomizations().size();
+            List<Card> cards = new ArrayList<>();
+            cards.addAll(a.getPossibleGeneratedCards(idx / bLen));
+            cards.addAll(b.getPossibleGeneratedCards(idx % bLen));
+            return cards;
+        }
     }
 
     class Join implements GameStateRandomization {
@@ -145,6 +157,13 @@ public interface GameStateRandomization {
             List<Card> cards = new ArrayList<>();
             cards.addAll(a.getPossibleGeneratedCards());
             cards.addAll(b.getPossibleGeneratedCards());
+            return cards;
+        }
+
+        @Override public List<Card> getPossibleGeneratedCards(int idx) {
+            List<Card> cards = new ArrayList<>();
+            cards.addAll(a.getPossibleGeneratedCards(idx));
+            cards.addAll(b.getPossibleGeneratedCards(idx));
             return cards;
         }
     }
@@ -197,6 +216,14 @@ public interface GameStateRandomization {
             cards.addAll(a.getPossibleGeneratedCards());
             cards.addAll(b.getPossibleGeneratedCards());
             return cards;
+        }
+
+        @Override public List<Card> getPossibleGeneratedCards(int idx) {
+            var aLen = a.listRandomizations().size();
+            if (idx < aLen) {
+                return a.getPossibleGeneratedCards(idx);
+            }
+            return b.getPossibleGeneratedCards(idx - aLen);
         }
     }
 
@@ -273,6 +300,16 @@ public interface GameStateRandomization {
             cards.addAll(b.getPossibleGeneratedCards());
             return cards;
         }
+
+        @Override public List<Card> getPossibleGeneratedCards(int idx) {
+            var rs = rMapToAB.get(idx);
+            List<Card> cards = new ArrayList<>();
+            cards.addAll(a.getPossibleGeneratedCards(rs.get(0)));
+            if (rs.get(0) == a_r) {
+                cards.addAll(b.getPossibleGeneratedCards(rs.get(1)));
+            }
+            return cards;
+        }
     }
 
     class FixedRandomization implements GameStateRandomization {
@@ -308,6 +345,10 @@ public interface GameStateRandomization {
         @Override public List<Card> getPossibleGeneratedCards() {
             return a.getPossibleGeneratedCards(); // better to return all the underlying cards to reuse neural network
         }
+
+        @Override public List<Card> getPossibleGeneratedCards(int idx) {
+            return a.getPossibleGeneratedCards(rs[idx]);
+        }
     }
 
     class CollapsedRandomization implements GameStateRandomization {
@@ -335,6 +376,10 @@ public interface GameStateRandomization {
 
 
         @Override public List<Card> getPossibleGeneratedCards() {
+            return a.getPossibleGeneratedCards();
+        }
+
+        @Override public List<Card> getPossibleGeneratedCards(int idx) {
             return a.getPossibleGeneratedCards();
         }
     }
@@ -365,6 +410,10 @@ public interface GameStateRandomization {
 
         @Override public List<Card> getPossibleGeneratedCards() {
             return a.getPossibleGeneratedCards(); // better to return all the underlying cards to reuse neural network
+        }
+
+        @Override public List<Card> getPossibleGeneratedCards(int idx) {
+            return a.getPossibleGeneratedCards(idx);
         }
     }
 
@@ -676,6 +725,14 @@ public interface GameStateRandomization {
                 for (StateModification modification : scenario) {
                     cards.addAll(modification.generatedCards());
                 }
+            }
+            return List.copyOf(cards);
+        }
+
+        @Override public List<Card> getPossibleGeneratedCards(int idx) {
+            Set<Card> cards = new LinkedHashSet<>();
+            for (StateModification modification : scenarios.get(idx)) {
+                cards.addAll(modification.generatedCards());
             }
             return List.copyOf(cards);
         }

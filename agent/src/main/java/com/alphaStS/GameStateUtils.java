@@ -485,7 +485,9 @@ public class GameStateUtils {
             reverseIdxes[i] = -1;
         }
         for (int i = 0; i < forwardIdxes.length; i++) {
-            reverseIdxes[forwardIdxes[i]] = i;
+            if (forwardIdxes[i] >= 0) {
+                reverseIdxes[forwardIdxes[i]] = i;
+            }
         }
 
         return new Tuple3<>(singleCardIdx, forwardIdxes, reverseIdxes);

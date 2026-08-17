@@ -1011,11 +1011,11 @@ public final class GameState implements State {
         return idxes.stream().distinct().mapToInt(Integer::intValue).sorted().toArray();
     }
 
-    private List<Card> collectAllPossibleCards(List<Card> cardList, List<Enemy> enemies, List<Relic> relics, List<Potion> potions) {
+    private Tuple<Set<Card>, Set<Card>> getPossibleCardsFromScenario(List<Card> cardList, List<Enemy> enemies, List<Relic> relics, List<Potion> potions, int preBattleScenariosIdx) {
         var set = new HashSet<>(cardList);
         var discardSet = new HashSet<Card>();
-        if (properties.preBattleScenarios != null) {
-            addPossibleGeneratedCardsFromListOfCard(properties.preBattleScenarios.getPossibleGeneratedCards(), set, discardSet);
+        if (preBattleScenariosIdx >= 0) {
+            addPossibleGeneratedCardsFromListOfCard(properties.preBattleScenarios.getPossibleGeneratedCards(preBattleScenariosIdx), set, discardSet);
         }
         if (properties.randomization != null) {
             addPossibleGeneratedCardsFromListOfCard(properties.randomization.getPossibleGeneratedCards(), set, discardSet);
@@ -1033,7 +1033,9 @@ public final class GameState implements State {
                 addPossibleGeneratedCardsFromListOfCard(c.getPossibleGeneratedCards(properties, set.stream().toList()), newSet, discardSet);
             }
             for (Relic relic : relics) {
-                addPossibleGeneratedCardsFromListOfCard(relic.getPossibleGeneratedCards(properties, set.stream().toList()), newSet, discardSet);
+                if (relic.isRelicEnabledInScenario(preBattleScenariosIdx)) {
+                    addPossibleGeneratedCardsFromListOfCard(relic.getPossibleGeneratedCards(properties, set.stream().toList()), newSet, discardSet);
+                }
             }
             for (Potion potion : potions) {
                 addPossibleGeneratedCardsFromListOfCard(potion.getPossibleGeneratedCards(properties, set.stream().toList()), newSet, discardSet);
@@ -1057,7 +1059,24 @@ public final class GameState implements State {
         for (Relic relic : relics) {
             addPossibleGeneratedCardsFromListOfCard(relic.getPossibleTransformTmpCostCards(properties, set.stream().toList()), newSet, null);
         }
-        set = newSet;
+        return new Tuple<>(newSet, discardSet);
+    }
+
+    private List<Card> collectAllPossibleCards(List<Card> cardList, List<Enemy> enemies, List<Relic> relics, List<Potion> potions) {
+        Set<Card> set;
+        var discardSet = new HashSet<Card>();
+        if (properties.preBattleScenarios != null) {
+            set = new HashSet<>();
+            for (int i = 0; i < properties.preBattleScenarios.listRandomizations().size(); i++) {
+                var scenarioCards = getPossibleCardsFromScenario(cardList, enemies, relics, potions, i);
+                set.addAll(scenarioCards.v1());
+                discardSet.addAll(scenarioCards.v2());
+            }
+        } else {
+            var scenarioCards = getPossibleCardsFromScenario(cardList, enemies, relics, potions, -1);
+            set = scenarioCards.v1();
+            discardSet.addAll(scenarioCards.v2());
+        }
 
         var cards = new ArrayList<>(set);
         cards.sort((o1, o2) -> {

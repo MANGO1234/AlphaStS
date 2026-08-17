@@ -3144,6 +3144,9 @@ public class Relic2 {
                     state.setIsStochastic();
                     int r = state.getSearchRandomGen().nextInt(generatedCardIdxes.length, RandomGenCtx.RandomCardGen, new Tuple<>(state, generatedCardIdxes));
                     state.addCardToDeckNonRandom(generatedCardIdxes[r]);
+                    if (state.properties.makingRealMove || state.properties.stateDescOn) {
+                        state.getStateDesc().append("Random Colorless Card -> ").append(state.properties.cardDict[generatedCardIdxes[r]].cardName);
+                    }
                 }
             });
         }
