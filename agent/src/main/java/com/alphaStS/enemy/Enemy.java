@@ -123,9 +123,19 @@ public abstract class Enemy extends EnemyReadOnly {
             strength = 0;
         }
         poison = 0;
+        corpseExplosion = 0;
+        choke = 0;
         lockOn = 0;
+        talkToTheHand = 0;
         mark = 0;
         doom = 0;
+        debilitate = 0;
+        sicEm = 0;
+        hang = 0;
+        doomPerCard = 0;
+        powderedDemise = 0;
+        beetleJuice = 0;
+        conqueror = 0;
     }
 
     public void setMove(int move) {
@@ -163,6 +173,9 @@ public abstract class Enemy extends EnemyReadOnly {
         }
         if (turnNum > 0 && beetleJuice > 0) {
             beetleJuice -= 1;
+        }
+        if (turnNum > 0 && conqueror > 0) {
+            conqueror -= 1;
         }
         if (loseStrengthEot != 0) {
             strength += loseStrengthEot;
@@ -204,6 +217,7 @@ public abstract class Enemy extends EnemyReadOnly {
         doomPerCard = 0;
         powderedDemise = 0;
         beetleJuice = 0;
+        conqueror = 0;
         move = -1;
         lastMove = -1;
     }
@@ -253,6 +267,7 @@ public abstract class Enemy extends EnemyReadOnly {
         case DOOM_PER_CARD -> this.doomPerCard += n;
         case POWDERED_DEMISE -> this.powderedDemise += n;
         case BEETLE_JUICE -> this.beetleJuice += n;
+        case CONQUEROR -> this.conqueror += n;
         }
 
         if (state.properties.sadisticNatureCounterIdx >= 0 && state.getCounterForRead()[state.properties.sadisticNatureCounterIdx] > 0) {
@@ -282,6 +297,7 @@ public abstract class Enemy extends EnemyReadOnly {
         if (source.getHang() > 0) applyDebuff(state, DebuffType.HANG, source.getHang());
         if (source.getPowderedDemise() > 0) applyDebuff(state, DebuffType.POWDERED_DEMISE, source.getPowderedDemise());
         if (source.getBeetleJuice() > 0) applyDebuff(state, DebuffType.BEETLE_JUICE, source.getBeetleJuice());
+        if (source.getConqueror() > 0) applyDebuff(state, DebuffType.CONQUEROR, source.getConqueror());
     }
 
     public void setBlock(int n) {

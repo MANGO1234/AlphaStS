@@ -36,4 +36,5 @@ public enum DebuffType {
     HANG,
     POWDERED_DEMISE,
     BEETLE_JUICE,
+    CONQUEROR,
 }

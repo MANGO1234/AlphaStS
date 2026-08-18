@@ -1310,6 +1310,22 @@ public class NNInputSchema {
             });
         }
 
+        // Conqueror
+        if (props.anyEntityProperty.conquerorEnemy) {
+            allEnemyModules.add(new EnemyInputModule() {
+                @Override public int getLength(GameProperties p, EnemyReadOnly enemy) { return 1; }
+                @Override public String getDescription(GameProperties p, EnemyReadOnly enemy) { return "        1 input to keep track of conqueror\n"; }
+                @Override public int fill(GameState s, EnemyReadOnly enemy, float[] x, int idx) {
+                    x[idx] = enemy.getConqueror() / 3.0f;
+                    return 1;
+                }
+                @Override public int print(GameState s, EnemyReadOnly enemy, float[] input, int idx) {
+                    System.out.println("  Conqueror: " + input[idx]);
+                    return 1;
+                }
+            });
+        }
+
         // Corpse Explosion
         if (props.anyEntityProperty.corpseExplosionEnemy) {
             allEnemyModules.add(new EnemyInputModule() {

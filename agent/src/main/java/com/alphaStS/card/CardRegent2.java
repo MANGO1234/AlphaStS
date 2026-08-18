@@ -1079,34 +1079,14 @@ public class CardRegent2 {
             super(cardName, Card.SKILL, 1, Card.UNCOMMON);
             this.forgeAmount = forgeAmount;
             entityProperty.canForge = true;
+            entityProperty.selectEnemy = true;
+            entityProperty.conquerorEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.forge(forgeAmount);
-            state.getCounterForWrite()[counterIdx]++;
+            state.getEnemiesForWrite().getForWrite(idx).applyDebuff(state, DebuffType.CONQUEROR, 1);
             return GameActionCtx.PLAY_CARD;
-        }
-
-        @Override public void gamePropertiesSetup(GameState state) {
-            state.properties.registerCounter("ConquerorMultiplier", this, new GameProperties.NetworkInputHandler() {
-                @Override public int addToInput(GameState state, float[] input, int idx) {
-                    input[idx] = state.getCounterForRead()[counterIdx] / 5.0f;
-                    return idx + 1;
-                }
-
-                @Override public int getInputLenDelta() {
-                    return 1;
-                }
-
-                @Override public void onRegister(int cIdx) {
-                    state.properties.conquerorCounterIdx = cIdx;
-                }
-            });
-            state.properties.addEndOfTurnHandler("ConquerorMultiplier", new GameEventHandler() {
-                @Override public void handle(GameState state) {
-                    state.getCounterForWrite()[counterIdx] = 0;
-                }
-            });
         }
     }
 

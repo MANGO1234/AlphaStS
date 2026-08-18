@@ -4450,6 +4450,9 @@ public final class GameState implements State {
         if (properties.vigorCounterIdx >= 0 && counter[properties.vigorCounterIdx] > 0) {
             dmg += counter[properties.vigorCounterIdx];
         }
+        if (enemy.getConqueror() > 0 && (damageSource instanceof CardColorless2.SovereignBlade || damageSource instanceof CardColorless2.SovereignBladeP)) {
+            dmg *= 2;
+        }
         if (properties.penNibCounterIdx >= 0 && counter[properties.penNibCounterIdx] == 9) {
             dmg *= 2;
         }

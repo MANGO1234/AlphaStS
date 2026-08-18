@@ -243,7 +243,6 @@ public class GameProperties implements Cloneable {
     public int cardsDrawnThisCombatCounterIdx = -1;
     public int cardsPlayedThisTurnCounterIdx = -1;
     public int catastropheCounterIdx = -1;
-    public int conquerorCounterIdx = -1;
     public int constrictedCounterIdx = -1;
     public int corrosiveWaveCounterIdx = -1;
     public int crueltyCounterIdx = -1;

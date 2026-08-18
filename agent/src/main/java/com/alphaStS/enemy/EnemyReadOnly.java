@@ -90,6 +90,7 @@ public abstract class EnemyReadOnly implements GameProperties.TrainingTargetRegi
     protected int doomPerCard;
     protected int powderedDemise;
     protected int beetleJuice;
+    protected int conqueror;
     protected int hitByAttack;
     protected int move = -1;
     protected int lastMove = -1;
@@ -180,6 +181,7 @@ public abstract class EnemyReadOnly implements GameProperties.TrainingTargetRegi
         doomPerCard = other.doomPerCard;
         powderedDemise = other.powderedDemise;
         beetleJuice = other.beetleJuice;
+        conqueror = other.conqueror;
         hitByAttack = other.hitByAttack;
         move = other.move;
         lastMove = other.lastMove;
@@ -289,6 +291,10 @@ public abstract class EnemyReadOnly implements GameProperties.TrainingTargetRegi
         return beetleJuice;
     }
 
+    public int getConqueror() {
+        return conqueror;
+    }
+
     public int getDebuffsCount() {
         int count = 0;
         if (strength != 0) count++;
@@ -312,6 +318,7 @@ public abstract class EnemyReadOnly implements GameProperties.TrainingTargetRegi
         if (doomPerCard > 0) count++;
         if (powderedDemise > 0) count++;
         if (beetleJuice > 0) count++;
+        if (conqueror > 0) count++;
         return count;
     }
 
@@ -406,6 +413,9 @@ public abstract class EnemyReadOnly implements GameProperties.TrainingTargetRegi
         if (sicEm > 0) {
             str += ", sicEm=" + sicEm;
         }
+        if (conqueror > 0) {
+            str += ", conqueror=" + conqueror;
+        }
         return str + '}';
     }
 
@@ -480,6 +490,9 @@ public abstract class EnemyReadOnly implements GameProperties.TrainingTargetRegi
         if (beetleJuice > 0) {
             str += ", beetleJuice=" + beetleJuice;
         }
+        if (conqueror > 0) {
+            str += ", conqueror=" + conqueror;
+        }
         return str + '}';
     }
 
@@ -496,10 +509,10 @@ public abstract class EnemyReadOnly implements GameProperties.TrainingTargetRegi
                 strength == enemy.strength && vulnerable == enemy.vulnerable && weak == enemy.weak && artifact == enemy.artifact &&
                 poison == enemy.poison && loseStrengthEot == enemy.loseStrengthEot && corpseExplosion == enemy.corpseExplosion &&
                 choke == enemy.choke && lockOn == enemy.lockOn && talkToTheHand == enemy.talkToTheHand && mark == enemy.mark && doom == enemy.doom &&
-                debilitate == enemy.debilitate && sicEm == enemy.sicEm && plating == enemy.plating;
+                debilitate == enemy.debilitate && sicEm == enemy.sicEm && plating == enemy.plating && conqueror == enemy.conqueror;
     }
 
     @Override public int hashCode() {
-        return Objects.hash(health, block, strength, vulnerable, weak, artifact, poison, doom, debilitate, plating, move, lastMove);
+        return Objects.hash(health, block, strength, vulnerable, weak, artifact, poison, doom, debilitate, plating, conqueror, move, lastMove);
     }
 }
