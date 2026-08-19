@@ -1662,6 +1662,17 @@ public class InteractiveMode {
         return readIntCommand(reader, history, cardIdxes.length);
     }
 
+    int selectRandomCardDeck(BufferedReader reader, Tuple3<GameState, Integer, int[]> t, List<String> history) throws IOException {
+        var state = t.v1();
+        int count = t.v2();
+        int[] deckPositions = t.v3();
+        for (int i = 0; i < count; i++) {
+            int cardIdx = state.getDeckArrForRead()[deckPositions[i]];
+            out.println(i + ". " + state.properties.cardDict[cardIdx].cardName);
+        }
+        return readIntCommand(reader, history, count);
+    }
+
     int selectRandomCardInHand(BufferedReader reader, Tuple3<GameState, Integer, int[]> t, List<String> history) throws IOException {
         var state = t.v1();
         int count = t.v2();
@@ -2770,6 +2781,9 @@ public class InteractiveMode {
                 }
                 case RandomCardGen -> {
                     return interactiveMode.selectRandomCardGen(reader, (Tuple<GameState, int[]>) arg, history);
+                }
+                case RandomCardDeck -> {
+                    return interactiveMode.selectRandomCardDeck(reader, (Tuple3<GameState, Integer, int[]>) arg, history);
                 }
                 case RandomCardDiscard -> {
                     return interactiveMode.selectRandomCardDiscard(reader, (Tuple<GameState, List<Integer>>) arg, history);

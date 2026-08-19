@@ -19,9 +19,11 @@ import com.alphaStS.gameAction.GameActionCtx;
 import com.alphaStS.random.RandomGenCtx;
 import com.alphaStS.utils.CounterStat;
 import com.alphaStS.utils.Tuple;
+import com.alphaStS.utils.Tuple3;
 
 import com.alphaStS.card.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
@@ -646,7 +648,8 @@ public class Relic2 {
                     if (count > 2) {
                         state.setIsStochastic();
                         for (int i = 0; i < 2; i++) {
-                            int r = i + state.getSearchRandomGen().nextInt(count - i, RandomGenCtx.Other, state);
+                            int[] remainingPositions = Arrays.copyOfRange(positions, i, count);
+                            int r = i + state.getSearchRandomGen().nextInt(count - i, RandomGenCtx.RandomCardDeck, new Tuple3<>(state, count - i, remainingPositions));
                             int tmp = positions[i];
                             positions[i] = positions[r];
                             positions[r] = tmp;

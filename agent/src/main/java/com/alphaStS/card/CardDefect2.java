@@ -11,6 +11,7 @@ import com.alphaStS.eventHandler.OnEnergySpendHandler;
 import com.alphaStS.gameAction.GameActionCtx;
 import com.alphaStS.random.RandomGenCtx;
 import com.alphaStS.utils.Tuple;
+import com.alphaStS.utils.Tuple3;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -509,35 +510,27 @@ public class CardDefect2 {
                     attackCount++;
                 }
             }
-            int[] attacks = new int[attackCount];
+            int[] attackPositions = new int[attackCount];
             int count = 0;
             for (int i = 0; i < state.deckArrLen; i++) {
                 if (state.properties.cardDict[state.deckArr[i]].cardType == Card.ATTACK) {
-                    attacks[count++] = state.deckArr[i];
+                    attackPositions[count++] = i;
                 }
             }
             if (attackCount > 0) {
                 int r = 0;
                 if (attackCount > 1) {
                     state.setIsStochastic();
-                    r = state.getSearchRandomGen().nextInt(attackCount, RandomGenCtx.RandomCardGen, new Tuple<>(state, attacks));
+                    r = state.getSearchRandomGen().nextInt(attackCount, RandomGenCtx.RandomCardDeck, new Tuple3<>(state, attackCount, attackPositions));
                 }
-                count = 0;
-                for (int i = 0; i < state.deckArrLen; i++) {
-                    int cardIdx = state.deckArr[i];
-                    if (state.properties.cardDict[cardIdx].cardType == Card.ATTACK) {
-                        if (count == r) {
-                            state.removeCardFromDeck(cardIdx, false);
-                            if (!state.getStateDesc().isEmpty()) {
-                                state.getStateDesc().append(", Uproar -> ");
-                            }
-                            state.getStateDesc().append(state.properties.cardDict[cardIdx].cardName);
-                            state.addGameActionToStartOfDeque(new PlayCardAction(cardIdx, state, Uproar.class));
-                            break;
-                        }
-                        count++;
-                    }
+                int pos = attackPositions[r];
+                int cardIdx = state.deckArr[pos];
+                state.removeCardFromDeck(cardIdx, false);
+                if (!state.getStateDesc().isEmpty()) {
+                    state.getStateDesc().append(", Uproar -> ");
                 }
+                state.getStateDesc().append(state.properties.cardDict[cardIdx].cardName);
+                state.addGameActionToStartOfDeque(new PlayCardAction(cardIdx, state, Uproar.class));
             }
             return GameActionCtx.PLAY_CARD;
         }

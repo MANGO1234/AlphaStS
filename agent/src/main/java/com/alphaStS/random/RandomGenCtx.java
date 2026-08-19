@@ -24,4 +24,5 @@ public enum RandomGenCtx {
     CommonNumberVR,
     BeginningOfGameRandomization,
     Other,
+    RandomCardDeck,
 }
