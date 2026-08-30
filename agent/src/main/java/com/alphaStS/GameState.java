@@ -997,7 +997,7 @@ public final class GameState implements State {
                 }
             }
         }
-        return l.stream().filter((x) -> !properties.cardDict[x].isTmpModifiedCard()).sorted().mapToInt(Integer::intValue).toArray();
+        return l.stream().filter((x) -> !properties.cardDict[x].isTmpModifiedUntilEndOfTurnCard()).sorted().mapToInt(Integer::intValue).toArray();
     }
 
     private int[] findSelect1OutOf3CardsToKeepTrackOf(List<Card> cards, List<Relic> relics, List<Potion> potions) {
@@ -1080,9 +1080,9 @@ public final class GameState implements State {
 
         var cards = new ArrayList<>(set);
         cards.sort((o1, o2) -> {
-            if (!o1.isTmpModifiedCard() && o2.isTmpModifiedCard()) {
+            if (!o1.isTmpModifiedUntilEndOfTurnCard() && o2.isTmpModifiedUntilEndOfTurnCard()) {
                 return -1;
-            } else if (o1.isTmpModifiedCard() && !o2.isTmpModifiedCard()) {
+            } else if (o1.isTmpModifiedUntilEndOfTurnCard() && !o2.isTmpModifiedUntilEndOfTurnCard()) {
                 return 1;
             } else {
                 return o1.cardName.compareTo(o2.cardName);
@@ -1092,7 +1092,7 @@ public final class GameState implements State {
         for (int i = 0; i < cards.size(); i++) {
             properties.cardDict[i] = cards.get(i);
         }
-        properties.realCardsLen = (int) cards.stream().takeWhile((card) -> !card.isTmpModifiedCard()).count();
+        properties.realCardsLen = (int) cards.stream().takeWhile((card) -> !card.isTmpModifiedUntilEndOfTurnCard()).count();
         if (properties.realCardsLen != cards.size()) {
             properties.tmp0CostCardTransformIdxes = new int[cards.size()];
             properties.tmpModifiedCardReverseTransformIdxes = new int[cards.size()];
@@ -1242,6 +1242,10 @@ public final class GameState implements State {
         boolean firstRandomDraw = true;
         int drawnIdx = -1;
         for (int c = 0; c < count; c++) {
+            if (handArrLen >= GameState.HAND_LIMIT) {
+                // note: if onDrawHandler draws, count become inaccurate
+                break;
+            }
             if (deckArrLen == 0 && (discardArrLen > 0 || triggerShuffleEffect)) {
                 if (discardArrLen == 0) {
                     triggerShuffleEffect = false;
@@ -1383,7 +1387,7 @@ public final class GameState implements State {
     }
 
     private int getCardEnergyCost(int cardIdx) {
-        int cost;
+        int cost = properties.cardDict[cardIdx].energyCost(this);
         if (hasBuff(PlayerBuff.CORRUPTION) && properties.cardDict[cardIdx].cardType == Card.SKILL) {
             cost = 0;
         } else if (properties.blueCandle != null && properties.blueCandle.isRelicEnabledInScenario(this) && properties.cardDict[cardIdx].cardType == Card.CURSE) {
@@ -1394,16 +1398,14 @@ public final class GameState implements State {
             cost = 0;
         } else if (properties.unrelentingCounterIdx >= 0 && counter[properties.unrelentingCounterIdx] > 0 && properties.cardDict[cardIdx].cardType == Card.ATTACK) {
             cost = 0;
-        } else if (properties.nextEtherealCostZeroCounterIdx >= 0 && counter[properties.nextEtherealCostZeroCounterIdx] > 0 && properties.cardDict[cardIdx].ethereal()) {
+        } else if (properties.nextEtherealCostZeroCounterIdx >= 0 && counter[properties.nextEtherealCostZeroCounterIdx] > 0 && properties.cardDict[cardIdx].ethereal() && cost > 0) {
             cost = 0;
-        } else if (properties.voidFormCounterIdx >= 0 && (counter[properties.voidFormCounterIdx] & 0xFF) > 0) {
+        } else if (properties.voidFormCounterIdx >= 0 && (counter[properties.voidFormCounterIdx] & 0xFF) > 0 && cost > 0) {
             cost = 0;
-        } else if (properties.brilliantScarfCounterIdx >= 0 && counter[properties.brilliantScarfCounterIdx] == 4) {
+        } else if (properties.brilliantScarfCounterIdx >= 0 && counter[properties.brilliantScarfCounterIdx] == 4 && cost > 0) {
             cost = 0;
         } else if (properties.synthesisCounterIdx >= 0 && counter[properties.synthesisCounterIdx] >= 0 && properties.cardDict[cardIdx].cardType == Card.POWER) {
             cost = 0;
-        } else {
-            cost = properties.cardDict[cardIdx].energyCost(this);
         }
         if (properties.spikedGauntlets != null && properties.spikedGauntlets.isRelicEnabledInScenario(this) && properties.cardDict[cardIdx].cardType == Card.POWER) {
             cost++;
@@ -1717,7 +1719,7 @@ public final class GameState implements State {
                     }
                 }
             }
-            handleCardFinishPlayingLocation(cloneSource, cloneParentLocation, cardIdx, prevCardIdx);
+            handleCardFinishPlayingLocation(cloneSource, cloneParentLocation, cardIdx, energyCost, prevCardIdx);
             if (cardPlayedSuccessfully) {
                 if (properties.cardDict[cardIdx].delayUseEnergy && useEnergy) {
                     energy -= realEnergyCost;
@@ -1755,7 +1757,7 @@ public final class GameState implements State {
         return cardPlayedSuccessfully || targetHalfAlive;
     }
 
-    public void handleCardFinishPlayingLocation(Class cloneSource, int cloneParentLocation, int cardIdx, int prevCardIdx) {
+    public void handleCardFinishPlayingLocation(Class cloneSource, int cloneParentLocation, int cardIdx, int energyCost, int prevCardIdx) {
         if ((cloneSource == null || cloneSource == CardDefect2.Uproar.class) && (properties.havocCounterIdx < 0 || getCounterForRead()[properties.havocCounterIdx] == 0)) {
             if (properties.cardDict[cardIdx].exhaustWhenPlayed) {
                 exhaustedCardHandle(cardIdx, true);
@@ -1772,7 +1774,7 @@ public final class GameState implements State {
                 addCardOnTopOfDeck(cardIdx);
             } else if (properties.cardDict[cardIdx].cardType != Card.POWER) {
                 if (properties.feralCounterIdx >= 0 && (getCounterForRead()[properties.feralCounterIdx] & 0xF) > 0
-                        && properties.cardDict[cardIdx].energyCost(this) == 0
+                        && properties.cardDict[cardIdx].energyCost(this) >= 0 && energyCost == 0
                         && properties.cardDict[cardIdx].cardType == Card.ATTACK) {
                     getCounterForWrite()[properties.feralCounterIdx]--;
                     addCardToHand(cardIdx);
@@ -2337,7 +2339,6 @@ public final class GameState implements State {
             return;
         }
         if (stage < END_TURN_STAGE_DISCARD_DONE) {
-            setActionCtx(GameActionCtx.BEGIN_TURN, null, null);
             for (GameEventHandler handler : properties.preEndTurnHandlers) {
                 handler.handle(this);
             }
@@ -2347,16 +2348,19 @@ public final class GameState implements State {
         if (stage < END_TURN_STAGE_NILRYS_CODEX_DONE && properties.nilrysCodex != null && ((Relic.NilrysCodex) properties.nilrysCodex).openSelection(this)) {
             return;
         }
-        for (GameEventHandler handler : properties.endOfTurnHandlers) {
-            handler.handle(this);
+
+        if (stage < END_TURN_STAGE_ENEMY_MOVES_DONE) {
+            triggerOrbsPassiveEndOfTurn();
+            discardEndOfTurnCards(spectralKnightHexActive);
+            // todo: put this in endOfTurnHandler?
+            if (properties.hoveringKiteCounterIdx >= 0 && getCounterForRead()[properties.hoveringKiteCounterIdx] > 0) {
+                getCounterForWrite()[properties.hoveringKiteCounterIdx] = 0;
+            }
+            runActionsInQueueIfNonEmpty();
+            for (GameEventHandler handler : properties.endOfTurnHandlers) {
+                handler.handle(this);
+            }
         }
-        triggerOrbsPassiveEndOfTurn();
-        discardEndOfTurnCards(spectralKnightHexActive);
-        // todo: put this in endOfTurnHandler?
-        if (properties.hoveringKiteCounterIdx >= 0 && getCounterForRead()[properties.hoveringKiteCounterIdx] > 0) {
-            getCounterForWrite()[properties.hoveringKiteCounterIdx] = 0;
-        }
-        runActionsInQueueIfNonEmpty();
 
         if (properties.timeEaterCounterIdx >= 0 && getCounterForRead()[properties.timeEaterCounterIdx] == 12) {
             for (var enemy : getEnemiesForWrite().iterateOverAlive()) {
@@ -2425,6 +2429,7 @@ public final class GameState implements State {
         if (properties.iceCream == null || !properties.iceCream.isRelicEnabledInScenario(this)) {
             energy = 0;
         }
+        setActionCtx(GameActionCtx.BEGIN_TURN, null, null);
     }
 
     private void discardEndOfTurnCards(boolean spectralKnightHexActive) {
@@ -2513,7 +2518,7 @@ public final class GameState implements State {
         if (cardIdx == properties.knowledgeDemonChoiceCardIdx) {
             return END_TURN_STAGE_ENEMY_MOVES_DONE;
         }
-        return 0;
+        return END_TURN_STAGE_NILRYS_CODEX_DONE;
     }
 
     public GameState doAction(int actionIdx) {
@@ -2862,7 +2867,7 @@ public final class GameState implements State {
                 base *= potionsState[i * 3 + 1] / 100.0 + (100 - potionsState[i * 3 + 1]) / 100.0 * v.get(GameState.V_EXTRA_IDX_START + properties.potionsVExtraIdx[i]);
                 continue;
             }
-            if (potionsState[i * 3] == 0 && potionsState[i * 3 + 2] == 1 && !(properties.potions.get(i) instanceof Potion.BloodPotion) && !(properties.potions.get(i) instanceof Potion.BlockPotion) && !(properties.potions.get(i) instanceof Potion.RegenPotion) && !isEncounter(PredefinedEncounter.CORRUPT_HEART)) {
+            if (potionsState[i * 3] == 0 && potionsState[i * 3 + 2] == 1 && !isEncounter(PredefinedEncounter.CORRUPT_HEART)) {
                 base *= potionsState[i * 3 + 1] / 100.0;
             }
         }
@@ -5324,6 +5329,10 @@ public final class GameState implements State {
         } else if (orbs[i] == OrbType.DARK.ordinal()) {
             orbs[i + 1] += Math.max(0, 6 + focus);
         } else if (orbs[i] == OrbType.GLASS.ordinal()) {
+            int dmg = orbs[i + 1] + focus;
+            for (Enemy enemy : getEnemiesForWrite().iterateOverAlive()) {
+                playerDoNonAttackDamageToEnemy(enemy, dmg, true);
+            }
             orbs[i + 1] = (short) Math.max(0, orbs[i + 1] - 1);
         }
     }

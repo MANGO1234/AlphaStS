@@ -1679,6 +1679,27 @@ public class EnemyHive {
             return new TheObscura(this);
         }
 
+        @Override public int damage(double n, GameState state) {
+            var dmg = super.damage(n, state);
+            if (health <= 0) {
+                var enemies = state.getEnemiesForRead();
+                for (int i = 0; i < enemies.size(); i++) {
+                    state.killEnemy(i, true);
+                }
+            }
+            return dmg;
+        }
+
+        @Override public void nonAttackDamage(int n, boolean blockable, GameState state) {
+            super.nonAttackDamage(n, blockable, state);
+            if (health <= 0) {
+                var enemies = state.getEnemiesForRead();
+                for (int i = 0; i < enemies.size(); i++) {
+                    state.killEnemy(i, true);
+                }
+            }
+        }
+
         @Override public void doMove(GameState state, EnemyReadOnly self) {
             if (move == ILLUSION) {
                 reviveFirstDeadEnemy(state, Parafright.class);

@@ -554,10 +554,18 @@ public class CardOther {
         public final boolean upgraded;
 
         public Choose1OutOf3BeforeBattleStarts(int rarity, int cardType, boolean upgraded) {
-            super("Choose 1 Out Of 3", Card.STATUS, -1, Card.COMMON);
+            super("Choose 1 Out Of 3 " + getRarityString(rarity) + (upgraded ? " Upgrade" : "") + getCardTypeString(cardType), Card.STATUS, -1, Card.COMMON);
             this.rarity = rarity;
             this.cardType = cardType;
             this.upgraded = upgraded;
+        }
+
+        private static String getCardTypeString(int cardType) {
+            return cardType == Card.ATTACK ? "Attacks" : cardType == Card.SKILL ? "Skills" : cardType == Card.POWER ? "Powers" : "Unknown Cards";
+        }
+
+        private static String getRarityString(int rarity) {
+            return rarity == Card.COMMON ? "Common" : rarity == Card.UNCOMMON ? "Uncommon" : rarity == Card.RARE ? "Rare" : "Unknown Rarity";
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {

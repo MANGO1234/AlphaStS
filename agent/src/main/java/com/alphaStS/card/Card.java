@@ -1291,7 +1291,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
     public static class TezcatarasEmberStrike extends Card {
         public TezcatarasEmberStrike() {
             super("Tezcatara's Ember Strike", Card.ATTACK, 0, Card.COMMON);
-            damage = 6;
+            damage = 9;
             entityProperty.selectEnemy = true;
         }
 
@@ -1304,7 +1304,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
     public static class TezcatarasEmberStrikeP extends Card {
         public TezcatarasEmberStrikeP() {
             super("Tezcatara's Ember Strike+", Card.ATTACK, 0, Card.COMMON);
-            damage = 9;
+            damage = 12;
             entityProperty.selectEnemy = true;
         }
 

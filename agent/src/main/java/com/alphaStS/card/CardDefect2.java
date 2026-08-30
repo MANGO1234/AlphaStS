@@ -890,7 +890,7 @@ public class CardDefect2 {
                     return 1;
                 }
             });
-            state.properties.addEndOfTurnHandler(cardName, new GameEventHandler() {
+            state.properties.addEndOfTurnHandler("Hailstorm", new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     if (state.getCounterForRead()[counterIdx] == 0) {
                         return;
@@ -1310,7 +1310,7 @@ public class CardDefect2 {
                     return 1;
                 }
             });
-            state.properties.addOnCardPlayedHandler("Subroutine", new GameEventCardHandler() {
+            state.properties.addOnPreCardPlayedHandler("Subroutine", new GameEventCardHandler() {
                 @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, int starUsed, Class cloneSource, int cloneParentLocation) {
                     if (state.getCounterForRead()[counterIdx] > 0 && state.properties.cardDict[cardIdx].cardType == Card.POWER) {
                         state.gainEnergy(state.getCounterForRead()[counterIdx]);

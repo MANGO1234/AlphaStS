@@ -1264,16 +1264,16 @@ public class CardColorless {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
-            state.getCounterForWrite()[counterIdx]++;
+            state.getCounterForWrite()[counterIdx] += n;
             return GameActionCtx.PLAY_CARD;
         }
 
         public void gamePropertiesSetup(GameState state) {
             state.properties.registerCounter("TheBomb", this, 3, new GameProperties.NetworkInputHandler() {
                 @Override public int addToInput(GameState state, float[] input, int idx) {
-                    input[idx] = state.getCounterForRead()[counterIdx] / 5.0f;
-                    input[idx + 1] = state.getCounterForRead()[counterIdx + 1] / 5.0f;
-                    input[idx + 2] = state.getCounterForRead()[counterIdx + 2] / 5.0f;
+                    input[idx] = state.getCounterForRead()[counterIdx] / 100.0f;
+                    input[idx + 1] = state.getCounterForRead()[counterIdx + 1] / 100.0f;
+                    input[idx + 2] = state.getCounterForRead()[counterIdx + 2] / 100.0f;
                     return idx + 3;
                 }
                 @Override public int getInputLenDelta() {
@@ -1284,7 +1284,7 @@ public class CardColorless {
                 @Override public void handle(GameState state) {
                     if (state.getCounterForRead()[counterIdx + 2] > 0) {
                         for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
-                            state.playerDoNonAttackDamageToEnemy(enemy, n, true);
+                            state.playerDoNonAttackDamageToEnemy(enemy, state.getCounterForRead()[counterIdx + 2], true);
                         }
                         state.getCounterForWrite()[counterIdx + 2] = 0;
                     }

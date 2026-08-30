@@ -596,7 +596,7 @@ public class CardColorless2 {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
-            if (state.handArrLen == 1) {
+            if (state.handArrLen == 0) {
                 state.draw(amount);
                 state.gainEnergy(amount);
             }
@@ -3012,13 +3012,9 @@ public class CardColorless2 {
         }
 
         @Override public int getBaseAttackDamage(GameState state) {
-            int damage = this.damage + (state.properties.forgeCounterIdx >= 0
+            return this.damage + (state.properties.forgeCounterIdx >= 0
                 ? state.getCounterForRead()[state.properties.forgeCounterIdx]
                 : 0);
-            if (state.properties.conquerorCounterIdx >= 0 && state.getCounterForRead()[state.properties.conquerorCounterIdx] > 0) {
-                damage <<= state.getCounterForRead()[state.properties.conquerorCounterIdx];
-            }
-            return damage;
         }
     }
 

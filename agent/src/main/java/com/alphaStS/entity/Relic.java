@@ -258,9 +258,9 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     //   Effect: At the start of each combat, draw 2 additional cards.
     public static class BagOfPreparation extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
-            state.properties.addStartOfTurnHandler("BagOfPreparation", new GameEventHandler() {
+            state.properties.addStartOfBattleHandler("BagOfPreparation", new GameEventHandler() {
                 @Override public void handle(GameState state) {
-                    if (state.turnNum == 1 && isRelicEnabledInScenario(state)) {
+                    if (isRelicEnabledInScenario(state)) {
                         state.draw(2);
                     }
                 }
@@ -3118,6 +3118,30 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
+    public static class AddCardToHandOnBattleStarts extends Relic {
+        private final List<Card> cards;
+
+        public AddCardToHandOnBattleStarts(Card... cards) {
+            this.cards = List.of(cards);
+        }
+
+        public void gamePropertiesSetup(GameState state) {
+            state.properties.addStartOfTurnHandler(new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (state.turnNum == 1 && isRelicEnabledInScenario(state)) {
+                        for (Card card : cards) {
+                            state.addCardToHand(state.properties.findCardIndex(card));
+                        }
+                    }
+                }
+            });
+        }
+
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties gameProperties, List<Card> cards) {
+            return List.copyOf(this.cards);
+        }
+    }
+
     public static class AddCardBeforeBattleStarts extends Relic {
         private final List<List<Card>> cards;
 
@@ -3180,7 +3204,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
 
         @Override public List<Card> getPossibleSelect1OutOf3Cards(GameProperties gameProperties) {
-            return CardManager.getCharacterCardsByRarityAndType(gameProperties.character, rarity, cardType, false, upgraded);
+            return CardManager.getCharacterCardsByRarityAndType(gameProperties.character, rarity, cardType, true, upgraded);
         }
     }
 

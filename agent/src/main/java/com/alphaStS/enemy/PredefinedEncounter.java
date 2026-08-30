@@ -132,7 +132,7 @@ public enum PredefinedEncounter {
     SLUMBERING_BEETLE("Slumbering Beetle", 2, () -> List.of(new EnemyHive.SlumberingBeetle())),
     SPINY_TOAD("Spiny Toad", 2, () -> List.of(new EnemyHive.SpinyToad())),
     THE_INSATIABLE("The Insatiable", 2, () -> List.of(new EnemyHive.TheInsatiable())),
-    THE_OBSCURA("The Obscura", 2, () -> List.of(new EnemyHive.TheObscura(), new EnemyHive.Parafright().startDead())),
+    THE_OBSCURA("The Obscura", 2, () -> List.of(new EnemyHive.Parafright().startDead(), new EnemyHive.TheObscura())),
     THIEVING_HOPPER("Thieving Hopper", 2, () -> List.of(new EnemyHive.ThievingHopper())),
     TUNNELER("Tunneler", 2, () -> List.of(new EnemyHive.Tunneler())),
     AEONGLASS("Aeonglass", 3, () -> List.of(new EnemyGlory.Aeonglass())),

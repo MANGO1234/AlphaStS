@@ -11,7 +11,7 @@ public class DecisionsDecisionsContinueAction implements GameEnvironmentAction {
 
     @Override public void doAction(GameState state) {
         if (state.getCounterForRead()[state.properties.decisionsDecisionsCounterIdx] == 0) {
-            state.handleCardFinishPlayingLocation(null, -1, cardIdx, -1);
+            state.handleCardFinishPlayingLocation(null, -1, cardIdx, 0, -1);
             return;
         }
         state.getCounterForWrite()[state.properties.decisionsDecisionsCounterIdx]--;

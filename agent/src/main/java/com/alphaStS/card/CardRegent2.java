@@ -605,15 +605,14 @@ public class CardRegent2 {
         public _KnowThyPlaceT(String cardName, boolean exhaust) {
             super(cardName, Card.SKILL, 0, Card.COMMON);
             this.exhaustWhenPlayed = exhaust;
+            entityProperty.selectEnemy = true;
             entityProperty.weakEnemy = true;
             entityProperty.vulnEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
-            for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
-                enemy.applyDebuff(state, DebuffType.WEAK, 1);
-                enemy.applyDebuff(state, DebuffType.VULNERABLE, 1);
-            }
+            state.getEnemiesForWrite().getForWrite(idx).applyDebuff(state, DebuffType.WEAK, 1);
+            state.getEnemiesForWrite().getForWrite(idx).applyDebuff(state, DebuffType.VULNERABLE, 1);
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -1863,7 +1862,7 @@ public class CardRegent2 {
                     if (n > 0) {
                         var base = state.properties.cardDict[cardIdx].getBaseCard();
                         if (base instanceof CardColorless2.SovereignBlade || base instanceof CardColorless2.SovereignBladeP) {
-                            state.playerGainBlock(n);
+                            state.playerGainBlockNotFromCardPlay(n);
                         }
                     }
                 }
@@ -3597,7 +3596,7 @@ public class CardRegent2 {
             });
             state.properties.addOnCardPlayedHandler("VoidForm", new GameEventCardHandler() {
                 @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, int starUsed, Class cloneSource, int cloneParentLocation) {
-                    if ((state.getCounterForRead()[counterIdx] & 0xFF) > 0) {
+                    if ((state.getCounterForRead()[counterIdx] & 0xFF) > 0 && cloneSource == null) {
                         state.getCounterForWrite()[counterIdx]--;
                     }
                 }
