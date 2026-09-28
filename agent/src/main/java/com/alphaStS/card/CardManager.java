@@ -172,7 +172,6 @@ public class CardManager {
         // Card generation pool
         cards.add(new CardColorless2.Bolas());
         cards.add(new CardColorless2.GoldAxe());
-        cards.add(new CardColorless2.HandOfGreed(0.0));
         cards.add(new CardColorless2.Jackpot());
         cards.add(new CardColorless2.Rend());
         cards.add(new CardColorless2.Salvo());
@@ -261,6 +260,7 @@ public class CardManager {
             cards.add(new CardColorless2.Luminesce());
             cards.add(new CardColorless2.MinionSacrifice());
             cards.add(new CardColorless2.Soul());
+            cards.add(new CardColorless2.HandOfGreed(0.0));
         }
         return cards;
     }
@@ -710,7 +710,9 @@ public class CardManager {
 
             // Rare cards
             cards.add(new CardIronclad2.Conflagration());
-            cards.add(new CardIronclad2.Feed());
+            if (generateHealingCard) {
+                cards.add(new CardIronclad2.Feed());
+            }
             cards.add(new CardIronclad2.FiendFire());
             cards.add(new CardIronclad2.Mangle());
             cards.add(new CardIronclad2.PactsEnd());
@@ -813,7 +815,9 @@ public class CardManager {
             cards.add(new CardSilent2.EchoingSlash());
             cards.add(new CardSilent2.GrandFinale());
             cards.add(new CardSilent2.Murder());
-            cards.add(new CardSilent2.TheHunt(0.0));
+            if (generateHealingCard) {
+                cards.add(new CardSilent2.TheHunt(0.0));
+            }
         }
         else if (cardType == Card.SKILL) {
             // Common cards
@@ -1089,7 +1093,9 @@ public class CardManager {
             cards.add(new CardRegent2.Genesis());
             cards.add(new CardRegent2.MonarchsGaze());
             cards.add(new CardRegent2.NeutronAegis());
-            cards.add(new CardRegent2.Royalties(0.0));
+            if (generateHealingCard) {
+                cards.add(new CardRegent2.Royalties(0.0));
+            }
             cards.add(new CardRegent2.SeekingEdge());
             cards.add(new CardRegent2.SwordSage());
             cards.add(new CardRegent2.Tyranny());

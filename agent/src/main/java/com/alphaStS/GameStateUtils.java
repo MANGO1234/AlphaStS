@@ -463,6 +463,60 @@ public class GameStateUtils {
         return count;
     }
 
+    public static List<Card> getStS2RandomCardRewardsWithBaseOdd(GameState state, List<Card> cards, int count) {
+        if (cards.size() < count) {
+            throw new IllegalArgumentException("Not enough cards for StS2 random card rewards");
+        }
+
+        cards = new ArrayList<>(cards);
+        var result = new ArrayList<Card>();
+        for (int i = 0; i < count; i++) {
+            int rarity = rollStS2BaseCardRewardRarity(state);
+            List<Card> cardsOfRarity = getCardsOfRarity(cards, rarity);
+            if (cardsOfRarity.isEmpty()) {
+                rarity = getNextAllowedRewardRarity(cards, rarity);
+                cardsOfRarity = getCardsOfRarity(cards, rarity);
+            }
+            int r = state.getSearchRandomGen().nextInt(cardsOfRarity.size(), RandomGenCtx.RandomCardGen, state);
+            Card card = cardsOfRarity.get(r);
+            cards.remove(card);
+            result.add(card);
+        }
+        state.setIsStochastic();
+        return result;
+    }
+
+    private static int rollStS2BaseCardRewardRarity(GameState state) {
+        float r = state.getSearchRandomGen().nextFloat(RandomGenCtx.RandomCardGen);
+        if (r < 0.0149f) {
+            return Card.RARE;
+        }
+        if (r < 0.3849f) {
+            return Card.UNCOMMON;
+        }
+        return Card.COMMON;
+    }
+
+    private static List<Card> getCardsOfRarity(List<Card> cards, int rarity) {
+        return cards.stream().filter((card) -> card.rarity == rarity).toList();
+    }
+
+    private static int getNextAllowedRewardRarity(List<Card> cards, int rarity) {
+        for (int i = 0; i < 3; i++) {
+            if (!getCardsOfRarity(cards, rarity).isEmpty()) {
+                return rarity;
+            }
+            if (rarity == Card.COMMON) {
+                rarity = Card.UNCOMMON;
+            } else if (rarity == Card.UNCOMMON) {
+                rarity = Card.RARE;
+            } else {
+                rarity = Card.COMMON;
+            }
+        }
+        throw new IllegalStateException("No allowed rarity for StS2 random card rewards");
+    }
+
     public static Tuple3<Integer, int[], int[]> setupGeneratedCardIndexes(
             List<Card> possibleCards, GameProperties properties) {
         if (possibleCards.isEmpty()) {

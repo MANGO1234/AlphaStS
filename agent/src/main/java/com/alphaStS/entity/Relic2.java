@@ -92,21 +92,6 @@ public class Relic2 {
         }
     }
 
-    // Room Full Of Cheese Gorge (Common)
-    //   Effect: At the start of each combat, choose 2 of 8 random Common cards to add to your deck.
-    public static class RoomFullOfCheeseGorge extends Relic {
-        public RoomFullOfCheeseGorge() {
-            startOfBattleAction = new CardOther.RoomFullOfCheeseGorgeAction(this);
-        }
-
-        @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
-            cards = new ArrayList<>();
-            cards.add(startOfBattleAction);
-            cards.addAll(CardManager.getCharacterCommonCards(properties.character));
-            return cards;
-        }
-    }
-
     // Happy Flower (Common)
     //   Effect: Every 3 turns, gain energy.
     public static class HappyFlower extends Relic.HappyFlower {
@@ -3124,8 +3109,23 @@ public class Relic2 {
     }
 
     // **************************************************************************************************
-    // ********************************************* Special *********************************************
+    // *************************************** Event Special ********************************************
     // **************************************************************************************************
+
+    // Room Full Of Cheese Gorge (Special)
+    //   Effect: At the start of each combat, choose 2 of 8 random Common cards to add to your deck.
+    public static class RoomFullOfCheeseGorge extends Relic {
+        public RoomFullOfCheeseGorge() {
+            startOfBattleAction = new CardOther.RoomFullOfCheeseGorgeAction(this);
+        }
+
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            cards = new ArrayList<>();
+            cards.add(startOfBattleAction);
+            cards.addAll(CardManager.getCharacterCommonCards(properties.character));
+            return cards;
+        }
+    }
 
     // Endless Conveyor: Observe the Chef (Event)
     //   Effect: Upon pickup, upgrade a random card.
@@ -3144,11 +3144,11 @@ public class Relic2 {
                     if (!isRelicEnabledInScenario(state) || !state.isFirstEncounter()) {
                         return;
                     }
-                    state.setIsStochastic();
-                    int r = state.getSearchRandomGen().nextInt(generatedCardIdxes.length, RandomGenCtx.RandomCardGen, new Tuple<>(state, generatedCardIdxes));
-                    state.addCardToDeckNonRandom(generatedCardIdxes[r]);
+                    var cards = CardManager.getColorless2Cards(CardManager.ColorlessCard2Pool.CARD_GENERATION);
+                    int cardIdx = state.properties.findCardIndex(GameStateUtils.getStS2RandomCardRewardsWithBaseOdd(state, cards, 1).get(0));
+                    state.addCardToDeckNonRandom(cardIdx);
                     if (state.properties.makingRealMove || state.properties.stateDescOn) {
-                        state.getStateDesc().append("Random Colorless Card -> ").append(state.properties.cardDict[generatedCardIdxes[r]].cardName);
+                        state.getStateDesc().append("Random Colorless Card -> ").append(state.properties.cardDict[cardIdx].cardName);
                     }
                 }
             });
@@ -3198,6 +3198,47 @@ public class Relic2 {
 
         @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
             return CardManager.getCharacter0CostCardsByCharacter(properties.character);
+        }
+    }
+
+    // Rip the Leech Off (Event)
+    //   Effect: Upon pickup, lose 5 HP. Gain a Colorless card reward.
+    public static class BrainLeechRipTheLeechOff extends Relic {
+        public final boolean loseHealth;
+
+        public BrainLeechRipTheLeechOff() {
+            this(true);
+        }
+
+        public BrainLeechRipTheLeechOff(boolean loseHealth) {
+            startOfBattleAction = new CardOther.BrainLeechRipTheLeechOffAction(this);
+            this.loseHealth = loseHealth;
+        }
+
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            cards = new ArrayList<>();
+            cards.add(startOfBattleAction);
+            cards.addAll(CardManager.getColorless2Cards(CardManager.ColorlessCard2Pool.CARD_GENERATION));
+            return cards;
+        }
+
+        @Override public List<Card> getPossibleSelect1OutOf3Cards(GameProperties gameProperties) {
+            return CardManager.getColorless2Cards(CardManager.ColorlessCard2Pool.CARD_GENERATION);
+        }
+    }
+
+    // Share Knowledge (Event)
+    //   Effect: Upon pickup, choose 1 of 5 random cards to add to your deck.
+    public static class BrainLeechShareKnowledge extends Relic {
+        public BrainLeechShareKnowledge() {
+            startOfBattleAction = new CardOther.BrainLeechShareKnowledgeAction(this);
+        }
+
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            cards = new ArrayList<>();
+            cards.add(startOfBattleAction);
+            cards.addAll(CardManager.getCharacterCards(properties.character, false));
+            return cards;
         }
     }
 }

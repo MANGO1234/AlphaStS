@@ -554,7 +554,11 @@ public class CardOther {
         public final boolean upgraded;
 
         public Choose1OutOf3BeforeBattleStarts(int rarity, int cardType, boolean upgraded) {
-            super("Choose 1 Out Of 3 " + getRarityString(rarity) + (upgraded ? " Upgrade" : "") + getCardTypeString(cardType), Card.STATUS, -1, Card.COMMON);
+            this("Choose 1 Out Of 3 " + getRarityString(rarity) + (upgraded ? " Upgrade" : "") + getCardTypeString(cardType), rarity, cardType, upgraded);
+        }
+
+        protected Choose1OutOf3BeforeBattleStarts(String cardName, int rarity, int cardType, boolean upgraded) {
+            super(cardName, Card.STATUS, -1, Card.COMMON);
             this.rarity = rarity;
             this.cardType = cardType;
             this.upgraded = upgraded;
@@ -641,6 +645,61 @@ public class CardOther {
                     return 1;
                 }
             });
+        }
+    }
+
+    public static class BrainLeechShareKnowledgeAction extends Card {
+        private Relic2.BrainLeechShareKnowledge parentRelic;
+
+        public BrainLeechShareKnowledgeAction(Relic2.BrainLeechShareKnowledge parentRelic) {
+            super("Share Knowledge", Card.STATUS, -1, Card.COMMON);
+            entityProperty.selectFromExhaust = true;
+            this.parentRelic = parentRelic;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
+            if (!parentRelic.isRelicEnabledInScenario(state) || !state.isFirstEncounter()) {
+                return GameActionCtx.START_OF_BATTLE;
+            }
+            if (state.actionCtx == GameActionCtx.START_OF_BATTLE) {
+                List<Card> cards = new ArrayList<>(CardManager.getCharacterCards(state.properties.character, false));
+                for (Card card : GameStateUtils.getStS2RandomCardRewardsWithBaseOdd(state, cards, 5)) {
+                    state.addCardToExhaust(state.properties.findCardIndex(card));
+                }
+                return GameActionCtx.SELECT_CARD_EXHAUST;
+            }
+            state.removeCardFromExhaust(idx);
+            state.addCardToDeckNonRandom(idx);
+            while (state.getNumCardsInExhaust() > 0) {
+                state.removeCardFromExhaustByPosition(0);
+            }
+            return GameActionCtx.START_OF_BATTLE;
+        }
+    }
+
+    public static class BrainLeechRipTheLeechOffAction extends Choose1OutOf3BeforeBattleStarts {
+        private Relic2.BrainLeechRipTheLeechOff parentRelic;
+
+        public BrainLeechRipTheLeechOffAction(Relic2.BrainLeechRipTheLeechOff parentRelic) {
+            super("Rip the Leech Off", Card.COMMON, Card.ATTACK, false);
+            this.parentRelic = parentRelic;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
+            if (!parentRelic.isRelicEnabledInScenario(state) || !state.isFirstEncounter()) {
+                return GameActionCtx.START_OF_BATTLE;
+            }
+            if (parentRelic.loseHealth) {
+                state.doNonAttackDamageToPlayer(5, false, this);
+            }
+            List<Card> cards = new ArrayList<>(getPossibleSelect1OutOf3Cards(state.properties));
+            int[] idxes = GameStateUtils.getStS2RandomCardRewardsWithBaseOdd(state, cards, 3).stream().mapToInt((card) -> state.properties.findCardIndex(card)).toArray();
+            state.setSelect1OutOf3Idxes(idxes[0], idxes[1], idxes[2]);
+            return GameActionCtx.SELECT_CARD_1_OUT_OF_3;
+        }
+
+        @Override public List<Card> getPossibleSelect1OutOf3Cards(GameProperties gameProperties) {
+            return CardManager.getColorless2Cards(CardManager.ColorlessCard2Pool.CARD_GENERATION);
         }
     }
 

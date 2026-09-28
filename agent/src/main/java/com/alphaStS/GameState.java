@@ -2781,9 +2781,9 @@ public final class GameState implements State {
                 if (currentAction != null && currentAction.idx() == properties.knowledgeDemonChoiceCardIdx) {
                     return false;
                 }
-                if (currentAction != null && properties.cardDict[currentAction.idx()] instanceof CardOther.Choose1OutOf3BeforeBattleStarts) {
-                    return false;
-                }
+//                if (currentAction != null && properties.cardDict[currentAction.idx()] instanceof CardOther.Choose1OutOf3BeforeBattleStarts) {
+//                    return false;
+//                }
                 return a[action].type() == GameActionType.END_SELECT_CARD_1_OUT_OF_3;
             }
             int idx = properties.select1OutOf3CardsReverseIdxes[a[action].idx()];
