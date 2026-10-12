@@ -1,6 +1,7 @@
 package com.alphaStS;
 
 import com.alphaStS.action.EndOfGameAction;
+import com.alphaStS.action.FinishCardPlayAction;
 import com.alphaStS.action.GameEnvironmentAction;
 import com.alphaStS.card.*;
 import com.alphaStS.enemy.*;
@@ -1231,6 +1232,10 @@ public final class GameState implements State {
     }
 
     public int draw(int count) {
+        return draw(count, false);
+    }
+
+    public int draw(int count, boolean startOfTurnShuffle) {
         if (count == 0 || hasBuff(PlayerBuff.NO_CARD_DRAW_FOR_THE_TURN)) {
             return -1;
         }
@@ -1250,7 +1255,7 @@ public final class GameState implements State {
                 if (discardArrLen == 0) {
                     triggerShuffleEffect = false;
                 }
-                reshuffle();
+                reshuffle(startOfTurnShuffle);
             }
             if (deckArrLen == 0) {
                 return -1;
@@ -1335,7 +1340,7 @@ public final class GameState implements State {
 
     public int drawOneCardSpecial() {
         if (deckArrLen == 0 && discardArrLen > 0) {
-            reshuffle();
+            reshuffle(false);
         }
         if (deckArrLen == 0) {
             return -1;
@@ -1489,7 +1494,9 @@ public final class GameState implements State {
         if (actionCtx == GameActionCtx.PLAY_CARD && hasBuff(PlayerBuff.BOUND_CARD_PLAYED) && properties.cardDict[cardIdx].isBound()) {
             return false;
         }
-        if (properties.velvetChokerCounterIdx >= 0 && getCounterForRead()[properties.velvetChokerCounterIdx] >= 6 && actionCtx == GameActionCtx.PLAY_CARD) {
+        if (properties.normalityCounterIdx >= 0 && counter[properties.normalityCounterIdx] >= 3 && GameStateUtils.getCardCount(getHandArrForRead(), handArrLen, properties.normalityCardIdx) > 0) {
+            return false;
+        } else if (properties.velvetChokerCounterIdx >= 0 && getCounterForRead()[properties.velvetChokerCounterIdx] >= 6 && actionCtx == GameActionCtx.PLAY_CARD) {
             return false;
         } else if (properties.timeEaterCounterIdx >= 0 && getCounterForRead()[properties.timeEaterCounterIdx] == 12 && cardIdx != properties.wellLaidPlansCardIdx) {
             return false;
@@ -1719,7 +1726,7 @@ public final class GameState implements State {
                     }
                 }
             }
-            handleCardFinishPlayingLocation(cloneSource, cloneParentLocation, cardIdx, energyCost, prevCardIdx);
+            addGameActionToEndOfDeque(new FinishCardPlayAction(runActionQueueOnEnd, useEnergy, cardPlayedSuccessfully, realEnergyCost, cloneSource, cloneParentLocation, cardIdx, energyCost, prevCardIdx));
             if (cardPlayedSuccessfully) {
                 if (properties.cardDict[cardIdx].delayUseEnergy && useEnergy) {
                     energy -= realEnergyCost;
@@ -1736,10 +1743,8 @@ public final class GameState implements State {
                     enemies.get(i).react(this, properties.cardDict[cardIdx]);
                 }
             }
-            if (properties.normalityCounterIdx < 0 || counter[properties.normalityCounterIdx] < 3) { // todo: hack
-                if (runActionQueueOnEnd) {
-                    runActionsInQueueIfNonEmpty();
-                }
+            if (runActionQueueOnEnd) {
+                runActionsInQueueIfNonEmpty();
             }
             currentlyPlayedCardIdx = -1;
         } else if (actionCtx == GameActionCtx.START_OF_BATTLE) {
@@ -1758,7 +1763,7 @@ public final class GameState implements State {
     }
 
     public void handleCardFinishPlayingLocation(Class cloneSource, int cloneParentLocation, int cardIdx, int energyCost, int prevCardIdx) {
-        if ((cloneSource == null || cloneSource == CardDefect2.Uproar.class) && (properties.havocCounterIdx < 0 || getCounterForRead()[properties.havocCounterIdx] == 0)) {
+        if ((cloneSource == null || cloneSource == CardDefect2.Uproar.class) && cloneSource != CardIronclad.Havoc.class) {
             if (properties.cardDict[cardIdx].exhaustWhenPlayed) {
                 exhaustedCardHandle(cardIdx, true);
             } else if (hasBuff(PlayerBuff.CORRUPTION) && properties.cardDict[cardIdx].cardType == Card.SKILL) {
@@ -2099,7 +2104,7 @@ public final class GameState implements State {
             drawCount -= 2;
         }
         isStartOfTurnPhase = true;
-        draw(drawCount);
+        draw(drawCount, turnNum == 1);
         if (properties.gamblingChipsCardIdx >= 0 && turnNum == 1) {
             var action = properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][properties.gamblingChipsCardIdx];
             setActionCtx(GameActionCtx.SELECT_CARD_HAND, action, null);
@@ -3855,7 +3860,7 @@ public final class GameState implements State {
         return l;
     }
 
-    public void reshuffle() {
+    public void reshuffle(boolean startOfBattleShuffle) {
         for (GameEventHandler handler : properties.onShuffleHandlers) {
             handler.handle(this);
         }
@@ -3891,15 +3896,17 @@ public final class GameState implements State {
             deckArrFixedDrawLen = deckArrLen;
         }
         discardArrLen = 0;
-        // Perfect Fit cards go to the top of the draw pile after every shuffle
-        for (int i = deckArrLen - 1 - deckArrFixedDrawLen; i >= 0; i--) {
-            int idx = deckArr[i];
-            if (properties.cardDict[idx] instanceof Card.CardWrapper cw && cw.mod.perfectFit) {
-                for (int j = i; j < deckArrLen - 1 - deckArrFixedDrawLen; j++) {
-                    deckArr[j] = deckArr[j + 1];
+        if (!startOfBattleShuffle) {
+            // Perfect Fit cards go to the top of the draw pile after a reshuffle
+            for (int i = deckArrLen - 1 - deckArrFixedDrawLen; i >= 0; i--) {
+                int idx = deckArr[i];
+                if (properties.cardDict[idx] instanceof Card.CardWrapper cw && cw.mod.perfectFit) {
+                    for (int j = i; j < deckArrLen - 1 - deckArrFixedDrawLen; j++) {
+                        deckArr[j] = deckArr[j + 1];
+                    }
+                    deckArr[deckArrLen - 1 - deckArrFixedDrawLen] = (short) idx;
+                    deckArrFixedDrawLen++;
                 }
-                deckArr[deckArrLen - 1 - deckArrFixedDrawLen] = (short) idx;
-                deckArrFixedDrawLen++;
             }
         }
     }
@@ -4416,6 +4423,10 @@ public final class GameState implements State {
     }
 
     public int playerDoDamageToEnemy(Enemy enemy, int dmgInt, Card damageSource) {
+        return playerDoDamageToEnemy(enemy, dmgInt, damageSource, false);
+    }
+
+    public int playerDoDamageToEnemy(Enemy enemy, int dmgInt, Card damageSource, boolean returnUnblockedDamage) {
         var player = getPlayerForRead();
         double dmg = dmgInt;
         // TODO: what is the ordering...
@@ -4536,7 +4547,7 @@ public final class GameState implements State {
             if (!enemy.isAlive()) {
                 adjustEnemiesAlive(-1);
             }
-            return dmgDone;
+            return returnUnblockedDamage ? dmgDone : (int) dmg;
         }
         return 0;
     }

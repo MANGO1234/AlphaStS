@@ -117,7 +117,7 @@ public class CardColorless {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
-            state.reshuffle();
+            state.reshuffle(false);
             state.draw(n);
             return GameActionCtx.PLAY_CARD;
         }

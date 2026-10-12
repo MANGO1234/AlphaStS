@@ -3248,7 +3248,7 @@ public class CardDefect {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             state.discardHand(false);
-            state.reshuffle();
+            state.reshuffle(false);
             state.draw(n);
             return GameActionCtx.PLAY_CARD;
         }

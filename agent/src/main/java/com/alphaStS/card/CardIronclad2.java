@@ -857,7 +857,6 @@ public class CardIronclad2 {
         public _HowlFromBeyondT(String cardName, int damage) {
             super(cardName, Card.ATTACK, 3, Card.UNCOMMON);
             this.damage = damage;
-            this.exhaustWhenPlayed = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
@@ -1208,7 +1207,7 @@ public class CardIronclad2 {
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
-            state.properties.registerCounter("Rupture2", this, new GameProperties.NetworkInputHandler() {
+            state.properties.registerCounter("Rupture2", this, 2, new GameProperties.NetworkInputHandler() {
                 @Override public int addToInput(GameState state, float[] input, int idx) {
                     input[idx] = state.getCounterForRead()[counterIdx] / 4.0f;
                     return idx + 1;
@@ -1217,10 +1216,22 @@ public class CardIronclad2 {
                     return 1;
                 }
             });
+            state.properties.addStartOfTurnHandler("Rupture2", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (state.getCounterForRead()[counterIdx] > 0) {
+                        state.getCounterForWrite()[counterIdx + 1] = 1;
+                    }
+                }
+            });
+            state.properties.addPreEndOfTurnHandler("Rupture2", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    state.getCounterForWrite()[counterIdx + 1] = 0;
+                }
+            });
             state.properties.addOnDamageHandler("Rupture2", new OnDamageHandler() {
                 @Override public void handle(GameState state, Object source, boolean isAttack, int damageDealt) {
                     int strength = state.getCounterForRead()[counterIdx];
-                    if (damageDealt > 0 && strength > 0) {
+                    if (damageDealt > 0 && strength > 0 && state.getCounterForRead()[counterIdx + 1] > 0) {
                         state.playerGainStrength(strength);
                     }
                 }
@@ -2414,6 +2425,9 @@ public class CardIronclad2 {
 
         public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
             var c = new ArrayList<Card>();
+            if ((properties.generateCardOptions & GameProperties.GENERATE_CARD_THRASH) == 0) {
+                return c;
+            }
             for (Card card : cards) {
                 if (card.getBaseCard() instanceof _ThrashT t && t.sameUpgrade(this)) {
                     for (int j = t.damage + 1; j <= GameProperties.maxThrashDamage; j++) {

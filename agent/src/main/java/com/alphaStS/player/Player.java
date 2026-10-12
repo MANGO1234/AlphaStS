@@ -208,17 +208,17 @@ public class Player extends PlayerReadOnly {
 
     public void preEndTurn(GameState state) {
         state.removeBuff(PlayerBuff.NO_CARD_DRAW_FOR_THE_TURN);
-    }
-
-    public void endTurn(GameState state) {
-        if (vulnerable > 0) {
-            vulnerable -= 1;
-        }
         if (weak > 0) {
             weak -= 1;
         }
         if (frail > 0) {
             frail -= 1;
+        }
+    }
+
+    public void endTurn(GameState state) {
+        if (vulnerable > 0) {
+            vulnerable -= 1;
         }
         state.removeBuff(PlayerBuff.ENTANGLED);
         if (state.properties.noMoreBlockFromCardsCounterIdx >= 0 &&

@@ -22,7 +22,6 @@ import com.alphaStS.utils.CounterStat;
 import com.alphaStS.utils.Tuple;
 import com.alphaStS.utils.Utils;
 import one.util.streamex.IntStreamEx;
-import org.apache.commons.io.filefilter.CanExecuteFileFilter;
 
 import java.util.*;
 
@@ -2498,7 +2497,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                 @Override public void handle(GameState state) {
                     if (isRelicEnabledInScenario(state)) {
                         for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
-                            enemy.nonAttackDamage(3, true, state);
+                            state.playerDoNonAttackDamageToEnemy(enemy, 3, true);
                         }
                     }
                 }

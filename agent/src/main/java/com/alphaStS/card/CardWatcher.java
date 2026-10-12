@@ -2100,7 +2100,7 @@ public class CardWatcher {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
             var enemy = state.getEnemiesForWrite().getForWrite(idx);
-            int dmgDone = state.playerDoDamageToEnemy(enemy, damage, this);
+            int dmgDone = state.playerDoDamageToEnemy(enemy, damage, this, true);
             if (dmgDone > 0) {
                 state.playerGainBlock(dmgDone);
             }

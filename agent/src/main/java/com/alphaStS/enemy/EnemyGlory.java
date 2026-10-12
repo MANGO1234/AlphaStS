@@ -1,8 +1,6 @@
 package com.alphaStS.enemy;
 
-import com.alphaStS.GameProperties;
-import com.alphaStS.GameState;
-import com.alphaStS.PlayerBuff;
+import com.alphaStS.*;
 import com.alphaStS.card.Card;
 import com.alphaStS.card.CardOther2;
 import com.alphaStS.enums.DebuffType;
@@ -1460,17 +1458,21 @@ public class EnemyGlory {
         public static final int MORE_TEETH = 1;
         public static final int CHEW = 2;
 
-        public ScrollOfBiting() {
-            this(39);
+        private int startMove;
+
+        public ScrollOfBiting(int startMove) {
+            this(39, startMove);
         }
 
-        public ScrollOfBiting(int health) {
+        public ScrollOfBiting(int health, int startMove) {
             super(health, 3, false);
             properties.canGainStrength = true;
+            this.startMove = startMove;
         }
 
         public ScrollOfBiting(ScrollOfBiting other) {
             super(other);
+            this.startMove = other.startMove;
         }
 
         @Override public Enemy copy() {
@@ -1485,10 +1487,13 @@ public class EnemyGlory {
             } else if (move == CHEW) {
                 state.enemyDoDamageToPlayer(this, 6, 2);
             }
-            // TODO: Implement Paper Cuts max HP penalty after unblocked attack damage.
         }
 
         @Override public void nextMove(GameState state, RandomGen random) {
+            if (move < 0) {
+                move = startMove;
+                return;
+            }
             lastMove = move;
             if (move < 0 || move == CHOMP) {
                 move = MORE_TEETH;
@@ -1513,6 +1518,50 @@ public class EnemyGlory {
 
         @Override public void randomize(GameState state, boolean training, int difficulty) {
             randomizeHealth(this, state, training, 32, 39);
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.addOnDamageHandler("ScrollOfBiting", new OnDamageHandler() {
+                @Override public void handle(GameState state, Object source, boolean isAttack, int damageDealt) {
+                    if (source instanceof ScrollOfBiting && damageDealt > 0) {
+                        state.getCounterForWrite()[state.properties.scrollOfBitingCounterIdx] += 2;
+                        state.getPlayerForWrite().setInBattleMaxHealth(state.getPlayerForRead().getInBattleMaxHealth() - 2);
+                    }
+                }
+            });
+            state.properties.registerCounter("ScrollOfBiting", new GameProperties.CounterRegistrant() {
+                @Override public void setCounterIdx(GameProperties gameProperties, int idx) {
+                    gameProperties.scrollOfBitingCounterIdx = idx;
+                }
+
+                @Override public int getCounterIdx(GameProperties gameProperties) {
+                    return gameProperties.scrollOfBitingCounterIdx;
+                }
+            }, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[state.properties.scrollOfBitingCounterIdx] / 20.0f;
+                    return idx + 1;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+
+            state.properties.addExtraTrainingTarget("ScrollOfBiting", this, new TrainingTarget() {
+                @Override public void fillVArray(GameState state, VArray v, int isTerminal) {
+                    if (isTerminal > 0) {
+                        v.setVExtra(vExtraIdx, Math.min(state.getCounterForRead()[state.properties.scrollOfBitingCounterIdx] / 40.0, 1.0));
+                    } else if (isTerminal == 0) {
+                        v.setVExtra(vExtraIdx, state.getVExtra(vExtraIdx));
+                    }
+                }
+
+                @Override public void updateQValues(GameState state, VArray v) {
+                    double value = v.getVExtra(vExtraIdx);
+                    v.set(GameState.V_HEALTH_IDX, v.get(GameState.V_HEALTH_IDX) * (1 - value * 0.25));
+                }
+            });
         }
 
         @Override public String getName() {

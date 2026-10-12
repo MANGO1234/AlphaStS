@@ -124,7 +124,11 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
     public List<Card> getPossibleSelect1OutOf3Cards(GameProperties gameProperties) { return List.of(); }
     public List<Card> getPossibleTransformTmpCostCards(List<Card> cards) { return List.of(); }
     public int getBaseAttackDamage(GameState state) { return cardType == Card.ATTACK ? damage : -1; }
-    public int getAttackDamage(GameState state) { return getBaseAttackDamage(state); }
+    public int getAttackDamage(GameState state) {
+        int dmg = getBaseAttackDamage(state);
+        dmg += state.getPlayerForRead().getStrength();
+        return dmg;
+    }
     public int onPlayTransformCardIdx(GameState state, int cardIdx) { return -1; }
     public boolean canSelectCard(Card card) { return true; }
 
@@ -817,7 +821,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
             if (mod.tmpChangeCost != -1) return mod.tmpChangeCost;
             if (mod.tmpUntilPlayedCost != -1) return mod.tmpUntilPlayedCost;
             if (mod.permChangeCost != -1) return mod.permChangeCost;
-            return card.energyCost;
+            return card.energyCost(state);
         }
 
         @Override

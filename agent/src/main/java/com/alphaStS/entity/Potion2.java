@@ -356,7 +356,7 @@ public class Potion2 {
         @Override public GameActionCtx use(GameState state, int idx) {
             int n = state.properties.sacredBark != null && state.properties.sacredBark.isRelicEnabledInScenario(state) ? 10 : 5;
             state.discardHand(false);
-            state.reshuffle();
+            state.reshuffle(false);
             state.draw(n);
             return GameActionCtx.PLAY_CARD;
         }

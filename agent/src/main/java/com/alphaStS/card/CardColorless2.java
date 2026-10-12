@@ -2230,13 +2230,6 @@ public class CardColorless2 {
             return GameActionCtx.PLAY_CARD;
         }
 
-        @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
-            if ((properties.generateCardOptions & GameProperties.GENERATE_CARD_MAD_SCIENCE_IMPROVEMENT) == 0) {
-                return List.of();
-            }
-            return cards.stream().map(Card::getUpgrade).filter(Objects::nonNull).toList();
-        }
-
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.registerCounter("MadScienceImprovement", this, new GameProperties.NetworkInputHandler() {
                 @Override public int addToInput(GameState state, float[] input, int idx) {

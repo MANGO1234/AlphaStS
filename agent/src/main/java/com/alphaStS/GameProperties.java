@@ -124,6 +124,7 @@ public class GameProperties implements Cloneable {
     public final static int GENERATE_CARD_MAD_SCIENCE_IMPROVEMENT = 1 << 17;
     public final static int GENERATE_CARD_JACKPOT = 1 << 18;
     public final static int GENERATE_CARD_UPGRADED_COLORLESS = 1 << 19;
+    public final static int GENERATE_CARD_THRASH = 1 << 20;
     public final static int GENERATE_CARD_ALL_COLORLESS = GENERATE_CARD_COLORLESS | GENERATE_CARD_UPGRADED_COLORLESS | GENERATE_CARD_DISCOVERY | GENERATE_CARD_METAMORPHOSIS | GENERATE_CARD_CHRYSALIS | GENERATE_CARD_MADNESS | GENERATE_CARD_ENLIGHTENMENT | GENERATE_CARD_APOTHEOSIS;
     public int generateCardOptions;
     // global limits and rewards
@@ -315,6 +316,7 @@ public class GameProperties implements Cloneable {
     public int ritualDaggerCounterIdx = -1;
     public int sadisticNatureCounterIdx = -1;
     public int sandpitCounterIdx = -1;
+    public int scrollOfBitingCounterIdx = -1;
     public int selfRepairCounterIdx = -1;
     public int shadowStepCounterIdx = -1;
     public int shadowmeldCounterIdx = -1;
