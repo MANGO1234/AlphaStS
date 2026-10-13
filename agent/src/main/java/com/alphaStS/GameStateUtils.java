@@ -593,4 +593,18 @@ public class GameStateUtils {
             dfsDepth(cs.cache.values().iterator().next().state, depth, result);
         }
     }
+
+    public static void cardArrToPhantomGroups(GameState state, List<List<Short>> groups, short[] arr, int arrLen) {
+        for (int j = 0; j < state.properties.phantomCardsGroups.size(); j++) {
+            groups.add(new ArrayList<>());
+        }
+        for (int j = 0; j < arrLen; j++) {
+            if (state.properties.cardToPhantomCardsGroupsIdx[arr[j]] >= 0) {
+                groups.get(state.properties.cardToPhantomCardsGroupsIdx[arr[j]]).add(arr[j]);
+            }
+        }
+        for (List<Short> group : groups) {
+            group.sort((o1, o2) -> Float.compare(state.properties.cardDict[o2].getPhantomNNNumber(), state.properties.cardDict[o1].getPhantomNNNumber()));
+        }
+    }
 }

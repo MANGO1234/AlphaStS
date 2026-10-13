@@ -1410,7 +1410,9 @@ public class MatchSession {
                 int idx = 0;
                 if (state.actionCtx == GameActionCtx.SELECT_ENEMY) {
                     for (int action = 0; action < state.properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()].length; action++) {
-                        stream.writeFloat(-1);
+                        if (action >= state.properties.cardDict.length || state.properties.cardToPhantomCardsGroupsIdx[action] < 0) {
+                            stream.writeFloat(-1);
+                        }
                     }
                     if (state.properties.actionsByCtx[GameActionCtx.SELECT_ENEMY.ordinal()] != null) {
                         var order = state.getEnemyOrder();
@@ -1458,7 +1460,9 @@ public class MatchSession {
                     }
                 } else if (state.actionCtx == GameActionCtx.SELECT_SCENARIO) {
                     for (int action = 0; action < state.properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()].length; action++) {
-                        stream.writeFloat(-1);
+                        if (action >= state.properties.cardDict.length || state.properties.cardToPhantomCardsGroupsIdx[action] < 0) {
+                            stream.writeFloat(-1);
+                        }
                     }
                     if (state.properties.actionsByCtx[GameActionCtx.SELECT_ENEMY.ordinal()] != null) {
                         for (int action = 0; action < state.properties.actionsByCtx[GameActionCtx.SELECT_ENEMY.ordinal()].length; action++) {
@@ -1479,24 +1483,65 @@ public class MatchSession {
                         }
                     }
                 } else {
+                    var groups = new ArrayList<List<Short>>();
+                    if (!state.properties.phantomCardsGroups.isEmpty()) {
+                        if (state.actionCtx == GameActionCtx.PLAY_CARD || state.actionCtx == GameActionCtx.SELECT_CARD_HAND) {
+                            GameStateUtils.cardArrToPhantomGroups(state, groups, state.getHandArrForRead(), state.handArrLen);
+                        } else if (state.actionCtx == GameActionCtx.SELECT_CARD_DECK) {
+                            GameStateUtils.cardArrToPhantomGroups(state, groups, state.getDeckArrForRead(), state.deckArrLen);
+                        } else if (state.actionCtx == GameActionCtx.SELECT_CARD_DISCARD) {
+                            GameStateUtils.cardArrToPhantomGroups(state, groups, state.getDiscardArrForRead(), state.discardArrLen);
+                        } else if (state.actionCtx == GameActionCtx.SELECT_CARD_EXHAUST) {
+                            GameStateUtils.cardArrToPhantomGroups(state, groups, state.getExhaustArrForRead(), state.exhaustArrLen);
+                        } else if (state.actionCtx == GameActionCtx.SCRYING) {
+                            // TODO: scry
+                        }
+                    }
+                    float[] playCardPolicy = new float[state.properties.playCardActionCtxPolicyLen];
+                    Arrays.fill(playCardPolicy, -1);
+                    int policyIdx = 0;
                     for (int action = 0; action < state.properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()].length; action++) {
                         if (state.isActionLegal(action)) {
                             if (idx < state.getLegalActions().length && state.getLegalActions()[idx] == action) {
+                                var writeIdx = policyIdx;
+                                if (action < state.properties.cardDict.length && !groups.isEmpty() && state.properties.cardToPhantomCardsGroupsIdx[action] >= 0) {
+                                    var phantomGroupIdx = state.properties.cardToPhantomCardsGroupsIdx[action];
+                                    var phantomCardIdxStart = state.properties.phantomCardsGroups.get(phantomGroupIdx).phantomCardIdxStart;
+                                    var sortedIdx = groups.get(phantomGroupIdx).indexOf((short) action);
+                                    if (sortedIdx < 0) {
+                                        throw CrashException.builder().withState(state).withAction(action).build();
+                                    }
+                                    writeIdx = state.properties.cardIdxToNNCardIdx[phantomCardIdxStart] + sortedIdx;
+                                }
                                 if (state.terminalAction >= 0) {
                                     if (state.terminalAction == idx++) {
-                                        stream.writeFloat(1);
+                                        playCardPolicy[writeIdx] = 1;
                                     } else {
-                                        stream.writeFloat(0);
+                                        playCardPolicy[writeIdx] = 0;
                                     }
                                 } else {
-                                    stream.writeFloat((float) (((double) state.n[idx++]) / state.total_n));
+                                    if (playCardPolicy[writeIdx] < 0) {
+                                        playCardPolicy[writeIdx] = 0;
+                                    }
+                                    playCardPolicy[writeIdx] += (float) (((double) state.n[idx++]) / state.total_n);
+                                }
+                                if (!(action < state.properties.cardDict.length && !groups.isEmpty() && state.properties.cardToPhantomCardsGroupsIdx[action] >= 0)) {
+                                    policyIdx++;
                                 }
                             } else {
                                 throw CrashException.builder().withState(state).withAction(action).build();
                             }
                         } else {
-                            stream.writeFloat(-1);
+                            if (!(action < state.properties.cardDict.length && !groups.isEmpty() && state.properties.cardToPhantomCardsGroupsIdx[action] >= 0)) {
+                                policyIdx++;
+                            }
                         }
+                    }
+                    if (policyIdx != state.properties.playCardActionCtxPolicyLen) {
+                        throw CrashException.builder().withState(state).build();
+                    }
+                    for (int j = 0; j < state.properties.playCardActionCtxPolicyLen; j++) {
+                        stream.writeFloat(playCardPolicy[j]);
                     }
                     if (state.properties.actionsByCtx[GameActionCtx.SELECT_ENEMY.ordinal()] != null) {
                         for (int action = 0; action < state.properties.actionsByCtx[GameActionCtx.SELECT_ENEMY.ordinal()].length; action++) {

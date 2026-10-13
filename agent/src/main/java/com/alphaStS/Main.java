@@ -106,7 +106,7 @@ public class Main {
         ObjectMapper mapper = new ObjectMapper();
         ObjectNode root = mapper.createObjectNode();
         root.put("inputLength", state.getNNInput().length);
-        root.put("policyLength", state.properties.totalNumOfActions);
+        root.put("policyLength", state.properties.policyLen);
         var extraTargetsNode = root.putArray("extraTargets");
         for (int i = 0; i < state.properties.extraTrainingTargets.size(); i++) {
             ObjectNode targetNode = mapper.createObjectNode();

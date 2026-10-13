@@ -34,6 +34,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
     public boolean innate = false;
     public boolean exhaustWhenPlayed = false;
     public boolean exhaustNonAttacks = false;
+    public boolean exhaustAttacks = false;
     public boolean alwaysDiscard = false;
     public boolean returnToDeckWhenPlay = false;
     public boolean returnToTopOfDeckWhenPlay = false;
@@ -357,12 +358,30 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         return new CardWrapper(this, mod);
     }
 
+    public Card makePhantomCopy(int idx) {
+        var mod = new CardModification();
+        mod.phantomIdx = idx;
+        return new CardWrapper(this, mod);
+    }
+
+    public Card unmakePhantomCopy() {
+        return this;
+    }
+
     public boolean isEnchanted() {
         return false;
     }
 
     public boolean isBound() {
         return false;
+    }
+
+    public boolean isPhantom() {
+        return false;
+    }
+
+    public int getPhantomIdx() {
+        return -100000;
     }
 
     @Override public String toString() {
@@ -414,6 +433,14 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         return this;
     }
 
+    public Card getCardWithOriginalNumber() {
+        return null;
+    }
+
+    public float getPhantomNNNumber() {
+        return -1;
+    }
+
     public static class CardModification {
         public int tmpChangeCost = -1;
         public int tmpUntilPlayedCost = -1;
@@ -421,7 +448,9 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         public boolean tmpRetain = false;
         public boolean permEthereal = false;
         public boolean permRetain = false;
+        public int phantomIdx = -1; // this mod is only for NN network actions
         public int adroit = 0;
+        public boolean bound = false;
         public boolean corrupted = false;
         public boolean glam = false;
         public boolean imbued = false;
@@ -443,7 +472,6 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         public boolean sown = false;
         public boolean temporarilyDowngraded = false;
         public int vigorous = 0;
-        public boolean bound = false;
 
         public CardModification clone() {
             var copy = new CardModification();
@@ -537,6 +565,9 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
             if (mod.adroit > 0) {
                 sb.append(" (Adroit ").append(mod.adroit).append(")");
             }
+            if (mod.bound) {
+                sb.append(" (Bound)");
+            }
             if (mod.corrupted) {
                 sb.append(" (Corrupted)");
             }
@@ -600,8 +631,8 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
             if (mod.vigorous > 0) {
                 sb.append(" (Vigorous ").append(mod.vigorous).append(")");
             }
-            if (mod.bound) {
-                sb.append(" (Bound)");
+            if (mod.phantomIdx >= 0) {
+                sb.append(" (Phantom ").append(mod.phantomIdx).append(")");
             }
             return sb.toString();
         }
@@ -852,6 +883,21 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         @Override
         public Card getBaseCard() {
             return card.getBaseCard();
+        }
+
+        public Card getCardWithOriginalNumber() {
+            if (isPhantom()) {
+                return null;
+            }
+            var c = getBaseCard().getCardWithOriginalNumber();
+            if (c != null) {
+                return wrap(c, mod.clone());
+            }
+            return null;
+        }
+
+        public float getPhantomNNNumber() {
+            return card.getPhantomNNNumber();
         }
 
         private Card wrap(Card newCard, CardModification newMod) {
@@ -1144,6 +1190,33 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
             var newMod = mod.clone();
             newMod.vigorous = vigorous;
             return new CardWrapper(card, newMod);
+        }
+
+        @Override
+        public Card makePhantomCopy(int idx) {
+            var newMod = mod.clone();
+            newMod.phantomIdx = idx;
+            return new CardWrapper(card, newMod);
+        }
+
+        @Override
+        public Card unmakePhantomCopy() {
+            var newMod = mod.clone();
+            newMod.phantomIdx = -1;
+            if (!newMod.cardIsModded()) {
+                return card;
+            }
+            return new CardWrapper(card, newMod);
+        }
+
+        @Override
+        public boolean isPhantom() {
+            return mod.phantomIdx >= 0;
+        }
+
+        @Override
+        public int getPhantomIdx() {
+            return mod.phantomIdx;
         }
 
         public boolean isTmpChangeCost() {

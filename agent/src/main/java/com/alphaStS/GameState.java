@@ -510,11 +510,16 @@ public final class GameState implements State {
         properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()] = new GameAction[l];
         for (int i = 0; i < cards.size(); i++) {
             properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][i] = new GameAction(GameActionType.PLAY_CARD, i);
+            if (properties.cardToPhantomCardsGroupsIdx[i] < 0) {
+                properties.playCardActionCtxPolicyLen++;
+            }
         }
         for (int i = 0; i < potions.size(); i++) {
             properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][cards.size() + i] = new GameAction(GameActionType.USE_POTION, i);
+            properties.playCardActionCtxPolicyLen++;
         }
         properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][l - 1] = new GameAction(GameActionType.END_TURN, 0);
+        properties.playCardActionCtxPolicyLen++;
 
         // select enemy actions
         if (enemiesArg.size() > 1) {
@@ -592,8 +597,10 @@ public final class GameState implements State {
         for (int i = 0; i < properties.actionsByCtx.length; i++) {
             if (properties.actionsByCtx[i] != null) {
                 properties.maxNumOfActions = Math.max(properties.maxNumOfActions, properties.actionsByCtx[i].length);
-                if (i == GameActionCtx.PLAY_CARD.ordinal() || i == GameActionCtx.SELECT_ENEMY.ordinal() || i == GameActionCtx.SELECT_SCENARIO.ordinal()) {
-                    properties.totalNumOfActions += properties.actionsByCtx[i].length;
+                if (i == GameActionCtx.PLAY_CARD.ordinal()) {
+                    properties.policyLen += properties.playCardActionCtxPolicyLen;
+                } else if (i == GameActionCtx.SELECT_ENEMY.ordinal() || i == GameActionCtx.SELECT_SCENARIO.ordinal()) {
+                    properties.policyLen += properties.actionsByCtx[i].length;
                 }
             }
         }
@@ -963,6 +970,13 @@ public final class GameState implements State {
                     }
                 }
             }
+            if (cards.get(i).exhaustAttacks) {
+                for (int j = 0; j < cards.size(); j++) {
+                    if (cards.get(j).cardType == Card.ATTACK) {
+                        l.add(j);
+                    }
+                }
+            }
             if (cards.get(i).exhaustSkill) {
                 for (int j = 0; j < cards.size(); j++) {
                     if (cards.get(j).cardType == Card.SKILL) {
@@ -998,7 +1012,7 @@ public final class GameState implements State {
                 }
             }
         }
-        return l.stream().filter((x) -> !properties.cardDict[x].isTmpModifiedUntilEndOfTurnCard()).sorted().mapToInt(Integer::intValue).toArray();
+        return l.stream().filter((x) -> !properties.cardDict[x].isTmpModifiedUntilEndOfTurnCard() && properties.cardDict[x].getCardWithOriginalNumber() == null).sorted().mapToInt(Integer::intValue).toArray();
     }
 
     private int[] findSelect1OutOf3CardsToKeepTrackOf(List<Card> cards, List<Relic> relics, List<Potion> potions) {
@@ -1079,6 +1093,15 @@ public final class GameState implements State {
             discardSet.addAll(scenarioCards.v2());
         }
 
+        if (Configuration.COMPACT_ENCODING_FOR_UNLIMITED_CARD_MAX_COPIES > 0) {
+            Set<Card> phantomCardCandidates = set.stream().map(Card::getCardWithOriginalNumber).filter(Objects::nonNull).collect(Collectors.toSet());
+            for (Card candidate : phantomCardCandidates) {
+                for (int i = 0; i < Configuration.COMPACT_ENCODING_FOR_UNLIMITED_CARD_MAX_COPIES + 1; i++) {
+                    set.add(candidate.makePhantomCopy(i));
+                }
+            }
+        }
+
         var cards = new ArrayList<>(set);
         cards.sort((o1, o2) -> {
             if (!o1.isTmpModifiedUntilEndOfTurnCard() && o2.isTmpModifiedUntilEndOfTurnCard()) {
@@ -1106,6 +1129,53 @@ public final class GameState implements State {
                 } else {
                     properties.tmp0CostCardTransformIdxes[i] = properties.findCardIndex(properties.cardDict[i].getTemporaryCostIfPossible(0));
                 }
+            }
+        }
+        properties.cardIdxToNNCardIdx = new int[cards.size()];
+        HashMap<Card, PhantomCardGroup> phantomCardsGroupMap = new HashMap<>();
+        Arrays.fill(properties.cardIdxToNNCardIdx, -1000000);
+        for (int i = 0; i < cards.size(); i++) {
+            var baseNumberCard = cards.get(i).getCardWithOriginalNumber();
+            if (baseNumberCard == null) {
+                properties.cardIdxToNNCardIdx[i] = properties.NNCardIdxLen++;
+                if (!cards.get(i).isTmpModifiedUntilEndOfTurnCard()) {
+                    properties.NNRealCardIdxLen++;
+                }
+                if (cards.get(i).isPhantom()) {
+                    var baseNumberCard2 = cards.get(i).unmakePhantomCopy();
+                    var group = phantomCardsGroupMap.computeIfAbsent(baseNumberCard2, k -> new PhantomCardGroup(baseNumberCard2));
+                    if (group.phantomCardIdxStart < 0) {
+                        var idx = cards.indexOf(group.card.makePhantomCopy(0));
+                        if (idx >= 0) {
+                            group.phantomCardIdxStart = idx;
+                        }
+                    }
+                }
+            } else {
+                var group = phantomCardsGroupMap.computeIfAbsent(baseNumberCard, k -> new PhantomCardGroup(baseNumberCard));
+                group.cardIdxes.add(i);
+            }
+        }
+        properties.NNCardIdxtoCardIdx = new int[properties.NNCardIdxLen];
+        for (int i = 0; i < cards.size(); i++) {
+            if (properties.cardIdxToNNCardIdx[i] >= 0) {
+                properties.NNCardIdxtoCardIdx[properties.cardIdxToNNCardIdx[i]] = i;
+            }
+        }
+        properties.phantomCardsGroups = phantomCardsGroupMap.values().stream().toList();
+        properties.cardToPhantomCardsGroupsIdx = new int[cards.size()];
+        Arrays.fill(properties.cardToPhantomCardsGroupsIdx, -1);
+        for (int i = 0; i < properties.phantomCardsGroups.size(); i++) {
+            var group = properties.phantomCardsGroups.get(i);
+            for (int j = 0; j < group.cardIdxes.size(); j++) {
+                properties.cardToPhantomCardsGroupsIdx[group.cardIdxes.get(j)] = i;
+            }
+        }
+        properties.phantomCardToPhantomCardsGroupsIdx = new int[cards.size()];
+        Arrays.fill(properties.phantomCardToPhantomCardsGroupsIdx, -1);
+        for (int i = 0; i < cards.size(); i++) {
+            if (cards.get(i).isPhantom()) {
+                properties.phantomCardToPhantomCardsGroupsIdx[i] = properties.cardToPhantomCardsGroupsIdx[cards.indexOf(cards.get(i).unmakePhantomCopy())];
             }
         }
         properties.perm0CostCardTransformIdxes = new int[cards.size()];

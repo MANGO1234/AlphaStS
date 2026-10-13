@@ -160,17 +160,22 @@ public class NNInputSchema {
 
         // Cards in deck
         {
-            int len = props.realCardsLen;
+            int len = props.NNRealCardIdxLen;
             inputLen += len;
             descBody.append("    ").append(len).append(" inputs for cards in deck\n");
             inputModules.add((s, x, idx) -> {
                 for (int i = 0; i < s.deckArrLen; i++) {
-                    x[idx + s.deckArr[i]] += 0.1f;
+                    if (s.properties.cardIdxToNNCardIdx[s.deckArr[i]] >= 0) {
+                        x[idx + s.properties.cardIdxToNNCardIdx[s.deckArr[i]]] += 0.1f;
+                    }
                 }
-                return s.properties.realCardsLen;
+                if (Configuration.COMPACT_ENCODING_FOR_UNLIMITED_CARD_MAX_COPIES > 0) {
+                    setNNPhantomGroupValue(s, s.deckArr, 0, s.deckArrLen, x, idx, false);
+                }
+                return s.properties.NNRealCardIdxLen;
             });
             inputPrinters.add((s, input, idx) -> {
-                int l = s.properties.realCardsLen;
+                int l = s.properties.NNRealCardIdxLen;
                 System.out.print("Cards in Deck: [");
                 for (int i = 0; i < l; i++) {
                     if (i > 0) System.out.print(", ");
@@ -183,17 +188,22 @@ public class NNInputSchema {
 
         // Cards in hand
         {
-            int len = props.cardDict.length;
+            int len = props.NNCardIdxLen;
             inputLen += len;
             descBody.append("    ").append(len).append(" inputs for cards in hand\n");
             inputModules.add((s, x, idx) -> {
                 for (int i = 0; i < s.handArrLen; i++) {
-                    x[idx + s.handArr[i]] += 0.1f;
+                    if (s.properties.cardIdxToNNCardIdx[s.handArr[i]] >= 0) {
+                        x[idx + s.properties.cardIdxToNNCardIdx[s.handArr[i]]] += 0.1f;
+                    }
                 }
-                return s.properties.cardDict.length;
+                if (Configuration.COMPACT_ENCODING_FOR_UNLIMITED_CARD_MAX_COPIES > 0) {
+                    setNNPhantomGroupValue(s, s.handArr, 0, s.handArrLen, x, idx, false);
+                }
+                return s.properties.NNCardIdxLen;
             });
             inputPrinters.add((s, input, idx) -> {
-                int l = s.properties.cardDict.length;
+                int l = s.properties.NNCardIdxLen;
                 System.out.print("Cards in Hand: [");
                 for (int i = 0; i < l; i++) {
                     if (i > 0) System.out.print(", ");
@@ -250,7 +260,13 @@ public class NNInputSchema {
             inputModules.add((s, x, idx) -> {
                 int l = s.properties.discardIdxes.length;
                 for (int i = 0; i < s.discardArrLen; i++) {
-                    x[idx + s.properties.discardReverseIdxes[s.discardArr[i]]] += 0.1f;
+                    var cardIdx = s.properties.discardReverseIdxes[s.discardArr[i]];
+                    if (cardIdx >= 0) {
+                        x[idx + cardIdx] += 0.1f;
+                    }
+                }
+                if (Configuration.COMPACT_ENCODING_FOR_UNLIMITED_CARD_MAX_COPIES > 0) {
+                    setNNPhantomGroupValue(s, s.discardArr, 0, s.discardArrLen, x, idx, true);
                 }
                 return l;
             });
@@ -268,18 +284,23 @@ public class NNInputSchema {
 
         // Cards in exhaust
         if (props.anyEntityProperty.selectFromExhaust) {
-            int len = props.realCardsLen;
+            int len = props.NNRealCardIdxLen;
             inputLen += len;
             descBody.append("    ").append(len).append(" inputs for cards in exhaust\n");
             inputModules.add((s, x, idx) -> {
-                int l = s.properties.realCardsLen;
+                int l = s.properties.NNRealCardIdxLen;
                 for (int i = 0; i < s.exhaustArrLen; i++) {
-                    x[idx + s.exhaustArr[i]] += 0.1f;
+                    if (s.properties.cardIdxToNNCardIdx[s.exhaustArr[i]] >= 0) {
+                        x[idx + s.properties.cardIdxToNNCardIdx[s.exhaustArr[i]]] += 0.1f;
+                    }
+                }
+                if (Configuration.COMPACT_ENCODING_FOR_UNLIMITED_CARD_MAX_COPIES > 0) {
+                    setNNPhantomGroupValue(s, s.exhaustArr, 0, s.exhaustArrLen, x, idx, false);
                 }
                 return l;
             });
             inputPrinters.add((s, input, idx) -> {
-                int l = s.properties.realCardsLen;
+                int l = s.properties.NNRealCardIdxLen;
                 System.out.print("Cards in Exhaust: [");
                 for (int i = 0; i < l; i++) {
                     if (i > 0) System.out.print(", ");
@@ -292,18 +313,23 @@ public class NNInputSchema {
 
         // Chosen cards (Well Laid Plans)
         if (state.chosenCardsArr != null) {
-            int len = props.cardDict.length;
+            int len = props.NNCardIdxLen;
             inputLen += len;
             descBody.append("    ").append(len).append(" inputs for cards that was chosen by Well Laid Plans\n");
             inputModules.add((s, x, idx) -> {
-                int l = s.properties.cardDict.length;
+                int l = s.properties.NNCardIdxLen;
                 for (int i = 0; i < s.chosenCardsArrLen; i++) {
-                    x[idx + s.chosenCardsArr[i]] += 0.1f;
+                    if (s.properties.cardIdxToNNCardIdx[s.chosenCardsArr[i]] >= 0) {
+                        x[idx + s.properties.cardIdxToNNCardIdx[s.chosenCardsArr[i]]] += 0.1f;
+                    }
+                }
+                if (Configuration.COMPACT_ENCODING_FOR_UNLIMITED_CARD_MAX_COPIES > 0) {
+                    setNNPhantomGroupValue(s, s.chosenCardsArr, 0, s.chosenCardsArrLen, x, idx, false);
                 }
                 return l;
             });
             inputPrinters.add((s, input, idx) -> {
-                int l = s.properties.cardDict.length;
+                int l = s.properties.NNCardIdxLen;
                 System.out.print("Chosen Cards (Well Laid Plans): [");
                 for (int i = 0; i < l; i++) {
                     if (i > 0) System.out.print(", ");
@@ -316,18 +342,23 @@ public class NNInputSchema {
 
         // Nightmare cards
         if (state.nightmareCards != null) {
-            int len = props.realCardsLen;
+            int len = props.NNRealCardIdxLen;
             inputLen += len;
             descBody.append("    ").append(len).append(" inputs for cards that was targeted by nightmare\n");
             inputModules.add((s, x, idx) -> {
-                int l = s.properties.realCardsLen;
+                int l = s.properties.NNRealCardIdxLen;
                 for (int i = 0; i < s.nightmareCardsLen; i++) {
-                    x[idx + s.nightmareCards[i]] += 0.1f;
+                    if (s.properties.cardIdxToNNCardIdx[s.nightmareCards[i]] >= 0) {
+                        x[idx + s.properties.cardIdxToNNCardIdx[s.nightmareCards[i]]] += 0.1f;
+                    }
+                }
+                if (Configuration.COMPACT_ENCODING_FOR_UNLIMITED_CARD_MAX_COPIES > 0) {
+                    setNNPhantomGroupValue(s, s.nightmareCards, 0, s.nightmareCardsLen, x, idx, false);
                 }
                 return l;
             });
             inputPrinters.add((s, input, idx) -> {
-                int l = s.properties.realCardsLen;
+                int l = s.properties.NNRealCardIdxLen;
                 System.out.print("Nightmare Cards: [");
                 for (int i = 0; i < l; i++) {
                     if (i > 0) System.out.print(", ");
@@ -340,23 +371,30 @@ public class NNInputSchema {
 
         // Deck order memory
         if (MAX_AGENT_DECK_ORDER_MEMORY > 0 && props.anyEntityProperty.putCardOnTopDeck) {
-            int len = props.realCardsLen * MAX_AGENT_DECK_ORDER_MEMORY * MAX_AGENT_DECK_ORDER_MEMORY_DUPLICATE_CARDS;
+            int len = props.NNRealCardIdxLen * MAX_AGENT_DECK_ORDER_MEMORY * MAX_AGENT_DECK_ORDER_MEMORY_DUPLICATE_CARDS;
             inputLen += len;
             descBody.append("    ").append(len).append(" inputs to keep track of known card draw order\n");
             inputModules.add((s, x, idx) -> {
-                int l = s.properties.realCardsLen * MAX_AGENT_DECK_ORDER_MEMORY * MAX_AGENT_DECK_ORDER_MEMORY_DUPLICATE_CARDS;
+                int l = s.properties.NNRealCardIdxLen * MAX_AGENT_DECK_ORDER_MEMORY * MAX_AGENT_DECK_ORDER_MEMORY_DUPLICATE_CARDS;
                 var tmpIdx = idx;
                 for (int i = 0; i < Math.min(5 * MAX_AGENT_DECK_ORDER_MEMORY * MAX_AGENT_DECK_ORDER_MEMORY_DUPLICATE_CARDS, s.deckArrFixedDrawLen); i += 5) {
                     for (int j = i; j < Math.min(i + 5, s.deckArrFixedDrawLen); j++) {
                         int cardIdx = s.deckArr[s.deckArrLen - 1 - j];
-                        x[tmpIdx + cardIdx] += 0.1f;
+                        if (s.properties.cardIdxToNNCardIdx[cardIdx] >= 0) {
+                            x[tmpIdx + s.properties.cardIdxToNNCardIdx[cardIdx]] += 0.1f;
+                        }
                     }
-                    tmpIdx += s.properties.realCardsLen;
+                    if (Configuration.COMPACT_ENCODING_FOR_UNLIMITED_CARD_MAX_COPIES > 0) {
+                        var remain = Math.min(s.deckArrFixedDrawLen - i, 5);
+                        var start = s.deckArrLen - 1 - remain;
+                        setNNPhantomGroupValue(s, s.deckArr, start, remain, x, idx, false);
+                    }
+                    tmpIdx += s.properties.NNRealCardIdxLen;
                 }
                 return l;
             });
             inputPrinters.add((s, input, idx) -> {
-                int l = s.properties.realCardsLen * MAX_AGENT_DECK_ORDER_MEMORY * MAX_AGENT_DECK_ORDER_MEMORY_DUPLICATE_CARDS;
+                int l = s.properties.NNRealCardIdxLen * MAX_AGENT_DECK_ORDER_MEMORY * MAX_AGENT_DECK_ORDER_MEMORY_DUPLICATE_CARDS;
                 System.out.print("Deck Order Memory: [");
                 for (int i = 0; i < l; i++) {
                     if (i > 0) System.out.print(", ");
@@ -895,8 +933,8 @@ public class NNInputSchema {
         // Select enemy context actions
         if (props.actionsByCtx[GameActionCtx.SELECT_ENEMY.ordinal()] != null && enemies.size() > 1) {
             for (GameAction action : props.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()]) {
-                if ((action.type() == GameActionType.PLAY_CARD && props.cardDict[action.idx()].entityProperty.selectEnemy && action.idx() < props.realCardsLen) ||
-                     action.type() == GameActionType.USE_POTION && props.potions.get(action.idx()).entityProperty.selectEnemy) {
+                if ((action.type() == GameActionType.PLAY_CARD && props.cardDict[action.idx()].entityProperty.selectEnemy && props.cardIdxToNNCardIdx[action.idx()] >= 0 && (!props.cardDict[action.idx()].isPhantom() || props.cardDict[action.idx()].getPhantomIdx() == 0)) ||
+                        (action.type() == GameActionType.USE_POTION && props.potions.get(action.idx()).entityProperty.selectEnemy)) {
                     inputLen += 1;
                     final GameAction act = action;
                     String actDesc;
@@ -907,7 +945,15 @@ public class NNInputSchema {
                     }
                     descBody.append("    1 input to keep track of ").append(actDesc).append("\n");
                     inputModules.add((s, x, idx) -> {
-                        x[idx] = s.currentAction == act ? 0.6f : -0.6f;
+                        if (s.currentAction != null && act.type() == GameActionType.PLAY_CARD && s.properties.cardToPhantomCardsGroupsIdx[s.currentAction.idx()] >= 0) {
+                            if (s.properties.cardToPhantomCardsGroupsIdx[s.currentAction.idx()] == s.properties.phantomCardToPhantomCardsGroupsIdx[act.idx()]) {
+                                x[idx] = s.properties.cardDict[s.currentAction.idx()].getPhantomNNNumber();
+                            } else {
+                                x[idx] = -0.6f;
+                            }
+                        } else {
+                            x[idx] = s.currentAction == act ? 0.6f : -0.6f;
+                        }
                         return 1;
                     });
                     final String printLabel = "Select Enemy Action " + action;
@@ -922,8 +968,8 @@ public class NNInputSchema {
         // Select card from hand context actions
         if (props.actionsByCtx[GameActionCtx.SELECT_CARD_HAND.ordinal()] != null) {
             for (GameAction action : props.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()]) {
-                if ((action.type() == GameActionType.PLAY_CARD && props.cardDict[action.idx()].entityProperty.selectFromHand && action.idx() < props.realCardsLen) ||
-                     action.type() == GameActionType.USE_POTION && props.potions.get(action.idx()).entityProperty.selectFromHand) {
+                if ((action.type() == GameActionType.PLAY_CARD && props.cardDict[action.idx()].entityProperty.selectFromHand && props.cardIdxToNNCardIdx[action.idx()] >= 0 && (!props.cardDict[action.idx()].isPhantom() || props.cardDict[action.idx()].getPhantomIdx() == 0)) ||
+                        (action.type() == GameActionType.USE_POTION && props.potions.get(action.idx()).entityProperty.selectFromHand)) {
                     inputLen += 1;
                     final GameAction act = action;
                     String actDesc;
@@ -934,7 +980,15 @@ public class NNInputSchema {
                     }
                     descBody.append("    1 input to keep track of ").append(actDesc).append("\n");
                     inputModules.add((s, x, idx) -> {
-                        x[idx] = s.currentAction == act ? 0.6f : -0.6f;
+                        if (s.currentAction != null && act.type() == GameActionType.PLAY_CARD && s.properties.cardToPhantomCardsGroupsIdx[s.currentAction.idx()] >= 0) {
+                            if (s.properties.cardToPhantomCardsGroupsIdx[s.currentAction.idx()] == s.properties.phantomCardToPhantomCardsGroupsIdx[act.idx()]) {
+                                x[idx] = s.properties.cardDict[s.currentAction.idx()].getPhantomNNNumber();
+                            } else {
+                                x[idx] = -0.6f;
+                            }
+                        } else {
+                            x[idx] = s.currentAction == act ? 0.6f : -0.6f;
+                        }
                         return 1;
                     });
                     final String printLabel = "Select Card Hand Action " + action;
@@ -949,8 +1003,8 @@ public class NNInputSchema {
         // Select card from discard context actions
         if (props.actionsByCtx[GameActionCtx.SELECT_CARD_DISCARD.ordinal()] != null) {
             for (GameAction action : props.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()]) {
-                if ((action.type() == GameActionType.PLAY_CARD && props.cardDict[action.idx()].entityProperty.selectFromDiscard && action.idx() < props.realCardsLen) ||
-                     action.type() == GameActionType.USE_POTION && props.potions.get(action.idx()).entityProperty.selectFromDiscard) {
+                if ((action.type() == GameActionType.PLAY_CARD && props.cardDict[action.idx()].entityProperty.selectFromDiscard && props.cardIdxToNNCardIdx[action.idx()] >= 0 && (!props.cardDict[action.idx()].isPhantom() || props.cardDict[action.idx()].getPhantomIdx() == 0)) ||
+                        (action.type() == GameActionType.USE_POTION && props.potions.get(action.idx()).entityProperty.selectFromDiscard)) {
                     inputLen += 1;
                     final GameAction act = action;
                     String actDesc;
@@ -961,7 +1015,15 @@ public class NNInputSchema {
                     }
                     descBody.append("    1 input to keep track of ").append(actDesc).append("\n");
                     inputModules.add((s, x, idx) -> {
-                        x[idx] = s.currentAction == act ? 0.6f : -0.6f;
+                        if (s.currentAction != null && act.type() == GameActionType.PLAY_CARD && s.properties.cardToPhantomCardsGroupsIdx[s.currentAction.idx()] >= 0) {
+                            if (s.properties.cardToPhantomCardsGroupsIdx[s.currentAction.idx()] == s.properties.phantomCardToPhantomCardsGroupsIdx[act.idx()]) {
+                                x[idx] = s.properties.cardDict[s.currentAction.idx()].getPhantomNNNumber();
+                            } else {
+                                x[idx] = -0.6f;
+                            }
+                        } else {
+                            x[idx] = s.currentAction == act ? 0.6f : -0.6f;
+                        }
                         return 1;
                     });
                     final String printLabel = "Select Card Discard Action " + action;
@@ -976,12 +1038,20 @@ public class NNInputSchema {
         // Select card from exhaust context actions
         if (props.actionsByCtx[GameActionCtx.SELECT_CARD_EXHAUST.ordinal()] != null) {
             for (GameAction action : props.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()]) {
-                if (action.type() == GameActionType.PLAY_CARD && props.cardDict[action.idx()].entityProperty.selectFromExhaust && action.idx() < props.realCardsLen) {
+                if (action.type() == GameActionType.PLAY_CARD && props.cardDict[action.idx()].entityProperty.selectFromExhaust && props.cardIdxToNNCardIdx[action.idx()] >= 0 && (!props.cardDict[action.idx()].isPhantom() || props.cardDict[action.idx()].getPhantomIdx() == 0)) {
                     inputLen += 1;
                     final GameAction act = action;
                     descBody.append("    1 input to keep track of currently played card ").append(props.cardDict[action.idx()].cardName).append(" for selecting card from exhaust\n");
                     inputModules.add((s, x, idx) -> {
-                        x[idx] = s.currentAction == act ? 0.6f : -0.6f;
+                        if (s.currentAction != null && act.type() == GameActionType.PLAY_CARD && s.properties.cardToPhantomCardsGroupsIdx[s.currentAction.idx()] >= 0) {
+                            if (s.properties.cardToPhantomCardsGroupsIdx[s.currentAction.idx()] == s.properties.phantomCardToPhantomCardsGroupsIdx[act.idx()]) {
+                                x[idx] = s.properties.cardDict[s.currentAction.idx()].getPhantomNNNumber();
+                            } else {
+                                x[idx] = -0.6f;
+                            }
+                        } else {
+                            x[idx] = s.currentAction == act ? 0.6f : -0.6f;
+                        }
                         return 1;
                     });
                     final String printLabel = "Select Card Exhaust Action " + action;
@@ -996,12 +1066,20 @@ public class NNInputSchema {
         // Select card from deck context actions
         if (props.actionsByCtx[GameActionCtx.SELECT_CARD_DECK.ordinal()] != null) {
             for (GameAction action : props.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()]) {
-                if (action.type() == GameActionType.PLAY_CARD && props.cardDict[action.idx()].entityProperty.selectFromDeck && action.idx() < props.realCardsLen) {
+                if (action.type() == GameActionType.PLAY_CARD && props.cardDict[action.idx()].entityProperty.selectFromDeck && props.cardIdxToNNCardIdx[action.idx()] >= 0 && (!props.cardDict[action.idx()].isPhantom() || props.cardDict[action.idx()].getPhantomIdx() == 0)) {
                     inputLen += 1;
                     final GameAction act = action;
                     descBody.append("    1 input to keep track of currently played card ").append(props.cardDict[action.idx()].cardName).append(" for selecting card from deck\n");
                     inputModules.add((s, x, idx) -> {
-                        x[idx] = s.currentAction == act ? 0.6f : -0.6f;
+                        if (s.currentAction != null && act.type() == GameActionType.PLAY_CARD && s.properties.cardToPhantomCardsGroupsIdx[s.currentAction.idx()] >= 0) {
+                            if (s.properties.cardToPhantomCardsGroupsIdx[s.currentAction.idx()] == s.properties.phantomCardToPhantomCardsGroupsIdx[act.idx()]) {
+                                x[idx] = s.properties.cardDict[s.currentAction.idx()].getPhantomNNNumber();
+                            } else {
+                                x[idx] = -0.6f;
+                            }
+                        } else {
+                            x[idx] = s.currentAction == act ? 0.6f : -0.6f;
+                        }
                         return 1;
                     });
                     final String printLabel = "Select Card Deck Action " + action;
@@ -1016,12 +1094,20 @@ public class NNInputSchema {
         // Scrying context actions
         if (props.actionsByCtx[GameActionCtx.SCRYING.ordinal()] != null) {
             for (GameAction action : props.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()]) {
-                if (action.type() == GameActionType.PLAY_CARD && props.cardDict[action.idx()].scry && action.idx() < props.realCardsLen) {
+                if (action.type() == GameActionType.PLAY_CARD && props.cardDict[action.idx()].scry && props.cardIdxToNNCardIdx[action.idx()] >= 0 && (!props.cardDict[action.idx()].isPhantom() || props.cardDict[action.idx()].getPhantomIdx() == 0)) {
                     inputLen += 1;
                     final GameAction act = action;
                     descBody.append("    1 input to keep track of currently played card ").append(props.cardDict[action.idx()].cardName).append(" for scrying\n");
                     inputModules.add((s, x, idx) -> {
-                        x[idx] = s.currentAction == act ? 0.6f : -0.6f;
+                        if (s.currentAction != null && act.type() == GameActionType.PLAY_CARD && s.properties.cardToPhantomCardsGroupsIdx[s.currentAction.idx()] >= 0) {
+                            if (s.properties.cardToPhantomCardsGroupsIdx[s.currentAction.idx()] == s.properties.phantomCardToPhantomCardsGroupsIdx[act.idx()]) {
+                                x[idx] = s.properties.cardDict[s.currentAction.idx()].getPhantomNNNumber();
+                            } else {
+                                x[idx] = -0.6f;
+                            }
+                        } else {
+                            x[idx] = s.currentAction == act ? 0.6f : -0.6f;
+                        }
                         return 1;
                     });
                     final String printLabel = "Scrying Action " + action;
@@ -1744,6 +1830,36 @@ public class NNInputSchema {
         preamble.append("Neural Network Input Breakdown (").append(inputLen).append(" inputs):\n");
         preamble.append(descBody);
         description = preamble.toString();
+    }
+
+    private List<List<Integer>> setNNPhantomGroupValue(GameState state, short[] arr, int arrStart, int arrLen, float[] nnInput, int startIdx, boolean isDiscard) {
+        var groups = new ArrayList<List<Integer>>();
+        for (int i = 0; i < state.properties.phantomCardsGroups.size(); i++) {
+            groups.add(new ArrayList<>());
+        }
+        for (int i = 0; i < arrLen; i++) {
+            if (state.properties.cardToPhantomCardsGroupsIdx[arr[arrStart + i]] >= 0) {
+                groups.get(state.properties.cardToPhantomCardsGroupsIdx[arr[arrStart + i]]).add(arrStart + i);
+            }
+        }
+        for (int i = 0; i < groups.size(); i++) {
+            var groupDefinition = state.properties.phantomCardsGroups.get(i);
+            var group = groups.get(i);
+            group.sort((o1, o2) -> Float.compare(state.properties.cardDict[arr[o2]].getPhantomNNNumber(), state.properties.cardDict[arr[o1]].getPhantomNNNumber()));
+            for (int j = 0; j < Math.min(Configuration.COMPACT_ENCODING_FOR_UNLIMITED_CARD_MAX_COPIES, group.size()); j++) {
+                var cardIdx = state.properties.cardIdxToNNCardIdx[groupDefinition.phantomCardIdxStart] + j;
+                if (isDiscard) {
+                    cardIdx = state.properties.discardReverseIdxes[groupDefinition.phantomCardIdxStart] + j;
+                }
+                nnInput[startIdx + cardIdx] = state.properties.cardDict[arr[group.get(j)]].getPhantomNNNumber();
+            }
+            var cardIdx = state.properties.cardIdxToNNCardIdx[groupDefinition.phantomCardIdxStart] + Configuration.COMPACT_ENCODING_FOR_UNLIMITED_CARD_MAX_COPIES;
+            if (isDiscard) {
+                cardIdx = state.properties.discardReverseIdxes[groupDefinition.phantomCardIdxStart] + Configuration.COMPACT_ENCODING_FOR_UNLIMITED_CARD_MAX_COPIES;
+            }
+            nnInput[startIdx + cardIdx] = Math.max(group.size() - Configuration.COMPACT_ENCODING_FOR_UNLIMITED_CARD_MAX_COPIES, 0) / 10.0f;
+        }
+        return groups;
     }
 
     float[] fillNNInput(GameState state) {

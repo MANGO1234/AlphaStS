@@ -95,6 +95,9 @@ public class Configuration {
     // reducing NN input size for Defect. Set to false to restore legacy 5-features-per-slot behavior.
     public static boolean USE_ORB_GENERATION_POSSIBLE_FOR_NN_INPUT = true;
 
+    // Use compact encoding for cards that can increase indefinitely (e.g. Thrash) that would otherwise bloat NN network if non-zero.
+    public static int COMPACT_ENCODING_FOR_UNLIMITED_CARD_MAX_COPIES = 4;
+
     // predict how many turns remains in the battle (regardless of win or loss), use it to select the move that
     // ends the battle faster among moves with similar evaluation
     // basic testing show it significantly helps in preventing losing to 50 turns and dramatically shorten number of turns

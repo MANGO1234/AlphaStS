@@ -8,10 +8,12 @@ import ai.onnxruntime.OrtSession.Result;
 import ai.onnxruntime.OrtSession.SessionOptions;
 import ai.onnxruntime.OrtSession.SessionOptions.OptLevel;
 import com.alphaStS.Configuration;
+import com.alphaStS.GameStateUtils;
 import com.alphaStS.utils.CrashException;
 import com.alphaStS.gameAction.GameActionCtx;
 import com.alphaStS.GameState;
 import com.alphaStS.utils.Utils;
+import org.apache.commons.io.filefilter.IOFileFilter;
 
 import java.util.*;
 
@@ -193,20 +195,51 @@ public class ModelPlain implements Model {
             float v_win = ((float[][]) output.get(1).getValue())[0][0];
 
             float[] policy = ((float[][]) output.get(2).getValue())[0];
-            if (state.properties.maxNumOfActions != state.properties.totalNumOfActions) {
-                if (state.getActionCtx() == GameActionCtx.PLAY_CARD) {
-                    policy = Arrays.copyOf(policy, state.properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()].length);
-                } else if (state.getActionCtx() == GameActionCtx.SELECT_ENEMY) {
-                    int startIdx = state.properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()].length;
-                    int lenToCopy = state.properties.actionsByCtx[GameActionCtx.SELECT_ENEMY.ordinal()].length;
-                    policy = Utils.arrayCopy(policy, startIdx, lenToCopy);
-                } else if (state.getActionCtx() == GameActionCtx.SELECT_SCENARIO) {
-                    int startIdx = state.properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()].length;
-                    if (state.properties.actionsByCtx[GameActionCtx.SELECT_ENEMY.ordinal()] != null) {
-                        startIdx += state.properties.actionsByCtx[GameActionCtx.SELECT_ENEMY.ordinal()].length;
+            if (state.getActionCtx() == GameActionCtx.SELECT_ENEMY) {
+                int startIdx = state.properties.playCardActionCtxPolicyLen;
+                int lenToCopy = state.properties.actionsByCtx[GameActionCtx.SELECT_ENEMY.ordinal()].length;
+                policy = Utils.arrayCopy(policy, startIdx, lenToCopy);
+            } else if (state.getActionCtx() == GameActionCtx.SELECT_SCENARIO) {
+                int startIdx = state.properties.playCardActionCtxPolicyLen;
+                if (state.properties.actionsByCtx[GameActionCtx.SELECT_ENEMY.ordinal()] != null) {
+                    startIdx += state.properties.actionsByCtx[GameActionCtx.SELECT_ENEMY.ordinal()].length;
+                }
+                int lenToCopy = state.properties.actionsByCtx[GameActionCtx.SELECT_SCENARIO.ordinal()].length;
+                policy = Utils.arrayCopy(policy, startIdx, lenToCopy);
+            } else if (state.getActionCtx() == GameActionCtx.PLAY_CARD || state.getActionCtx() == GameActionCtx.SELECT_CARD_DECK || state.getActionCtx() == GameActionCtx.SELECT_CARD_HAND || state.getActionCtx() == GameActionCtx.SELECT_CARD_DISCARD || state.getActionCtx() == GameActionCtx.SELECT_CARD_EXHAUST) {
+                var groups = new ArrayList<List<Short>>();
+                if (!state.properties.phantomCardsGroups.isEmpty()) {
+                    if (state.actionCtx == GameActionCtx.PLAY_CARD || state.actionCtx == GameActionCtx.SELECT_CARD_HAND) {
+                        GameStateUtils.cardArrToPhantomGroups(state, groups, state.getHandArrForRead(), state.handArrLen);
+                    } else if (state.actionCtx == GameActionCtx.SELECT_CARD_DECK) {
+                        GameStateUtils.cardArrToPhantomGroups(state, groups, state.getDeckArrForRead(), state.deckArrLen);
+                    } else if (state.actionCtx == GameActionCtx.SELECT_CARD_DISCARD) {
+                        GameStateUtils.cardArrToPhantomGroups(state, groups, state.getDiscardArrForRead(), state.discardArrLen);
+                    } else if (state.actionCtx == GameActionCtx.SELECT_CARD_EXHAUST) {
+                        GameStateUtils.cardArrToPhantomGroups(state, groups, state.getExhaustArrForRead(), state.exhaustArrLen);
+                    } else if (state.actionCtx == GameActionCtx.SCRYING) {
+                        // TODO
                     }
-                    int lenToCopy = state.properties.actionsByCtx[GameActionCtx.SELECT_SCENARIO.ordinal()].length;
-                    policy = Utils.arrayCopy(policy, startIdx, lenToCopy);
+                    if (!groups.isEmpty()) {
+                        var newPolicy = new float[state.properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()].length];
+                        Arrays.fill(newPolicy, -10000.0f);
+                        for (int i = 0; i < policy.length; i++) {
+                            if (i >= state.properties.NNCardIdxtoCardIdx.length) {
+                                newPolicy[state.properties.cardDict.length + (i - state.properties.NNCardIdxtoCardIdx.length)] = policy[i];
+                            } else {
+                                var cardIdx = state.properties.NNCardIdxtoCardIdx[i];
+                                if (state.properties.cardDict[cardIdx].isPhantom()) {
+                                    var phantomGroupIdx = state.properties.phantomCardToPhantomCardsGroupsIdx[cardIdx];
+                                    if (state.properties.cardDict[cardIdx].getPhantomIdx() < groups.get(phantomGroupIdx).size()) {
+                                        newPolicy[groups.get(phantomGroupIdx).get(state.properties.cardDict[cardIdx].getPhantomIdx())] = policy[i];
+                                    }
+                                } else {
+                                    newPolicy[cardIdx] = policy[i];
+                                }
+                            }
+                        }
+                        policy = newPolicy;
+                    }
                 }
             }
             if (state.getActionCtx() == GameActionCtx.SELECT_ENEMY) {
@@ -311,20 +344,51 @@ public class ModelPlain implements Model {
                 float v_win = ((float[][]) output.get(1).getValue())[row][0];
 
                 float[] policy = ((float[][]) output.get(2).getValue())[row];
-                if (state.properties.maxNumOfActions != state.properties.totalNumOfActions) {
-                    if (state.getActionCtx() == GameActionCtx.PLAY_CARD) {
-                        policy = Arrays.copyOf(policy, state.properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()].length);
-                    } else if (state.getActionCtx() == GameActionCtx.SELECT_ENEMY) {
-                        int startIdx = state.properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()].length;
-                        int lenToCopy = state.properties.actionsByCtx[GameActionCtx.SELECT_ENEMY.ordinal()].length;
-                        policy = Utils.arrayCopy(policy, startIdx, lenToCopy);
-                    } else if (state.getActionCtx() == GameActionCtx.SELECT_SCENARIO) {
-                        int startIdx = state.properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()].length;
-                        if (state.properties.actionsByCtx[GameActionCtx.SELECT_ENEMY.ordinal()] != null) {
-                            startIdx += state.properties.actionsByCtx[GameActionCtx.SELECT_ENEMY.ordinal()].length;
+                if (state.getActionCtx() == GameActionCtx.SELECT_ENEMY) {
+                    int startIdx = state.properties.playCardActionCtxPolicyLen;
+                    int lenToCopy = state.properties.actionsByCtx[GameActionCtx.SELECT_ENEMY.ordinal()].length;
+                    policy = Utils.arrayCopy(policy, startIdx, lenToCopy);
+                } else if (state.getActionCtx() == GameActionCtx.SELECT_SCENARIO) {
+                    int startIdx = state.properties.playCardActionCtxPolicyLen;
+                    if (state.properties.actionsByCtx[GameActionCtx.SELECT_ENEMY.ordinal()] != null) {
+                        startIdx += state.properties.actionsByCtx[GameActionCtx.SELECT_ENEMY.ordinal()].length;
+                    }
+                    int lenToCopy = state.properties.actionsByCtx[GameActionCtx.SELECT_SCENARIO.ordinal()].length;
+                    policy = Utils.arrayCopy(policy, startIdx, lenToCopy);
+                } else if (state.getActionCtx() == GameActionCtx.PLAY_CARD || state.getActionCtx() == GameActionCtx.SELECT_CARD_DECK || state.getActionCtx() == GameActionCtx.SELECT_CARD_HAND || state.getActionCtx() == GameActionCtx.SELECT_CARD_DISCARD || state.getActionCtx() == GameActionCtx.SELECT_CARD_EXHAUST) {
+                    var groups = new ArrayList<List<Short>>();
+                    if (!state.properties.phantomCardsGroups.isEmpty()) {
+                        if (state.actionCtx == GameActionCtx.PLAY_CARD || state.actionCtx == GameActionCtx.SELECT_CARD_HAND) {
+                            GameStateUtils.cardArrToPhantomGroups(state, groups, state.getHandArrForRead(), state.handArrLen);
+                        } else if (state.actionCtx == GameActionCtx.SELECT_CARD_DECK) {
+                            GameStateUtils.cardArrToPhantomGroups(state, groups, state.getDeckArrForRead(), state.deckArrLen);
+                        } else if (state.actionCtx == GameActionCtx.SELECT_CARD_DISCARD) {
+                            GameStateUtils.cardArrToPhantomGroups(state, groups, state.getDiscardArrForRead(), state.discardArrLen);
+                        } else if (state.actionCtx == GameActionCtx.SELECT_CARD_EXHAUST) {
+                            GameStateUtils.cardArrToPhantomGroups(state, groups, state.getExhaustArrForRead(), state.exhaustArrLen);
+                        } else if (state.actionCtx == GameActionCtx.SCRYING) {
+                            // TODO
                         }
-                        int lenToCopy = state.properties.actionsByCtx[GameActionCtx.SELECT_SCENARIO.ordinal()].length;
-                        policy = Utils.arrayCopy(policy, startIdx, lenToCopy);
+                        if (!groups.isEmpty()) {
+                            var newPolicy = new float[state.properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()].length];
+                            Arrays.fill(newPolicy, -10000.0f);
+                            for (int i = 0; i < policy.length; i++) {
+                                if (i >= state.properties.NNCardIdxtoCardIdx.length) {
+                                    newPolicy[state.properties.cardDict.length + (i - state.properties.NNCardIdxtoCardIdx.length)] = policy[i];
+                                } else {
+                                    var cardIdx = state.properties.NNCardIdxtoCardIdx[i];
+                                    if (state.properties.cardDict[cardIdx].isPhantom()) {
+                                        var phantomGroupIdx = state.properties.phantomCardToPhantomCardsGroupsIdx[cardIdx];
+                                        if (state.properties.cardDict[cardIdx].getPhantomIdx() < groups.get(phantomGroupIdx).size()) {
+                                            newPolicy[groups.get(phantomGroupIdx).get(state.properties.cardDict[cardIdx].getPhantomIdx())] = policy[i];
+                                        }
+                                    } else {
+                                        newPolicy[cardIdx] = policy[i];
+                                    }
+                                }
+                            }
+                            policy = newPolicy;
+                        }
                     }
                 }
 

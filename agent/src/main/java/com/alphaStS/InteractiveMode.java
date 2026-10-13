@@ -310,7 +310,7 @@ public class InteractiveMode {
 
     private void printDeck(GameState state) {
         out.println("Deck");
-        var deck = GameStateUtils.getCardArrCounts(state.getDeckArrForRead(), state.getNumCardsInDeck(), state.properties.realCardsLen);
+        var deck = GameStateUtils.getCardArrCounts(state.getDeckArrForRead(), state.getNumCardsInDeck(), state.properties.cardDict.length);
         for (int i = 0; i < deck.length; i++) {
             if (deck[i] > 0) {
                 out.println("  " + deck[i] + " " + state.properties.cardDict[i].cardName);
@@ -320,7 +320,7 @@ public class InteractiveMode {
 
     private void printDiscard(GameState state) {
         out.println("Discard");
-        var discard = GameStateUtils.getCardArrCounts(state.getDiscardArrForRead(), state.getNumCardsInDiscard(), state.properties.realCardsLen);
+        var discard = GameStateUtils.getCardArrCounts(state.getDiscardArrForRead(), state.getNumCardsInDiscard(), state.properties.cardDict.length);
         for (int i = 0; i < discard.length; i++) {
             if (discard[i] > 0 && (!state.properties.discard0CardOrderMatters || state.properties.cardDict[i].realEnergyCost() != 0)) {
                 out.println("  " + discard[i] + " " + state.properties.cardDict[i].cardName);
@@ -337,7 +337,7 @@ public class InteractiveMode {
 
     private void printExhaust(GameState state) {
         out.println("Exhaust");
-        var exhaust = GameStateUtils.getCardArrCounts(state.getExhaustArrForRead(), state.getNumCardsInExhaust(), state.properties.realCardsLen);
+        var exhaust = GameStateUtils.getCardArrCounts(state.getExhaustArrForRead(), state.getNumCardsInExhaust(), state.properties.cardDict.length);
         for (int i = 0; i < exhaust.length; i++) {
             if (exhaust[i] > 0) {
                 out.println("  " + exhaust[i] + " " + state.properties.cardDict[i].cardName);
@@ -1506,16 +1506,10 @@ public class InteractiveMode {
     }
 
     private void discardCardFromHandSelectScreen(BufferedReader reader, GameState state, List<String> history) throws IOException {
-        for (int i = 0; i < state.properties.realCardsLen; i++) {
-            out.println(i + ". " + state.properties.cardDict[i].cardName);
-        }
-        var idx = readIntCommand(reader, history, state.properties.realCardsLen);
         for (int i = 0; i < state.handArrLen; i++) {
-            if (state.getHandArrForRead()[i] == idx) {
-                state.discardCardFromHandByPositionNoTrigger(i);
-                break;
-            }
+            out.println(i + ". " + state.properties.cardDict[state.getHandArrForRead()[i]].cardName);
         }
+        state.discardCardFromHandByPositionNoTrigger(readIntCommand(reader, history, state.handArrLen));
     }
 
     int selectScenarioForRandomization(BufferedReader reader, GameStateRandomization randomization, List<String> history) throws IOException {

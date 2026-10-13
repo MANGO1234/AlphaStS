@@ -50,13 +50,21 @@ public class GameProperties implements Cloneable {
     public CharacterEnum character;
     public Card[] cardDict;
     public int realCardsLen; // not including CardTmpCostChange (e.g. from liquid memory)
+    public int[] cardIdxToNNCardIdx;
+    public int[] NNCardIdxtoCardIdx;
+    public int NNCardIdxLen;
+    public int NNRealCardIdxLen;
+    public List<PhantomCardGroup> phantomCardsGroups;
+    public int[] cardToPhantomCardsGroupsIdx;
+    public int[] phantomCardToPhantomCardsGroupsIdx;
+    public int playCardActionCtxPolicyLen;
     public List<Relic> relics;
     // defect specific
     public int maxNumOfOrbs;
     public EntityProperty anyEntityProperty = new EntityProperty();
     public EnemyList originalEnemies;
     public int maxNumOfActions;
-    public int totalNumOfActions;
+    public int policyLen;
     public GameAction[][] actionsByCtx;
     public GameStateRandomization preBattleRandomization;
     public GameStateRandomization preBattleScenarios;

@@ -2401,6 +2401,7 @@ public class CardIronclad2 {
             super(cardName, Card.ATTACK, 1, Card.RARE);
             this.damage = damage;
             entityProperty.selectEnemy = true;
+            exhaustAttacks = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed, int starUsed) {
@@ -2425,9 +2426,6 @@ public class CardIronclad2 {
 
         public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
             var c = new ArrayList<Card>();
-            if ((properties.generateCardOptions & GameProperties.GENERATE_CARD_THRASH) == 0) {
-                return c;
-            }
             for (Card card : cards) {
                 if (card.getBaseCard() instanceof _ThrashT t && t.sameUpgrade(this)) {
                     for (int j = t.damage + 1; j <= GameProperties.maxThrashDamage; j++) {
@@ -2456,6 +2454,10 @@ public class CardIronclad2 {
         abstract Card newCard(int damage);
 
         abstract boolean sameUpgrade(_ThrashT other);
+
+        @Override public float getPhantomNNNumber() {
+            return damage / 50.0f;
+        }
     }
 
     public static class Thrash extends _ThrashT {
@@ -2478,6 +2480,10 @@ public class CardIronclad2 {
         @Override public Card getUpgrade() {
             return new ThrashP(damage);
         }
+
+        @Override public Card getCardWithOriginalNumber() {
+            return new Thrash(4);
+        }
     }
 
     public static class ThrashP extends _ThrashT {
@@ -2499,6 +2505,10 @@ public class CardIronclad2 {
 
         @Override public Card getDowngrade() {
             return new Thrash(damage);
+        }
+
+        @Override public Card getCardWithOriginalNumber() {
+            return new ThrashP(6);
         }
     }
 
