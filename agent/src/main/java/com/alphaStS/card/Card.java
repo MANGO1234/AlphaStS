@@ -126,9 +126,12 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
     public List<Card> getPossibleTransformTmpCostCards(List<Card> cards) { return List.of(); }
     public int getBaseAttackDamage(GameState state) { return cardType == Card.ATTACK ? damage : -1; }
     public int getAttackDamage(GameState state) {
-        int dmg = getBaseAttackDamage(state);
+        double dmg = getBaseAttackDamage(state);
         dmg += state.getPlayerForRead().getStrength();
-        return dmg;
+        if (state.getPlayerForRead().getWeak() > 0) {
+            dmg *= 0.75;
+        }
+        return (int) dmg;
     }
     public int onPlayTransformCardIdx(GameState state, int cardIdx) { return -1; }
     public boolean canSelectCard(Card card) { return true; }

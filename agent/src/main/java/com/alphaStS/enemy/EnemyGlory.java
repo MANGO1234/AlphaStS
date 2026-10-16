@@ -1268,12 +1268,16 @@ public class EnemyGlory {
                 state.getPlayerForWrite().applyDebuff(state, DebuffType.WEAK, 99);
                 state.getPlayerForWrite().applyDebuff(state, DebuffType.VULNERABLE, 99);
             } else if (move == BURN_BRIGHT_FOR_ME) {
+                boolean alive = false;
                 for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
                     if (enemy instanceof TorchHeadAmalgam) {
                         enemy.gainStrength(1);
+                        alive = true;
                     }
                 }
-                gainBlock(20);
+                if (alive) {
+                    gainBlock(20);
+                }
             } else if (move == OFF_WITH_YOUR_HEAD) {
                 state.enemyDoDamageToPlayer(this, 4, 5);
             } else if (move == EXECUTION) {

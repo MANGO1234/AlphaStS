@@ -1223,7 +1223,7 @@ public class CardIronclad2 {
                     }
                 }
             });
-            state.properties.addPreEndOfTurnHandler("Rupture2", new GameEventHandler() {
+            state.properties.addEndOfTurnHandler("Rupture2", new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     state.getCounterForWrite()[counterIdx + 1] = 0;
                 }
@@ -2446,8 +2446,7 @@ public class CardIronclad2 {
                 return -1;
             }
             state.getCounterForWrite()[counterIdx] = 0;
-            int currentDamage = state.properties.cardDict[cardIdx].getAttackDamage(state);
-            int newDamage = Math.min(GameProperties.maxThrashDamage, currentDamage + gainedDamage);
+            int newDamage = Math.min(GameProperties.maxThrashDamage, damage + gainedDamage);
             return state.properties.findCardIndex(state.properties.cardDict[cardIdx].wrap(newCard(newDamage)));
         }
 

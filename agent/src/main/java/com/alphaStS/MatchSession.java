@@ -1493,6 +1493,19 @@ public class MatchSession {
                             GameStateUtils.cardArrToPhantomGroups(state, groups, state.getDiscardArrForRead(), state.discardArrLen);
                         } else if (state.actionCtx == GameActionCtx.SELECT_CARD_EXHAUST) {
                             GameStateUtils.cardArrToPhantomGroups(state, groups, state.getExhaustArrForRead(), state.exhaustArrLen);
+                        } else if (state.actionCtx == GameActionCtx.SELECT_CARD_1_OUT_OF_3) {
+                            short[] arr = new short[3];
+                            int len = 0;
+                            if ((state.select1OutOf3CardsIdxes & 255) < 255) {
+                                arr[len++] = (short) state.properties.select1OutOf3CardsIdxes[(state.select1OutOf3CardsIdxes & 255)];
+                            }
+                            if (((state.select1OutOf3CardsIdxes >> 8) & 255) < 255) {
+                                arr[len++] = (short) state.properties.select1OutOf3CardsIdxes[(state.select1OutOf3CardsIdxes >> 8) & 255];
+                            }
+                            if (((state.select1OutOf3CardsIdxes >> 16) & 255) < 255) {
+                                arr[len++] = (short) state.properties.select1OutOf3CardsIdxes[(state.select1OutOf3CardsIdxes >> 16) & 255];
+                            }
+                            GameStateUtils.cardArrToPhantomGroups(state, groups, arr, len);
                         } else if (state.actionCtx == GameActionCtx.SCRYING) {
                             // TODO: scry
                         }
@@ -1504,7 +1517,7 @@ public class MatchSession {
                         if (state.isActionLegal(action)) {
                             if (idx < state.getLegalActions().length && state.getLegalActions()[idx] == action) {
                                 var writeIdx = policyIdx;
-                                if (action < state.properties.cardDict.length && !groups.isEmpty() && state.properties.cardToPhantomCardsGroupsIdx[action] >= 0) {
+                                if (action < state.properties.cardDict.length && state.properties.cardToPhantomCardsGroupsIdx[action] >= 0) {
                                     var phantomGroupIdx = state.properties.cardToPhantomCardsGroupsIdx[action];
                                     var phantomCardIdxStart = state.properties.phantomCardsGroups.get(phantomGroupIdx).phantomCardIdxStart;
                                     var sortedIdx = groups.get(phantomGroupIdx).indexOf((short) action);
@@ -1525,14 +1538,14 @@ public class MatchSession {
                                     }
                                     playCardPolicy[writeIdx] += (float) (((double) state.n[idx++]) / state.total_n);
                                 }
-                                if (!(action < state.properties.cardDict.length && !groups.isEmpty() && state.properties.cardToPhantomCardsGroupsIdx[action] >= 0)) {
+                                if (!(action < state.properties.cardDict.length && state.properties.cardToPhantomCardsGroupsIdx[action] >= 0)) {
                                     policyIdx++;
                                 }
                             } else {
                                 throw CrashException.builder().withState(state).withAction(action).build();
                             }
                         } else {
-                            if (!(action < state.properties.cardDict.length && !groups.isEmpty() && state.properties.cardToPhantomCardsGroupsIdx[action] >= 0)) {
+                            if (!(action < state.properties.cardDict.length && state.properties.cardToPhantomCardsGroupsIdx[action] >= 0)) {
                                 policyIdx++;
                             }
                         }

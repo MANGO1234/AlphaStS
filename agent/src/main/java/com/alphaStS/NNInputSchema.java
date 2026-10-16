@@ -386,7 +386,7 @@ public class NNInputSchema {
                     }
                     if (Configuration.COMPACT_ENCODING_FOR_UNLIMITED_CARD_MAX_COPIES > 0) {
                         var remain = Math.min(s.deckArrFixedDrawLen - i, 5);
-                        var start = s.deckArrLen - 1 - remain;
+                        var start = s.deckArrLen - remain;
                         setNNPhantomGroupValue(s, s.deckArr, start, remain, x, idx, false);
                     }
                     tmpIdx += s.properties.NNRealCardIdxLen;
@@ -933,7 +933,7 @@ public class NNInputSchema {
         // Select enemy context actions
         if (props.actionsByCtx[GameActionCtx.SELECT_ENEMY.ordinal()] != null && enemies.size() > 1) {
             for (GameAction action : props.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()]) {
-                if ((action.type() == GameActionType.PLAY_CARD && props.cardDict[action.idx()].entityProperty.selectEnemy && props.cardIdxToNNCardIdx[action.idx()] >= 0 && (!props.cardDict[action.idx()].isPhantom() || props.cardDict[action.idx()].getPhantomIdx() == 0)) ||
+                if ((action.type() == GameActionType.PLAY_CARD && props.cardDict[action.idx()].entityProperty.selectEnemy && props.cardIdxToNNCardIdx[action.idx()] >= 0 && action.idx() < props.realCardsLen && (!props.cardDict[action.idx()].isPhantom() || props.cardDict[action.idx()].getPhantomIdx() == 0)) ||
                         (action.type() == GameActionType.USE_POTION && props.potions.get(action.idx()).entityProperty.selectEnemy)) {
                     inputLen += 1;
                     final GameAction act = action;
@@ -968,7 +968,7 @@ public class NNInputSchema {
         // Select card from hand context actions
         if (props.actionsByCtx[GameActionCtx.SELECT_CARD_HAND.ordinal()] != null) {
             for (GameAction action : props.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()]) {
-                if ((action.type() == GameActionType.PLAY_CARD && props.cardDict[action.idx()].entityProperty.selectFromHand && props.cardIdxToNNCardIdx[action.idx()] >= 0 && (!props.cardDict[action.idx()].isPhantom() || props.cardDict[action.idx()].getPhantomIdx() == 0)) ||
+                if ((action.type() == GameActionType.PLAY_CARD && props.cardDict[action.idx()].entityProperty.selectFromHand && props.cardIdxToNNCardIdx[action.idx()] >= 0 && action.idx() < props.realCardsLen && (!props.cardDict[action.idx()].isPhantom() || props.cardDict[action.idx()].getPhantomIdx() == 0)) ||
                         (action.type() == GameActionType.USE_POTION && props.potions.get(action.idx()).entityProperty.selectFromHand)) {
                     inputLen += 1;
                     final GameAction act = action;
@@ -1003,7 +1003,7 @@ public class NNInputSchema {
         // Select card from discard context actions
         if (props.actionsByCtx[GameActionCtx.SELECT_CARD_DISCARD.ordinal()] != null) {
             for (GameAction action : props.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()]) {
-                if ((action.type() == GameActionType.PLAY_CARD && props.cardDict[action.idx()].entityProperty.selectFromDiscard && props.cardIdxToNNCardIdx[action.idx()] >= 0 && (!props.cardDict[action.idx()].isPhantom() || props.cardDict[action.idx()].getPhantomIdx() == 0)) ||
+                if ((action.type() == GameActionType.PLAY_CARD && props.cardDict[action.idx()].entityProperty.selectFromDiscard && props.cardIdxToNNCardIdx[action.idx()] >= 0 && action.idx() < props.realCardsLen && (!props.cardDict[action.idx()].isPhantom() || props.cardDict[action.idx()].getPhantomIdx() == 0)) ||
                         (action.type() == GameActionType.USE_POTION && props.potions.get(action.idx()).entityProperty.selectFromDiscard)) {
                     inputLen += 1;
                     final GameAction act = action;
@@ -1038,7 +1038,7 @@ public class NNInputSchema {
         // Select card from exhaust context actions
         if (props.actionsByCtx[GameActionCtx.SELECT_CARD_EXHAUST.ordinal()] != null) {
             for (GameAction action : props.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()]) {
-                if (action.type() == GameActionType.PLAY_CARD && props.cardDict[action.idx()].entityProperty.selectFromExhaust && props.cardIdxToNNCardIdx[action.idx()] >= 0 && (!props.cardDict[action.idx()].isPhantom() || props.cardDict[action.idx()].getPhantomIdx() == 0)) {
+                if (action.type() == GameActionType.PLAY_CARD && props.cardDict[action.idx()].entityProperty.selectFromExhaust && props.cardIdxToNNCardIdx[action.idx()] >= 0 && action.idx() < props.realCardsLen && (!props.cardDict[action.idx()].isPhantom() || props.cardDict[action.idx()].getPhantomIdx() == 0)) {
                     inputLen += 1;
                     final GameAction act = action;
                     descBody.append("    1 input to keep track of currently played card ").append(props.cardDict[action.idx()].cardName).append(" for selecting card from exhaust\n");
@@ -1066,7 +1066,7 @@ public class NNInputSchema {
         // Select card from deck context actions
         if (props.actionsByCtx[GameActionCtx.SELECT_CARD_DECK.ordinal()] != null) {
             for (GameAction action : props.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()]) {
-                if (action.type() == GameActionType.PLAY_CARD && props.cardDict[action.idx()].entityProperty.selectFromDeck && props.cardIdxToNNCardIdx[action.idx()] >= 0 && (!props.cardDict[action.idx()].isPhantom() || props.cardDict[action.idx()].getPhantomIdx() == 0)) {
+                if (action.type() == GameActionType.PLAY_CARD && props.cardDict[action.idx()].entityProperty.selectFromDeck && props.cardIdxToNNCardIdx[action.idx()] >= 0 && action.idx() < props.realCardsLen && (!props.cardDict[action.idx()].isPhantom() || props.cardDict[action.idx()].getPhantomIdx() == 0)) {
                     inputLen += 1;
                     final GameAction act = action;
                     descBody.append("    1 input to keep track of currently played card ").append(props.cardDict[action.idx()].cardName).append(" for selecting card from deck\n");
@@ -1094,7 +1094,7 @@ public class NNInputSchema {
         // Scrying context actions
         if (props.actionsByCtx[GameActionCtx.SCRYING.ordinal()] != null) {
             for (GameAction action : props.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()]) {
-                if (action.type() == GameActionType.PLAY_CARD && props.cardDict[action.idx()].scry && props.cardIdxToNNCardIdx[action.idx()] >= 0 && (!props.cardDict[action.idx()].isPhantom() || props.cardDict[action.idx()].getPhantomIdx() == 0)) {
+                if (action.type() == GameActionType.PLAY_CARD && props.cardDict[action.idx()].scry && props.cardIdxToNNCardIdx[action.idx()] >= 0 && action.idx() < props.realCardsLen && (!props.cardDict[action.idx()].isPhantom() || props.cardDict[action.idx()].getPhantomIdx() == 0)) {
                     inputLen += 1;
                     final GameAction act = action;
                     descBody.append("    1 input to keep track of currently played card ").append(props.cardDict[action.idx()].cardName).append(" for scrying\n");

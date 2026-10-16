@@ -206,7 +206,7 @@ public class ModelPlain implements Model {
                 }
                 int lenToCopy = state.properties.actionsByCtx[GameActionCtx.SELECT_SCENARIO.ordinal()].length;
                 policy = Utils.arrayCopy(policy, startIdx, lenToCopy);
-            } else if (state.getActionCtx() == GameActionCtx.PLAY_CARD || state.getActionCtx() == GameActionCtx.SELECT_CARD_DECK || state.getActionCtx() == GameActionCtx.SELECT_CARD_HAND || state.getActionCtx() == GameActionCtx.SELECT_CARD_DISCARD || state.getActionCtx() == GameActionCtx.SELECT_CARD_EXHAUST) {
+            } else if (state.getActionCtx() == GameActionCtx.PLAY_CARD || state.getActionCtx() == GameActionCtx.SELECT_CARD_DECK || state.getActionCtx() == GameActionCtx.SELECT_CARD_HAND || state.getActionCtx() == GameActionCtx.SELECT_CARD_DISCARD || state.getActionCtx() == GameActionCtx.SELECT_CARD_EXHAUST || state.getActionCtx() == GameActionCtx.SELECT_CARD_1_OUT_OF_3) {
                 var groups = new ArrayList<List<Short>>();
                 if (!state.properties.phantomCardsGroups.isEmpty()) {
                     if (state.actionCtx == GameActionCtx.PLAY_CARD || state.actionCtx == GameActionCtx.SELECT_CARD_HAND) {
@@ -217,13 +217,26 @@ public class ModelPlain implements Model {
                         GameStateUtils.cardArrToPhantomGroups(state, groups, state.getDiscardArrForRead(), state.discardArrLen);
                     } else if (state.actionCtx == GameActionCtx.SELECT_CARD_EXHAUST) {
                         GameStateUtils.cardArrToPhantomGroups(state, groups, state.getExhaustArrForRead(), state.exhaustArrLen);
+                    } else if (state.actionCtx == GameActionCtx.SELECT_CARD_1_OUT_OF_3) {
+                        short[] arr = new short[3];
+                        int len = 0;
+                        if ((state.select1OutOf3CardsIdxes & 255) < 255) {
+                            arr[len++] = (short) state.properties.select1OutOf3CardsIdxes[(state.select1OutOf3CardsIdxes & 255)];
+                        }
+                        if (((state.select1OutOf3CardsIdxes >> 8) & 255) < 255) {
+                            arr[len++] = (short) state.properties.select1OutOf3CardsIdxes[(state.select1OutOf3CardsIdxes >> 8) & 255];
+                        }
+                        if (((state.select1OutOf3CardsIdxes >> 16) & 255) < 255) {
+                            arr[len++] = (short) state.properties.select1OutOf3CardsIdxes[(state.select1OutOf3CardsIdxes >> 16) & 255];
+                        }
+                        GameStateUtils.cardArrToPhantomGroups(state, groups, arr, len);
                     } else if (state.actionCtx == GameActionCtx.SCRYING) {
                         // TODO
                     }
                     if (!groups.isEmpty()) {
                         var newPolicy = new float[state.properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()].length];
                         Arrays.fill(newPolicy, -10000.0f);
-                        for (int i = 0; i < policy.length; i++) {
+                        for (int i = 0; i < state.properties.playCardActionCtxPolicyLen; i++) {
                             if (i >= state.properties.NNCardIdxtoCardIdx.length) {
                                 newPolicy[state.properties.cardDict.length + (i - state.properties.NNCardIdxtoCardIdx.length)] = policy[i];
                             } else {
@@ -355,7 +368,7 @@ public class ModelPlain implements Model {
                     }
                     int lenToCopy = state.properties.actionsByCtx[GameActionCtx.SELECT_SCENARIO.ordinal()].length;
                     policy = Utils.arrayCopy(policy, startIdx, lenToCopy);
-                } else if (state.getActionCtx() == GameActionCtx.PLAY_CARD || state.getActionCtx() == GameActionCtx.SELECT_CARD_DECK || state.getActionCtx() == GameActionCtx.SELECT_CARD_HAND || state.getActionCtx() == GameActionCtx.SELECT_CARD_DISCARD || state.getActionCtx() == GameActionCtx.SELECT_CARD_EXHAUST) {
+                } else if (state.getActionCtx() == GameActionCtx.PLAY_CARD || state.getActionCtx() == GameActionCtx.SELECT_CARD_DECK || state.getActionCtx() == GameActionCtx.SELECT_CARD_HAND || state.getActionCtx() == GameActionCtx.SELECT_CARD_DISCARD || state.getActionCtx() == GameActionCtx.SELECT_CARD_EXHAUST || state.getActionCtx() == GameActionCtx.SELECT_CARD_1_OUT_OF_3) {
                     var groups = new ArrayList<List<Short>>();
                     if (!state.properties.phantomCardsGroups.isEmpty()) {
                         if (state.actionCtx == GameActionCtx.PLAY_CARD || state.actionCtx == GameActionCtx.SELECT_CARD_HAND) {
@@ -366,13 +379,26 @@ public class ModelPlain implements Model {
                             GameStateUtils.cardArrToPhantomGroups(state, groups, state.getDiscardArrForRead(), state.discardArrLen);
                         } else if (state.actionCtx == GameActionCtx.SELECT_CARD_EXHAUST) {
                             GameStateUtils.cardArrToPhantomGroups(state, groups, state.getExhaustArrForRead(), state.exhaustArrLen);
+                        } else if (state.actionCtx == GameActionCtx.SELECT_CARD_1_OUT_OF_3) {
+                            short[] arr = new short[3];
+                            int len = 0;
+                            if ((state.select1OutOf3CardsIdxes & 255) < 255) {
+                                arr[len++] = (short) state.properties.select1OutOf3CardsIdxes[(state.select1OutOf3CardsIdxes & 255)];
+                            }
+                            if (((state.select1OutOf3CardsIdxes >> 8) & 255) < 255) {
+                                arr[len++] = (short) state.properties.select1OutOf3CardsIdxes[(state.select1OutOf3CardsIdxes >> 8) & 255];
+                            }
+                            if (((state.select1OutOf3CardsIdxes >> 16) & 255) < 255) {
+                                arr[len++] = (short) state.properties.select1OutOf3CardsIdxes[(state.select1OutOf3CardsIdxes >> 16) & 255];
+                            }
+                            GameStateUtils.cardArrToPhantomGroups(state, groups, arr, len);
                         } else if (state.actionCtx == GameActionCtx.SCRYING) {
                             // TODO
                         }
                         if (!groups.isEmpty()) {
                             var newPolicy = new float[state.properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()].length];
                             Arrays.fill(newPolicy, -10000.0f);
-                            for (int i = 0; i < policy.length; i++) {
+                            for (int i = 0; i < state.properties.playCardActionCtxPolicyLen; i++) {
                                 if (i >= state.properties.NNCardIdxtoCardIdx.length) {
                                     newPolicy[state.properties.cardDict.length + (i - state.properties.NNCardIdxtoCardIdx.length)] = policy[i];
                                 } else {

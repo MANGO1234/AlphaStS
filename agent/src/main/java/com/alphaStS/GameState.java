@@ -89,7 +89,7 @@ public final class GameState implements State {
     private DrawOrder drawOrder;
     private boolean counterCloned;
     private int[] counter;
-    int select1OutOf3CardsIdxes; // 3 bytes inside an int
+    public int select1OutOf3CardsIdxes; // 3 bytes inside an int
     boolean potionsStateCloned;
     short[] potionsState;
     public boolean searchRandomGenCloned;
@@ -4959,7 +4959,8 @@ public final class GameState implements State {
         getPlayerForWrite().gainStrength(n);
     }
 
-    private int applyCardBlockModification(int n) {
+    private int applyCardBlockModification(int n_int) {
+        double n = n_int;
         n += getPlayerForRead().getDexterity();
         if (currentlyPlayedCardIdx >= 0 && properties.cardDict[currentlyPlayedCardIdx] instanceof Card.CardWrapper cw && cw.mod.nimble > 0) {
             n += cw.mod.nimble;
@@ -4967,7 +4968,7 @@ public final class GameState implements State {
         if (properties.noMoreBlockFromCardsCounterIdx >= 0 && getCounterForRead()[properties.noMoreBlockFromCardsCounterIdx] > 0) {
             return 0;
         }
-        n = getPlayerForRead().getFrail() > 0? (n - (n + 3) / 4) : n;
+        n = getPlayerForRead().getFrail() > 0? n * 0.75 : n;
         if (n < 0) {
             n = 0;
         }
@@ -4994,7 +4995,7 @@ public final class GameState implements State {
                 && properties.cardDict[currentAction.idx()].cardName.contains("Minion")) {
             n *= 2;
         }
-        return n;
+        return (int) n;
     }
 
     public int playerGainBlock(int n) {
